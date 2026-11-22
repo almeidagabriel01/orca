@@ -14,12 +14,13 @@ export type UsageRowWidths = {
   chipGap: number
   unitLabelWidth: number
   moreChipWidth: number
-  /** Per provider, its chip width at each level. */
+  /** Per chip id, its width at each level. */
   chips: Record<string, readonly [number, number, number]>
 }
 
 export type UsageChipFacts = {
-  provider: string
+  /** The chip's identity: its provider, or provider and account for a saved account's chip. */
+  id: string
   urgent: boolean
   /** Per level: the chip renders a percentage, so the leading unit label covers it. */
   percentage: readonly [boolean, boolean, boolean]
@@ -35,7 +36,7 @@ function rowWidth(
   chips: readonly UsageChipFacts[],
   level: UsageRowLevel
 ): number {
-  const items = chips.map((chip) => widths.chips[chip.provider]?.[level] ?? 0)
+  const items = chips.map((chip) => widths.chips[chip.id]?.[level] ?? 0)
   if (chips.some((chip) => chip.percentage[level])) {
     items.push(widths.unitLabelWidth)
   }
@@ -57,8 +58,8 @@ export function chooseUsageRowLayout(
   }
   const collapsed = pickCollapsedUsageChips(
     chips.map((chip) => ({
-      provider: chip.provider,
-      width: widths.chips[chip.provider]?.[2] ?? 0,
+      id: chip.id,
+      width: widths.chips[chip.id]?.[2] ?? 0,
       urgent: chip.urgent,
       percentage: chip.percentage[2]
     })),
@@ -72,7 +73,7 @@ export function chooseUsageRowLayout(
 
 /** Collapse calm chips from the roster’s end before urgent chips until the overflow and replacement chip fit. */
 export function pickCollapsedUsageChips(
-  chips: readonly { provider: string; width: number; urgent: boolean; percentage: boolean }[],
+  chips: readonly { id: string; width: number; urgent: boolean; percentage: boolean }[],
   overflowPx: number,
   moreChipWidth: number,
   chipGap: number,
@@ -94,7 +95,7 @@ export function pickCollapsedUsageChips(
     if (freed >= needed) {
       break
     }
-    collapsed.push(chip.provider)
+    collapsed.push(chip.id)
     freed += chip.width + chipGap
     if (chip.percentage) {
       remainingPercentageChips -= 1

@@ -215,6 +215,7 @@ export const UiUpdateFields = z
     statusBarVisible: z.boolean().optional(),
     usagePercentageDisplay: z.enum(['used', 'remaining']).optional(),
     statusBarUsageMode: z.enum(['verbose', 'compact']).optional(),
+    statusBarUsageAccounts: z.enum(['active', 'all']).optional(),
     statusBarUsageFormat: z
       .object({
         template: z.string(),

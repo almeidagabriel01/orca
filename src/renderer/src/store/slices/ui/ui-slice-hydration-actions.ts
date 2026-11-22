@@ -1,4 +1,4 @@
-import { normalizeStatusBarUsageFormat } from '../../../../../shared/status-bar/status-bar-usage-format'
+import { normalizeStatusBarUsagePreferences } from '../../../../../shared/status-bar/status-bar-usage-preferences'
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
 import type { AppState } from '../../types'
 import { normalizeRightSidebarRoute } from '../right-sidebar/right-sidebar-route'
@@ -31,8 +31,6 @@ import { PET_SIZE_DEFAULT, PET_SIZE_MAX, PET_SIZE_MIN } from '../../../../../sha
 import { clampMarkdownTocPanelWidth } from '../../../../../shared/editor/markdown/markdown-toc-panel-width'
 import { clampCombinedDiffFileTreeWidth } from '../../../../../shared/source-control/diff/combined-diff-file-tree-width'
 import { parsePersistedAutomationHostFilter } from '../../../../../shared/automations/ownership/automation-host-filter'
-import { normalizeUsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
-import { normalizeStatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
 import { normalizeBrowserPageZoomLevel } from '../../../../../shared/browser/site-settings/browser-page-zoom'
 import { normalizeKagiSessionLink } from '../../../../../shared/browser/navigation/browser-url'
 import { isReleaseChannel } from '../../../../../shared/updater/release-channel'
@@ -194,9 +192,7 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
           syncTaskStatusFromWorkspaceBoard: ui.syncTaskStatusFromWorkspaceBoard === true,
           statusBarItems: statusBarItemsWithGrok,
           statusBarVisible: ui.statusBarVisible ?? true,
-          usagePercentageDisplay: normalizeUsagePercentageDisplay(ui.usagePercentageDisplay),
-          statusBarUsageMode: normalizeStatusBarUsageMode(ui.statusBarUsageMode),
-          statusBarUsageFormat: normalizeStatusBarUsageFormat(ui.statusBarUsageFormat),
+          ...normalizeStatusBarUsagePreferences(ui),
           // Why: default true so existing users see the pet on first enabling the flag; only an explicit Hide persists false.
           petVisible: ui.petVisible ?? ui.sidekickVisible ?? true,
           petSize: clampPetSize(ui.petSize ?? ui.sidekickSize ?? PET_SIZE_DEFAULT, {

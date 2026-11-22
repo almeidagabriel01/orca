@@ -19,6 +19,7 @@ import type {
 } from '../../../../../shared/remote-runtime/pairing/pairing-local-ui-fields'
 import type { PersistedUIState } from '../../../../../shared/orca-profiles/persisted-ui-state-types'
 import { normalizeStatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
+import { normalizeStatusBarUsageAccounts } from '../../../../../shared/status-bar/status-bar-usage-accounts'
 import { normalizeStatusBarUsageFormat } from '../../../../../shared/status-bar/status-bar-usage-format'
 import { normalizeUsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { mergeWorkspaceCleanupUIState } from '../../../../../shared/workspace-cleanup/workspace-cleanup-ui-state'
@@ -56,6 +57,9 @@ export function mergeWebUIState(
     ),
     statusBarUsageMode: normalizeStatusBarUsageMode(
       safeUpdates.statusBarUsageMode ?? base.statusBarUsageMode
+    ),
+    statusBarUsageAccounts: normalizeStatusBarUsageAccounts(
+      safeUpdates.statusBarUsageAccounts ?? base.statusBarUsageAccounts
     ),
     statusBarUsageFormat: normalizeStatusBarUsageFormat(
       safeUpdates.statusBarUsageFormat ?? base.statusBarUsageFormat

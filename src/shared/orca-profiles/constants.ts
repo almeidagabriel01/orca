@@ -25,6 +25,7 @@ import {
 } from '../agent-status/presentation/agents-view-thread-filters'
 import { DEFAULT_USAGE_PERCENTAGE_DISPLAY } from '../agent-usage/display/usage-percentage-display'
 import { DEFAULT_STATUS_BAR_USAGE_MODE } from '../status-bar/status-bar-usage-mode'
+import { DEFAULT_STATUS_BAR_USAGE_ACCOUNTS } from '../status-bar/status-bar-usage-accounts'
 import { DEFAULT_STATUS_BAR_USAGE_FORMAT } from '../status-bar/status-bar-usage-format'
 import { buildDefaultSettings } from '../settings/default-global-settings'
 import { DEFAULT_BROWSER_PAGE_ZOOM_LEVEL } from '../browser/site-settings/browser-page-zoom'
@@ -185,6 +186,7 @@ export function getDefaultUIState(): PersistedUIState {
     statusBarVisible: true,
     usagePercentageDisplay: DEFAULT_USAGE_PERCENTAGE_DISPLAY,
     statusBarUsageMode: DEFAULT_STATUS_BAR_USAGE_MODE,
+    statusBarUsageAccounts: DEFAULT_STATUS_BAR_USAGE_ACCOUNTS,
     statusBarUsageFormat: { ...DEFAULT_STATUS_BAR_USAGE_FORMAT },
     dismissedUpdateVersion: null,
     dismissedUnexpectedSignoutVersion: null,

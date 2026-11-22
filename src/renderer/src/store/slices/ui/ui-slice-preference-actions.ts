@@ -25,6 +25,10 @@ import {
   normalizeStatusBarUsageMode
 } from '../../../../../shared/status-bar/status-bar-usage-mode'
 import {
+  DEFAULT_STATUS_BAR_USAGE_ACCOUNTS,
+  normalizeStatusBarUsageAccounts
+} from '../../../../../shared/status-bar/status-bar-usage-accounts'
+import {
   normalizeExecutionHostOrder,
   normalizeExecutionHostScope,
   normalizeVisibleExecutionHostIds
@@ -299,6 +303,12 @@ export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Par
       const normalized = normalizeStatusBarUsageFormat(format)
       window.api.ui.set({ statusBarUsageFormat: normalized }).catch(console.error)
       set({ statusBarUsageFormat: normalized })
+    },
+    statusBarUsageAccounts: DEFAULT_STATUS_BAR_USAGE_ACCOUNTS,
+    setStatusBarUsageAccounts: (accounts) => {
+      const normalized = normalizeStatusBarUsageAccounts(accounts)
+      window.api.ui.set({ statusBarUsageAccounts: normalized }).catch(console.error)
+      set({ statusBarUsageAccounts: normalized })
     },
     statusBarUsageMode: DEFAULT_STATUS_BAR_USAGE_MODE,
     setStatusBarUsageMode: (mode) => {

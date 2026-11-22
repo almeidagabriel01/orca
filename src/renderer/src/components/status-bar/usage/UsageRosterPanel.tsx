@@ -2,7 +2,6 @@ import React from 'react'
 import { ChevronRight, RefreshCw } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/class-names'
-import { SettingsSegmentedControl } from '@/components/settings/form-controls/SettingsFormControls'
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { useIntlLocale, useTranslate, type Translate } from '@/i18n/use-translate'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
@@ -12,6 +11,8 @@ import { getProviderDisplayName } from '../../../../../shared/agent-usage/displa
 import { formatPlanLabel } from './usage-roster-formatting'
 import { getUsageRosterRowState, type UsageRosterRowState } from './usage-roster-row-state'
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
+import type { StatusBarUsageAccounts } from '../../../../../shared/status-bar/status-bar-usage-accounts'
+import { UsageRowPreferencePickers } from './UsageRowPreferencePickers'
 import {
   getTopScopedSection,
   getUrgentScopedSection,
@@ -267,6 +268,8 @@ export function UsageRosterPanel({
   display,
   statusBarUsageMode,
   onStatusBarUsageModeChange,
+  usageAccounts,
+  onUsageAccountsChange,
   isRefreshing,
   onRefresh,
   onOpenProvider,
@@ -280,6 +283,9 @@ export function UsageRosterPanel({
   display: UsagePercentageDisplay
   statusBarUsageMode: StatusBarUsageMode
   onStatusBarUsageModeChange: (mode: StatusBarUsageMode) => void
+  /** Present where saved accounts could add chips to the row. */
+  usageAccounts?: StatusBarUsageAccounts
+  onUsageAccountsChange?: (accounts: StatusBarUsageAccounts) => void
   isRefreshing: boolean
   onRefresh: () => void
   onOpenProvider: (provider: ProviderId) => void
@@ -325,37 +331,13 @@ export function UsageRosterPanel({
         </div>
         <UsageDisplayToggle asMenuItem />
       </div>
-      {/* Keep the density picker in the popover so both usage modes are discoverable. */}
-      <div className="px-3.5 pb-2.5">
-        <SettingsSegmentedControl<StatusBarUsageMode>
-          value={statusBarUsageMode}
-          onChange={onStatusBarUsageModeChange}
-          ariaLabel={t(
-            'auto.components.status.bar.UsageRosterPanel.footerDetailAria',
-            'Usage footer detail'
-          )}
-          size="sm"
-          equalWidth
-          options={[
-            {
-              value: 'verbose',
-              label: t('auto.components.status.bar.UsageRosterPanel.detailed', 'Detailed'),
-              tooltip: t(
-                'auto.components.status.bar.UsageRosterPanel.detailedTooltip',
-                'Full usage with bars, labels, and percentages'
-              )
-            },
-            {
-              value: 'compact',
-              label: t('auto.components.status.bar.UsageRosterPanel.compact', 'Compact'),
-              tooltip: t(
-                'auto.components.status.bar.UsageRosterPanel.compactTooltip',
-                'Condensed usage: one summary per provider'
-              )
-            }
-          ]}
-        />
-      </div>
+      <UsageRowPreferencePickers
+        statusBarUsageMode={statusBarUsageMode}
+        onStatusBarUsageModeChange={onStatusBarUsageModeChange}
+        {...(usageAccounts && onUsageAccountsChange
+          ? { usageAccounts, onUsageAccountsChange }
+          : {})}
+      />
       <div className="border-t border-border/70" />
       {sorted.map((p) => {
         const state = getUsageRosterRowState(p, usedSections(p, t).length > 0, t)

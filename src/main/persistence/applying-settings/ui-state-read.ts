@@ -11,6 +11,7 @@ import {
 } from '../../../shared/workspace/status/workspace-statuses'
 import { normalizeUsagePercentageDisplay } from '../../../shared/agent-usage/display/usage-percentage-display'
 import { normalizeStatusBarUsageMode } from '../../../shared/status-bar/status-bar-usage-mode'
+import { normalizeStatusBarUsageAccounts } from '../../../shared/status-bar/status-bar-usage-accounts'
 import { normalizeStatusBarUsageFormat } from '../../../shared/status-bar/status-bar-usage-format'
 import { clampMarkdownTocPanelWidth } from '../../../shared/editor/markdown/markdown-toc-panel-width'
 import { normalizeSidebarBotsHeight } from '../../../shared/sidebar-bots-height'
@@ -62,6 +63,7 @@ export function getPersistedUI(
     syncTaskStatusFromWorkspaceBoard: state.ui?.syncTaskStatusFromWorkspaceBoard === true,
     usagePercentageDisplay: normalizeUsagePercentageDisplay(state.ui?.usagePercentageDisplay),
     statusBarUsageMode: normalizeStatusBarUsageMode(state.ui?.statusBarUsageMode),
+    statusBarUsageAccounts: normalizeStatusBarUsageAccounts(state.ui?.statusBarUsageAccounts),
     statusBarUsageFormat: normalizeStatusBarUsageFormat(state.ui?.statusBarUsageFormat),
     statusBarCompactChangeNoticeDismissed:
       state.ui?.statusBarCompactChangeNoticeDismissed !== false,

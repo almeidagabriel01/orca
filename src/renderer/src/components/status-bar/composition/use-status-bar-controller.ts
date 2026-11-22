@@ -4,7 +4,8 @@ import { useAppStore } from '../../../store/index'
 import { selectFloatingWorkspaceHasUnread } from '../../../store/workspaces/floating/floating-workspace-unread-selector'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { normalizeUsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
-import { normalizeStatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
+import { useStatusBarUsagePreferences } from './use-status-bar-usage-preferences'
+import { getOwnerUsageRowChips } from './status-bar-usage-chips'
 import { isStatusBarItemAvailable } from './status-bar-agent-gating'
 import { getVisibleUsageProvider, isUsageEmptyState } from './status-bar-provider-visibility'
 import {
@@ -35,11 +36,10 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   const usagePercentageDisplay = normalizeUsagePercentageDisplay(
     useAppStore((s) => s.usagePercentageDisplay)
   )
-  const statusBarUsageMode = normalizeStatusBarUsageMode(useAppStore((s) => s.statusBarUsageMode))
-  const setStatusBarUsageMode = useAppStore((s) => s.setStatusBarUsageMode)
   const [usageMenuOpen, setUsageMenuOpen] = useState(false)
   const usageMenuFocusHandoff = useStatusBarMenuFocusHandoff()
   const statusBarVisible = useAppStore((s) => s.statusBarVisible)
+  const usagePreferences = useStatusBarUsagePreferences()
   const statusBarItems = useAppStore((s) => s.statusBarItems)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
   // Why: reuse the floating-button's unread dot so activity shows for either trigger location (see FloatingTerminalToggleButton).
@@ -231,6 +231,15 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     // Why: the usage row clips from the end, so placeholders give way first.
     .sort((a, b) => Number(isOwnerNotSetUpPlaceholder(a)) - Number(isOwnerNotSetUpPlaceholder(b)))
 
+  const { usageChips, hasSavedAccounts } = getOwnerUsageRowChips({
+    ownerUsage,
+    settings,
+    providers: rosterProviders,
+    shown: { claude: showClaude, codex: showCodex },
+    accounts: usagePreferences.statusBarUsageAccounts,
+    activeLabel: t('components.status-bar.usage.activeAccount', 'Active')
+  })
+
   // Why: the shown accounts are the owning host's; without a scope Settings opens on the default host.
   const hostScope = getUsageOwnerHostScope(remoteOwner)
   const handleManageAccounts = (): void => {
@@ -291,9 +300,11 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     recordFeatureInteraction,
     remoteOwner,
     rosterProviders,
+    usageChips,
+    hasSavedAccounts,
+    ...usagePreferences,
     setMenuOpen,
     setMenuPoint,
-    setStatusBarUsageMode,
     showEmptyUsageCta,
     showFloatingTerminalToggle,
     showFloatingWorkspaceAttentionDot,
@@ -302,7 +313,6 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     showResourceUsage,
     showSsh,
     statusBarItems,
-    statusBarUsageMode,
     toggleStatusBarItem,
     usageMenuFocusHandoff,
     usageMenuOpen,

@@ -1,0 +1,281 @@
+name: Fork release
+
+# Builds the fork's macOS arm64 app and the Linux x64 packages the headless server runs, and
+# publishes them as one GitHub Release that installed fork builds offer as their update.
+# Never runs on upstream. Bump the version first (config/scripts/fork/fork-version.mjs); the tag is
+# v<package.json version>. See docs/fork-releases.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Create the GitHub Release. Off builds the artifacts and attaches them to the run only.
+        type: boolean
+        default: false
+  # Proves a branch builds before it is the default branch; a push never publishes.
+  push:
+    branches: [fork-release-check]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fork-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Bakes the fork's own release feed into the app: installed copies never read upstream's releases.
+  ORCA_DESKTOP_UPDATE_REPOSITORY: ${{ github.repository }}
+  ORCA_BACKGROUND_LAUNCH: '1'
+  NODE_OPTIONS: --max-old-space-size=4096
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  version:
+    if: github.repository != 'stablyai/orca'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Resolve version
+        id: version
+        env:
+          PUBLISH: ${{ inputs.publish == true }}
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-fork\.[0-9]+$ ]]; then
+            echo "::error::package.json says '$version', not X.Y.Z-fork.N. Run 'node config/scripts/fork/fork-version.mjs' and commit it."
+            exit 1
+          fi
+          if [[ "$PUBLISH" == true ]] && gh release view "v$version" >/dev/null 2>&1; then
+            echo "::error::Release v$version already exists. Bump the version first."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  mac:
+    needs: version
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          check-latest: true
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+
+      - name: Locate the pinned Node runtime cache
+        run: echo "ORCA_NODE_RUNTIME_CACHE_DIR=$HOME/Library/Caches/orca-node-runtime" >> "$GITHUB_ENV"
+
+      - name: Cache the pinned Node runtime
+        uses: actions/cache@v5
+        with:
+          path: ~/Library/Caches/orca-node-runtime
+          key: orca-node-runtime-mac-${{ hashFiles('src/shared/node-runtime/node-runtime-pin.ts') }}
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      - uses: ./.github/actions/install-mobile-dependencies
+
+      # One certificate for every release keeps the app's identity, so macOS keeps its permission
+      # grants across versions instead of asking again after each install.
+      - name: Import the fork signing certificate
+        env:
+          FORK_MAC_SIGNING_P12: ${{ secrets.FORK_MAC_SIGNING_P12 }}
+          FORK_MAC_SIGNING_PASSWORD: ${{ secrets.FORK_MAC_SIGNING_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$FORK_MAC_SIGNING_P12" || -z "$FORK_MAC_SIGNING_PASSWORD" ]]; then
+            echo "::error::FORK_MAC_SIGNING_P12 and FORK_MAC_SIGNING_PASSWORD are required: an ad hoc build loses macOS permissions on every update."
+            exit 1
+          fi
+          keychain="$RUNNER_TEMP/fork-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 16)"
+          printf '%s' "$FORK_MAC_SIGNING_P12" | base64 --decode > "$RUNNER_TEMP/fork-signing.p12"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$RUNNER_TEMP/fork-signing.p12" -k "$keychain" -P "$FORK_MAC_SIGNING_PASSWORD" -T /usr/bin/codesign >/dev/null
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain" >/dev/null
+          rm "$RUNNER_TEMP/fork-signing.p12"
+          # codesign finds a self-signed identity only in a searched keychain and only once its
+          # certificate is trusted for code signing.
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          security find-certificate -a -p "$keychain" > "$RUNNER_TEMP/fork-signing.pem"
+          sudo security add-trusted-cert -d -r trustRoot -p codeSign -k /Library/Keychains/System.keychain "$RUNNER_TEMP/fork-signing.pem"
+          security find-identity -v -p codesigning "$keychain"
+          line="$(security find-identity -v -p codesigning "$keychain" | grep '"' | head -1)"
+          identity="$(awk '{ print $2 }' <<<"$line")"
+          name="$(sed -E 's/^[^"]*"(.*)"[^"]*$/\1/' <<<"$line")"
+          if [[ -z "$identity" ]]; then
+            echo "::error::FORK_MAC_SIGNING_P12 holds no code signing identity."
+            exit 1
+          fi
+          # electron-builder takes a non-Apple identity named by hash; the helper signing reads CSC_NAME too.
+          {
+            echo "CSC_NAME=$identity"
+            echo "CSC_KEYCHAIN=$keychain"
+            echo "FORK_SIGNING_AUTHORITY=$name"
+          } >> "$GITHUB_ENV"
+          echo "Signing with the fork's fixed certificate $name ($identity)."
+
+      - name: Build app
+        run: pnpm run build:release
+
+      - name: Gate runtime file-watcher process isolation
+        run: |
+          node config/scripts/diagnostics/runtime-watchers/runtime-file-watcher-fault-harness.mjs
+          ELECTRON_RUN_AS_NODE=1 pnpm exec electron config/scripts/diagnostics/runtime-watchers/runtime-file-watcher-fault-harness.mjs
+
+      - name: Package macOS arm64
+        run: |
+          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON config/scripts/orcad-distribution/prebuilds/pinned-node-downloads.mjs darwin-arm64
+          node config/scripts/native-build/node-addons/ensure-native-runtime.mjs --runtime=electron
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --mac dmg zip --arm64 --publish never
+
+      - name: Gate the update manifest on the minimum macOS
+        run: node config/scripts/desktop-distribution/macos/gate-mac-update-manifests.mjs dist
+
+      # A bundle without a valid signature opens as "damaged" once downloaded, and one signed by
+      # anything but the fixed certificate loses its permission grants: never publish either.
+      - name: Verify signatures
+        run: bash config/scripts/fork/verify-mac-fork-artifact.sh "$FORK_SIGNING_AUTHORITY" dist/*.dmg dist/*.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fork-mac-arm64
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest-mac.yml
+          if-no-files-found: error
+
+  linux:
+    needs: version
+    # Same image as upstream's linux-x64 release leg: newer images default GCC to x86-64-v3.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          check-latest: true
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+
+      - name: Use external node-gyp to avoid pnpm's bundled copy
+        run: |
+          npm install -g node-gyp@11.5.0
+          echo "npm_config_node_gyp=$(npm root -g)/node-gyp/bin/node-gyp.js" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 15
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: pnpm install --frozen-lockfile
+
+      - uses: ./.github/actions/install-mobile-dependencies
+
+      - name: Install Linux packaging and computer-use dependencies
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-atspi-2.0 at-spi2-core xclip xdotool
+
+      - name: Build app
+        run: pnpm run build:release
+
+      - name: Gate runtime file-watcher process isolation
+        run: |
+          node config/scripts/diagnostics/runtime-watchers/runtime-file-watcher-fault-harness.mjs
+          ELECTRON_RUN_AS_NODE=1 pnpm exec electron config/scripts/diagnostics/runtime-watchers/runtime-file-watcher-fault-harness.mjs
+
+      - name: Package Linux x64
+        run: |
+          node config/scripts/native-build/node-addons/ensure-native-runtime.mjs --runtime=electron
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb --x64 --publish never
+          test -f dist/latest-linux.yml
+
+      - name: Load packaged node-pty on the Linux floor
+        run: node config/scripts/desktop-distribution/runtime-verification/run-linux-packaged-node-pty-floor-smoke.mjs --app-dir dist/linux-unpacked
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: fork-linux-x64
+          path: |
+            dist/*.deb
+            dist/*.AppImage
+            dist/*.blockmap
+            dist/latest-linux.yml
+          if-no-files-found: error
+
+  publish:
+    needs: [version, mac, linux]
+    if: inputs.publish == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Full history and tags, so the release notes can list what changed since the last release.
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: release-publish
+          merge-multiple: true
+
+      # Not a draft and not a prerelease: the updater follows the repo's latest release.
+      - name: Create GitHub Release
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          ls -la release-publish
+          notes="Fork release $VERSION, based on upstream v${VERSION%%-fork.*}. Install it from the DMG; installed copies announce new versions and open this page to download them."
+          previous="$(gh release view --json tagName --jq .tagName 2>/dev/null || true)"
+          if [[ -n "$previous" ]] && git rev-parse -q --verify "refs/tags/$previous" >/dev/null; then
+            # First parent only: an upstream merge reads as one line, not every upstream commit.
+            log="$(git log --first-parent --format=%s "$previous..$GITHUB_SHA")"
+            section() {
+              local items
+              items="$(grep -E "^($2)(\([^)]*\))?!?: " <<<"$log" | sed -E 's/^[a-z]+(\([^)]*\))?!?: //' |
+                awk '!seen[$0]++ { print "- " toupper(substr($0, 1, 1)) substr($0, 2) }' || true)"
+              [[ -n "$items" ]] && printf '\n\n### %s\n\n%s' "$1" "$items"
+              return 0
+            }
+            changes="$(section Features feat)$(section Fixes 'fix|perf')$(section Upstream merge)"
+            notes="$notes"$'\n\n'"## Changes since $previous${changes:-$'\n\nMaintenance only.'}"
+          fi
+          gh release create "v$VERSION" release-publish/* \
+            --target "$GITHUB_SHA" \
+            --title "v$VERSION" \
+            --notes "$notes" \
+            --latest

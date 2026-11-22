@@ -1,0 +1,179 @@
+name: Fork upstream sync
+
+# Hourly: when stablyai/orca publishes a newer stable release, merge upstream main into fork-main,
+# check it, bump to <upstream version>-fork.1 and run the fork release, so installed fork builds offer
+# the update. On a conflict or a failing check nothing is pushed or released: an issue labelled
+# upstream-sync says why. Installed fork builds also dispatch this when they see the new release.
+# See docs/fork-releases.md.
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: fork-upstream-sync
+  cancel-in-progress: false
+
+env:
+  FORK_BRANCH: fork-main
+  UPSTREAM_REPO: stablyai/orca
+  ISSUE_LABEL: upstream-sync
+
+jobs:
+  sync:
+    if: github.repository != 'stablyai/orca'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ORCA_BACKGROUND_LAUNCH: '1'
+      NODE_OPTIONS: --max-old-space-size=8192
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.FORK_BRANCH }}
+          fetch-depth: 0
+          # GITHUB_TOKEN may not push commits that touch .github/workflows, and upstream changes them
+          # often; FORK_SYNC_TOKEN (contents + workflows write) can.
+          token: ${{ secrets.FORK_SYNC_TOKEN || github.token }}
+
+      - name: Find a newer upstream release
+        id: upstream
+        run: |
+          set -euo pipefail
+          tag="$(gh release view --repo "$UPSTREAM_REPO" --json tagName --jq .tagName)"
+          upstream="${tag#v}"
+          current="$(node -p 'require("./package.json").version')"
+          base="${current%%-fork.*}"
+          newer="$(node -e 'const [a, b] = process.argv.slice(1).map((v) => v.split(".").map(Number)); console.log(a[0] - b[0] || a[1] - b[1] || a[2] - b[2])' "$upstream" "$base")"
+          echo "upstream=$upstream" >> "$GITHUB_OUTPUT"
+          if [[ ! "$upstream" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || (( newer <= 0 )); then
+            echo "Fork $current already covers upstream $tag."
+            echo "newer=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "newer=true" >> "$GITHUB_OUTPUT"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote add upstream "https://github.com/$UPSTREAM_REPO.git"
+          git fetch --no-tags upstream main
+          echo "commit=$(git rev-parse upstream/main)" >> "$GITHUB_OUTPUT"
+          echo "Upstream $tag is newer than fork base $base."
+
+      - name: Merge upstream main
+        id: merge
+        if: steps.upstream.outputs.newer == 'true'
+        env:
+          UPSTREAM: ${{ steps.upstream.outputs.upstream }}
+        run: |
+          set -euo pipefail
+          if ! git merge --no-ff --no-edit -m "merge: upstream v$UPSTREAM" upstream/main; then
+            # Upstream bumping package.json's version line always collides with ours; keep ours.
+            if git diff --name-only --diff-filter=U | grep -qx package.json; then
+              node config/scripts/fork/fork-version.mjs --resolve-conflict && git add package.json || true
+            fi
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            if [[ -n "$conflicts" ]]; then
+              { echo 'conflicts<<EOF'; echo "$conflicts"; echo EOF; } >> "$GITHUB_OUTPUT"
+              git merge --abort
+              echo "::error::Merging upstream v$UPSTREAM conflicts in: $conflicts"
+              exit 1
+            fi
+            git commit --no-edit
+          fi
+          node config/scripts/fork/fork-version.mjs --base "$UPSTREAM"
+          git commit -am "chore(release): $(node -p 'require("./package.json").version')"
+
+      - name: Setup pnpm
+        if: steps.merge.outcome == 'success'
+        uses: pnpm/setup@v2
+        with:
+          install: false
+
+      - name: Setup Node.js
+        if: steps.merge.outcome == 'success'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          check-latest: true
+          cache: pnpm
+
+      - name: Install dependencies
+        id: install
+        if: steps.merge.outcome == 'success'
+        run: |
+          npm install -g node-gyp@11.5.0
+          export npm_config_node_gyp="$(npm root -g)/node-gyp/bin/node-gyp.js"
+          pnpm install --frozen-lockfile
+
+      # Typecheck catches what a clean textual merge breaks; the fork's own tests guard its features.
+      - name: Typecheck
+        id: typecheck
+        if: steps.install.outcome == 'success'
+        run: pnpm run tc
+
+      - name: Fork feature tests
+        id: tests
+        if: steps.typecheck.outcome == 'success'
+        run: |
+          mapfile -t tests < <(git diff --name-only --diff-filter=AM upstream/main HEAD | grep -E '\.test\.(ts|tsx|mjs)$' || true)
+          if (( ${#tests[@]} )); then pnpm test "${tests[@]}" --maxWorkers=2; fi
+
+      - name: Push and release
+        id: push
+        if: steps.tests.outcome == 'success'
+        run: |
+          set -euo pipefail
+          git push origin "HEAD:$FORK_BRANCH"
+          gh workflow run fork-release.yml --ref "$FORK_BRANCH" -f publish=true
+
+      - name: Open an issue
+        if: failure() && steps.upstream.outputs.newer == 'true'
+        env:
+          UPSTREAM: ${{ steps.upstream.outputs.upstream }}
+          COMMIT: ${{ steps.upstream.outputs.commit }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+          MERGE: ${{ steps.merge.outcome }}
+          INSTALL: ${{ steps.install.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          TESTS: ${{ steps.tests.outcome }}
+          PUSH: ${{ steps.push.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$CONFLICTS" ]]; then
+            reason="Conflito ao mesclar upstream/main."
+            details="$(printf -- '- `%s`\n' $CONFLICTS)"
+          else
+            failed=""
+            for step in "merge:$MERGE" "install:$INSTALL" "typecheck (pnpm tc):$TYPECHECK" "fork feature tests:$TESTS" "push to $FORK_BRANCH / release dispatch:$PUSH"; do
+              [[ "${step##*:}" == failure ]] && failed="${step%:*}"
+            done
+            reason="Verificação falhou: ${failed:-veja a run}."
+            details="Veja o log da etapa na run."
+          fi
+          title="Sync com o Orca original falhou: v$UPSTREAM"
+          body="$(cat <<EOF
+          Upstream: [$UPSTREAM_REPO v$UPSTREAM](https://github.com/$UPSTREAM_REPO/releases/tag/v$UPSTREAM)
+          Commit do upstream/main mesclado: [\`$COMMIT\`](https://github.com/$UPSTREAM_REPO/commit/$COMMIT)
+          Branch: \`$FORK_BRANCH\` (nada foi enviado nem lançado)
+          Run: $RUN_URL
+
+          **$reason**
+
+          $details
+          EOF
+          )"
+          gh label create "$ISSUE_LABEL" --color FBCA04 --description "Fork upstream sync failures" --force
+          existing="$(gh issue list --label "$ISSUE_LABEL" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          if [[ -n "$existing" ]]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label "$ISSUE_LABEL" --body "$body"
+          fi

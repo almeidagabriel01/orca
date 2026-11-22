@@ -5,6 +5,14 @@ import {
 import { refuse } from '../../../../shared/agent-session/failures/agent-session-wire-refusals'
 import type { AgentSessionOptionResult } from '../../../../shared/agent-session/agent-session-wire'
 import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../../../../shared/agent-launch/permissions/agent-chat-permission-mode'
+import {
+  AGENT_CHAT_ACCOUNT_OPTION_ID,
+  AGENT_CHAT_HOST_ACCOUNT,
+  agentSupportsChatAccountChoice,
+  isAgentChatAccountPick
+} from '../../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import { getClaudeProfileRouter } from '../../../claude-accounts/profiles/routing/claude-profile-installed-router'
+import { claudeChatAccountChoiceProblem } from '../../../claude-accounts/selection/claude-chat-account-choice'
 import { agentChatPermissionModes } from '../../../../shared/agent-launch/permissions/agent-chat-permission-support'
 import type { AgentSessionRecordStore } from '../../../runtime/agent-session/records/agent-session-record-store'
 import type { StructuredAgentRegistry } from '../providers/structured-agent-registry'
@@ -26,6 +34,13 @@ function acceptsOptionPick(
   value: string
 ): boolean {
   const definition = agents.definition(provider)
+  if (key === AGENT_CHAT_ACCOUNT_OPTION_ID) {
+    return (
+      definition !== null &&
+      agentSupportsChatAccountChoice(provider) &&
+      isAgentChatAccountPick(value)
+    )
+  }
   return key === AGENT_CHAT_PERMISSION_MODE_OPTION_ID
     ? definition !== null &&
         agentChatPermissionModes(provider) !== null &&
@@ -43,6 +58,14 @@ export function structuredAgentSessionOptionOverridesRefusal(
   const key = Object.keys(options).find(
     (key) => !acceptsOptionPick(agents, provider, key, options[key] ?? '')
   )
+  const account = options[AGENT_CHAT_ACCOUNT_OPTION_ID]
+  const accountProblem =
+    key === undefined && account !== undefined && account !== AGENT_CHAT_HOST_ACCOUNT
+      ? claudeChatAccountChoiceProblem(getClaudeProfileRouter(), account)
+      : null
+  if (accountProblem) {
+    return refuse('agent_session_operation_invalid', { reason: 'optionRejected' }, accountProblem)
+  }
   return key === undefined
     ? null
     : refuse(
@@ -79,7 +102,21 @@ export async function recordStructuredAgentSessionOptionIntent(
     return { ok: true, value: { key: input.key, value: input.value, options: {} } }
   }
   let options: Readonly<Record<string, string>>
-  if (input.key === AGENT_CHAT_PERMISSION_MODE_OPTION_ID) {
+  if (input.key === AGENT_CHAT_ACCOUNT_OPTION_ID) {
+    const accountChoice = input.value === AGENT_CHAT_HOST_ACCOUNT ? null : input.value
+    const problem =
+      record.location.wslDistro !== null
+        ? 'A chat in WSL runs on the account its distro selects.'
+        : accountChoice && claudeChatAccountChoiceProblem(getClaudeProfileRouter(), accountChoice)
+    if (problem) {
+      return {
+        ok: false,
+        refusal: refuse('agent_session_operation_invalid', { reason: 'optionRejected' }, problem)
+      }
+    }
+    await deps.store.replaceSessionOptions({ sessionId, fence, accountChoice, now: ctx.now() })
+    options = { ...record.options, [input.key]: input.value }
+  } else if (input.key === AGENT_CHAT_PERMISSION_MODE_OPTION_ID) {
     const permissionMode = input.value
     await deps.store.replaceSessionOptions({ sessionId, fence, permissionMode, now: ctx.now() })
     // Preserve the wire’s permission mode within options.

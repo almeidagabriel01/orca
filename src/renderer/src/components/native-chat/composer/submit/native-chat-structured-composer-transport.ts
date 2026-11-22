@@ -1,3 +1,4 @@
+import type { NativeChatAccountControl } from '@/components/native-chat/session/options/structured/use-structured-chat-account'
 import type { NativeChatMcpTrayState } from '@/components/native-chat/mcp/use-native-chat-mcp-tray'
 import type { CaptureStructuredAgentSessionPresentation } from '../../session/structured/writes/use-structured-agent-session-mutate'
 import type { AgentSessionConversationCommand } from '../../../../../../shared/agent-session/conversation-context/agent-session-conversation-command'
@@ -61,6 +62,8 @@ export type NativeChatStructuredComposerTransport = {
   sideChat?: NativeChatSideChat
   /** Present only where the host can read this chat's Codex account usage. */
   accountUsage?: { open: () => void }
+  /** Present only where the host runs this chat on an account of its own. */
+  chatAccount?: NativeChatAccountControl
   /** Present only where the host manages this agent's MCP servers; `/mcp` opens Orca's MCP tray. */
   mcpPanel?: NativeChatMcpTrayState
   /** Present only where this chat can fork; `run` answers with a notice when it didn't fork. */

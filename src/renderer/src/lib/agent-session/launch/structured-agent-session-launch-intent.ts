@@ -49,6 +49,8 @@ export type StructuredAgentSessionLaunchIntent = {
   surfaceAddress?: StructuredLaunchSurfaceAddress
   /** The saved selection create seeds, read when the intent is built. */
   explicitLaunchOptions?: Readonly<Record<string, string>>
+  /** The chat's own account, picked before create; only set for a host that takes one. */
+  accountChoice?: string
   seedOptions?: Readonly<Record<string, string>>
 }
 
@@ -184,7 +186,8 @@ export function retryStructuredAgentSessionLaunchIntent(
       intent.params.tabId
     ),
     forkRequiresInheritedOriginal: intent.forkRequiresInheritedOriginal,
-    explicitLaunchOptions: intent.explicitLaunchOptions
+    explicitLaunchOptions: intent.explicitLaunchOptions,
+    ...(intent.accountChoice ? { accountChoice: intent.accountChoice } : {})
   }
 }
 

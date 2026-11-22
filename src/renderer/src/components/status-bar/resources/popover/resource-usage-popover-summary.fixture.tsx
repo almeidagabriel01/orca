@@ -1,5 +1,6 @@
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import { renderResourceUsageSummary } from './resource-usage-popover-summary'
+import { renderResourceHostsSummary } from './resource-usage-hosts-summary'
 import { ResourceUsageStatusSegment } from '../ResourceUsageStatusSegment'
 import type { MemorySnapshot } from '../../../../../../shared/diagnostics/process-stats-types'
 
@@ -104,4 +105,35 @@ export const shortWindowOrphanCleanup = defineFixture({
       { id: 'fixture-orphan', cwd: '/workspace', title: 'Terminal', agentOwnership: 'absent' }
     ]
   }
+})
+
+export const hostsSummary = defineFixture({
+  width: 448,
+  render: () =>
+    renderResourceHostsSummary([
+      {
+        id: 'local',
+        label: 'This computer',
+        isLocal: true,
+        orca: { cpu: 18.4, memory: 1288490188 },
+        counts: { terminals: 5, agents: 2, commands: 1 },
+        notice: null
+      },
+      {
+        id: 'env-build',
+        label: 'build-box',
+        isLocal: false,
+        orca: { cpu: 3.1, memory: 412316860 },
+        counts: { terminals: 3, agents: 1, commands: 0 },
+        notice: null
+      },
+      {
+        id: 'env-old',
+        label: 'old-server',
+        isLocal: false,
+        orca: null,
+        counts: null,
+        notice: 'Update old-server to see its resources.'
+      }
+    ])
 })

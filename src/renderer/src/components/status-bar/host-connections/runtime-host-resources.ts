@@ -6,12 +6,14 @@ import {
 } from '../../../../../shared/execution-host/execution-host'
 import type {
   SessionMemory,
+  UsageValues,
   WorktreeMemory
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
 
 export type RuntimeHostResourceResult =
-  | { status: 'sampled'; worktrees: WorktreeMemory[] }
+  // app is null for servers that predate reporting it: unknown, not idle.
+  | { status: 'sampled'; worktrees: WorktreeMemory[]; app: UsageValues | null }
   // An unanswered server is unverifiable, not idle.
   | { status: 'unreachable' }
   | { status: 'update-required' }
@@ -37,8 +39,11 @@ export async function readRuntimeHostResources(
   call: RuntimeHostResourceCall
 ): Promise<RuntimeHostResourceResult> {
   try {
-    const worktrees = parseSnapshotWorktrees(await call(environmentId))
-    return worktrees ? { status: 'sampled', worktrees } : { status: 'update-required' }
+    const snapshot = await call(environmentId)
+    const worktrees = parseSnapshotWorktrees(snapshot)
+    return worktrees
+      ? { status: 'sampled', worktrees, app: parseAppUsage(snapshot) }
+      : { status: 'update-required' }
   } catch (error) {
     return hasErrorCode(error, 'method_not_found')
       ? { status: 'update-required' }
@@ -63,32 +68,26 @@ export function toRuntimeHostResourceSamples(
   return samples
 }
 
-export function getRuntimeHostResourceNotices(
-  results: Readonly<Record<string, RuntimeHostResourceResult>>,
-  hostLabel: (environmentId: string) => string,
+export function getRuntimeHostResourceNotice(
+  result: RuntimeHostResourceResult,
+  label: string,
   t: Translate = translate
-): string[] {
-  return Object.entries(results).flatMap(([environmentId, result]) => {
-    if (result.status === 'unreachable') {
-      return [
-        t(
-          'auto.components.status.bar.ResourceUsageStatusSegment.8a0472ab54',
-          "Couldn't reach {{value0}}; its resources are unknown.",
-          { value0: hostLabel(environmentId) }
-        )
-      ]
-    }
-    if (result.status === 'update-required') {
-      return [
-        t(
-          'auto.components.status.bar.ResourceUsageStatusSegment.1ea066b73f',
-          'Update {{value0}} to see its resources.',
-          { value0: hostLabel(environmentId) }
-        )
-      ]
-    }
-    return []
-  })
+): string | null {
+  if (result.status === 'unreachable') {
+    return t(
+      'auto.components.status.bar.ResourceUsageStatusSegment.8a0472ab54',
+      "Couldn't reach {{value0}}; its resources are unknown.",
+      { value0: label }
+    )
+  }
+  if (result.status === 'update-required') {
+    return t(
+      'auto.components.status.bar.ResourceUsageStatusSegment.1ea066b73f',
+      'Update {{value0}} to see its resources.',
+      { value0: label }
+    )
+  }
+  return null
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
@@ -101,6 +100,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function finiteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+// Why main must be sampled: older headless servers report only their terminal daemon, an undercount.
+function parseAppUsage(value: unknown): UsageValues | null {
+  const app = isRecord(value) && isRecord(value.app) ? value.app : null
+  const cpu = app ? finiteNumber(app.cpu) : null
+  const memory = app ? finiteNumber(app.memory) : null
+  const mainMemory = app && isRecord(app.main) ? finiteNumber(app.main.memory) : null
+  return cpu === null || memory === null || !mainMemory ? null : { cpu, memory }
 }
 
 // Independently updated servers may send mixed shapes; keep valid rows and reject malformed data.

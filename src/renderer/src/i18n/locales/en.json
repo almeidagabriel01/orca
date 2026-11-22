@@ -26040,6 +26040,17 @@
       "agents": "Agents",
       "otherTerminals": "Other terminals",
       "privateBytes": "Committed by Orca and terminals"
+    },
+    "hosts": {
+      "local": "This computer",
+      "terminals_one": "{{count}} terminal",
+      "terminals_other": "{{count}} terminals",
+      "agents_one": "{{count}} agent",
+      "agents_other": "{{count}} agents",
+      "commands_one": "{{count}} command",
+      "commands_other": "{{count}} commands",
+      "title": "Hosts · Orca usage",
+      "memory": "Memory"
     }
   },
   "browserExtensions": {

@@ -93,6 +93,15 @@ function bucketElectronMetrics(processIndex: ProcIndex): AppBucketsRaw {
     target.privateMemory += privateBytes
   }
 
+  // Why: a headless Orca server has no Electron metrics, so its own Node process is the app there.
+  const self = electronPids.size === 0 ? processIndex.byPid.get(process.pid) : undefined
+  if (self) {
+    electronPids.add(self.pid)
+    main.cpu += self.cpu
+    main.memory += self.memory
+    main.privateMemory += clampMemoryMetric(self.privateMemory)
+  }
+
   // The terminal daemon is detached from Electron, so getAppMetrics omits it; its PTY children stay with their worktrees.
   const daemonPid = getLocalDaemonPid()
   const daemon = daemonPid === null ? undefined : processIndex.byPid.get(daemonPid)

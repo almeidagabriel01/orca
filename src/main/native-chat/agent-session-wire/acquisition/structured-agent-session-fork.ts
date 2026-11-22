@@ -9,6 +9,7 @@ import { agentSessionRecordShownName } from '../../../runtime/agent-session/reco
 import { AgentConversationCopyError } from '../../conversation-adoption/agent-conversation-copy-error'
 import { acpAgentName } from '../../../acp/session/acp-structured-agent-definitions'
 import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../../../../shared/agent-launch/permissions/agent-chat-permission-mode'
+import { AGENT_CHAT_ACCOUNT_OPTION_ID } from '../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import { isAgentSessionRefusalError } from '../../../../shared/agent-session/failures/agent-session-wire-refusals'
 import { requireUnownedStructuredAgentSessionAdoption } from '../../../runtime/agent-session/ownership/structured-agent-session-create-adoption'
 import type { AgentSessionAttachParams } from './structured-agent-session-attach'
@@ -128,7 +129,8 @@ export async function prepareStructuredAgentSessionFork(
       ...record.options,
       ...(record.permissionMode
         ? { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: record.permissionMode }
-        : {})
+        : {}),
+      ...(record.accountChoice ? { [AGENT_CHAT_ACCOUNT_OPTION_ID]: record.accountChoice } : {})
     },
     ...(record.launchArgs ? { launchArgs: record.launchArgs } : {}),
     adopt: { providerHandle, conversationName: title }

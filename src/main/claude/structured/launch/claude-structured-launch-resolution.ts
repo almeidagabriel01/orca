@@ -156,6 +156,7 @@ export function claudeStructuredLaunchPart(
     const { record } = basis
     const accountHome = requireLegacyAgentSessionAccountHome(record.accountHome)
     const router = getClaudeProfileRouter()
+    const { accountChoice } = record
     const active = activeProviderContext(record)
     const head = active.head?.handle ?? null
     if (
@@ -191,7 +192,12 @@ export function claudeStructuredLaunchPart(
       command: sources.command,
       prefixArgs: sources.prefixArgs,
       cwd,
-      env: await withClaudeLaunchAccountPin(router, claudeProbeEnv(sources), accountHome.path)
+      env: await withClaudeLaunchAccountPin(
+        router,
+        claudeProbeEnv(sources),
+        accountHome.path,
+        accountChoice
+      )
     }
     const launchFlags = resolveClaudeLaunchFlags(
       { ...deps, prepareVisuals: basis.visuals },
@@ -245,7 +251,12 @@ export function claudeStructuredLaunchPart(
       sources,
       { runtimeOnPath: false }
     )
-    const accountRecipe = await prepareClaudeLaunchAccount(router, env, accountHome.path)
+    const accountRecipe = await prepareClaudeLaunchAccount(
+      router,
+      env,
+      accountHome.path,
+      accountChoice
+    )
     const launchHome = accountRecipe.home
     // Read the config of the account directory the spawn pins, as session acquisition does.
     const chromeArgs = await claudeInChromeDefaultArgs(

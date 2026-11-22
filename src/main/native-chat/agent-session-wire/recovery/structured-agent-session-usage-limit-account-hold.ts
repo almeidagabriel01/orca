@@ -103,8 +103,9 @@ export class UsageLimitAccountHolds {
     this.readings = new Map()
   }
 
-  /** Re-attributed each pass: the account a chat continues on follows the host's selection. The
-   *  account the cut hit is the one its turn's runtime launched under, when the record names it. */
+  /** Re-attributed each pass: the account a chat continues on follows its own choice or the host's
+   *  selection. The account the cut hit is the one its turn's runtime launched under, when the
+   *  record names it. */
   async attribute(
     id: string,
     host: AttributionHost,
@@ -124,8 +125,8 @@ export class UsageLimitAccountHolds {
     try {
       // WSL readings never reach this host, so a WSL launch keeps the cut's own reset.
       if (record && record.location.wslDistro === null) {
-        // Off WSL a launch home follows only the provider's selection, never the chat.
-        const target = JSON.stringify([witness, record.provider])
+        // Off WSL a launch home follows the provider's selection, or the chat's own account.
+        const target = JSON.stringify([witness, record.provider, record.accountChoice ?? null])
         let launch = this.launchHomes.get(target)
         if (!launch) {
           launch = (async () => (await host.launchAccountHome?.(record)) ?? null)()

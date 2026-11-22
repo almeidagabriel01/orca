@@ -41,12 +41,12 @@ describe('buildResourceHostSummaries', () => {
     }
     const results = {
       'env-b': await readRuntimeHostResources('env-b', async () => ({
-        app: { cpu: 3, memory: 70 },
+        app: { cpu: 3, memory: 70, main: { cpu: 2, memory: 40 } },
         worktrees: [worktree([session('r1', 'tab:agent'), session('r2', null)])]
       })),
-      // Older servers send worktrees without a usable app sample.
+      // Older headless servers count only their daemon, leaving main empty.
       'env-a': await readRuntimeHostResources('env-a', async () => ({
-        app: { cpu: 'n/a' },
+        app: { cpu: 1, memory: 30, main: { cpu: 0, memory: 0 } },
         worktrees: []
       })),
       'env-c': await readRuntimeHostResources('env-c', async () => {

@@ -102,11 +102,13 @@ function finiteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
+// Why main must be sampled: older headless servers report only their terminal daemon, an undercount.
 function parseAppUsage(value: unknown): UsageValues | null {
   const app = isRecord(value) && isRecord(value.app) ? value.app : null
   const cpu = app ? finiteNumber(app.cpu) : null
   const memory = app ? finiteNumber(app.memory) : null
-  return cpu === null || memory === null ? null : { cpu, memory }
+  const mainMemory = app && isRecord(app.main) ? finiteNumber(app.main.memory) : null
+  return cpu === null || memory === null || !mainMemory ? null : { cpu, memory }
 }
 
 // Independently updated servers may send mixed shapes; keep valid rows and reject malformed data.

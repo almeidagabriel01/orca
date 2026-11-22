@@ -28,7 +28,6 @@ import { useResourceUsageDerivedModel } from './use-resource-usage-derived-model
 import { useRuntimeHostResources } from '../host-connections/use-runtime-host-resources'
 import {
   collectRuntimeResourceEnvironmentIds,
-  getRuntimeHostResourceNotices,
   toRuntimeHostResourceSamples
 } from '../host-connections/runtime-host-resources'
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
@@ -37,14 +36,12 @@ import { useResourceViewVisible } from './use-resource-view-visible'
 import { useResourcePtyActions } from './pty/use-resource-pty-actions'
 import { useResourceMemorySnapshot } from './use-resource-memory-snapshot'
 import { trackResourceManagerOpen } from './resource-manager-open-request'
-import { useTranslate } from '@/i18n/use-translate'
 
 let lastSelectedResourceTab: 'resources' | 'ptys' = 'resources'
 
 const POLL_MS = 2_000
 
 export function useResourceUsageStatusController() {
-  const t = useTranslate()
   const snapshot = useAppStore((s) => s.memorySnapshot)
   const memorySnapshotError = useAppStore((s) => s.memorySnapshotError)
   const workspaceSessionReady = useAppStore((s) => s.workspaceSessionReady)
@@ -137,15 +134,16 @@ export function useResourceUsageStatusController() {
     runtimeEnvironmentIds,
     POLL_MS
   )
-  const { runtimeHostResources, runtimeHostNotices } = useMemo(() => {
-    const hostLabel = (environmentId: string): string =>
+  const runtimeHostLabel = useCallback(
+    (environmentId: string): string =>
       runtimeEnvironments.find((environment) => environment.id === environmentId)?.name ||
-      environmentId
-    return {
-      runtimeHostResources: toRuntimeHostResourceSamples(runtimeHostResults, hostLabel),
-      runtimeHostNotices: getRuntimeHostResourceNotices(runtimeHostResults, hostLabel, t)
-    }
-  }, [runtimeHostResults, runtimeEnvironments, t])
+      environmentId,
+    [runtimeEnvironments]
+  )
+  const runtimeHostResources = useMemo(
+    () => toRuntimeHostResourceSamples(runtimeHostResults, runtimeHostLabel),
+    [runtimeHostResults, runtimeHostLabel]
+  )
   // Why: ptyIdsByTabId tracks mounted/live panes only; Resource Manager reads restored wake hints only for classification.
   const resourceSessionBindings = useMemo<ResourceSessionBindingInputs>(
     () => ({
@@ -218,6 +216,8 @@ export function useResourceUsageStatusController() {
     open: resourceViewActive,
     resourceSnapshot,
     runtimeHostResources,
+    runtimeHostResults,
+    runtimeHostLabel,
     sessions,
     resourceSessionBindings,
     runtimePaneTitlesByTabId,
@@ -286,7 +286,6 @@ export function useResourceUsageStatusController() {
     setPopoverBodyNode,
     daemonActions,
     resourceSnapshot,
-    runtimeHostNotices,
     spaceScanReady,
     recordFeatureInteraction,
     ...derived,

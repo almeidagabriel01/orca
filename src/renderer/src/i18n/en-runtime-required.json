@@ -2920,6 +2920,14 @@
     }
   },
   "resourceManager": {
+    "hosts": {
+      "agents_one": "{{count}} agent",
+      "agents_other": "{{count}} agents",
+      "commands_one": "{{count}} command",
+      "commands_other": "{{count}} commands",
+      "terminals_one": "{{count}} terminal",
+      "terminals_other": "{{count}} terminals"
+    },
     "pty": {
       "localOwnedCount_one": "{{count}} Orca PTY on this computer",
       "localOwnedCount_other": "{{count}} Orca PTYs on this computer"

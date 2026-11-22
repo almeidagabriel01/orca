@@ -20,6 +20,7 @@ import {
   renderResourceUsagePopoverFooter
 } from './popover/resource-usage-popover-body'
 import { renderResourceUsageKillDialog } from './popover/resource-usage-kill-dialog'
+import { renderResourceHostsSummary } from './popover/resource-usage-hosts-summary'
 import { WorkspaceSpaceCompactPanel } from '../workspace-storage/WorkspaceSpaceCompactPanel'
 
 export function ResourceUsageStatusSegment(): React.JSX.Element {
@@ -41,7 +42,6 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
     setPopoverBodyNode,
     daemonActions,
     resourceSnapshot,
-    runtimeHostNotices,
     spaceScanReady,
     recordFeatureInteraction,
     unifiedRepos,
@@ -49,6 +49,7 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
     triggerSessionCount,
     memoryMetricCopy,
     ownerSplit,
+    hostSummaries,
     commitToneClass,
     commitBadgeLabel,
     daemonUnreachable,
@@ -148,17 +149,19 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
             )}
             {daemonUnreachable && renderDaemonUnreachableBanner({ daemonActions }, t)}
             {!daemonUnreachable && sessionsOnlyError && renderSessionsOnlyErrorBanner(t)}
-            {ownerSplit && (
+            {(ownerSplit || hostSummaries.length > 0) && (
               <div className="min-h-0 max-h-[40%] overflow-y-auto scrollbar-sleek">
-                {renderResourceUsageSummary(
-                  {
-                    ownerSplit,
-                    commitBadgeLabel,
-                    commitToneClass,
-                    orphanCount
-                  },
-                  t
-                )}
+                {ownerSplit &&
+                  renderResourceUsageSummary(
+                    {
+                      ownerSplit,
+                      commitBadgeLabel,
+                      commitToneClass,
+                      orphanCount
+                    },
+                    t
+                  )}
+                {hostSummaries.length > 0 && renderResourceHostsSummary(hostSummaries, t)}
               </div>
             )}
             {renderResourceUsagePopoverBody(
@@ -180,8 +183,7 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
                 handleKillSession,
                 appCollapsed,
                 setAppCollapsed,
-                daemonUnreachable,
-                runtimeHostNotices
+                daemonUnreachable
               },
               t
             )}

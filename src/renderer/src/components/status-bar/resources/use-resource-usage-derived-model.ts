@@ -8,6 +8,8 @@ import {
 } from '../../../../../shared/execution-host/execution-host'
 import { mergeSnapshotAndSessions } from './workspace-attribution/merge-snapshot-and-sessions'
 import type { RuntimeHostResourceSample } from './workspace-attribution/resource-usage-merge-types'
+import type { RuntimeHostResourceResult } from '../host-connections/runtime-host-resources'
+import { buildResourceHostSummaries } from './popover/resource-host-summary'
 import type { PtyListedSession as DaemonSession } from '../../../../../shared/terminal/pty/lifecycle/pty-listed-session'
 
 import {
@@ -34,6 +36,8 @@ export function useResourceUsageDerivedModel({
   open,
   resourceSnapshot,
   runtimeHostResources,
+  runtimeHostResults,
+  runtimeHostLabel,
   sessions,
   resourceSessionBindings,
   runtimePaneTitlesByTabId,
@@ -51,6 +55,8 @@ export function useResourceUsageDerivedModel({
   open: boolean
   resourceSnapshot: MemorySnapshot | null
   runtimeHostResources: readonly RuntimeHostResourceSample[]
+  runtimeHostResults: Readonly<Record<string, RuntimeHostResourceResult>>
+  runtimeHostLabel: (environmentId: string) => string
   sessions: readonly DaemonSession[]
   resourceSessionBindings: ResourceSessionBindingInputs
   runtimePaneTitlesByTabId: AppState['runtimePaneTitlesByTabId']
@@ -160,6 +166,24 @@ export function useResourceUsageDerivedModel({
     [open, resourceSnapshot, sessions]
   )
 
+  // Why: same open-only gate and status read as ownerSplit; remote rows refresh on their own poll.
+  const hostSummaries = useMemo(
+    () =>
+      open
+        ? buildResourceHostSummaries(
+            {
+              localSnapshot: resourceSnapshot,
+              localDaemonSessions: sessions,
+              runtimeResults: runtimeHostResults,
+              runtimeHostLabel,
+              panes: readAgentPaneKeys()
+            },
+            t
+          )
+        : [],
+    [open, resourceSnapshot, sessions, runtimeHostResults, runtimeHostLabel, t]
+  )
+
   // Why: orphan detection needs daemon inventory; keep it open-only so the closed badge never triggers a background global session scan.
   const orphanCount = useMemo(() => {
     if (!open || !workspaceSessionReady) {
@@ -213,6 +237,7 @@ export function useResourceUsageDerivedModel({
   return {
     unifiedRepos,
     ownerSplit,
+    hostSummaries,
     orphanCount,
     triggerSessionCount,
     memoryMetricCopy,

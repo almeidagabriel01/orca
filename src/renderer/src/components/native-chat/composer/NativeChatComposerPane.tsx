@@ -410,6 +410,7 @@ export const NativeChatComposerPane = forwardRef<ComposerHandle, C.NativeChatCom
             contextUsage={contextUsageSummary}
             sessionOptionsPickerRequest={structuredTransport?.optionPickerRequest ?? null}
             agent={agent}
+            chatAccount={structuredTransport?.chatAccount}
             launchPrompt={launchPrompt}
             workspaceFooter={workspaceFooter}
             {...fieldOverrides}

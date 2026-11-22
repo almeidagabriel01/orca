@@ -22659,6 +22659,14 @@
       },
       "dock": {
         "label": "Message box and prompts"
+      },
+      "account": {
+        "systemDefault": "System default",
+        "followHost": "Selected account",
+        "title": "Account",
+        "locked": "This chat keeps the account it started on.",
+        "hint": "The account this chat runs on. Other chats keep the selected account.",
+        "changeFailed": "Couldn't change the account."
       }
     },
     "tab": {

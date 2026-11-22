@@ -6,6 +6,7 @@ import {
 import { structuredAgentSessionCreateFingerprint } from '../../../../../shared/agent-session/lifecycle/operations/structured-agent-session-mutation'
 import type { StructuredAgentSessionCreateParams } from '../../../../../shared/agent-session/lifecycle/operations/structured-agent-session-create'
 import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../../../../../shared/agent-launch/permissions/agent-chat-permission-mode'
+import { AGENT_CHAT_ACCOUNT_OPTION_ID } from '../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import {
   type StructuredLaunchState,
   notifyStructuredLaunchListeners
@@ -71,10 +72,13 @@ export function prepareStructuredLaunchCreateMessage(
       beforeCreate?.() !== false && issueStructuredLaunchPromptForCreate(intent.sessionId)
   }
   const { options: requested, selection } = structuredLaunchCreateOptions(state)
-  const options =
+  const compatible =
     requested && state.selection.explicit && !optionsMode
       ? structuredLaunchCompatibleOptions(intent.agent, requested)
       : requested
+  const options = intent.accountChoice
+    ? { ...compatible, [AGENT_CHAT_ACCOUNT_OPTION_ID]: intent.accountChoice }
+    : compatible
   const params = {
     ...intent.params,
     ...(firstMessage

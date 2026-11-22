@@ -10,6 +10,7 @@ import type { ContextualTourId } from '../feature-education/contextual-tours/con
 import type { FeatureInteractionState } from '../feature-education/interactions/feature-interactions'
 import type { UsagePercentageDisplay } from '../agent-usage/display/usage-percentage-display'
 import type { StatusBarUsageMode } from '../status-bar/status-bar-usage-mode'
+import type { StatusBarUsageAccounts } from '../status-bar/status-bar-usage-accounts'
 import type { StatusBarUsageFormat } from '../status-bar/status-bar-usage-format'
 import type { PersistedTrustedOrcaHooks } from '../workspace-setup/orca-yaml-hook-types'
 import type { CustomPet } from '../pets/pet-types'
@@ -169,6 +170,8 @@ export type PersistedUIState = {
   usagePercentageDisplay?: UsagePercentageDisplay
   /** Client-side footer presentation; verbose preserves the pre-roster all-window default. */
   statusBarUsageMode?: StatusBarUsageMode
+  /** Client-side footer presentation; absent shows only each provider's active account. */
+  statusBarUsageAccounts?: StatusBarUsageAccounts
   /** User template for footer usage text; empty template keeps the built-in rendering. */
   statusBarUsageFormat?: StatusBarUsageFormat
   dismissedUpdateVersion: string | null

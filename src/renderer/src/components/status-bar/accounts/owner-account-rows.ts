@@ -16,6 +16,18 @@ export function getAccountOwnerKey(owner: AccountOwner): string {
   return `${getProviderAccountsOwnerKey(owner.target)}:${owner.wslHostDistro ?? ''}`
 }
 
+/** The owner's per-account readings; an unreachable host cannot vouch for its old ones. */
+export function getOwnerInactiveAccounts(
+  provider: AccountProvider,
+  ownerUsage: OwnerUsageRateLimits
+): InactiveAccountUsage[] {
+  const owner = ownerUsage.rateLimits
+  if (owner[provider]?.usageMetadata?.unverifiableOwner) {
+    return []
+  }
+  return provider === 'claude' ? owner.inactiveClaudeAccounts : owner.inactiveCodexAccounts
+}
+
 /** Account rows read the snapshot of the host that owns the accounts, the one the bar shows. */
 export function getOwnerAccountRows<P extends AccountProvider>(
   provider: P,
@@ -30,16 +42,13 @@ export function getOwnerAccountRows<P extends AccountProvider>(
   usageTarget: RateLimitRuntimeTarget
 } {
   const owner = ownerUsage.rateLimits
-  const inactive =
-    provider === 'claude' ? owner.inactiveClaudeAccounts : owner.inactiveCodexAccounts
   return {
     // Why: a remote roster comes from the snapshot that carries its readings, so names and numbers move together.
     roster: ownerUsage.remoteOwner ? (ownerUsage.accounts?.[provider] ?? emptyRoster) : localRoster,
     rosterKnown:
       !ownerUsage.remoteOwner ||
       (ownerUsage.accounts !== null && !ownerUsage.accounts.failedProviders?.includes(provider)),
-    // Why: an unreachable host cannot vouch for its old per-account readings.
-    inactiveAccounts: owner[provider]?.usageMetadata?.unverifiableOwner ? [] : inactive,
+    inactiveAccounts: getOwnerInactiveAccounts(provider, ownerUsage),
     usageTarget: provider === 'claude' ? owner.claudeTarget : owner.codexTarget
   }
 }

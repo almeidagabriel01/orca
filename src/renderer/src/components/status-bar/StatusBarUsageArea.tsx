@@ -60,6 +60,10 @@ export function StatusBarUsageArea({
     ownerUsage,
     remoteOwner,
     rosterProviders,
+    usageChips,
+    hasSavedAccounts,
+    statusBarUsageAccounts,
+    setStatusBarUsageAccounts,
     setStatusBarUsageMode,
     showEmptyUsageCta,
     statusBarUsageMode,
@@ -69,8 +73,8 @@ export function StatusBarUsageArea({
   } = controller
   const levelMode = (level: number) =>
     USAGE_ROW_LEVELS[level]?.tightestOnly ? 'compact' : statusBarUsageMode
-  const chipFacts: UsageChipFacts[] = rosterProviders.map((p) => ({
-    provider: p.provider,
+  const chipFacts: UsageChipFacts[] = usageChips.map(({ id, p }) => ({
+    id,
     urgent: isUsageUrgent(p),
     percentage: [
       usageChipShowsPercentage(p, levelMode(0), t),
@@ -83,9 +87,9 @@ export function StatusBarUsageArea({
     : { level: 0, collapsed: [] }
   const usageMode = levelMode(usageLayout.level)
   const usageCompact = USAGE_ROW_LEVELS[usageLayout.level]?.compact ?? false
-  const shownProviders = rosterProviders.filter((p) => !usageLayout.collapsed.includes(p.provider))
-  const hiddenProviders = rosterProviders.filter((p) => usageLayout.collapsed.includes(p.provider))
-  const showUnitLabel = shownProviders.some((p) => usageChipShowsPercentage(p, usageMode, t))
+  const shownChips = usageChips.filter((chip) => !usageLayout.collapsed.includes(chip.id))
+  const hiddenChips = usageChips.filter((chip) => usageLayout.collapsed.includes(chip.id))
+  const showUnitLabel = shownChips.some(({ p }) => usageChipShowsPercentage(p, usageMode, t))
 
   // Why: usage gives way first, but keeps enough width to stay clickable; its popover holds
   // every provider. Its form is chosen from widths measured off-layout (see useUsageRowWidths).
@@ -118,19 +122,20 @@ export function StatusBarUsageArea({
                   aria-label={t('auto.components.status.bar.UsageRosterPanel.title', 'Usage')}
                 >
                   {showUnitLabel ? <UsageUnitLabel display={usagePercentageDisplay} /> : null}
-                  {shownProviders.map((p) => (
+                  {shownChips.map((chip) => (
                     <ClippedRowProviderSegment
-                      key={p.provider}
-                      p={p}
+                      key={chip.id}
+                      p={chip.p}
+                      accountLabel={chip.accountLabel}
                       compact={usageCompact}
                       display={usagePercentageDisplay}
                       mode={usageMode}
                     />
                   ))}
-                  {hiddenProviders.length > 0 ? (
+                  {hiddenChips.length > 0 ? (
                     <UsageOverflowChip
-                      hidden={hiddenProviders}
-                      providerCount={rosterProviders.length}
+                      hidden={hiddenChips}
+                      chipCount={usageChips.length}
                       display={usagePercentageDisplay}
                     />
                   ) : null}
@@ -153,6 +158,12 @@ export function StatusBarUsageArea({
                   display={usagePercentageDisplay}
                   statusBarUsageMode={statusBarUsageMode}
                   onStatusBarUsageModeChange={setStatusBarUsageMode}
+                  {...(hasSavedAccounts
+                    ? {
+                        usageAccounts: statusBarUsageAccounts,
+                        onUsageAccountsChange: setStatusBarUsageAccounts
+                      }
+                    : {})}
                   isRefreshing={isRefreshing || anyFetching}
                   onRefresh={handleRefresh}
                   onOpenProvider={handleOpenProviderAccounts}
@@ -249,16 +260,17 @@ export function StatusBarUsageArea({
           <span data-measure-unit="" className="inline-flex">
             <UsageUnitLabel display={usagePercentageDisplay} />
           </span>
-          {rosterProviders.flatMap((p) =>
+          {usageChips.flatMap((chip) =>
             USAGE_ROW_LEVELS.map((level, index) => (
               <span
-                key={`${p.provider}-${index}`}
-                data-measure-chip={p.provider}
+                key={`${chip.id}-${index}`}
+                data-measure-chip={chip.id}
                 data-measure-level={index}
                 className="inline-flex"
               >
                 <ProviderSegment
-                  p={p}
+                  p={chip.p}
+                  accountLabel={chip.accountLabel}
                   compact={level.compact}
                   display={usagePercentageDisplay}
                   mode={levelMode(index)}
@@ -270,7 +282,7 @@ export function StatusBarUsageArea({
           <span data-measure-more="" className="inline-flex">
             <UsageOverflowChip
               hidden={[]}
-              providerCount={rosterProviders.length}
+              chipCount={usageChips.length}
               display={usagePercentageDisplay}
             />
           </span>

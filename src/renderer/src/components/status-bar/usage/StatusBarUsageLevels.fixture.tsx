@@ -5,6 +5,7 @@ import type {
 } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
 import { ProviderSegment } from './StatusBarProviderSegment'
+import { buildUsageRowChips } from '../composition/status-bar-usage-chips'
 
 const NOW = Date.now()
 const HOUR = 60 * 60_000
@@ -44,6 +45,21 @@ function providersAt(level: number): ProviderRateLimits[] {
 
 const FABLE_ONLY = provider('claude', { fableWeekly: win(100, 10_080, 4 * DAY) })
 
+// 'All accounts': the active Claude login plus two saved accounts, as the usage row builds them.
+const ACCOUNT_CHIPS = buildUsageRowChips({
+  providers: providersAt(39),
+  accounts: 'all',
+  inactive: {
+    claude: [
+      { accountId: 'work', rateLimits: providersAt(86)[0]!, updatedAt: NOW, isFetching: false },
+      { accountId: 'side', rateLimits: providersAt(12)[0]!, updatedAt: NOW, isFetching: false }
+    ],
+    codex: []
+  },
+  accountName: (_provider, id) => ({ work: 'Work', side: 'Side project' })[id],
+  activeLabel: 'Active'
+})
+
 const ROWS: { label: string; providers: ProviderRateLimits[] }[] = [
   { label: '39%', providers: providersAt(39) },
   { label: '86%', providers: providersAt(86) },
@@ -75,6 +91,18 @@ function levelsFixture(mode: StatusBarUsageMode) {
             </div>
           ))
         )}
+        <div className="flex items-center gap-3 whitespace-nowrap rounded border border-border px-2 py-1">
+          <span className="w-32 shrink-0 text-muted-foreground">All accounts</span>
+          {ACCOUNT_CHIPS.map((chip) => (
+            <ProviderSegment
+              key={chip.id}
+              p={chip.p}
+              accountLabel={chip.accountLabel}
+              display="used"
+              mode={mode}
+            />
+          ))}
+        </div>
       </div>
     )
   })

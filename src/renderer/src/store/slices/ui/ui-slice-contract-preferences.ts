@@ -24,6 +24,7 @@ import type { CustomPet } from '../../../../../shared/pets/pet-types'
 import type { ReleaseChannel } from '../../../../../shared/updater/release-channel'
 import type { ChangelogData, UpdateStatus } from '../../../../../shared/updater/update-status-types'
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
+import type { StatusBarUsageAccounts } from '../../../../../shared/status-bar/status-bar-usage-accounts'
 import type { PersistedUIWriteBaseline } from './persisted-ui-write-baseline'
 import type { UISliceCore } from './ui-slice-contract-core'
 import type { BotSidebarView } from '../../../../../shared/bots/bot-sidebar-view'
@@ -145,6 +146,8 @@ export type UISlicePreferences = {
   setUsagePercentageDisplay: (display: UsagePercentageDisplay) => void
   statusBarUsageMode: StatusBarUsageMode
   setStatusBarUsageMode: (mode: StatusBarUsageMode) => void
+  statusBarUsageAccounts: StatusBarUsageAccounts
+  setStatusBarUsageAccounts: (accounts: StatusBarUsageAccounts) => void
   statusBarUsageFormat: StatusBarUsageFormat
   setStatusBarUsageFormat: (format: StatusBarUsageFormat) => void
 }

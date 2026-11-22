@@ -119,18 +119,19 @@ export function isUsageUrgent(p: ProviderRateLimits): boolean {
 /** Stands in for the chips a narrow bar leaves out; its tooltip names them and the popover lists them. */
 export function UsageOverflowChip({
   hidden,
-  providerCount,
+  chipCount,
   display
 }: {
-  hidden: readonly ProviderRateLimits[]
-  providerCount: number
+  hidden: readonly { p: ProviderRateLimits; accountLabel?: string }[]
+  chipCount: number
   display: UsagePercentageDisplay
 }): React.JSX.Element {
   const t = useTranslate()
   const names = hidden
-    .map((p) => {
+    .map(({ p, accountLabel }) => {
       const tightest = getTightestUsageSection(p, t, 'all')
-      const name = getProviderDisplayName(p.provider)
+      const provider = getProviderDisplayName(p.provider)
+      const name = accountLabel ? `${provider} (${accountLabel})` : provider
       return tightest
         ? `${name} ${formatUsagePercentageLabel(tightest.window.usedPercent, display, t)}`
         : name
@@ -145,7 +146,7 @@ export function UsageOverflowChip({
     >
       {/* Why: reserve the widest count so the measured width doesn't depend on how many are hidden. */}
       <span aria-hidden="true" className="invisible col-start-1 row-start-1">
-        +{providerCount}
+        +{chipCount}
       </span>
       <span className="col-start-1 row-start-1">+{Math.max(1, hidden.length)}</span>
     </span>
@@ -246,6 +247,8 @@ type ProviderSegmentProps = {
   display: UsagePercentageDisplay
   mode?: StatusBarUsageMode
   countdownActive?: boolean
+  /** Names the account when the row shows more than one account of this provider. */
+  accountLabel?: string
 }
 
 /** A chip in the clipping status bar row: clipped chips stop their countdown wakes. */
@@ -263,10 +266,19 @@ export function ProviderSegment({
   compact = false,
   display,
   mode = 'verbose',
-  countdownActive = true
+  countdownActive = true,
+  accountLabel
 }: ProviderSegmentProps): React.JSX.Element {
   const t = useTranslate()
   const provider = p?.provider ?? 'claude'
+  const icon = (
+    <>
+      <ProviderIcon provider={provider} />
+      {accountLabel ? (
+        <span className="max-w-24 truncate text-muted-foreground">{accountLabel}</span>
+      ) : null}
+    </>
+  )
   const usageFormat = useAppStore((state) => state.statusBarUsageFormat)
   const template = resolveStatusBarUsageTemplate(usageFormat, provider)
   const statusLabel = p ? getProviderUsageStatusLabel(p, t) : ''
@@ -298,7 +310,7 @@ export function ProviderSegment({
   if (!p || p.status === 'idle' || (p.status === 'fetching' && !tightest)) {
     return (
       <span className="inline-flex items-center gap-1 text-muted-foreground">
-        <ProviderIcon provider={provider} />
+        {icon}
         <span>···</span>
       </span>
     )
@@ -306,9 +318,7 @@ export function ProviderSegment({
 
   if (p.status === 'unavailable') {
     return (
-      <span className="inline-flex items-center gap-1 text-muted-foreground/50">
-        <ProviderIcon provider={provider} /> --
-      </span>
+      <span className="inline-flex items-center gap-1 text-muted-foreground/50">{icon} --</span>
     )
   }
 
@@ -318,7 +328,7 @@ export function ProviderSegment({
         className="inline-flex items-center gap-1 text-muted-foreground"
         title={getProviderUsageErrorMessage(p, t)}
       >
-        <ProviderIcon provider={provider} />
+        {icon}
         {/* Why "--" when compact: an icon alone would read as a healthy chip. */}
         {compact ? '--' : <OwnerNotSetUpLabel placeholder={p.usageMetadata.ownerNotSetUp} />}
       </span>
@@ -328,7 +338,7 @@ export function ProviderSegment({
   if (p.status === 'error' && !tightest) {
     return (
       <span className="inline-flex items-center gap-1 text-muted-foreground">
-        <ProviderIcon provider={provider} />
+        {icon}
         {!calm && <AlertTriangle size={11} className="text-muted-foreground/80" />}
         {!compact && <span className="text-[11px] font-medium">{statusLabel}</span>}
       </span>
@@ -344,7 +354,7 @@ export function ProviderSegment({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <ProviderIcon provider={provider} />
+      {icon}
       {!template && mode === 'verbose' && tightest && !compact ? (
         <MiniBar usedPct={clampUsedPercent(tightest.window.usedPercent)} display={display} />
       ) : null}

@@ -27,10 +27,10 @@ export function readUsageRowWidths(area: HTMLElement): UsageRowWidths {
   const chipGap = trigger ? Number.parseFloat(getComputedStyle(trigger).columnGap) || 0 : 0
   const chips: Record<string, [number, number, number]> = {}
   for (const element of area.querySelectorAll<HTMLElement>('[data-measure-chip]')) {
-    const provider = element.dataset.measureChip ?? ''
+    const id = element.dataset.measureChip ?? ''
     const level = Number(element.dataset.measureLevel)
-    const widths = chips[provider] ?? [0, 0, 0]
-    chips[provider] = widths
+    const widths = chips[id] ?? [0, 0, 0]
+    chips[id] = widths
     if (level === 0 || level === 1 || level === 2) {
       widths[level] = widthOf(element)
     }
@@ -50,15 +50,15 @@ function sameWidths(a: UsageRowWidths | null, b: UsageRowWidths): boolean {
     return false
   }
   const close = (x: number, y: number) => Math.abs(x - y) < 0.5
-  const providers = Object.keys(b.chips)
+  const ids = Object.keys(b.chips)
   return (
     close(a.available, b.available) &&
     close(a.chipGap, b.chipGap) &&
     close(a.unitLabelWidth, b.unitLabelWidth) &&
     close(a.moreChipWidth, b.moreChipWidth) &&
-    providers.length === Object.keys(a.chips).length &&
-    providers.every((provider) =>
-      b.chips[provider]!.every((width, level) => close(a.chips[provider]?.[level] ?? -1, width))
+    ids.length === Object.keys(a.chips).length &&
+    ids.every((id) =>
+      b.chips[id]!.every((width, level) => close(a.chips[id]?.[level] ?? -1, width))
     )
   )
 }
@@ -87,7 +87,7 @@ export function useUsageRowWidths(): [RefCallback<HTMLElement>, UsageRowWidths |
     for (const element of area.querySelectorAll(MEASURED_ELEMENTS)) {
       resize.observe(element)
     }
-    // Why: providers joining or leaving add measuring elements the resize observer hasn't seen.
+    // Why: chips joining or leaving add measuring elements the resize observer hasn't seen.
     const mutations = new MutationObserver(() => {
       for (const element of area.querySelectorAll(MEASURED_ELEMENTS)) {
         resize.observe(element)

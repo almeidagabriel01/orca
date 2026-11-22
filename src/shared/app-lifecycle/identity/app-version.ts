@@ -33,7 +33,12 @@ export function parseCliVersion(output: string | null | undefined): string | nul
 
 export function isPrereleaseAppVersion(value: string): boolean {
   const parsed = parseVersion(value)
-  return parsed !== null && parsed.prerelease.length > 0
+  return parsed !== null && releaseRank(parsed.prerelease) === 0
+}
+
+/** 0 prerelease, 1 release, 2 fork build: `X.Y.Z-fork.N` ships on top of upstream X.Y.Z, not before it. */
+function releaseRank(prerelease: string[]): number {
+  return prerelease.length === 0 ? 1 : prerelease[0] === 'fork' ? 2 : 0
 }
 
 export function isPerfPrereleaseAppVersion(value: string): boolean {
@@ -75,14 +80,9 @@ export function compareAppVersions(left: string, right: string): number {
 
   const leftPrerelease = leftVersion.prerelease
   const rightPrerelease = rightVersion.prerelease
-  if (leftPrerelease.length === 0 && rightPrerelease.length === 0) {
-    return 0
-  }
-  if (leftPrerelease.length === 0) {
-    return 1
-  }
-  if (rightPrerelease.length === 0) {
-    return -1
+  const rankDifference = releaseRank(leftPrerelease) - releaseRank(rightPrerelease)
+  if (rankDifference !== 0 || leftPrerelease.length === 0) {
+    return rankDifference
   }
 
   for (let index = 0; index < Math.max(leftPrerelease.length, rightPrerelease.length); index += 1) {

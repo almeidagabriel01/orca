@@ -32,6 +32,9 @@ export type DelayedUpdate = {
   delayDays: number
 }
 
+/** Upstream released this version and the fork's build of it is still being made. */
+export type ForkBuildPending = { version: string }
+
 /** Derive nonrelease origins from dev channels so new dedicated repos cannot be mislabeled ordinary releases. */
 export type UpdateSource = 'local' | DedicatedRepoChannel
 
@@ -93,6 +96,8 @@ export type UpdateStatus = (
       /** Linux only: a package manager owns this install, so Orca cannot apply the update itself.
        *  Additive and optional — older clients simply keep offering their own download. */
       externallyManaged?: boolean
+      /** Fork Mac builds: Update opens `releaseUrl` to download the DMG; nothing installs in place. */
+      manualDownload?: boolean
     }
   | {
       state: 'not-available'
@@ -101,6 +106,8 @@ export type UpdateStatus = (
       delayedUpdate?: DelayedUpdate
       /** Optional so older paired clients keep rendering "up to date". */
       unsupportedSystemUpdate?: UnsupportedSystemUpdate
+      /** Optional so older paired clients keep rendering "up to date". */
+      forkBuildPending?: ForkBuildPending
     }
   | { state: 'downloading'; percent: number; version: string; activeNudgeId?: string }
   | {

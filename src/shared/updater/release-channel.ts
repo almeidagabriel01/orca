@@ -1,4 +1,9 @@
-import { compareAppVersions, isValidAppVersion } from '../app-lifecycle/identity/app-version'
+import {
+  compareAppVersions,
+  isPrereleaseAppVersion,
+  isValidAppVersion
+} from '../app-lifecycle/identity/app-version'
+import { FORK_RELEASE_REPO } from './fork-release-repo'
 
 export type ReleaseChannel = 'stable' | 'rc' | 'hourly' | 'daily' | 'adhoc'
 
@@ -18,11 +23,12 @@ export const RELEASE_CHANNEL_LABELS: Readonly<Record<ReleaseChannel, string>> = 
   adhoc: 'Adhoc'
 }
 
-/** Keep dev tags out of the 10-entry main releases feed, where hourlies would evict stable/RC updates. */
-export const HOURLY_RELEASE_REPO = 'stablyai/orca-hourly'
-export const DAILY_RELEASE_REPO = 'stablyai/orca-daily'
-export const ADHOC_RELEASE_REPO = 'stablyai/orca-adhoc'
-export const MAIN_RELEASE_REPO = 'stablyai/orca'
+/** Keep dev tags out of the 10-entry main releases feed, where hourlies would evict stable/RC updates.
+ *  A fork build reads only its own releases, so an official build can never replace it. */
+export const HOURLY_RELEASE_REPO = FORK_RELEASE_REPO || 'stablyai/orca-hourly'
+export const DAILY_RELEASE_REPO = FORK_RELEASE_REPO || 'stablyai/orca-daily'
+export const ADHOC_RELEASE_REPO = FORK_RELEASE_REPO || 'stablyai/orca-adhoc'
+export const MAIN_RELEASE_REPO = FORK_RELEASE_REPO || 'stablyai/orca'
 
 /** The dev channels, each published to its own repo rather than the main one. */
 const DEDICATED_REPO_CHANNELS = ['hourly', 'daily', 'adhoc'] as const
@@ -171,7 +177,7 @@ export function getVersionChannel(version: string): ReleaseChannel | null {
   }
   // Why the dev channels are tested first: they are prereleases too, so this
   // catch-all would otherwise file every one of them under rc.
-  return normalized.includes('-') ? 'rc' : 'stable'
+  return isPrereleaseAppVersion(normalized) ? 'rc' : 'stable'
 }
 
 /** Dev tags need their publishing repo or links 404. Missing versions use the releases list; latest can fail during GitHub API degradation. */

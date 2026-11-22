@@ -94,6 +94,9 @@ export abstract class UpdaterStatus extends BaseUpdaterState {
   }
 
   private decorateStatusWithDelayedUpdate(status: UpdateStatus): UpdateStatus {
+    if (status.state === 'not-available' && this.forkBuildPending && !status.forkBuildPending) {
+      status = { ...status, forkBuildPending: this.forkBuildPending }
+    }
     if (status.state !== 'not-available' || !this.delayedUpdate || status.delayedUpdate) {
       return status
     }

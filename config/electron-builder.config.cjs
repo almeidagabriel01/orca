@@ -132,6 +132,8 @@ const devChannelRepo = isHourlyChannel
       ? 'orca-adhoc'
       : null
 const appId = 'com.stablyai.orca'
+// Fork release builds publish to and update from their own repo (docs/fork-releases.md).
+const forkUpdateRepository = process.env.ORCA_DESKTOP_UPDATE_REPOSITORY?.split('/')
 const featureWallResources = {
   from: 'resources/onboarding/feature-wall',
   to: 'onboarding/feature-wall'
@@ -855,8 +857,8 @@ module.exports = {
   npmRebuild: true,
   publish: {
     provider: 'github',
-    owner: 'stablyai',
-    repo: devChannelRepo ?? 'orca',
+    owner: forkUpdateRepository?.[0] ?? 'stablyai',
+    repo: forkUpdateRepository?.[1] ?? devChannelRepo ?? 'orca',
     // Keep main-repo releases draft until release-cut verifies all assets; early --publish always would expose missing Windows installers.
     releaseType: devChannelRepo ? 'prerelease' : 'draft'
   }

@@ -123,13 +123,15 @@ export function UpdateAvailableSimpleContent({
   releaseUrl,
   onUpdate,
   onClose,
-  externallyManaged = false
+  externallyManaged = false,
+  manualDownload = false
 }: {
   version: string
   releaseUrl?: string
   onUpdate: () => void
   onClose: () => void
   externallyManaged?: boolean
+  manualDownload?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   return (
@@ -155,6 +157,13 @@ export function UpdateAvailableSimpleContent({
       </p>
       {externallyManaged ? (
         <ExternallyManagedNote />
+      ) : manualDownload ? (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          {t(
+            'auto.components.UpdateCard.forkDownloadNote',
+            'Orca cannot install this fork build itself. The release page opens so you can download the DMG.'
+          )}
+        </p>
       ) : (
         <p className="text-xs leading-relaxed text-muted-foreground">
           {t('auto.components.UpdateCard.fdd4a364fa', "Sessions won't be interrupted.")}
@@ -176,7 +185,9 @@ export function UpdateAvailableSimpleContent({
           onClick={onUpdate}
           className="mt-0.5 w-full cursor-pointer"
         >
-          {t('auto.components.UpdateCard.ec8fe71cfc', 'Update')}
+          {manualDownload
+            ? t('auto.components.UpdateCard.downloadForkBuild', 'Download fork build')
+            : t('auto.components.UpdateCard.ec8fe71cfc', 'Update')}
         </Button>
       )}
     </div>

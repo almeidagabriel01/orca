@@ -168,6 +168,7 @@ export function UpdateCardStateContent({
       onUpdate={onUpdate}
       onClose={onDismiss}
       externallyManaged={status.externallyManaged}
+      manualDownload={status.manualDownload}
     />
   )
 }

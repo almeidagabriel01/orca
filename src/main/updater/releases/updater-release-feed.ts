@@ -11,6 +11,7 @@ import type { CheckFailureSource } from '../lifecycle/updater-state'
 import type { UpdateCheckVariant } from '../lifecycle/updater-types'
 import { ReleaseFeedPreflightError } from '../lifecycle/updater-state'
 import { UpdaterInstallExecution } from '../lifecycle/updater-install-execution'
+import { fetchForkBuildPending } from './updater-fork-upstream'
 
 export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
   protected clearPrereleaseFallbackContextIfSettled(): void {
@@ -136,6 +137,7 @@ export abstract class UpdaterReleaseFeed extends UpdaterInstallExecution {
         ...(delayDays > 0 ? { minReleaseAgeMs: updateDelayDaysToMs(delayDays), now } : {})
       }
     )
+    this.forkBuildPending = await fetchForkBuildPending(currentVersion, releaseTagsResult.tags)
     // Timed-out preflight must never replace a newer attempt's feed.
     if (attemptId === null || !this.isActiveUpdateCheckAttempt(attemptId)) {
       return 'not-available'

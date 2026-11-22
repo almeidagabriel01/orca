@@ -3,6 +3,7 @@ import type { ElectronAutoUpdater } from '../electron-updater-loader'
 import type { LocalBuildFeed } from '../../local-builds/local-build-feed-server'
 import type {
   DelayedUpdate,
+  ForkBuildPending,
   UpdateCheckOptions,
   UpdateSource,
   UpdateStatus
@@ -131,6 +132,8 @@ export abstract class UpdaterState {
   protected getUpdateDelayDays: (() => number) | null = null
   // Newest release the last release-feed check withheld for the user's delay.
   protected delayedUpdate: DelayedUpdate | null = null
+  // Fork builds: newest upstream release the fork has not built yet.
+  protected forkBuildPending: ForkBuildPending | null = null
   // One-off bypass for the next feed pin; cleared as soon as it is consumed.
   protected ignoreUpdateDelayOnce = false
 

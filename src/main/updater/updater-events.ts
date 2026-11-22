@@ -15,6 +15,8 @@ import {
   shouldIgnoreDownloadedUpdateEvent
 } from './linux-package/linux-package-downloaded-status'
 import { isExternallyManagedLinuxInstall } from './linux-package/linux-update-package-type'
+import { getForkReleasePageUrl, isForkManualDownload } from './releases/updater-fork-upstream'
+import { FORK_RELEASE_REPO } from '../../shared/updater/fork-release-repo'
 import * as linuxPackageRecovery from './linux-package/linux-package-update-recovery'
 import { preExtractDownloadedAppImageUpdate } from '../cli/appimage/appimage-copy-pre-extraction'
 
@@ -132,7 +134,8 @@ export function registerAutoUpdaterHandlers({
     void (async () => {
       try {
         const changelog =
-          isLocalBuildCheck() || isPinnedBuildCheck()
+          // Upstream's changelog does not describe a fork build.
+          isLocalBuildCheck() || isPinnedBuildCheck() || FORK_RELEASE_REPO
             ? null
             : await fetchChangelog(info.version, app.getVersion()).catch(() => null)
 
@@ -165,7 +168,10 @@ export function registerAutoUpdaterHandlers({
             version: info.version,
             changelog,
             // Tell clients this host cannot self-update before offering a download.
-            ...(isExternallyManagedLinuxInstall() ? { externallyManaged: true } : {})
+            ...(isExternallyManagedLinuxInstall() ? { externallyManaged: true } : {}),
+            ...(isForkManualDownload()
+              ? { manualDownload: true, releaseUrl: getForkReleasePageUrl(info.version) }
+              : {})
           },
           {
             eligible:

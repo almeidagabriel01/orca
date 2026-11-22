@@ -4328,6 +4328,8 @@
       },
       "UpdateCard": {
         "68b235d264": "Restart to Update",
+        "downloadForkBuild": "Download fork build",
+        "forkDownloadNote": "Orca cannot install this fork build itself. The release page opens so you can download the DMG.",
         "6714206e5a": "Orca v{{value0}} is downloaded. Restart when you're ready.",
         "93794ea932": "Orca v{{value0}} is downloading.",
         "8acbdd3961": "Minimize to status bar",
@@ -9340,6 +9342,9 @@
         },
         "GeneralUpdateSettingsSection": {
           "8a52ca1d02": "Release notes",
+          "downloadForkBuild": "Download fork build",
+          "forkVersionAvailable": "Fork build {{version}} is available. Orca cannot install it itself: download the DMG from the release page and drag it over the app.",
+          "forkBuildPending": "Orca {{version}} is out. The fork build is being made; check again in a few minutes.",
           "02dc082e70": "Could not start the update download.",
           "ceb579abaf": "Check for app updates and install a newer Orca version.",
           "bd79d412f0": "Update check failed. {{value0}}",

@@ -241,7 +241,8 @@ export function UpdateCard(): React.JSX.Element | null {
       : 'animate-update-card-enter'
   const showReassurance =
     !reassuranceSeen &&
-    ((status.state === 'available' && !status.externallyManaged) || status.state === 'downloading')
+    ((status.state === 'available' && !status.externallyManaged && !status.manualDownload) ||
+      status.state === 'downloading')
   return (
     <div ref={cardRootRef} className="flex flex-col gap-2">
       {showReassurance && (

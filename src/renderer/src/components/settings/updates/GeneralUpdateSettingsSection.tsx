@@ -143,10 +143,15 @@ export function GeneralUpdateSettingsSection({
               className="gap-2"
             >
               <Download className="size-3.5" />
-              {t(
-                'auto.components.settings.GeneralUpdateSettingsSection.downloadUpdate',
-                'Download update'
-              )}
+              {updateStatus.manualDownload
+                ? t(
+                    'auto.components.settings.GeneralUpdateSettingsSection.downloadForkBuild',
+                    'Download fork build'
+                  )
+                : t(
+                    'auto.components.settings.GeneralUpdateSettingsSection.downloadUpdate',
+                    'Download update'
+                  )}
             </Button>
           ) : updateStatus.state === 'error' &&
             updateStatus.retryAction === 'install' &&
@@ -186,17 +191,23 @@ export function GeneralUpdateSettingsSection({
             )}
           {updateStatus.state === 'available' && (
             <>
-              {updateStatus.externallyManaged
+              {updateStatus.manualDownload
                 ? t(
-                    'auto.components.settings.GeneralUpdateSettingsSection.externallyManagedVersionAvailable',
-                    'Version {{version}} is available. Update Orca through your system package manager — Orca cannot install this release itself.',
+                    'auto.components.settings.GeneralUpdateSettingsSection.forkVersionAvailable',
+                    'Fork build {{version}} is available. Orca cannot install it itself: download the DMG from the release page and drag it over the app.',
                     { version: updateStatus.version }
                   )
-                : t(
-                    'auto.components.settings.GeneralUpdateSettingsSection.versionAvailable',
-                    'Version {{version}} is available.',
-                    { version: updateStatus.version }
-                  )}
+                : updateStatus.externallyManaged
+                  ? t(
+                      'auto.components.settings.GeneralUpdateSettingsSection.externallyManagedVersionAvailable',
+                      'Version {{version}} is available. Update Orca through your system package manager — Orca cannot install this release itself.',
+                      { version: updateStatus.version }
+                    )
+                  : t(
+                      'auto.components.settings.GeneralUpdateSettingsSection.versionAvailable',
+                      'Version {{version}} is available.',
+                      { version: updateStatus.version }
+                    )}
               {updateStatus.source !== 'local' && (
                 <a
                   href={
@@ -216,35 +227,41 @@ export function GeneralUpdateSettingsSection({
             </>
           )}
           {updateStatus.state === 'not-available' &&
-            (updateStatus.unsupportedSystemUpdate
+            (updateStatus.forkBuildPending
               ? t(
-                  'macosUpdateRequirement.settingsStatus',
-                  'Orca {{version}} requires macOS {{macos}} or later. This is the latest version for this Mac.',
-                  {
-                    version: updateStatus.unsupportedSystemUpdate.version,
-                    macos: updateStatus.unsupportedSystemUpdate.minimumMacosVersion
-                  }
+                  'auto.components.settings.GeneralUpdateSettingsSection.forkBuildPending',
+                  'Orca {{version}} is out. The fork build is being made; check again in a few minutes.',
+                  { version: updateStatus.forkBuildPending.version }
                 )
-              : updateStatus.delayedUpdate
-                ? isDelayedUpdatePending(updateStatus.delayedUpdate, now)
-                  ? t(
-                      'settings.updateDelay.upToDateWithHeld',
-                      'You’re up to date. A newer release is on hold until {{date}}.',
-                      {
-                        date: formatUpdateDelayDate(
-                          Date.parse(updateStatus.delayedUpdate.availableAt),
-                          intlLocale
-                        )
-                      }
-                    )
+              : updateStatus.unsupportedSystemUpdate
+                ? t(
+                    'macosUpdateRequirement.settingsStatus',
+                    'Orca {{version}} requires macOS {{macos}} or later. This is the latest version for this Mac.',
+                    {
+                      version: updateStatus.unsupportedSystemUpdate.version,
+                      macos: updateStatus.unsupportedSystemUpdate.minimumMacosVersion
+                    }
+                  )
+                : updateStatus.delayedUpdate
+                  ? isDelayedUpdatePending(updateStatus.delayedUpdate, now)
+                    ? t(
+                        'settings.updateDelay.upToDateWithHeld',
+                        'You’re up to date. A newer release is on hold until {{date}}.',
+                        {
+                          date: formatUpdateDelayDate(
+                            Date.parse(updateStatus.delayedUpdate.availableAt),
+                            intlLocale
+                          )
+                        }
+                      )
+                    : t(
+                        'settings.updateDelay.heldReleaseReady',
+                        'A newer release is ready. Check for updates to get it.'
+                      )
                   : t(
-                      'settings.updateDelay.heldReleaseReady',
-                      'A newer release is ready. Check for updates to get it.'
-                    )
-                : t(
-                    'auto.components.settings.GeneralUpdateSettingsSection.f40d88390d',
-                    'You’re on the latest version.'
-                  ))}
+                      'auto.components.settings.GeneralUpdateSettingsSection.f40d88390d',
+                      'You’re on the latest version.'
+                    ))}
           {updateStatus.state === 'downloading' &&
             t(
               'auto.components.settings.GeneralUpdateSettingsSection.downloadingVersion',

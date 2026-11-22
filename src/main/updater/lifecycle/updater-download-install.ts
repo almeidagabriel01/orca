@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, shell } from 'electron'
 import {
   beginMacUpdateDownload,
   deferMacQuitUntilInstallerReady,
@@ -7,6 +7,7 @@ import {
 } from '../mac-install/updater-mac-install'
 import { recordUpdaterLifecycle } from '../updater-lifecycle-diagnostics'
 import { isExternallyManagedLinuxInstall } from '../linux-package/linux-update-package-type'
+import { getForkReleasePageUrl, isForkManualDownload } from '../releases/updater-fork-upstream'
 import type { UpdateStatus } from '../../../shared/updater/update-status-types'
 import { updaterCodedMessage } from '../../../shared/updater/updater-failure-copy'
 import { MAC_DEFERRED_STAGING_TIMEOUT_MS, QUIT_AND_INSTALL_DELAY_MS } from './updater-state'
@@ -159,6 +160,13 @@ export abstract class UpdaterDownloadInstall extends UpdaterRemoteStatus {
     const version =
       this.currentStatus.state === 'available' ? this.currentStatus.version : this.availableVersion
     if (!version) {
+      return
+    }
+    // Squirrel.Mac refuses self-signed fork builds: never download, open the release page for the DMG.
+    if (isForkManualDownload()) {
+      if (!automatic) {
+        void shell.openExternal(getForkReleasePageUrl(version))
+      }
       return
     }
     // Enforce host installability in main for older renderers and direct IPC callers.

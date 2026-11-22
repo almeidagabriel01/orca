@@ -1,6 +1,7 @@
 import { consumeCodexRateLimitResetCredit } from '../providers/codex/codex-fetcher'
 import { RateLimitServiceInactiveAccounts } from './service-inactive-accounts'
 import { hasUsageWindows } from './service-result-policy'
+import { MIN_REFETCH_MS } from './service-types'
 import {
   normalizeCodexAccountSelectionTarget,
   type CodexAccountSelectionTarget
@@ -20,6 +21,8 @@ export abstract class RateLimitServiceAccountRefresh extends RateLimitServiceIna
   async refresh(): Promise<RateLimitState> {
     // User refresh must bypass recent poll/focus throttles.
     await this.fetchAll({ force: true })
+    // Saved accounts read now too; their Retry-After and in-flight reads still hold them back.
+    await this.refreshInactiveAccounts(0)
     return this.getState()
   }
 
@@ -27,6 +30,7 @@ export abstract class RateLimitServiceAccountRefresh extends RateLimitServiceIna
     // Reconnecting mobile needs fresh data, but subscription replay must not force redundant fetches.
     const plan = this.getActiveWindowRefreshPlan(Date.now())
     await this.runActiveWindowRefreshPlan(plan)
+    await this.refreshInactiveAccounts(MIN_REFETCH_MS)
     return this.getState()
   }
 

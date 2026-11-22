@@ -6,11 +6,22 @@ import { delayUnlessAborted } from '../../../shared/concurrency/abort-aware-dela
 import type { ProviderRateLimits } from '../../../shared/agent-usage/rate-limits/rate-limit-types'
 
 export abstract class RateLimitServiceInactiveAccounts extends RateLimitServicePolling {
-  async fetchInactiveClaudeAccountsOnOpen(): Promise<void> {
+  /** Saved accounts follow the selected one's cadence: every poll, focus refresh and Refresh.
+   *  Each read still waits out its account's Retry-After. */
+  protected async refreshInactiveAccounts(notWithinMs?: number): Promise<void> {
+    const options = notWithinMs === undefined ? {} : { notWithinMs }
+    await Promise.allSettled([
+      this.fetchInactiveClaudeAccountsOnOpen(options),
+      this.fetchInactiveCodexAccountsOnOpen(options)
+    ])
+  }
+
+  async fetchInactiveClaudeAccountsOnOpen(options: { notWithinMs?: number } = {}): Promise<void> {
     if (!this.isClaudeOAuthUsageEnabled()) {
       return
     }
-    if (Date.now() - this.lastInactiveClaudeFetchAt < INACTIVE_FETCH_DEBOUNCE_MS) {
+    const notWithinMs = options.notWithinMs ?? INACTIVE_FETCH_DEBOUNCE_MS
+    if (Date.now() - this.lastInactiveClaudeFetchAt < notWithinMs) {
       return
     }
     this.pruneInactiveClaudeState()
@@ -90,8 +101,9 @@ export abstract class RateLimitServiceInactiveAccounts extends RateLimitServiceP
     }
   }
 
-  async fetchInactiveCodexAccountsOnOpen(): Promise<void> {
-    if (Date.now() - this.lastInactiveCodexFetchAt < INACTIVE_FETCH_DEBOUNCE_MS) {
+  async fetchInactiveCodexAccountsOnOpen(options: { notWithinMs?: number } = {}): Promise<void> {
+    const notWithinMs = options.notWithinMs ?? INACTIVE_FETCH_DEBOUNCE_MS
+    if (Date.now() - this.lastInactiveCodexFetchAt < notWithinMs) {
       return
     }
     this.pruneInactiveCodexState()
@@ -137,6 +149,10 @@ export abstract class RateLimitServiceInactiveAccounts extends RateLimitServiceP
             this.pushToRenderer()
             continue
           }
+        }
+        // Respect the server's Retry-After rather than prolonging a 429.
+        if (this.isRetryAfterActive(this.inactiveCodexCache.get(account.id) ?? null)) {
+          continue
         }
         const home = await account.resolveHome()
         if (home.kind === 'skip') {

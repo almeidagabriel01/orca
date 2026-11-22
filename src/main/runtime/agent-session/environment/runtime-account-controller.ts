@@ -187,21 +187,16 @@ export class RuntimeAccountController {
   }
 
   async refreshForMobile(): Promise<void> {
-    const { rateLimits } = this.requireServices()
-    await Promise.allSettled([
-      rateLimits.refresh(),
-      rateLimits.fetchInactiveClaudeAccountsOnOpen(),
-      rateLimits.fetchInactiveCodexAccountsOnOpen()
-    ])
+    // Refresh reads every saved account, not only the selected one.
+    await this.requireServices()
+      .rateLimits.refresh()
+      .catch(() => undefined)
   }
 
   async refreshForMobileSubscriber(): Promise<void> {
-    const { rateLimits } = this.requireServices()
-    await Promise.allSettled([
-      rateLimits.refreshIfStale(),
-      rateLimits.fetchInactiveClaudeAccountsOnOpen(),
-      rateLimits.fetchInactiveCodexAccountsOnOpen()
-    ])
+    await this.requireServices()
+      .rateLimits.refreshIfStale()
+      .catch(() => undefined)
   }
 
   /** Desktop switches go through IPC and handle their own sessions; this path moves the others. */

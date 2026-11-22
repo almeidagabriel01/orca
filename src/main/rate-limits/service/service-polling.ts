@@ -13,6 +13,8 @@ import {
 import type { ProviderRateLimits } from '../../../shared/agent-usage/rate-limits/rate-limit-types'
 
 export abstract class RateLimitServicePolling extends RateLimitServiceFetchQueue {
+  protected abstract refreshInactiveAccounts(notWithinMs?: number): Promise<void>
+
   setPollingInterval(ms: number): void {
     this.pollInterval = normalizePollingInterval(ms)
     if (this.timer) {
@@ -27,7 +29,9 @@ export abstract class RateLimitServicePolling extends RateLimitServiceFetchQueue
       if (!this.shouldBackgroundPoll()) {
         return
       }
-      void this.fetchAll()
+      // Why after: inactive reads reuse the selected login's fresh reading and never overlap its cycle.
+      // Half an interval skips accounts a switcher open or Refresh just read.
+      void this.fetchAll().then(() => this.refreshInactiveAccounts(this.pollInterval / 2))
     }, this.pollInterval)
   }
 
@@ -202,5 +206,7 @@ export abstract class RateLimitServicePolling extends RateLimitServiceFetchQueue
     }
     const plan = this.getActiveWindowRefreshPlan(Date.now())
     await this.runActiveWindowRefreshPlan(plan)
+    // Same rule as the selected account: a focus rereads only readings older than MIN_REFETCH_MS.
+    await this.refreshInactiveAccounts(MIN_REFETCH_MS)
   }
 }

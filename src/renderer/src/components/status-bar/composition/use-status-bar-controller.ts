@@ -39,8 +39,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   const [usageMenuOpen, setUsageMenuOpen] = useState(false)
   const usageMenuFocusHandoff = useStatusBarMenuFocusHandoff()
   const statusBarVisible = useAppStore((s) => s.statusBarVisible)
-  const usagePreferences = useStatusBarUsagePreferences(statusBarVisible, remoteOwned)
-  const { refreshInactiveAccounts } = usagePreferences
+  const usagePreferences = useStatusBarUsagePreferences()
   const statusBarItems = useAppStore((s) => s.statusBarItems)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
   // Why: reuse the floating-button's unread dot so activity shows for either trigger location (see FloatingTerminalToggleButton).
@@ -89,21 +88,14 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
       // Why: re-run PATH detection so a freshly-installed/removed CLI's bar appears/hides without restarting Orca.
       await Promise.all([
         (refreshRemote ?? refreshRateLimits)(),
-        refreshDetectedAgents(undefined, { wakeWslDistro: true, userInitiated: true }),
-        refreshInactiveAccounts()
+        refreshDetectedAgents(undefined, { wakeWslDistro: true, userInitiated: true })
       ])
     } finally {
       if (mountedRef.current) {
         setIsRefreshing(false)
       }
     }
-  }, [
-    isRefreshing,
-    refreshRemote,
-    refreshRateLimits,
-    refreshDetectedAgents,
-    refreshInactiveAccounts
-  ])
+  }, [isRefreshing, refreshRemote, refreshRateLimits, refreshDetectedAgents])
 
   if (!statusBarVisible) {
     return null

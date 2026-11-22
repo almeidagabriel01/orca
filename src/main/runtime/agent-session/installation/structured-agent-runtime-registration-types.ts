@@ -53,6 +53,8 @@ export type StructuredAgentAccountHomeRequest = {
   workspacePath: (() => Promise<string>) | null
   /** The permission mode a new chat starts in, when it names one. */
   permissionMode?: string
+  /** The chat's own account (`isAgentChatAccountChoice`); absent follows the host's selection. */
+  accountChoice?: string
 }
 
 /** What resolving an account may ask of the runtime around it. */

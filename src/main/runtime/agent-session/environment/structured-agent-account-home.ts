@@ -19,6 +19,8 @@ export type StructuredClaudeAccountHomeDeps = {
   wslDistro: string | null
   /** `identity` names the selected account before its folder exists; the default checks availability. */
   purpose?: 'identity'
+  /** The chat's own account (`isAgentChatAccountChoice`); absent follows the host's selection. */
+  accountChoice?: string
   getClaudeConfigDirectory: (
     target: { runtime: 'host' } | { runtime: 'wsl'; wslDistro: string }
   ) => string | null | undefined
@@ -30,10 +32,18 @@ export async function resolveStructuredClaudeAccountHomePath(
   // Why only an account: System default keeps the launch-env and configured homes below.
   const router = deps.wslDistro ? undefined : getClaudeProfileRouter()
   const accountHome = router
-    ? await claudeRoutedHomeAsync(router, deps.purpose === 'identity' ? 'identity' : 'checked')
+    ? await claudeRoutedHomeAsync(
+        router,
+        deps.purpose === 'identity' ? 'identity' : 'checked',
+        deps.accountChoice
+      )
     : null
   if (accountHome) {
     return accountHome
+  }
+  if (router && deps.accountChoice !== undefined) {
+    // A chat on System default never takes the selected account's folder from the host.
+    return deps.launchEnv.CLAUDE_CONFIG_DIR?.trim() || router.systemDefaultHome()
   }
   return (
     deps.launchEnv.CLAUDE_CONFIG_DIR?.trim() ||

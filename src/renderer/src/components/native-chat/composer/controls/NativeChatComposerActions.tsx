@@ -19,6 +19,8 @@ import {
 } from './NativeChatComposerToolbar'
 import { NativeChatSessionOptionPickers } from '../../session/options/controls/NativeChatSessionOptionPickers'
 import { NativeChatComposerPermissionPicker } from '../../session/options/controls/NativeChatPermissionModePicker'
+import { NativeChatComposerAccountPicker } from './NativeChatComposerAccountPicker'
+import type { NativeChatAccountControl } from '../../session/options/structured/use-structured-chat-account'
 import { NativeChatComposerGoalChip } from './NativeChatComposerGoalChip'
 import { NativeChatComposerPrimaryButton } from './NativeChatComposerPrimaryButton'
 import { NativeChatAttachButton } from './NativeChatAttachButton'
@@ -65,6 +67,8 @@ export type NativeChatComposerActionsProps = {
   contextUsage?: NativeChatContextUsageSummary | null
   /** The chat's agent, whose permission modes the picker describes. */
   agent?: string
+  /** Present where the chat can run on an account of its own. */
+  chatAccount?: NativeChatAccountControl
   /** A launch prompt: Attach and dictation are its only controls; launching is the panel's. */
   launchPrompt?: boolean
 }
@@ -98,6 +102,7 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
   contextUsage,
   focusComposer,
   agent,
+  chatAccount,
   launchPrompt = false
 }: NativeChatComposerActionsProps): React.JSX.Element {
   const t = useTranslate()
@@ -239,6 +244,15 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
       : [])
   ]
   const right: NativeChatComposerControl[] = [
+    ...(chatAccount
+      ? [
+          {
+            id: 'account',
+            priority: 1,
+            content: <NativeChatComposerAccountPicker control={chatAccount} />
+          }
+        ]
+      : []),
     {
       id: 'model',
       content: (

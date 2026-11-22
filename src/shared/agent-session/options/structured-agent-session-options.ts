@@ -58,6 +58,8 @@ export type StructuredAgentSessionOptionState = AgentSessionChildPermissionField
   defaultsUnsent?: true
   /** The permission mode the host or launch last stated; null shows no picker. */
   permissionMode: string | null
+  /** The chat's own account as the host last stated it; absent follows the host's selection. */
+  accountChoice?: string
   interactionModeSupported?: boolean
   reportedPermissionMode?: string | null
   permissionOwnSupported?: boolean | null
@@ -226,7 +228,8 @@ export function applyStructuredAgentSessionOptions(
         ? result.listedModelIds
         : undefined,
     permissionMode: result.current.permissionMode ?? null,
-    reportedPermissionMode: result.current.reportedPermissionMode
+    reportedPermissionMode: result.current.reportedPermissionMode,
+    accountChoice: result.current.accountChoice
   }
 }
 

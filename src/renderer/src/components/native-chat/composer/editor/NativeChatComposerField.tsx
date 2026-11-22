@@ -78,6 +78,7 @@ export function NativeChatComposerField({
   sessionOptionsPickerRequest,
   goalMode,
   agent,
+  chatAccount,
   launchPrompt,
   workspaceFooter
 }: NativeChatComposerFieldProps): React.JSX.Element {
@@ -329,6 +330,7 @@ export function NativeChatComposerField({
                 onSteerPreview={runSteerPreview}
                 onStop={onStop ? stop : undefined}
                 sessionOptionsSurface={sessionOptionsSurface}
+                {...(chatAccount ? { chatAccount } : {})}
                 sessionOptionsSnapshot={sessionOptionsSnapshot}
                 contextUsage={contextUsage}
                 sessionOptionsPickerRequest={sessionOptionsPickerRequest}

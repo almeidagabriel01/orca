@@ -13,6 +13,18 @@ export function replaceAgentSessionRecordOptions(
   if (lease.runtimeFence !== replacement.fence || (lease.claimStatus !== 'live' && !atRest)) {
     throw agentSessionRefusalError('agent_session_ownership_unknown', { reason: 'leaseMoved' })
   }
+  if ('accountChoice' in replacement) {
+    // A running chat keeps the account it launched on; the choice applies from its next start.
+    if (!atRest) {
+      throw agentSessionRefusalError('agent_session_operation_invalid', {
+        reason: 'optionRejected'
+      })
+    }
+    const { accountChoice: _previous, ...rest } = record
+    return replacement.accountChoice === null
+      ? { ...rest, updatedAt: replacement.now }
+      : { ...rest, accountChoice: replacement.accountChoice, updatedAt: replacement.now }
+  }
   return 'options' in replacement
     ? { ...record, options: { ...replacement.options }, updatedAt: replacement.now }
     : { ...record, permissionMode: replacement.permissionMode, updatedAt: replacement.now }

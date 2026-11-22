@@ -11,6 +11,15 @@ export function claudeProfileMissing(): AgentSessionPreSpawnError {
   })
 }
 
+export const CLAUDE_CHAT_ACCOUNT_MISSING_MESSAGE =
+  "This chat's Claude account is no longer on this computer. Choose another account for the chat."
+
+export function claudeChatAccountMissing(): AgentSessionPreSpawnError {
+  return new AgentSessionPreSpawnError(new Error(CLAUDE_CHAT_ACCOUNT_MISSING_MESSAGE), {
+    reason: 'claudeAccountFolderMissing'
+  })
+}
+
 export function claudeProfileSetupFailed(): AgentSessionPreSpawnError {
   return new AgentSessionPreSpawnError(new Error(CLAUDE_PROFILE_SETUP_FAILED_MESSAGE), {
     reason: 'claudeAccountSetupFailed'

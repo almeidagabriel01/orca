@@ -184,12 +184,13 @@ export const STRUCTURED_AGENT_RUNTIME_CATALOG: readonly StructuredAgentRuntimeCa
       supportsLocation: supportsClaudeStructuredLocation,
       // Without a router a launch keeps the record's home (resolveClaudeStructuredLaunchHome).
       launchFollowsSelection: () => getClaudeProfileRouter() !== undefined,
-      resolveAccountHome: async ({ launchEnv, location, purpose }, services) =>
+      resolveAccountHome: async ({ launchEnv, location, purpose, accountChoice }, services) =>
         agentSessionAccountHome(
           CLAUDE_STRUCTURED_AGENT,
           await resolveStructuredClaudeAccountHomePath({
             launchEnv,
             wslDistro: location?.wslDistro ?? null,
+            ...(accountChoice !== undefined ? { accountChoice } : {}),
             ...(purpose === 'launch' || purpose === 'identity' ? { purpose: 'identity' } : {}),
             getClaudeConfigDirectory: services.getClaudeConfigDirectory
           })

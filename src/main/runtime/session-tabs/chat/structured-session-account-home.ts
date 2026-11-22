@@ -19,13 +19,14 @@ export abstract class OrcaRuntimeWithStructuredSessionAccountHome extends OrcaRu
     if (!registration) {
       return null
     }
-    return async ({ launchEnv, location }, permissionMode?: string) =>
+    return async ({ launchEnv, location }, permissionMode?: string, accountChoice?: string) =>
       registration.resolveAccountHome(
         {
           launchEnv,
           location: location ?? null,
           purpose,
           ...(permissionMode ? { permissionMode } : {}),
+          ...(accountChoice !== undefined ? { accountChoice } : {}),
           workspacePath:
             purpose === 'launch'
               ? async () =>
@@ -67,7 +68,7 @@ export abstract class OrcaRuntimeWithStructuredSessionAccountHome extends OrcaRu
     }
     const read = this.structuredAgentAccountHomeResolver(provider, '', purpose)
     const launchEnv = this.structuredAgentLaunchEnv(provider, this.requireStore().getSettings())
-    return (await read?.({ launchEnv, location })) ?? null
+    return (await read?.({ launchEnv, location }, undefined, record.accountChoice)) ?? null
   }
 
   /** The same account, prepared for a start in `launchDirectory` as a create prepares it. */
@@ -82,6 +83,6 @@ export abstract class OrcaRuntimeWithStructuredSessionAccountHome extends OrcaRu
     const prepare = this.structuredAgentAccountHomeResolver(provider, '', 'launch', launchDirectory)
     await this.accounts.prepareHostAgentLaunch(provider)
     const launchEnv = this.structuredAgentLaunchEnv(provider, this.requireStore().getSettings())
-    return (await prepare?.({ launchEnv, location })) ?? null
+    return (await prepare?.({ launchEnv, location }, undefined, record.accountChoice)) ?? null
   }
 }

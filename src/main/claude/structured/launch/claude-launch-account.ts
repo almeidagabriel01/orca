@@ -4,21 +4,24 @@ import { applyClaudeEnvPatch } from '../../../claude-accounts/runtime-auth/envir
 import { claudeConfigDirEnvPatch } from './claude-config-dir-pin'
 import { resolveStructuredClaudeAccountHomePath } from '../../../runtime/agent-session/environment/structured-agent-account-home'
 
-/** The account a launch runs under is the current selection; the receipt records what it used. */
+/** A launch runs under the chat's own account when it chose one, else the current selection; the
+ *  receipt records what it used. */
 export async function prepareClaudeLaunchAccount(
   router: ClaudeProfileRouter | undefined,
   env: Record<string, string>,
-  recordHome: string
+  recordHome: string,
+  accountChoice?: string
 ): Promise<ClaudeAccountRecipe> {
   if (!router) {
     return { route: 'system', home: recordHome, configDir: env.CLAUDE_CONFIG_DIR ?? null }
   }
-  const preparation = await router.prepareLaunch()
+  const preparation = await router.prepareLaunch(accountChoice)
   const home =
     preparation.provenance === 'system'
       ? await resolveStructuredClaudeAccountHomePath({
           launchEnv: env,
           wslDistro: null,
+          ...(accountChoice !== undefined ? { accountChoice } : {}),
           getClaudeConfigDirectory: () => router.systemDefaultHome()
         })
       : preparation.configDir
@@ -33,13 +36,15 @@ export async function prepareClaudeLaunchAccount(
 export async function withClaudeLaunchAccountPin(
   router: ClaudeProfileRouter | undefined,
   env: Record<string, string>,
-  recordHome: string
+  recordHome: string,
+  accountChoice?: string
 ): Promise<Record<string, string>> {
   const home = router
     ? await resolveStructuredClaudeAccountHomePath({
         launchEnv: env,
         wslDistro: null,
         purpose: 'identity',
+        ...(accountChoice !== undefined ? { accountChoice } : {}),
         getClaudeConfigDirectory: () => router.systemDefaultHome()
       })
     : recordHome

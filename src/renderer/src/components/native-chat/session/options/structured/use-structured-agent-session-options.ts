@@ -17,6 +17,7 @@ import { structuredAgentSessionShownSnapshot } from '../../../../../../../shared
 import { useHostModelCatalogUpgrade } from '../catalog/use-host-model-catalog-upgrade'
 import { useNativeChatCliUpdate } from '../../../host-access/native-chat-cli-update'
 import { useStructuredAgentSessionOptionState } from './use-structured-agent-session-option-state'
+import { useStructuredChatAccount } from './use-structured-chat-account'
 import { agentSessionWriteFailureText } from '../../../messages/notices/agent-session-write-notice-text'
 import {
   flushStructuredSessionSelectionOptions,
@@ -160,6 +161,15 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     },
     [launch?.explicitOptions, launchSeedOptions, optionStateRef, optionView, setStructuredOption]
   )
+  const chatAccount = useStructuredChatAccount({
+    agent,
+    sessionId,
+    target,
+    fence: transportEnabled ? fence : null,
+    hostChoice: optionState.accountChoice,
+    sessionNeverStarted: optionState.sessionNeverStarted,
+    reread: rereadOptions
+  })
   const { demandModelCatalog } = hostCatalog
   // The updated CLI lists the models it was too old for.
   const cliUpdate = useNativeChatCliUpdate(target, agent, demandModelCatalog)
@@ -223,6 +233,7 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     forkSupport: support?.fence === fence ? support.forkSupport : undefined,
     optionSnapshot,
     optionSurface,
+    chatAccount,
     setStructuredOption,
     sendSource: { optionStateRef, optionView, takesSendOptions, takesSelection },
     unavailable: hostCatalog.unavailable

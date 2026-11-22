@@ -1,0 +1,78 @@
+import { useState } from 'react'
+import { toast } from 'sonner'
+import {
+  AGENT_CHAT_ACCOUNT_OPTION_ID,
+  AGENT_CHAT_HOST_ACCOUNT,
+  agentSupportsChatAccountChoice
+} from '../../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import { AGENT_SESSION_CHAT_ACCOUNT_RUNTIME_CAPABILITY } from '../../../../../../../shared/agent-session/lifecycle/operations/agent-session-create-capabilities'
+import type { RuntimeClientTarget } from '../../../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
+import { useStructuredAgentSessionHostCapabilityState } from '@/runtime/native-chat/host-capabilities/structured-agent-session-host-capability'
+import { setStructuredSessionSelectionOption } from '@/lib/agent-session/launch/structured-agent-session-launch-options'
+import { holdStructuredLaunchAccount } from '@/lib/agent-session/launch/structured-agent-session-launch-account'
+import { agentSessionWriteFailureText } from '../../../messages/notices/agent-session-write-notice-text'
+import { translate } from '@/i18n/i18n'
+
+/** The account a chat runs on, as the composer shows and changes it. */
+export type NativeChatAccountControl = {
+  /** The host whose accounts the chat chooses from. */
+  target: RuntimeClientTarget
+  /** The chat's own account; absent follows the host's selection. */
+  choice: string | undefined
+  /** Absent once the chat has started: a running chat keeps the account it launched on. */
+  choose?: (choice: string) => void
+}
+
+/** Present for an agent and host that run a chat on an account of its own. */
+export function useStructuredChatAccount(args: {
+  agent: string
+  sessionId: string
+  target: RuntimeClientTarget
+  fence: number | null
+  /** The host's last statement of the chat's account and whether it ever started. */
+  hostChoice: string | undefined
+  sessionNeverStarted: boolean | undefined
+  reread: () => void
+}): NativeChatAccountControl | undefined {
+  const { agent, sessionId, target, fence, reread } = args
+  const [held, setHeld] = useState<string | undefined>(undefined)
+  const capability = useStructuredAgentSessionHostCapabilityState(
+    target,
+    AGENT_SESSION_CHAT_ACCOUNT_RUNTIME_CAPABILITY
+  )
+  if (!agentSupportsChatAccountChoice(agent) || capability !== 'supported') {
+    return undefined
+  }
+  const beforeCreate = fence === null
+  const choose = async (choice: string): Promise<void> => {
+    if (beforeCreate) {
+      if (holdStructuredLaunchAccount(sessionId, choice)) {
+        setHeld(choice === AGENT_CHAT_HOST_ACCOUNT ? undefined : choice)
+      }
+      return
+    }
+    const outcome = await setStructuredSessionSelectionOption(
+      target,
+      sessionId,
+      fence,
+      AGENT_CHAT_ACCOUNT_OPTION_ID,
+      choice
+    )
+    if (outcome.kind !== 'accepted') {
+      const failure = 'failure' in outcome ? outcome.failure : undefined
+      toast.error(
+        failure
+          ? agentSessionWriteFailureText(failure, 'option')
+          : translate('components.native-chat.account.changeFailed', "Couldn't change the account.")
+      )
+    }
+    reread()
+  }
+  return {
+    target,
+    choice: beforeCreate ? held : args.hostChoice,
+    ...(beforeCreate || args.sessionNeverStarted === true
+      ? { choose: (choice: string) => void choose(choice) }
+      : {})
+  }
+}

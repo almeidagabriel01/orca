@@ -1,3 +1,4 @@
+import type { NativeChatAccountControl } from './session/options/structured/use-structured-chat-account'
 import type { NativeChatComposerInput } from './composer/editor/native-chat-composer-input'
 import type { useImeEnterGestureOwnership } from '@/lib/text-input/ime/ime-composition-keyboard-event'
 import type { ComposerAutocomplete } from '../../../../shared/native-chat/input/composer/native-chat-composer-autocomplete'
@@ -85,6 +86,8 @@ export type NativeChatComposerFieldProps = {
   sessionOptionsPickerRequest?: NativeChatOptionPickerRequest | null
   goalMode?: NativeChatComposerGoalMode
   agent?: string
+  /** Present where the chat can run on an account of its own. */
+  chatAccount?: NativeChatAccountControl | undefined
   launchPrompt?: { placeholder: string }
   workspaceFooter?: React.ReactNode
 }

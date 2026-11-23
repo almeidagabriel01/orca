@@ -65,6 +65,7 @@ describe('readHeavyCommandQueue', () => {
         status: 'running',
         slot: 2,
         position: null,
+        ordered: false,
         direct: false,
         extra: false,
         queuedAt: 100_000,

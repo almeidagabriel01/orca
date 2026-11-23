@@ -3,6 +3,11 @@ import { renderResourceUsageSummary } from './resource-usage-popover-summary'
 import { renderResourceHostsSummary } from './resource-usage-hosts-summary'
 import { ResourceUsageStatusSegment } from '../ResourceUsageStatusSegment'
 import type { MemorySnapshot } from '../../../../../../shared/diagnostics/process-stats-types'
+import {
+  getRuntimeHostResourceNotice,
+  parseHostMachineTotals
+} from '../../host-connections/runtime-host-resources'
+import type { ResourceHostSummary } from './resource-host-summary'
 
 const GIB = 1024 ** 3
 
@@ -159,3 +164,46 @@ export const hostsSummary = defineFixture({
       }
     ])
 })
+
+const hostMachine = parseHostMachineTotals({
+  totalMemory: 32 * GIB,
+  usedMemory: 21 * GIB,
+  cpuCoreCount: 8,
+  cpuUsagePercent: 46,
+  loadAverage: [3.1, 2.4, 2]
+})
+// A paired server that predates sending chats: sampled, with its chat workers missing.
+const olderServer = {
+  status: 'sampled' as const,
+  worktrees: [],
+  app: { cpu: 4, memory: 0.6 * GIB },
+  machine: hostMachine,
+  chatsIncluded: false
+}
+const chatsNoticeHosts: ResourceHostSummary[] = [
+  {
+    id: 'local',
+    label: 'This computer',
+    isLocal: true,
+    orca: { cpu: 18, memory: 1.2 * GIB },
+    machine: hostMachine,
+    counts: { terminals: 4, agents: 2, commands: 1 },
+    notice: null
+  },
+  {
+    id: 'env-vps',
+    label: 'vps',
+    isLocal: false,
+    orca: olderServer.app,
+    machine: olderServer.machine,
+    counts: { terminals: 3, agents: 1, commands: 0 },
+    notice: getRuntimeHostResourceNotice(olderServer, 'vps')
+  }
+]
+
+export const hostChatsUpdate = defineFixture({
+  width: 448,
+  render: () => renderResourceHostsSummary(chatsNoticeHosts)
+})
+
+export const hostChatsUpdateNarrow = defineFixture({ ...hostChatsUpdate, width: 320 })

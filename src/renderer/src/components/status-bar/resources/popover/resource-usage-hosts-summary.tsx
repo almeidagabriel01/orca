@@ -3,6 +3,8 @@ import { Laptop, Server } from 'lucide-react'
 import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
+import { Progress } from '@/components/ui/progress'
+import type { HostMachineTotals, UsedOfTotal } from '../../host-connections/runtime-host-resources'
 import {
   CPU_COLUMN_CLS,
   MEM_COLUMN_CLS,
@@ -30,6 +32,85 @@ function formatHostCounts(counts: ResourceHostCounts, t: Translate): string {
   ].join(' · ')
 }
 
+const GIB = 1024 ** 3
+
+function formatUsedOfTotal({ used, total }: UsedOfTotal): string {
+  const [unit, label] =
+    total >= 1024 * GIB ? [1024 * GIB, 'TB'] : total >= GIB ? [GIB, 'GB'] : [1024 ** 2, 'MB']
+  const digits = total / unit >= 100 ? 0 : 1
+  return `${(used / unit).toFixed(digits)}/${(total / unit).toFixed(digits)} ${label}`
+}
+
+function usedPercent(pair: UsedOfTotal | null): number | null {
+  return pair && pair.total > 0 ? (pair.used / pair.total) * 100 : null
+}
+
+function MachineMeter({
+  label,
+  value,
+  percent
+}: {
+  label: string
+  value: string
+  percent: number | null
+}): React.JSX.Element {
+  return (
+    <div className="min-w-0">
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="shrink-0">{label}</span>
+        <span className="truncate text-foreground">{value}</span>
+      </div>
+      <Progress value={percent ?? 0} aria-label={`${label} ${value}`} className="h-1" />
+    </div>
+  )
+}
+
+function renderMachineTotals(machine: HostMachineTotals, t: Translate): React.JSX.Element {
+  const swap =
+    machine.swap === null
+      ? '—'
+      : machine.swap.total === 0
+        ? t('resourceManager.hosts.noSwap', 'none')
+        : formatUsedOfTotal(machine.swap)
+  const details = [
+    t('resourceManager.hosts.machine', 'Machine'),
+    ...(machine.cpuCores === null
+      ? []
+      : [
+          t('resourceManager.hosts.cores', '{{count}} cores', {
+            count: machine.cpuCores,
+            defaultValue_one: '{{count}} core'
+          })
+        ]),
+    t('resourceManager.hosts.load', 'Load {{value0}}', {
+      value0: machine.loadAverage?.map((n) => n.toFixed(2)).join(' ') ?? '—'
+    }),
+    t('resourceManager.hosts.swap', 'Swap {{value0}}', { value0: swap })
+  ].join(' · ')
+  return (
+    <div className="pl-[18px] pt-0.5 text-2xs text-muted-foreground">
+      <div className="truncate">{details}</div>
+      <div className="grid grid-cols-3 gap-x-3 pt-0.5">
+        <MachineMeter
+          label={t('auto.components.status.bar.ResourceUsageStatusSegment.298f4be7f2', 'CPU')}
+          value={machine.cpuPercent === null ? '—' : `${Math.round(machine.cpuPercent)}%`}
+          percent={machine.cpuPercent}
+        />
+        <MachineMeter
+          label={t('resourceManager.hosts.ram', 'RAM')}
+          value={machine.memory ? formatUsedOfTotal(machine.memory) : '—'}
+          percent={usedPercent(machine.memory)}
+        />
+        <MachineMeter
+          label={t('resourceManager.hosts.disk', 'Disk')}
+          value={machine.disk ? formatUsedOfTotal(machine.disk) : '—'}
+          percent={usedPercent(machine.disk)}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function renderResourceHostsSummary(
   hosts: readonly ResourceHostSummary[],
   t: Translate = translate
@@ -48,7 +129,7 @@ export function renderResourceHostsSummary(
           <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
         </div>
       </div>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-2">
         {hosts.map((host) => {
           const Icon = host.isLocal ? Laptop : Server
           return (
@@ -73,6 +154,7 @@ export function renderResourceHostsSummary(
               <div className="truncate pl-[18px] text-2xs text-muted-foreground">
                 {host.counts ? formatHostCounts(host.counts, t) : host.notice}
               </div>
+              {host.machine ? renderMachineTotals(host.machine, t) : null}
             </li>
           )
         })}

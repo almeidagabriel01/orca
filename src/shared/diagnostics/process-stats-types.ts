@@ -61,6 +61,16 @@ export type HostMemory = {
   memoryUsagePercent: number
   cpuCoreCount: number
   loadAverage1m: number
+  // Whole-machine totals below; absent means unknown (older hosts, unsupported platforms, first sample).
+  /** Busy share of all cores since the previous snapshot, 0-100. */
+  cpuUsagePercent?: number
+  swapTotal?: number
+  swapUsed?: number
+  /** Volume holding the home directory; used counts reserved blocks, like df's Use%. */
+  diskTotal?: number
+  diskUsed?: number
+  /** 1, 5 and 15 minute load averages; absent on Windows. */
+  loadAverage?: number[]
 }
 
 export type MemorySnapshot = {

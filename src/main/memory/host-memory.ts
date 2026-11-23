@@ -6,6 +6,7 @@ import type {
   HostAvailableMemorySource,
   HostMemory
 } from '../../shared/diagnostics/process-stats-types'
+import { collectHostMachineTotals } from './host-machine-totals'
 
 const MEMORY_PRESSURE_TIMEOUT_MS = 1_000
 const MEMORY_PRESSURE_MAX_BUFFER = 64 * 1024
@@ -15,9 +16,15 @@ let darwinAvailabilitySupported = true
 let linuxAvailabilitySupported = true
 
 export async function collectHostMemory(): Promise<HostMemory> {
+  const platform = os.platform()
   const total = nonNegativeNumber(os.totalmem())
   const free = Math.min(total, nonNegativeNumber(os.freemem()))
-  const preferred = await readAvailableMemory(os.platform(), total)
+  // Why one read: available memory and swap both come from /proc/meminfo.
+  const meminfo = platform === 'linux' ? await readLinuxMeminfo() : null
+  const [preferred, machine] = await Promise.all([
+    readAvailableMemory(platform, total, meminfo),
+    collectHostMachineTotals(platform, meminfo)
+  ])
   const available = Math.min(total, Math.max(free, preferred?.bytes ?? free))
   const used = Math.max(0, total - available)
 
@@ -29,7 +36,8 @@ export async function collectHostMemory(): Promise<HostMemory> {
     usedMemory: used,
     memoryUsagePercent: total > 0 ? (used / total) * 100 : 0,
     cpuCoreCount: Math.max(1, os.cpus().length),
-    loadAverage1m: nonNegativeNumber(os.loadavg()[0])
+    loadAverage1m: nonNegativeNumber(os.loadavg()[0]),
+    ...machine
   }
 }
 
@@ -69,7 +77,8 @@ export function parseLinuxAvailableMemory(meminfo: string): number | null {
 
 async function readAvailableMemory(
   platform: NodeJS.Platform,
-  total: number
+  total: number,
+  meminfo: string | null
 ): Promise<{ bytes: number; source: HostAvailableMemorySource } | null> {
   if (platform === 'darwin' && darwinAvailabilitySupported) {
     const bytes = await readDarwinAvailableMemory(total)
@@ -77,11 +86,13 @@ async function readAvailableMemory(
       return { bytes, source: 'memory-pressure' }
     }
   }
-  if (platform === 'linux' && linuxAvailabilitySupported) {
-    const bytes = await readLinuxAvailableMemory()
+  if (platform === 'linux' && linuxAvailabilitySupported && meminfo !== null) {
+    const bytes = parseLinuxAvailableMemory(meminfo)
     if (bytes !== null) {
       return { bytes, source: 'proc-meminfo' }
     }
+    // Pre-3.14 kernels lack MemAvailable; use Node's value from now on.
+    linuxAvailabilitySupported = false
   }
   return null
 }
@@ -108,18 +119,13 @@ async function readDarwinAvailableMemory(total: number): Promise<number | null> 
   return null
 }
 
-async function readLinuxAvailableMemory(): Promise<number | null> {
+async function readLinuxMeminfo(): Promise<string | null> {
   try {
-    const meminfo = await readFile(path.join(path.sep, 'proc', 'meminfo'), 'utf8')
-    const available = parseLinuxAvailableMemory(meminfo)
-    if (available !== null) {
-      return available
-    }
+    return await readFile(path.join(path.sep, 'proc', 'meminfo'), 'utf8')
   } catch {
-    // Non-procfs Linux hosts use Node's memory value.
+    // Non-procfs Linux hosts use Node's memory value and report no swap.
+    return null
   }
-  linuxAvailabilitySupported = false
-  return null
 }
 
 function nonNegativeNumber(value: unknown): number {

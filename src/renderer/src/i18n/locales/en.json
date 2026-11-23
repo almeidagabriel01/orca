@@ -26074,7 +26074,15 @@
       "commands_one": "{{count}} command",
       "commands_other": "{{count}} commands",
       "title": "Hosts · Orca usage",
-      "memory": "Memory"
+      "memory": "Memory",
+      "machine": "Machine",
+      "cores_one": "{{count}} core",
+      "cores_other": "{{count}} cores",
+      "load": "Load {{value0}}",
+      "swap": "Swap {{value0}}",
+      "noSwap": "none",
+      "ram": "RAM",
+      "disk": "Disk"
     }
   },
   "browserExtensions": {

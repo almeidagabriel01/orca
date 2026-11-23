@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { readRuntimeHostResources } from '../../host-connections/runtime-host-resources'
+import {
+  parseHostMachineTotals,
+  readRuntimeHostResources
+} from '../../host-connections/runtime-host-resources'
 import { buildResourceHostSummaries } from './resource-host-summary'
 
 const session = (sessionId: string, paneKey: string | null) => ({
@@ -30,6 +33,7 @@ describe('buildResourceHostSummaries', () => {
   it('reports each host on its own numbers and keeps unsampled hosts unknown', async () => {
     const localSnapshot = {
       app: { cpu: 12, memory: 500 },
+      host: { totalMemory: 16, usedMemory: 8, cpuCoreCount: 8, cpuUsagePercent: 25 },
       worktrees: [
         worktree([
           session('daemon-agent', null),
@@ -67,6 +71,12 @@ describe('buildResourceHostSummaries', () => {
       (_key, fallback, values) => `${fallback}|${JSON.stringify(values ?? {})}`
     )
 
+    expect(hosts.map(({ id, machine }) => [id, machine?.cpuPercent, machine?.memory])).toEqual([
+      ['local', 25, { used: 8, total: 16 }],
+      ['env-a', null, null],
+      ['env-b', null, null],
+      ['env-c', undefined, undefined]
+    ])
     expect(
       hosts.map(({ id, orca, counts, notice }) => ({ id, orca, counts, notice: !!notice }))
     ).toEqual([
@@ -85,5 +95,68 @@ describe('buildResourceHostSummaries', () => {
       },
       { id: 'env-c', orca: null, counts: null, notice: true }
     ])
+  })
+})
+
+describe('parseHostMachineTotals', () => {
+  it('reads every whole-machine total a current server sends', () => {
+    expect(
+      parseHostMachineTotals({
+        totalMemory: 16,
+        usedMemory: 12,
+        cpuCoreCount: 8,
+        loadAverage1m: 2,
+        cpuUsagePercent: 37.5,
+        swapTotal: 0,
+        swapUsed: 0,
+        diskTotal: 500,
+        diskUsed: 200,
+        loadAverage: [2, 1.5, 1]
+      })
+    ).toEqual({
+      cpuPercent: 37.5,
+      cpuCores: 8,
+      memory: { used: 12, total: 16 },
+      swap: { used: 0, total: 0 },
+      disk: { used: 200, total: 500 },
+      loadAverage: [2, 1.5, 1]
+    })
+  })
+
+  it('keeps what an older server sends and leaves the rest unknown', () => {
+    expect(
+      parseHostMachineTotals({ totalMemory: 16, usedMemory: 4, cpuCoreCount: 2, loadAverage1m: 0 })
+    ).toEqual({
+      cpuPercent: null,
+      cpuCores: 2,
+      memory: { used: 4, total: 16 },
+      swap: null,
+      disk: null,
+      loadAverage: null
+    })
+  })
+
+  it('rejects impossible values field by field instead of showing them', () => {
+    expect(
+      parseHostMachineTotals({
+        totalMemory: 0,
+        usedMemory: 0,
+        cpuCoreCount: 1.5,
+        cpuUsagePercent: 140,
+        swapTotal: 4,
+        swapUsed: 5,
+        diskTotal: 100,
+        diskUsed: -1,
+        loadAverage: [1, '2', 3]
+      })
+    ).toEqual({
+      cpuPercent: null,
+      cpuCores: null,
+      memory: null,
+      swap: null,
+      disk: null,
+      loadAverage: null
+    })
+    expect(parseHostMachineTotals('garbage').memory).toBeNull()
   })
 })

@@ -1,4 +1,7 @@
 import { defineFixture } from '../../../component-fixtures/component-fixture'
+import { getDefaultSettings } from '../../../../../shared/orca-profiles/constants'
+import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
+import { NotificationsPane } from '../../settings/notifications/NotificationsPane'
 import type {
   ProviderRateLimits,
   RateLimitWindow
@@ -62,29 +65,35 @@ const SESSIONS: UsageAgentSession[] = [
   session('d', 'recent', 'Fix flaky test', 'repo::/feat-b', 25 * MIN, 'claude-sonnet-5-5')
 ]
 
-export const chips = defineFixture({
-  width: 640,
-  render: () => (
-    <div className="flex items-center gap-4 bg-background p-3 text-xs">
+function ChipStrip({ mode }: { mode: StatusBarUsageMode }): React.JSX.Element {
+  return (
+    <div className="flex h-9 items-center gap-4 whitespace-nowrap bg-background px-3 text-xs">
       {[
-        { id: 'gabriel', p: AHEAD, sessions: SESSIONS },
-        { id: 'gestao', p: BEHIND, sessions: [SESSIONS[0]!] },
+        { id: 'personal', p: AHEAD, sessions: SESSIONS },
+        { id: 'work', p: BEHIND, sessions: [SESSIONS[0]!] },
         { id: 'idle', p: AHEAD, sessions: [] }
       ].map(({ id, p, sessions }, index) => (
         <span key={id} className="relative inline-flex">
           <ProviderSegment
             p={p}
-            accountLabel={index === 0 ? 'gabriel' : 'gestao'}
+            accountLabel={index === 0 ? 'personal' : 'work'}
             selected={index === 0}
             display="used"
-            mode="verbose"
+            mode={mode}
           />
           <UsageChipActivity sessions={sessions} />
         </span>
       ))}
-      <ProviderSegment p={BEHIND} display="used" mode="verbose" />
+      <ProviderSegment p={BEHIND} display="used" mode={mode} />
     </div>
   )
+}
+
+export const chips = defineFixture({ width: 880, render: () => <ChipStrip mode="verbose" /> })
+
+export const chipsCompact = defineFixture({
+  width: 640,
+  render: () => <ChipStrip mode="compact" />
 })
 
 export const row = defineFixture({
@@ -97,7 +106,7 @@ export const row = defineFixture({
         state={{ kind: 'usage', statusLabel: null }}
         showSignInAction={false}
         now={NOW}
-        accountLabel="gabriel"
+        accountLabel="personal"
         selected
         sessions={SESSIONS}
       />
@@ -111,5 +120,17 @@ export const details = defineFixture({
     <UsageRowSessionsScope sessions={SESSIONS} owner={{ kind: 'local' }}>
       <ProviderDetailsMenu provider={AHEAD} ariaLabel="Claude" open />
     </UsageRowSessionsScope>
+  )
+})
+
+const defaults = getDefaultSettings('/home/fixture')
+
+export const alertToggle = defineFixture({
+  width: 720,
+  render: () => (
+    <NotificationsPane
+      settings={{ ...defaults, notifications: { ...defaults.notifications, enabled: true } }}
+      updateSettings={() => {}}
+    />
   )
 })

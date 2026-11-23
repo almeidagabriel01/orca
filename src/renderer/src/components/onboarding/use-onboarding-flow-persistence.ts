@@ -59,7 +59,8 @@ export function buildCompletedOnboardingNotificationSettings(
     enabled: true,
     agentTaskComplete: true,
     agentNeedsInput: true,
-    terminalBell: true
+    terminalBell: true,
+    usageLimit: true
   }
 }
 

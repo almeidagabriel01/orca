@@ -23805,6 +23805,10 @@
         }
       },
       "notifications": {
+        "usageLimit": {
+          "label": "Usage limit",
+          "description": "A Claude or Codex account has 15% or less of its weekly limit left."
+        },
         "server": {
           "fallbackHost": "this server",
           "updateFailed": "Couldn't update notifications on {{host}}.",
@@ -24212,6 +24216,12 @@
           "untitled": "Untitled chat",
           "heading": "Agents",
           "recent": "Finished in the last hour ({{count}})"
+        },
+        "alerts": {
+          "title": "{{provider}} {{window}} limit: {{left}}% left",
+          "weekly": "weekly",
+          "session": "5h",
+          "resets": "resets {{when}}"
         }
       }
     }
@@ -24853,6 +24863,12 @@
     "bell": {
       "attentionRequested": "Attention requested",
       "title": "Bell in {{worktree}}"
+    },
+    "usageLimit": {
+      "title": "{{provider}} {{window}} limit: {{left}}% left",
+      "weekly": "weekly",
+      "session": "5h",
+      "resets": "resets {{when}}"
     },
     "test": {
       "title": "Orca notifications are on",

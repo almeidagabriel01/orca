@@ -19,6 +19,8 @@ export type NotificationSettings = {
   agentTaskComplete: boolean
   agentNeedsInput: boolean
   terminalBell: boolean
+  /** An account's weekly usage runs low; evaluated and shown by this desktop only. */
+  usageLimit: boolean
   suppressWhenFocused: boolean
   customSoundId:
     | 'system'
@@ -51,7 +53,11 @@ export function usesCustomNotificationSound(soundId: string | null | undefined):
   return !!soundId && soundId !== 'system' && soundId !== 'none'
 }
 
-export type NotificationEventSource = 'agent-task-complete' | 'terminal-bell' | 'test'
+export type NotificationEventSource =
+  | 'agent-task-complete'
+  | 'terminal-bell'
+  | 'usage-limit'
+  | 'test'
 
 export type StructuredNotificationRead = StructuredAttentionRead & {
   paneKey: string
@@ -119,6 +125,11 @@ export type NotificationDispatchRequest = {
   structuredOrigin?: StructuredAttentionOrigin
   /** The execution host already pushed this to its paired phones, so main must not fan it out again. */
   mobileDeliveredByHost?: boolean
+  usageLimitProvider?: 'claude' | 'codex'
+  usageLimitWindow?: 'weekly' | 'session'
+  usageLimitAccount?: string
+  usageLimitLeftPercent?: number
+  usageLimitResetsAt?: number | null
 }
 
 export type NotificationDispatchResult = {

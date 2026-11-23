@@ -35,6 +35,10 @@ export function buildNotificationOptions(
     }
   }
 
+  if (args.source === 'usage-limit') {
+    return buildUsageLimitNotificationOptions(args, translate)
+  }
+
   if (args.source === 'test') {
     return {
       title: translate('notifications.test.title', 'Orca notifications are on'),
@@ -60,6 +64,37 @@ export function notificationNeedsSlackReplyCheck(args: NotificationDispatchReque
     ) &&
     agentFailureSentence(args) === null
   )
+}
+
+function buildUsageLimitNotificationOptions(
+  args: NotificationDispatchRequest,
+  translate: NotificationTranslator
+): { title: string; body: string } {
+  const window =
+    args.usageLimitWindow === 'session'
+      ? translate('notifications.usageLimit.session', '5h')
+      : translate('notifications.usageLimit.weekly', 'weekly')
+  const account = normalizeNotificationText(
+    args.usageLimitAccount,
+    NOTIFICATION_AGENT_LABEL_MAX_LENGTH
+  )
+  const resets = args.usageLimitResetsAt
+    ? fillNotificationPlaceholders(
+        translate('notifications.usageLimit.resets', 'resets {{when}}'),
+        { when: formatUsageLimitResetClock(args.usageLimitResetsAt) }
+      )
+    : ''
+  return {
+    title: fillNotificationPlaceholders(
+      translate('notifications.usageLimit.title', '{{provider}} {{window}} limit: {{left}}% left'),
+      {
+        provider: formatNotificationAgentLabel(args.usageLimitProvider),
+        window,
+        left: String(args.usageLimitLeftPercent ?? 0)
+      }
+    ),
+    body: [account, resets].filter(Boolean).join(' · ')
+  }
 }
 
 function translateWorkspace(translate: NotificationTranslator): string {

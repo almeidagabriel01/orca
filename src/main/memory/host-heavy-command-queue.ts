@@ -7,7 +7,10 @@ import type {
   HeavyCommandJob,
   HeavyCommandQueue
 } from '../../shared/diagnostics/process-stats-types'
-import { getRepoExecutionHostId } from '../../shared/execution-host/execution-host'
+import {
+  getRepoExecutionHostId,
+  LOCAL_EXECUTION_HOST_ID
+} from '../../shared/execution-host/execution-host'
 import { getFolderWorkspaceWorktreeHostId } from '../../shared/folder-workspaces/folder-workspace-worktree'
 import { folderWorkspaceKey } from '../../shared/workspace/identity/workspace-scope'
 import { getRepoMainWorktreeId, splitWorktreeIdForFilesystem } from '../../shared/worktree/id'
@@ -221,18 +224,20 @@ export const sampleHeavyCommandQueue = createSlowSample(
 function listLocalWorkspaceRoots(store: MemorySnapshotStore): { id: string; path: string }[] {
   const roots = new Map<string, string>()
   for (const repo of store.getRepos?.() ?? []) {
-    if (getRepoExecutionHostId(repo) === 'local') {
+    if (getRepoExecutionHostId(repo) === LOCAL_EXECUTION_HOST_ID) {
       roots.set(getRepoMainWorktreeId(repo), repo.path)
     }
   }
-  for (const worktreeId of Object.keys(store.getAllWorktreeMetaForHost?.('local') ?? {})) {
+  for (const worktreeId of Object.keys(
+    store.getAllWorktreeMetaForHost?.(LOCAL_EXECUTION_HOST_ID) ?? {}
+  )) {
     const worktreePath = splitWorktreeIdForFilesystem(worktreeId)?.worktreePath
     if (worktreePath) {
       roots.set(worktreeId, worktreePath)
     }
   }
   for (const folder of store.getFolderWorkspaces?.() ?? []) {
-    if (getFolderWorkspaceWorktreeHostId(folder) === 'local') {
+    if (getFolderWorkspaceWorktreeHostId(folder) === LOCAL_EXECUTION_HOST_ID) {
       roots.set(folderWorkspaceKey(folder.id), folder.folderPath)
     }
   }

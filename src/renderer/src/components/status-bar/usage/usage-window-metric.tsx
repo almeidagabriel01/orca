@@ -6,9 +6,10 @@ import type { UsageSection } from './usage-headline-sections'
 import { formatLocalizedResetDuration } from './usage-reset-caption'
 import { formatScopedUsageTitle } from './usage-percentage-label'
 import { UsageBar, UsageValue } from './usage-meter'
-import { formatPaceSummary, getReadingPace, paceTickPercent } from './usage-pace-caption'
+import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import { PaceLine } from './usage-pace-line'
 
-/** One window on a Detailed popover row: label, bar with its pace mark, value and, for accounts, reset. */
+/** One window on a Detailed popover row: label, bar with its pace mark, value, reset, then its pace. */
 export function UsageWindowMetric({
   p,
   section,
@@ -27,34 +28,43 @@ export function UsageWindowMetric({
   const t = useTranslate()
   const intlLocale = useIntlLocale()
   const pace = getReadingPace(p, section.window, now)
-  const title = [
-    formatScopedUsageTitle(p, { ...section, label }, display, t),
-    pace ? formatPaceSummary(pace, display, now, intlLocale, t) : null
-  ]
-    .filter(Boolean)
-    .join('\n')
   const reset = showReset
     ? formatLocalizedResetDuration(section.window.resetsAt, now, intlLocale)
     : null
   return (
-    <span
+    <div
       data-usage-window={section.label}
-      title={title || undefined}
-      className="flex shrink-0 items-center gap-1.5"
+      title={formatScopedUsageTitle(p, { ...section, label }, display, t) || undefined}
+      className="flex flex-col gap-0.5"
     >
-      <span className="text-[10px] text-muted-foreground">{label}</span>
-      <UsageBar
-        usedPercent={section.window.usedPercent}
-        display={display}
-        className="h-[5px] w-7"
-        paceTickPercent={paceTickPercent(pace, display)}
-      />
-      <UsageValue
-        usedPercent={section.window.usedPercent}
-        display={display}
-        className="text-[11px]"
-      />
-      {reset ? <span className="text-[10px] text-muted-foreground">{reset}</span> : null}
-    </span>
+      <span className="flex items-center gap-1.5">
+        <span className="w-7 shrink-0 truncate text-[10px] text-muted-foreground">{label}</span>
+        <UsageBar
+          usedPercent={section.window.usedPercent}
+          display={display}
+          className="h-[5px] min-w-0 flex-1"
+          paceTickPercent={paceTickPercent(pace, display)}
+        />
+        <UsageValue
+          usedPercent={section.window.usedPercent}
+          display={display}
+          className="w-9 shrink-0 text-right text-[11px] text-foreground"
+        />
+        {showReset ? (
+          <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-muted-foreground">
+            {reset}
+          </span>
+        ) : null}
+      </span>
+      {/* Why always shown: pace is the point of the row, not something to hover for. */}
+      {pace ? (
+        <PaceLine
+          pace={pace}
+          display={display}
+          now={now}
+          mutedClass="pl-[34px] text-[10px] leading-4 text-muted-foreground"
+        />
+      ) : null}
+    </div>
   )
 }

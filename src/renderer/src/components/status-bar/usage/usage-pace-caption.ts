@@ -34,9 +34,9 @@ export function paceTickPercent(
 }
 
 export const PACE_TEXT_CLASS: Record<PaceVerdict, string> = {
-  over: 'text-red-500',
-  under: 'text-emerald-600 dark:text-emerald-500',
-  on: ''
+  over: 'text-red-600 dark:text-red-400',
+  under: 'text-emerald-600 dark:text-emerald-400',
+  on: 'text-muted-foreground'
 }
 
 export function formatPaceVerdict(pace: UsagePace, t: Translate): string {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getPaceVerdict, getUsagePace } from './usage-pace'
+import { formatPaceDelta, getPaceVerdict, getUsagePace } from './usage-pace'
 
 const HOUR = 3_600_000
 const week = (usedPercent: number, resetsAt: number) => ({
@@ -49,5 +49,13 @@ describe('getUsagePace', () => {
     expect(getUsagePace(week(5, now + 167 * HOUR), now, now)!.projection).toBeNull()
     expect(getUsagePace({ ...week(5, now + HOUR), resetsAt: null }, now, now)).toBeNull()
     expect(getUsagePace(week(5, now - 1), now - HOUR, now)).toBeNull()
+  })
+})
+
+describe('formatPaceDelta', () => {
+  it('signs the delta, one decimal, and reads a dead-even pace as ±0%', () => {
+    expect(formatPaceDelta(27.14)).toBe('+27.1%')
+    expect(formatPaceDelta(-70)).toBe('−70%')
+    expect(formatPaceDelta(0.04)).toBe('±0%')
   })
 })

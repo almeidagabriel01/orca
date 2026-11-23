@@ -39,6 +39,9 @@ import { useNow } from '@/lib/window-activity/use-now'
 import { getAccountChipSections } from '../composition/status-bar-usage-chips'
 import { AccountChipName, AccountUsageChip } from './account-usage-chip'
 import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import { ChipWindowPace } from './usage-pace-line'
+import { UsageActivityRing } from './usage-agent-sessions-view'
+import type { UsageAgentSession } from './usage-account-sessions'
 
 const CALM_STALE_USAGE_MAX_AGE_MS = 30 * 60_000
 
@@ -243,6 +246,8 @@ type ProviderSegmentProps = {
   accountLabel?: string
   /** The account the owning host has selected for this provider. */
   selected?: boolean
+  /** Agents billing this chip's account; working or waiting ones ring its icon. */
+  sessions?: readonly UsageAgentSession[]
 }
 
 /** A chip in the clipping status bar row: clipped chips stop their countdown wakes. */
@@ -255,26 +260,9 @@ export function ClippedRowProviderSegment(props: ProviderSegmentProps): React.JS
   )
 }
 
-export function ProviderSegment({
-  p,
-  compact = false,
-  display,
-  mode = 'verbose',
-  countdownActive = true,
-  accountLabel,
-  selected = false
-}: ProviderSegmentProps): React.JSX.Element {
-  const segment = (
-    <ProviderSegmentBody
-      p={p}
-      compact={compact}
-      display={display}
-      mode={mode}
-      countdownActive={countdownActive}
-      accountLabel={accountLabel}
-      selected={selected}
-    />
-  )
+export function ProviderSegment(props: ProviderSegmentProps): React.JSX.Element {
+  const { p, display, accountLabel, selected = false } = props
+  const segment = <ProviderSegmentBody {...props} />
   return accountLabel === undefined || !p ? (
     segment
   ) : (
@@ -291,14 +279,17 @@ function ProviderSegmentBody({
   mode = 'verbose',
   countdownActive = true,
   accountLabel,
-  selected = false
+  selected = false,
+  sessions
 }: ProviderSegmentProps): React.JSX.Element {
   const t = useTranslate()
   const provider = p?.provider ?? 'claude'
   const isAccountChip = accountLabel !== undefined
   const icon = (
     <>
-      <ProviderIcon provider={provider} />
+      <UsageActivityRing sessions={sessions}>
+        <ProviderIcon provider={provider} />
+      </UsageActivityRing>
       {isAccountChip ? <AccountChipName label={accountLabel} selected={selected} /> : null}
     </>
   )
@@ -408,6 +399,14 @@ function ProviderSegmentBody({
               display={display}
               showLabel={showLabels}
               labelFirst={section.labelFirst}
+            />
+            <ChipWindowPace
+              p={p}
+              window={section.window}
+              now={now}
+              display={display}
+              withBar={isAccountChip && mode === 'verbose' && !compact}
+              short={compact}
             />
           </React.Fragment>
         ))

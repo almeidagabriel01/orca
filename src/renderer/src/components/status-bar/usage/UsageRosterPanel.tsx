@@ -35,7 +35,7 @@ import { getUsageHealthTone } from './usage-health-tone'
 import { UsageBar, UsageDisplayToggle, UsageValue } from './usage-meter'
 import { getReadingPace, paceTickPercent } from './usage-pace-caption'
 import { UsageWindowMetric } from './usage-window-metric'
-import { UsageRowSessionCounts } from './usage-agent-sessions-view'
+import { UsageActivityRing, UsageRowSessionCounts } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
 
 type ProviderId = ProviderRateLimits['provider']
@@ -172,7 +172,9 @@ export function UsageRow({
     <div data-usage-mode={mode} className="flex min-w-0 flex-1 flex-col gap-1">
       <div className="flex items-center gap-2.5">
         <span className="flex size-5 shrink-0 items-center justify-center rounded-md border border-border bg-secondary">
-          <ProviderIcon provider={p.provider} />
+          <UsageActivityRing sessions={sessions}>
+            <ProviderIcon provider={p.provider} />
+          </UsageActivityRing>
         </span>
         <span
           className={cn(
@@ -211,7 +213,7 @@ export function UsageRow({
         <span className="pl-[30px] text-[11px] text-muted-foreground">{state.detail}</span>
       ) : null}
       {showDetails ? (
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pl-[30px]">
+        <div className="flex flex-col gap-1.5 pl-[30px]">
           {sections.map((section) => {
             return (
               <UsageWindowMetric

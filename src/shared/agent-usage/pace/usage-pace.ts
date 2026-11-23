@@ -66,3 +66,11 @@ export function getPaceVerdict(deltaPoints: number): PaceVerdict {
 export function formatPacePoints(deltaPoints: number): string {
   return String(Math.round(Math.abs(deltaPoints) * 10) / 10)
 }
+
+/** "+8%", "−12%", "±0%": the delta on the bar, signed so over pace reads as spending ahead. */
+export function formatPaceDelta(deltaPoints: number): string {
+  const verdict = getPaceVerdict(deltaPoints)
+  return verdict === 'on'
+    ? '±0%'
+    : `${verdict === 'over' ? '+' : '−'}${formatPacePoints(deltaPoints)}%`
+}

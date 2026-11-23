@@ -9,7 +9,7 @@ import type {
 import { ProviderSegment } from './StatusBarProviderSegment'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
 import { UsageRow } from './UsageRosterPanel'
-import { UsageChipActivity, UsageRowSessionsScope } from './usage-agent-sessions-view'
+import { UsageRowSessionsScope } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
 
 const NOW = Date.now()
@@ -18,7 +18,12 @@ const HOUR = 60 * MIN
 const DAY = 24 * HOUR
 
 function win(usedPercent: number, windowMinutes: number, resetsInMs: number): RateLimitWindow {
-  return { usedPercent, windowMinutes, resetsAt: NOW + resetsInMs, resetDescription: null }
+  return {
+    usedPercent,
+    windowMinutes,
+    resetsAt: NOW + resetsInMs,
+    resetDescription: null
+  }
 }
 
 // Week 3 days in: 70% used runs ahead of pace, 20% runs behind.
@@ -65,7 +70,16 @@ const SESSIONS: UsageAgentSession[] = [
   session('d', 'recent', 'Fix flaky test', 'repo::/feat-b', 25 * MIN, 'claude-sonnet-5-5')
 ]
 
-function ChipStrip({ mode }: { mode: StatusBarUsageMode }): React.JSX.Element {
+// Personal runs ahead of pace with agents working, work runs behind with one waiting, the last idle.
+function ChipStrip({
+  mode,
+  compact = false,
+  agents = true
+}: {
+  mode: StatusBarUsageMode
+  compact?: boolean
+  agents?: boolean
+}): React.JSX.Element {
   return (
     <div className="flex h-9 items-center gap-4 whitespace-nowrap bg-background px-3 text-xs">
       {[
@@ -73,23 +87,36 @@ function ChipStrip({ mode }: { mode: StatusBarUsageMode }): React.JSX.Element {
         { id: 'work', p: BEHIND, sessions: [SESSIONS[0]!] },
         { id: 'idle', p: AHEAD, sessions: [] }
       ].map(({ id, p, sessions }, index) => (
-        <span key={id} className="relative inline-flex">
-          <ProviderSegment
-            p={p}
-            accountLabel={index === 0 ? 'personal' : 'work'}
-            selected={index === 0}
-            display="used"
-            mode={mode}
-          />
-          <UsageChipActivity sessions={sessions} />
-        </span>
+        <ProviderSegment
+          key={id}
+          p={p}
+          accountLabel={index === 0 ? 'personal' : 'work'}
+          selected={index === 0}
+          display="used"
+          mode={mode}
+          compact={compact}
+          sessions={agents ? sessions : []}
+        />
       ))}
-      <ProviderSegment p={BEHIND} display="used" mode={mode} />
+      <ProviderSegment p={BEHIND} display="used" mode={mode} compact={compact} />
     </div>
   )
 }
 
-export const chips = defineFixture({ width: 880, render: () => <ChipStrip mode="verbose" /> })
+export const chips = defineFixture({
+  width: 1040,
+  render: () => <ChipStrip mode="verbose" />
+})
+
+export const chipsIdle = defineFixture({
+  width: 1040,
+  render: () => <ChipStrip mode="verbose" agents={false} />
+})
+
+export const chipsNarrow = defineFixture({
+  width: 560,
+  render: () => <ChipStrip mode="verbose" compact />
+})
 
 export const chipsCompact = defineFixture({
   width: 640,
@@ -114,6 +141,23 @@ export const row = defineFixture({
   )
 })
 
+export const rowBehind = defineFixture({
+  width: 440,
+  render: () => (
+    <div className="bg-popover p-3">
+      <UsageRow
+        p={BEHIND}
+        display="used"
+        state={{ kind: 'usage', statusLabel: null }}
+        showSignInAction={false}
+        now={NOW}
+        accountLabel="work"
+        sessions={[]}
+      />
+    </div>
+  )
+})
+
 export const details = defineFixture({
   width: 520,
   render: () => (
@@ -129,7 +173,10 @@ export const alertToggle = defineFixture({
   width: 720,
   render: () => (
     <NotificationsPane
-      settings={{ ...defaults, notifications: { ...defaults.notifications, enabled: true } }}
+      settings={{
+        ...defaults,
+        notifications: { ...defaults.notifications, enabled: true }
+      }}
       updateSettings={() => {}}
     />
   )

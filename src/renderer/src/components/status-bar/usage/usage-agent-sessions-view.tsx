@@ -2,6 +2,7 @@ import React, { createContext, useContext, useMemo, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { AgentStateDot, type AgentDotState } from '@/components/agent/status/AgentStateDot'
+import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { useNow } from '@/lib/window-activity/use-now'
@@ -31,7 +32,10 @@ type UsageRowSessions = {
 }
 
 /** The agents of the usage row being drilled into, and the host they run on. */
-const UsageRowSessionsContext = createContext<UsageRowSessions>({ sessions: [], owner: null })
+const UsageRowSessionsContext = createContext<UsageRowSessions>({
+  sessions: [],
+  owner: null
+})
 
 /** Hands a row's agents to its details menu, however deep the switcher nests the panel. */
 export function UsageRowSessionsScope({
@@ -63,28 +67,49 @@ export function formatSessionCounts(sessions: readonly UsageAgentSession[], t: T
     .join(' · ')
 }
 
-/** Spins at the chip's corner while an agent works on its account; holds still when one waits. */
-export function UsageChipActivity({
-  sessions
-}: {
-  sessions: readonly UsageAgentSession[]
-}): React.JSX.Element | null {
-  const t = useTranslate()
-  const state = sessions.some((session) => session.state === 'working')
+export type UsageActivity = 'working' | 'waiting'
+
+/** What an account's agents are doing, for the ring around its icon: working wins over waiting. */
+export function getUsageActivity(sessions: readonly UsageAgentSession[]): UsageActivity | null {
+  return sessions.some((session) => session.state === 'working')
     ? 'working'
     : sessions.some((session) => session.state === 'waiting')
       ? 'waiting'
       : null
-  if (!state) {
-    return null
+}
+
+/**
+ * A thin ring around the provider icon: a turning arc while an agent works, a still ring while
+ * one waits. Absolute, so it never changes the width the bar measured; frozen under reduced motion.
+ */
+export function UsageActivityRing({
+  sessions,
+  children
+}: {
+  sessions: readonly UsageAgentSession[] | undefined
+  children: React.ReactNode
+}): React.JSX.Element {
+  const t = useTranslate()
+  const activity = sessions ? getUsageActivity(sessions) : null
+  if (!sessions || !activity) {
+    return <>{children}</>
   }
   return (
     <span
-      data-usage-activity={state}
+      data-usage-activity={activity}
+      role="img"
       aria-label={formatSessionCounts(sessions, t)}
-      className="pointer-events-none absolute -left-0.5 -top-0.5 rounded-full bg-background"
+      className="relative inline-flex shrink-0"
     >
-      <AgentStateDot state={DOT_STATE[state]} title={null} />
+      {children}
+      {activity === 'working' ? (
+        <AgentWorkingSpinner className="pointer-events-none absolute -inset-[2.5px] border border-transparent border-t-agent-working motion-reduce:border-t-agent-working" />
+      ) : (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-[2.5px] rounded-full border border-agent-question/50"
+        />
+      )}
     </span>
   )
 }

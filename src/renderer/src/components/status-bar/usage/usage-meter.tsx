@@ -34,19 +34,21 @@ export function UsageBar({
   paceTickPercent?: number | null
 }): React.JSX.Element {
   return (
-    <span
-      data-usage-bar
-      className={cn('relative block overflow-hidden rounded-full', trackClassName, className)}
-    >
-      <span
-        className={`block h-full rounded-full transition-all duration-300 ${usageBarClass(usedPercent, tone)}`}
-        style={{ width: `${getDisplayedUsagePercentage(usedPercent, display)}%` }}
-      />
+    <span data-usage-bar className={cn('relative block rounded-full', trackClassName, className)}>
+      <span className="absolute inset-0 overflow-hidden rounded-full">
+        <span
+          className={`block h-full rounded-full transition-[width] duration-200 ease-out ${usageBarClass(usedPercent, tone)}`}
+          style={{
+            width: `${getDisplayedUsagePercentage(usedPercent, display)}%`
+          }}
+        />
+      </span>
       {paceTickPercent === null ? null : (
+        // Why past the track: a 1px mark inside a 5px bar vanishes; poking out keeps it readable.
         <span
           aria-hidden="true"
           data-usage-pace-tick=""
-          className="absolute inset-y-0 w-px -translate-x-1/2 bg-current opacity-70"
+          className="absolute -inset-y-px w-px -translate-x-1/2 rounded-full bg-current"
           style={{ left: `${Math.min(100, Math.max(0, paceTickPercent))}%` }}
         />
       )}

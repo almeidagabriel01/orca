@@ -272,18 +272,6 @@ export function QueueRow({
           ) : (
             <span className="w-12 shrink-0 tabular-nums">{elapsed}</span>
           )}
-          {/* Why rtl: a long path loses its start (…/apps/web), never the folder that names it. */}
-          <span
-            className="min-w-0 flex-1 truncate text-left font-medium text-foreground [direction:rtl]"
-            title={job.cwd}
-          >
-            <bdi dir="ltr">{row.place}</bdi>
-          </span>
-        </div>
-        <div className="[grid-area:actions]">
-          <RowActions row={row} pending={pending} run={run} onConfirm={setConfirm} />
-        </div>
-        <div className="flex min-w-0 items-start gap-1 pl-[1.125rem] [grid-area:cmd]">
           {job.direct && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -299,6 +287,18 @@ export function QueueRow({
               </TooltipContent>
             </Tooltip>
           )}
+          {/* Why rtl: a long path loses its start (…/apps/web), never the folder that names it. */}
+          <span
+            className="min-w-0 flex-1 truncate text-left font-medium text-foreground [direction:rtl]"
+            title={job.cwd}
+          >
+            <bdi dir="ltr">{row.place}</bdi>
+          </span>
+        </div>
+        <div className="[grid-area:actions]">
+          <RowActions row={row} pending={pending} run={run} onConfirm={setConfirm} />
+        </div>
+        <div className="flex min-w-0 items-start gap-1 pl-[1.125rem] [grid-area:cmd]">
           <Tooltip>
             <TooltipTrigger asChild>
               <button

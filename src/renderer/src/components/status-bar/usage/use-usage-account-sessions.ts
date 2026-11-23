@@ -124,6 +124,20 @@ function useChatFeedRevision(target: RuntimeClientTarget | null): number {
   return revision
 }
 
+/** The owner's chats and bots; `_revision` names the feed state read, since its map updates in place. */
+function readOwnerChatSessions(key: string, now: number, _revision: number): UsageAgentSession[] {
+  const feed = getStructuredAgentSessionStatusFeed(
+    key === 'local' ? { kind: 'local' } : { kind: 'environment', environmentId: key }
+  )
+  return collectChatSessions(
+    [...feed.getSnapshot().values()].map((summary) => ({
+      ...summary,
+      title: summary.conversationName?.trim() || ''
+    })),
+    now
+  )
+}
+
 /**
  * Every Claude and Codex agent on the host whose usage the bar shows: chats and bots from that
  * host's status feed, terminal agents (orchestration workers included) from agent status. Nothing
@@ -138,24 +152,7 @@ export function useUsageAccountSessions(owner: RuntimeClientTarget | null): Usag
     key ? ownerTerminalSessionsKey(state, key, now) : ''
   )
   return useMemo(() => {
-    if (!key) {
-      return []
-    }
-    const terminals = collectTerminalSessions(
-      ownerTerminalRows(useAppStore.getState(), key, now),
-      now
-    )
-    const feed = getStructuredAgentSessionStatusFeed(
-      key === 'local' ? { kind: 'local' } : { kind: 'environment', environmentId: key }
-    )
-    const chats = collectChatSessions(
-      [...feed.getSnapshot().values()].map((summary) => ({
-        ...summary,
-        title: summary.conversationName?.trim() || ''
-      })),
-      now
-    )
-    return [...chats, ...terminals]
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- chatRevision stands for the feed's in-place map.
+    const terminals: UsageAgentSession[] = terminalsKey ? JSON.parse(terminalsKey) : []
+    return key ? [...readOwnerChatSessions(key, now, chatRevision), ...terminals] : terminals
   }, [terminalsKey, chatRevision, key, now])
 }

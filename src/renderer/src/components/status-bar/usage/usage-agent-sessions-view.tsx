@@ -139,27 +139,34 @@ function SessionRow({
     <DropdownMenuItem
       data-usage-session={session.state}
       onSelect={() => openSession(session, owner)}
-      className="flex min-w-0 items-center gap-2 py-1 pl-5 pr-3"
     >
-      <AgentStateDot state={DOT_STATE[session.state]} title={null} />
-      <span
-        className={cn(
-          'min-w-0 flex-1 truncate text-xs',
-          session.state === 'recent' ? 'text-muted-foreground' : 'text-foreground'
-        )}
-      >
-        {session.title || t('components.status-bar.usage.sessions.untitled', 'Untitled chat')}
-      </span>
-      {session.model ? (
-        <span className="max-w-28 shrink-0 truncate text-[11px] text-muted-foreground">
-          {session.model}
+      <span className="flex min-w-0 flex-1 items-center gap-2 pl-2">
+        <AgentStateDot state={DOT_STATE[session.state]} title={null} />
+        <span
+          className={cn(
+            'min-w-0 flex-1 truncate text-xs',
+            session.state === 'recent' ? 'text-muted-foreground' : 'text-foreground'
+          )}
+        >
+          {session.title || t('components.status-bar.usage.sessions.untitled', 'Untitled chat')}
         </span>
-      ) : null}
-      <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
-        {formatCompactDuration(Math.max(0, now - session.since))}
+        {session.model ? (
+          <span className="max-w-28 shrink-0 truncate text-[11px] text-muted-foreground">
+            {session.model}
+          </span>
+        ) : null}
+        <span className="w-9 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+          {formatCompactDuration(Math.max(0, now - session.since))}
+        </span>
       </span>
     </DropdownMenuItem>
   )
+}
+
+// Why a snapshot: names change rarely, and a subscription per group would redraw on every store write.
+function workspaceGroupLabel(workspaceId: string): string {
+  const labels = getNotificationWorkspaceLabels(useAppStore.getState(), workspaceId)
+  return [labels.repoLabel, labels.worktreeLabel].filter(Boolean).join(' · ')
 }
 
 function SessionGroups({
@@ -171,16 +178,13 @@ function SessionGroups({
   owner: RuntimeClientTarget | null
   now: number
 }): React.JSX.Element {
-  // Why a snapshot: names change rarely, and a subscription per group would redraw on every store write.
-  const state = useAppStore.getState()
   return (
     <>
       {groupSessionsByWorkspace(sessions).map((group) => {
-        const labels = getNotificationWorkspaceLabels(state, group.workspaceId)
         return (
           <div key={group.workspaceId} data-usage-session-workspace="">
             <div className="truncate px-3 pb-0.5 pt-1.5 text-[11px] text-muted-foreground">
-              {[labels.repoLabel, labels.worktreeLabel].filter(Boolean).join(' · ')}
+              {workspaceGroupLabel(group.workspaceId)}
             </div>
             {group.sessions.map((session) => (
               <SessionRow key={session.key} session={session} owner={owner} now={now} />
@@ -224,19 +228,20 @@ export function UsageSessionList(): React.JSX.Element | null {
                 setShowRecent((value) => !value)
               }}
               aria-expanded={showRecent}
-              className="gap-1 px-3 py-1 text-[11px] text-muted-foreground"
             >
-              <ChevronRight
-                size={12}
-                className={cn('transition-transform', showRecent && 'rotate-90')}
-              />
-              {t(
-                'components.status-bar.usage.sessions.recent',
-                'Finished in the last hour ({{count}})',
-                {
-                  count: recent.length
-                }
-              )}
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <ChevronRight
+                  size={12}
+                  className={cn('transition-transform', showRecent && 'rotate-90')}
+                />
+                {t(
+                  'components.status-bar.usage.sessions.recent',
+                  'Finished in the last hour ({{count}})',
+                  {
+                    count: recent.length
+                  }
+                )}
+              </span>
             </DropdownMenuItem>
             {showRecent ? <SessionGroups sessions={recent} owner={owner} now={now} /> : null}
           </>

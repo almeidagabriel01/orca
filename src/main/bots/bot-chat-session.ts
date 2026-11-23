@@ -36,7 +36,7 @@ import { closeReplacedBotChat, dropReplacedChatMail } from './bot-chat-replaceme
 import { carryQueuedMessages, type QueuedCarryHost } from './bot-chat-queued-carry'
 import type { TookOverNotice } from '../../shared/native-chat/took-over-notice'
 import type { AutomationRunMessage } from '../../shared/automations/automation-run-message'
-import { botStartOptions } from './bot-start-options'
+import { botStartAccount, botStartOptions } from './bot-start-options'
 import { BotSessionRefusedError } from './bot-session-refused-error'
 import { showBotSessionTab } from './bot-session-tab-show'
 import { supportedStructuredSeedOptions } from '../runtime/agent-session/installation/structured-agent-runtime-metadata'
@@ -289,7 +289,8 @@ export async function startBotSession(
   }
   const options = {
     ...launch,
-    ...(permissionMode ? { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: permissionMode } : {})
+    ...(permissionMode ? { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: permissionMode } : {}),
+    ...botStartAccount(bot)
   }
   const host = () => requireStructuredHost(runtime)
   const create = input.background

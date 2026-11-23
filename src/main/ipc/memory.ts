@@ -1,7 +1,13 @@
 import { BrowserWindow, ipcMain } from 'electron'
-import type { MemorySnapshot } from '../../shared/diagnostics/process-stats-types'
+import type {
+  MemorySnapshot,
+  SessionProcessTree
+} from '../../shared/diagnostics/process-stats-types'
 import type { Store } from '../persistence/loading-store/store'
 import { collectMemorySnapshot } from '../memory/collector'
+import { collectSessionProcessTree } from '../memory/session-process-tree'
+import { runHeavyQueueAction } from '../memory/host-heavy-command-queue-actions'
+import { DiagnosticsHeavyQueueActionParams } from '../../shared/rpc-contract/diagnostics-params'
 import { countHiddenBrowserPages, readPerfNoticeSignals } from '../perf-notices/perf-notice-signals'
 
 import {
@@ -16,6 +22,27 @@ export function registerMemoryHandlers(store: Store): void {
     (event, admission?: ResourceViewAdmission): Promise<MemorySnapshot> => {
       assertResourceViewVisible(event, admission)
       return collectMemorySnapshot(store)
+    }
+  )
+  ipcMain.handle(
+    'memory:getProcessTree',
+    (
+      event,
+      sessionId: unknown,
+      admission?: ResourceViewAdmission
+    ): Promise<SessionProcessTree | null> => {
+      assertResourceViewVisible(event, admission)
+      if (typeof sessionId !== 'string' || !sessionId) {
+        return Promise.resolve(null)
+      }
+      return collectSessionProcessTree(sessionId, () => collectMemorySnapshot(store))
+    }
+  )
+  ipcMain.handle(
+    'memory:heavyQueueAction',
+    (event, action: unknown, admission?: ResourceViewAdmission): Promise<void> => {
+      assertResourceViewVisible(event, admission)
+      return runHeavyQueueAction(DiagnosticsHeavyQueueActionParams.parse(action))
     }
   )
   ipcMain.handle('memory:readPerfNoticeSignals', () => readPerfNoticeSignals(store))

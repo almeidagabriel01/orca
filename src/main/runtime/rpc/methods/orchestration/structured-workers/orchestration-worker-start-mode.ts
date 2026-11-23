@@ -10,6 +10,7 @@ import {
 } from '../../../../../agent-launch/agent-launch-mode'
 
 import type { AgentLaunchModeReceipt } from '../../../../../../shared/agent-launch/contracts/agent-launch-intent'
+import type { AgentLaunchSurface } from '../../../../../../shared/agent-launch/contracts/agent-launch-surface'
 import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
 import type { OrcaRuntimeService } from '../../../../orca-runtime'
 
@@ -36,7 +37,7 @@ type WorkerStartModePlacement = {
 }
 
 export function decideWorkerStartMode(args: {
-  params: WorkerStartModePlacement
+  params: WorkerStartModePlacement & { surface?: AgentLaunchSurface }
   settings: AgentLaunchModeSettings | null | undefined
   /** The caller's lineage starts its workers as chats, whatever the settings say. */
   chatLineage?: boolean
@@ -45,6 +46,7 @@ export function decideWorkerStartMode(args: {
     placement: args.params,
     settings: args.settings,
     chatLineage: args.chatLineage,
+    ...(args.params.surface ? { surface: args.params.surface } : {}),
     vocabulary: WORKER_START_VOCABULARY
   })
 }

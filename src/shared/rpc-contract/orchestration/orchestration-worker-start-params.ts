@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { OptionalFiniteNumber, OptionalString, requiredString } from '../rpc-param-primitives'
 import { CrossStoreParentRefSchema } from '../workspaces/cross-store-parent-params'
+import { AGENT_LAUNCH_SURFACES } from '../../agent-launch/contracts/agent-launch-surface'
 
 export const OptionalWorkerLaunchPreference = z
   .string()
@@ -30,6 +31,8 @@ export const WorkerStartParams = z
     agent: OptionalString,
     model: OptionalWorkerLaunchPreference,
     effort: OptionalWorkerLaunchPreference,
+    /** `--surface`: chat or terminal for this start, over the host's default for new agent tabs. */
+    surface: z.enum(AGENT_LAUNCH_SURFACES).optional(),
     retryOf: OptionalString,
     timeoutMs: OptionalFiniteNumber,
     devMode: z.boolean().optional(),

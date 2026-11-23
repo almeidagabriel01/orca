@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { MemorySnapshot } from '../../shared/diagnostics/process-stats-types'
-import { recordPairedReplyParts, toPairedMemoryReply } from './memory-snapshot-paired-reply'
+import {
+  recordPairedReplyParts,
+  toPairedMemoryReply,
+  toPairedMemoryReplyWithChats
+} from './memory-snapshot-paired-reply'
 
 const chat = { agentSessionId: 'c1', agent: 'claude', name: 'Chat', cpu: 2, memory: 500 }
 // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the reply reads only the fields set here.
@@ -69,5 +73,17 @@ describe('the memory snapshot a paired machine receives', () => {
       totalMemory: 1_100,
       collectedAt: 1
     })
+  })
+
+  it('carries every row and its chats to a client that asks, still without restored pane keys', () => {
+    const reply = toPairedMemoryReplyWithChats(snapshot)
+    expect(reply.chatsIncluded).toBe(true)
+    expect(reply.totalMemory).toBe(2_100)
+    expect(reply.worktrees.map((wt) => [wt.worktreeId, wt.memory, wt.chats])).toEqual([
+      ['repo::/mixed', 600, [chat]],
+      ['repo::/chats', 500, [chat]]
+    ])
+    expect(reply.worktrees[0].sessions[0].paneKey).toBeNull()
+    expect(snapshot.worktrees[0].sessions[0].paneKey).toBe('tab:1')
   })
 })

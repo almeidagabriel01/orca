@@ -22,6 +22,9 @@ export const ORCHESTRATION_WORKER_AUTO_RELEASE_RUNTIME_CAPABILITY =
 /** Finished workers close when a host countdown runs out; clients show it and offer Keep open (workerAutoClose, workerKeepOpen). */
 export const ORCHESTRATION_WORKER_KEEP_OPEN_RUNTIME_CAPABILITY =
   'orchestration.worker-keep-open.v1' as const
+/** worker-start takes --surface chat|terminal, and a bot's chat starts chat workers by default. */
+export const ORCHESTRATION_WORKER_SURFACE_RUNTIME_CAPABILITY =
+  'orchestration.worker-surface.v1' as const
 /** worker-start creates and binds a Run when its coordinator has none. */
 export const ORCHESTRATION_WORKER_START_IMPLICIT_RUN_RUNTIME_CAPABILITY =
   'orchestration.worker-start-implicit-run.v1' as const
@@ -74,6 +77,7 @@ export const ORCHESTRATION_RUNTIME_CAPABILITIES = [
   ORCHESTRATION_WORKER_STOP_VERDICT_RUNTIME_CAPABILITY,
   ORCHESTRATION_WORKER_STOP_HELPERS_RUNTIME_CAPABILITY,
   ORCHESTRATION_WORKER_LAUNCH_PREFERENCES_RUNTIME_CAPABILITY,
+  ORCHESTRATION_WORKER_SURFACE_RUNTIME_CAPABILITY,
   ORCHESTRATION_FEDERATION_STRUCTURED_READ_RUNTIME_CAPABILITY,
   ORCHESTRATION_FEDERATION_FLEET_SNAPSHOT_RUNTIME_CAPABILITY,
   ORCHESTRATION_FEDERATION_RELEASE_ARCHIVE_RUNTIME_CAPABILITY,

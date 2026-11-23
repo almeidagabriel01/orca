@@ -70,7 +70,8 @@ describe('terminal-only Resource Manager samples pay nothing for chats', () => {
       status: 'sampled' as const,
       worktrees: [],
       app: null,
-      machine: parseHostMachineTotals(null)
+      machine: parseHostMachineTotals(null),
+      chatsIncluded: true
     }
     const recovered = withRuntimeHostResult(again, 'k', 'studio', sampled)
 

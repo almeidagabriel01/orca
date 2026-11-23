@@ -24,6 +24,7 @@ export type PairedReplyParts = {
 
 const partsBySnapshot = new WeakMap<MemorySnapshot, PairedReplyParts>()
 const replyBySnapshot = new WeakMap<MemorySnapshot, MemorySnapshot>()
+const replyWithChatsBySnapshot = new WeakMap<MemorySnapshot, MemorySnapshot>()
 
 export function recordPairedReplyParts(snapshot: MemorySnapshot, parts: PairedReplyParts): void {
   partsBySnapshot.set(snapshot, parts)
@@ -112,5 +113,34 @@ export function toPairedMemoryReply(snapshot: MemorySnapshot): MemorySnapshot {
     ...parts.totals
   }
   replyBySnapshot.set(snapshot, reply)
+  return reply
+}
+
+/**
+ * The snapshot a paired client that shows chats receives: every row as sampled, chats included,
+ * with restored pane keys cleared as in the terminal-only reply. Older hosts never mark a reply.
+ */
+export function toPairedMemoryReplyWithChats(snapshot: MemorySnapshot): MemorySnapshot {
+  const cached = replyWithChatsBySnapshot.get(snapshot)
+  if (cached) {
+    return cached
+  }
+  const parts = partsBySnapshot.get(snapshot)
+  let worktrees = snapshot.worktrees
+  for (const index of parts?.restoredRows ?? []) {
+    const wt = worktrees[index]
+    const restored = parts?.restoredSessionIds.get(wt.worktreeId)
+    if (restored) {
+      worktrees = worktrees === snapshot.worktrees ? worktrees.slice() : worktrees
+      worktrees[index] = {
+        ...wt,
+        sessions: wt.sessions.map((session) =>
+          restored.has(session.sessionId) ? { ...session, paneKey: null } : session
+        )
+      }
+    }
+  }
+  const reply: MemorySnapshot = { ...snapshot, worktrees, chatsIncluded: true }
+  replyWithChatsBySnapshot.set(snapshot, reply)
   return reply
 }

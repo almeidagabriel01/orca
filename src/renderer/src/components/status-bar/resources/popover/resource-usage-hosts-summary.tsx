@@ -14,6 +14,7 @@ import {
   formatMemory
 } from './resource-usage-metrics'
 import type { ResourceHostCounts, ResourceHostSummary } from './resource-host-summary'
+import type { HeavyCommandQueue } from '../../../../../../shared/diagnostics/process-stats-types'
 
 function formatHostCounts(counts: ResourceHostCounts, t: Translate): string {
   return [
@@ -29,6 +30,18 @@ function formatHostCounts(counts: ResourceHostCounts, t: Translate): string {
       count: counts.commands,
       defaultValue_one: '{{count}} command'
     })
+  ].join(' · ')
+}
+
+function formatHeavyQueue(queue: HeavyCommandQueue, t: Translate): string {
+  const running = queue.jobs.filter((job) => job.status === 'running' && !job.extra).length
+  const waiting = queue.jobs.length - queue.jobs.filter((job) => job.status === 'running').length
+  return [
+    t('resourceManager.hosts.heavyQueue', 'Heavy queue {{value0}}/{{value1}} busy', {
+      value0: running,
+      value1: queue.slots
+    }),
+    t('resourceManager.hosts.heavyQueueWaiting', '{{count}} waiting', { count: waiting })
   ].join(' · ')
 }
 
@@ -154,6 +167,16 @@ export function renderResourceHostsSummary(
               <div className="truncate pl-[18px] text-2xs text-muted-foreground">
                 {host.counts ? formatHostCounts(host.counts, t) : host.notice}
               </div>
+              {host.counts && host.notice ? (
+                <div className="truncate pl-[18px] text-2xs text-muted-foreground/70">
+                  {host.notice}
+                </div>
+              ) : null}
+              {host.machine?.heavyQueue ? (
+                <div className="truncate pl-[18px] text-2xs text-muted-foreground">
+                  {formatHeavyQueue(host.machine.heavyQueue, t)}
+                </div>
+              ) : null}
               {host.machine ? renderMachineTotals(host.machine, t) : null}
             </li>
           )

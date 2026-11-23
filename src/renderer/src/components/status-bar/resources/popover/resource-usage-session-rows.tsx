@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { ChevronDown, ChevronRight, Globe, Trash2, X } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/class-names'
@@ -16,10 +16,12 @@ import { isResourceSessionActivationKey } from '../session-actions/resource-sess
 import { ChatRows } from './resource-usage-chat-row'
 import { firstRuntimePaneTitle } from '../workspace-attribution/resource-session-labels'
 import { useAppStore } from '@/store/index'
+import { ProcessTreeToggle, SessionProcessTreeView } from './resource-usage-session-processes'
 
 type SessionRowProps = {
   session: UnifiedSessionRow
   worktreeId: string
+  workspacePath: string | null
   onNavigate: (tabId: string, paneKey: string | null) => void
   onKill: (session: UnifiedSessionRow) => void
 }
@@ -65,11 +67,15 @@ function currentLabel(session: UnifiedSessionRow): string {
 export function SessionRow({
   session,
   worktreeId,
+  workspacePath,
   onNavigate,
   onKill
 }: SessionRowProps): React.JSX.Element {
   const t = useTranslate()
   const clickable = session.tabId !== null && session.bound
+  const [expanded, setExpanded] = useState(false)
+  // Unsampled rows (SSH, daemon-only) have no process tree to read.
+  const expandable = session.cpu !== null && session.pid > 0
   const handleClick = (): void => {
     if (clickable && session.tabId) {
       onNavigate(session.tabId, session.paneKey)
@@ -77,66 +83,82 @@ export function SessionRow({
   }
 
   return (
-    <div
-      className={cn(
-        'group/sessrow flex items-center gap-2 pl-10 pr-3 py-1.5',
-        clickable && 'cursor-pointer hover:bg-accent/40'
-      )}
-      onClick={clickable ? handleClick : undefined}
-      role={clickable ? 'button' : undefined}
-      tabIndex={clickable ? 0 : -1}
-      onKeyDown={
-        clickable
-          ? (e) => {
-              if (isResourceSessionActivationKey(e.key)) {
-                e.preventDefault()
-                handleClick()
-              }
-            }
-          : undefined
-      }
-      data-worktree-id={worktreeId}
-    >
-      <span
+    <>
+      <div
         className={cn(
-          'size-1.5 shrink-0 rounded-full',
-          session.bound ? 'bg-emerald-500' : 'bg-muted-foreground/40'
+          'group/sessrow flex items-center gap-2 pl-10 pr-3 py-1.5',
+          clickable && 'cursor-pointer hover:bg-accent/40'
         )}
-      />
-      <span className="text-[11px] text-muted-foreground truncate min-w-0 flex-1">
-        {session.liveTitleTabId ? (
-          <LiveTitleLabel tabId={session.liveTitleTabId} fallback={session.label} />
-        ) : (
-          session.label
-        )}
-      </span>
-      <MetricPair cpu={session.cpu} memory={session.memory} size="small" />
-      {/* Reserve the kill gutter for alignment; paired samples are read-only, while bound local rows reveal actions on hover/focus. */}
-      <span className={ROW_TRAILING_GUTTER_CLS}>
-        {session.readOnly ? null : (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              const label = currentLabel(session)
-              onKill(label === session.label ? session : { ...session, label })
-            }}
-            className={cn(
-              'rounded p-0.5 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive',
-              session.bound &&
-                'can-hover:opacity-0 group-hover/sessrow:opacity-100 group-focus-within/sessrow:opacity-100 focus-visible:opacity-100'
-            )}
-            aria-label={t(
-              'auto.components.status.bar.ResourceUsageStatusSegment.fa6d36758d',
-              'Kill session {{value0}}',
-              { value0: session.sessionId }
-            )}
-          >
-            <X className="size-3" />
-          </button>
-        )}
-      </span>
-    </div>
+        onClick={clickable ? handleClick : undefined}
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : -1}
+        onKeyDown={
+          clickable
+            ? (e) => {
+                if (isResourceSessionActivationKey(e.key)) {
+                  e.preventDefault()
+                  handleClick()
+                }
+              }
+            : undefined
+        }
+        data-worktree-id={worktreeId}
+      >
+        {expandable ? (
+          <ProcessTreeToggle
+            expanded={expanded}
+            onToggle={() => setExpanded((v) => !v)}
+            className="-ml-6"
+          />
+        ) : null}
+        <span
+          className={cn(
+            'size-1.5 shrink-0 rounded-full',
+            session.bound ? 'bg-emerald-500' : 'bg-muted-foreground/40'
+          )}
+        />
+        <span className="text-[11px] text-muted-foreground truncate min-w-0 flex-1">
+          {session.liveTitleTabId ? (
+            <LiveTitleLabel tabId={session.liveTitleTabId} fallback={session.label} />
+          ) : (
+            session.label
+          )}
+        </span>
+        <MetricPair cpu={session.cpu} memory={session.memory} size="small" />
+        {/* Reserve the kill gutter for alignment; paired samples are read-only, while bound local rows reveal actions on hover/focus. */}
+        <span className={ROW_TRAILING_GUTTER_CLS}>
+          {session.readOnly ? null : (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                const label = currentLabel(session)
+                onKill(label === session.label ? session : { ...session, label })
+              }}
+              className={cn(
+                'rounded p-0.5 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive',
+                session.bound &&
+                  'can-hover:opacity-0 group-hover/sessrow:opacity-100 group-focus-within/sessrow:opacity-100 focus-visible:opacity-100'
+              )}
+              aria-label={t(
+                'auto.components.status.bar.ResourceUsageStatusSegment.fa6d36758d',
+                'Kill session {{value0}}',
+                { value0: session.sessionId }
+              )}
+            >
+              <X className="size-3" />
+            </button>
+          )}
+        </span>
+      </div>
+      {expanded ? (
+        <SessionProcessTreeView
+          sessionId={session.sessionId}
+          environmentId={session.environmentId}
+          workspacePath={workspacePath}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -309,6 +331,7 @@ export const WorktreeRow = React.memo(function WorktreeRow({
           worktreeId={worktree.worktreeId}
           runtimeHostId={worktree.runtimeHostId}
           unplaced={worktree.unplaced}
+          workspacePath={storeRecord?.path ?? null}
           onOpenChat={onOpenChat}
         />
       )}
@@ -318,6 +341,7 @@ export const WorktreeRow = React.memo(function WorktreeRow({
             key={session.sessionId}
             session={session}
             worktreeId={worktree.worktreeId}
+            workspacePath={storeRecord?.path ?? null}
             onNavigate={navigateToTab}
             onKill={onKillSession}
           />

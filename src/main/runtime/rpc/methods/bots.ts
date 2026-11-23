@@ -43,8 +43,13 @@ async function updateBot(params: BotUpdateParams, context: RpcContext) {
   if (params.updates.slackMirror !== undefined) {
     ownerOnly(context, 'Only the owner can change what posts to Slack')
   }
-  const { members, addMembers: added, permissionMode } = params.updates
-  if (members !== undefined || added !== undefined || permissionMode !== undefined) {
+  const { members, addMembers: added, permissionMode, agentAccount } = params.updates
+  if (
+    members !== undefined ||
+    added !== undefined ||
+    permissionMode !== undefined ||
+    agentAccount !== undefined
+  ) {
     ownerOnly(context, 'Only your owner changes your Who can ask or permissions, in Orca.')
   }
   const bot = await context.runtime.bots.update(params.botId, params.updates)

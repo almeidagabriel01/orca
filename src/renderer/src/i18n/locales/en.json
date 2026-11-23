@@ -1487,6 +1487,7 @@
       "pictureCurrent": "Current picture",
       "agent": "Agent",
       "agentModelDescription": "Used for bot conversations and automations. A new model applies to new conversations; the Home Chat keeps its current one.",
+      "accountDescription": "The account new conversations and automations start on. The Home Chat keeps its current one until you start a new one.",
       "permissions": "Permissions",
       "permissionsDescription": "The starting permission for new sessions. Anything beyond it asks in the session.",
       "active": "Active",
@@ -26196,6 +26197,17 @@
     }
   },
   "resourceManager": {
+    "sessionProcesses": {
+      "copy": "Copy command",
+      "count": "×{{value0}}",
+      "failed": "Couldn't read the processes.",
+      "gone": "No running processes.",
+      "hide": "Hide processes",
+      "loading": "Reading processes…",
+      "pid": "PID {{value0}}",
+      "show": "Show processes",
+      "updateRequired": "Update Orca on this host to see its processes."
+    },
     "pty": {
       "bound": "Has tab",
       "unbound": "No tab",
@@ -26274,7 +26286,9 @@
       "swap": "Swap {{value0}}",
       "noSwap": "none",
       "ram": "RAM",
-      "disk": "Disk"
+      "disk": "Disk",
+      "heavyQueue": "Heavy queue {{value0}}/{{value1}} busy",
+      "heavyQueueWaiting": "{{count}} waiting"
     },
     "outsideOrca": {
       "title": "Outside Orca · {{value0}}",
@@ -26282,12 +26296,52 @@
       "kernel": "Kernel",
       "processCount": "×{{value0}}",
       "showLess": "Show less",
-      "showMore": "Show {{count}} more"
+      "showMore": "Show {{count}} more",
+      "expand": "Expand Outside Orca",
+      "collapse": "Collapse Outside Orca"
+    },
+    "heavyQueue": {
+      "title": "Heavy command queue · {{value0}}",
+      "tooltip": "Builds, tests and installs run through vps-heavy take turns for a few slots, so the machine is not overloaded.",
+      "expand": "Expand heavy command queue",
+      "collapse": "Collapse heavy command queue",
+      "busy": "{{value0}}/{{value1}} busy",
+      "busyExtra": " + {{count}} extra",
+      "slots_one": "Runs one at a time",
+      "slots_other": "Runs up to {{count}} at once",
+      "fewerSlots": "Allow one fewer",
+      "moreSlots": "Allow one more",
+      "slotsFailed": "Couldn't change the slots. {{value0}}",
+      "empty": "Nothing running or waiting.",
+      "slot": "Slot {{value0}}",
+      "extraSlot": "Extra slot",
+      "running": "Running",
+      "position": "#{{value0}}",
+      "directElapsed": "Started through flock directly, so this counts from when it asked for the slot.",
+      "direct": "flock",
+      "expandCommand": "Show the whole command",
+      "collapseCommand": "Show less of the command",
+      "actions": "Queue actions",
+      "runNext": "Run next",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "moveToEnd": "Move to end",
+      "moveFailed": "Couldn't move it. {{value0}}",
+      "startNow": "Start now…",
+      "startQuestion": "Start now in an extra slot? It runs beside the busy slots, even if {{value0}} is loaded.",
+      "startConfirm": "Start now",
+      "startFailed": "Couldn't start it. {{value0}}",
+      "remove": "Remove from queue…",
+      "removeQuestion": "Remove from the queue? The command stops waiting and fails.",
+      "removeConfirm": "Remove",
+      "removeFailed": "Couldn't remove it. {{value0}}",
+      "keep": "Keep"
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"
     },
-    "sharedAgentProcesses": "Shared agent processes"
+    "sharedAgentProcesses": "Shared agent processes",
+    "hostChatsUpdateRequired": "Update {{value0}} to see its chats."
   },
   "browserExtensions": {
     "permission": {

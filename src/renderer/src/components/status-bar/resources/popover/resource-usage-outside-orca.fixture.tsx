@@ -22,7 +22,8 @@ const machine = (outsideOrca: OutsideOrcaProcessGroup[] | null): HostMachineTota
   swap: null,
   disk: null,
   loadAverage: null,
-  outsideOrca
+  outsideOrca,
+  heavyQueue: null
 })
 
 const hosts: ResourceHostSummary[] = [
@@ -74,9 +75,48 @@ const hosts: ResourceHostSummary[] = [
   }
 ]
 
+// Collapse state outlives a render, so each fixture sets the state it shows.
+const setSections = (frame: HTMLElement, collapsedHostLabels: readonly string[]): void => {
+  frame.querySelectorAll<HTMLButtonElement>('button[aria-expanded]').forEach((button) => {
+    const header = button.parentElement?.textContent ?? ''
+    if (!/Outside Orca/.test(button.getAttribute('aria-label') ?? '')) {
+      return
+    }
+    const wantCollapsed = collapsedHostLabels.some((label) => header.endsWith(`· ${label}`))
+    if ((button.getAttribute('aria-expanded') === 'false') !== wantCollapsed) {
+      button.click()
+    }
+  })
+}
+const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 50))
+
+// The popover is 26rem wide; the frame adds 16px padding on each side.
 export const byCpu = defineFixture({
   width: 448,
-  render: () => <OutsideOrcaSections hosts={hosts} sortOption="cpu" />
+  render: () => <OutsideOrcaSections hosts={hosts} sortOption="cpu" />,
+  interact: async (frame) => {
+    setSections(frame, [])
+    await settle()
+  }
+})
+
+export const vpsCollapsed = defineFixture({
+  width: 448,
+  render: () => <OutsideOrcaSections hosts={hosts} sortOption="cpu" />,
+  interact: async (frame) => {
+    setSections(frame, ['vps'])
+    await settle()
+  }
+})
+
+// A narrow window shrinks the popover to 100vw - 2rem.
+export const narrow = defineFixture({
+  ...vpsCollapsed,
+  width: 320,
+  interact: async (frame) => {
+    setSections(frame, [])
+    await settle()
+  }
 })
 
 export const byMemoryExpanded = defineFixture({

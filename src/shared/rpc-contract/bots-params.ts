@@ -30,7 +30,7 @@ import { HANDED_WORKSPACES_MAX, HandedWorkspaceSchema } from '../bots/bot-made-f
 import { BotProposalSchema, BotProposalSeedSchema } from '../bots/bot-proposal'
 import { BotTakeOverSchema } from '../bots/bot-take-over'
 import { BotLookAroundSchema, botLookAround, patchLookAround } from '../bots/bot-look-around'
-import { BotLaunchSchema } from '../bots/bot-launch'
+import { BotAgentAccountSchema, BotLaunchSchema } from '../bots/bot-launch'
 import {
   BOT_OFFER_ALREADY_ANSWERED,
   BotOfferAnswerUpdateSchema,
@@ -145,6 +145,7 @@ export const BotUpdate = z.object({
       permissionMode: z.enum(AGENT_CHAT_PERMISSION_MODES).nullable().optional(),
       /** null clears it; a new agent without one clears it too, since it belongs to the old agent. */
       launch: BotLaunchSchema.nullable().optional(),
+      agentAccount: BotAgentAccountSchema.nullable().optional(),
       notifications: BotNotificationsSchema.optional(),
       members: z.array(BotMemberSchema).max(BOT_MAX_MEMBERS).optional(),
       /** Takes one person off Who can ask, on the host, so a concurrent edit is kept. */
@@ -338,6 +339,7 @@ export function applyBotUpdates(bot: Bot, updates: BotHostUpdates): Bot {
   const {
     permissionMode,
     launch,
+    agentAccount,
     removeMember,
     removeMembers,
     addMembers,
@@ -398,6 +400,9 @@ export function applyBotUpdates(bot: Bot, updates: BotHostUpdates): Bot {
     next.launch = launch
   } else if (launch === null || (rest.agent !== undefined && rest.agent !== bot.agent)) {
     delete next.launch
+  }
+  if (agentAccount !== undefined || (rest.agent !== undefined && rest.agent !== bot.agent)) {
+    next.agentAccount = agentAccount ?? undefined
   }
   return next
 }

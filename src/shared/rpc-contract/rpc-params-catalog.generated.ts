@@ -378,6 +378,11 @@ import {
   ConnectorSlackMirrorStatus
 } from './connectors/connector-params'
 import {
+  DiagnosticsHeavyQueueActionParams,
+  DiagnosticsMemoryParams,
+  DiagnosticsProcessTreeParams
+} from './diagnostics-params'
+import {
   AttachParams as AttachParamsOfEmulatorParams,
   AxParams,
   ButtonParams,
@@ -1525,7 +1530,9 @@ export const RPC_PARAMS_BY_METHOD = {
   'desktopBrowserBridge.fileRead': DesktopBrowserBridgeFileReadParams,
   'desktopBrowserBridge.result': DesktopBrowserBridgeResultParams,
   'desktopBrowserBridge.resultChunk': DesktopBrowserBridgeResultChunkParams,
-  'diagnostics.memory': null,
+  'diagnostics.heavyQueueAction': DiagnosticsHeavyQueueActionParams,
+  'diagnostics.memory': DiagnosticsMemoryParams,
+  'diagnostics.processTree': DiagnosticsProcessTreeParams,
   'emulator.attach': AttachParamsOfEmulatorParams,
   'emulator.availability': EmulatorAvailabilityParams,
   'emulator.ax': AxParams,

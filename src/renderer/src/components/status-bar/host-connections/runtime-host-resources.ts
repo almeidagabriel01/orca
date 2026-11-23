@@ -5,12 +5,16 @@ import {
   toRuntimeExecutionHostId
 } from '../../../../../shared/execution-host/execution-host'
 import type {
+  ChatAgentMemory,
+  HeavyCommandQueue,
   OutsideOrcaProcessGroup,
   SessionMemory,
   UsageValues,
   WorktreeMemory
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
+import { parseHeavyCommandQueue } from './heavy-command-queue-parse'
+import { finiteNumber, isRecord } from './host-snapshot-value-guards'
 
 export type UsedOfTotal = { used: number; total: number }
 
@@ -27,6 +31,8 @@ export type HostMachineTotals = {
   loadAverage: [number, number, number] | null
   /** What runs outside Orca; null when the host does not report it. */
   outsideOrca: OutsideOrcaProcessGroup[] | null
+  /** The host's vps-heavy queue; null when it has none. */
+  heavyQueue: HeavyCommandQueue | null
 }
 
 export type RuntimeHostResourceResult =
@@ -36,6 +42,8 @@ export type RuntimeHostResourceResult =
       worktrees: WorktreeMemory[]
       app: UsageValues | null
       machine: HostMachineTotals
+      /** False for a host that predates sending chats: its chat workers are missing, not absent. */
+      chatsIncluded: boolean
     }
   // An unanswered server is unverifiable, not idle.
   | { status: 'unreachable' }
@@ -94,7 +102,8 @@ export async function readRuntimeHostResources(
           status: 'sampled',
           worktrees,
           app: parseAppUsage(snapshot),
-          machine: parseHostMachineTotals(isRecord(snapshot) ? snapshot.host : null)
+          machine: parseHostMachineTotals(isRecord(snapshot) ? snapshot.host : null),
+          chatsIncluded: isRecord(snapshot) && snapshot.chatsIncluded === true
         }
       : { status: 'update-required' }
   } catch (error) {
@@ -140,19 +149,16 @@ export function getRuntimeHostResourceNotice(
       { value0: label }
     )
   }
+  if (!result.chatsIncluded) {
+    return t('resourceManager.hostChatsUpdateRequired', 'Update {{value0}} to see its chats.', {
+      value0: label
+    })
+  }
   return null
 }
 
-function hasErrorCode(error: unknown, code: string): boolean {
+export function hasErrorCode(error: unknown, code: string): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function finiteNumber(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
 function usedOfTotal(used: unknown, total: unknown, allowEmpty = false): UsedOfTotal | null {
@@ -177,7 +183,8 @@ export function parseHostMachineTotals(value: unknown): HostMachineTotals {
     swap: usedOfTotal(host.swapUsed, host.swapTotal, true),
     disk: usedOfTotal(host.diskUsed, host.diskTotal),
     loadAverage: isLoadAverage(load) ? load : null,
-    outsideOrca: parseOutsideOrcaGroups(host.outsideOrca)
+    outsideOrca: parseOutsideOrcaGroups(host.outsideOrca),
+    heavyQueue: parseHeavyCommandQueue(host.heavyQueue)
   }
 }
 
@@ -259,6 +266,7 @@ function parseSnapshotWorktrees(value: unknown): WorktreeMemory[] | null {
     ) {
       continue
     }
+    const chats = Array.isArray(row.chats) ? parseChats(row.chats) : []
     worktrees.push({
       worktreeId: row.worktreeId,
       worktreeName: typeof row.worktreeName === 'string' ? row.worktreeName : row.worktreeId,
@@ -269,7 +277,8 @@ function parseSnapshotWorktrees(value: unknown): WorktreeMemory[] | null {
       sessions: Array.isArray(row.sessions) ? row.sessions.flatMap(parseSessionMemory) : [],
       history: Array.isArray(row.history)
         ? row.history.flatMap((sample) => finiteNumber(sample) ?? [])
-        : []
+        : [],
+      ...(chats.length > 0 ? { chats } : {})
     })
   }
   return worktrees
@@ -293,4 +302,36 @@ function parseSessionMemory(value: unknown): SessionMemory[] {
       memory
     }
   ]
+}
+
+const MAX_CHATS_PER_WORKSPACE = 200
+const MAX_CHAT_TEXT_CHARS = 256
+
+// Why capped: a paired server is another machine; malformed or oversized chats must not reach the UI.
+function parseChats(value: readonly unknown[]): ChatAgentMemory[] {
+  const chats: ChatAgentMemory[] = []
+  for (const chat of value.slice(0, MAX_CHATS_PER_WORKSPACE)) {
+    const cpu = isRecord(chat) ? finiteNumber(chat.cpu) : null
+    const memory = isRecord(chat) ? finiteNumber(chat.memory) : null
+    if (
+      isRecord(chat) &&
+      typeof chat.agentSessionId === 'string' &&
+      chat.agentSessionId.length > 0 &&
+      typeof chat.agent === 'string' &&
+      (chat.name === null || typeof chat.name === 'string') &&
+      cpu !== null &&
+      cpu >= 0 &&
+      memory !== null &&
+      memory >= 0
+    ) {
+      chats.push({
+        agentSessionId: chat.agentSessionId.slice(0, MAX_CHAT_TEXT_CHARS),
+        agent: chat.agent.slice(0, MAX_CHAT_TEXT_CHARS),
+        name: chat.name === null ? null : chat.name.slice(0, MAX_CHAT_TEXT_CHARS),
+        cpu,
+        memory
+      })
+    }
+  }
+  return chats
 }

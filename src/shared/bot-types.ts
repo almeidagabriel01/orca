@@ -6,7 +6,7 @@ import { optionalConnectorAvatarUrl } from './connector-message-asker'
 import type { NativeChatAgent } from './agent-launch/permissions/agent-chat-permission-support'
 import { LOCAL_EXECUTION_HOST_ID } from './execution-host/execution-host'
 import { BotLookAroundSchema } from './bots/bot-look-around'
-import { BotLaunchSchema } from './bots/bot-launch'
+import { BotLaunchFields } from './bots/bot-launch'
 import { BotTidyUpSchema } from './bots/bot-tidy-up'
 import { BotOfferAnswerSchema } from './bots/bot-offer-answers'
 import { BotCancelledWaitSchema } from './bots/bot-cancelled-waits'
@@ -183,9 +183,7 @@ export const BotSchema = z.object({
   paused: z.boolean(),
   /** An owner's override; absent, the bot's chats start like any native chat. */
   permissionMode: z.enum(AGENT_CHAT_PERMISSION_MODES).optional(),
-  /** The owner's model and options for `agent`; absent on older bots and dropped by older hosts. */
-  // A malformed value reads as unset rather than losing the whole bot.
-  launch: BotLaunchSchema.optional().catch(undefined),
+  ...BotLaunchFields,
   notifications: BotNotificationsSchema,
   members: z.array(BotMemberSchema).max(BOT_MAX_MEMBERS),
   /** The first of slackApps, kept for readers that know one workspace (older Orcas, the phone). */

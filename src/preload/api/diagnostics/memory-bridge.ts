@@ -1,13 +1,24 @@
 import { ipcRenderer } from 'electron'
-import type { MemorySnapshot } from '../../../shared/diagnostics/process-stats-types'
+import type {
+  MemorySnapshot,
+  SessionProcessTree
+} from '../../../shared/diagnostics/process-stats-types'
 import type { PreloadApi } from '../../api-types'
 import type { PerfNoticeSignals } from '../../../shared/diagnostics/perf-notice-signals'
 
 import type { ResourceViewAdmission } from '../../../shared/diagnostics/resource-view-admission'
+import type { HeavyQueueAction } from '../../../shared/rpc-contract/diagnostics-params'
 
 export const memoryApi = {
   getSnapshot: (admission?: ResourceViewAdmission): Promise<MemorySnapshot> =>
     ipcRenderer.invoke('memory:getSnapshot', admission),
+  getProcessTree: (
+    sessionId: string,
+    admission?: ResourceViewAdmission
+  ): Promise<SessionProcessTree | null> =>
+    ipcRenderer.invoke('memory:getProcessTree', sessionId, admission),
+  heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission): Promise<void> =>
+    ipcRenderer.invoke('memory:heavyQueueAction', action, admission),
   readPerfNoticeSignals: (): Promise<PerfNoticeSignals> =>
     ipcRenderer.invoke('memory:readPerfNoticeSignals'),
   countHiddenBrowserPages: (hiddenForMs: number): Promise<number> =>

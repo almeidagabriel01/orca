@@ -84,7 +84,44 @@ export type HostMemory = {
   loadAverage?: number[]
   /** Top groups by CPU and by memory outside Orca's process trees; absent on Windows and older hosts. */
   outsideOrca?: OutsideOrcaProcessGroup[]
+  /** The vps-heavy command queue; absent on hosts without one, on Windows and on older hosts. */
+  heavyQueue?: HeavyCommandQueue
 }
+
+/** Commands waiting for or holding one of the host's vps-heavy slots. */
+export type HeavyCommandQueue = {
+  /** Host epoch ms of the read; job times compare with it, never with the reader's clock. */
+  readAt: number
+  slots: number
+  /** True when the host can reorder, start, cancel and resize through diagnostics.heavyQueueAction. */
+  controls: boolean
+  jobs: HeavyCommandJob[]
+}
+
+export type HeavyCommandJob = {
+  pid: number
+  status: 'running' | 'waiting'
+  /** null while waiting and in an extra slot. */
+  slot: number | null
+  /** 1-based place among the waiting; null while running or when the host does not order its queue. */
+  position: number | null
+  /** Waits in the host's order, so it can move and start now; direct flock users and older waiters cannot. */
+  ordered: boolean
+  /** Holds the lock through `flock` directly, outside the queue's order. */
+  direct: boolean
+  /** Started now in a temporary slot beyond the host's slots. */
+  extra: boolean
+  /** Host epoch ms. */
+  queuedAt: number
+  /** Host epoch ms; null while waiting and for commands that hold the lock through `flock` directly. */
+  startedAt: number | null
+  cwd: string
+  command: string
+  /** The Orca workspace holding cwd on that host; absent when none does. */
+  workspace?: HeavyCommandWorkspace
+}
+
+export type HeavyCommandWorkspace = { worktreeId: string; worktreeName: string; repoName: string }
 
 /** Processes folded by macOS app bundle, Linux container, or command name; cpu is percent of one core. */
 export type OutsideOrcaProcessGroup = {
@@ -93,6 +130,27 @@ export type OutsideOrcaProcessGroup = {
   cpu: number
   memory: number
   processCount: number
+}
+
+/** One process under a session; command, cwd and startedAt are null where the host cannot read them. */
+export type SessionProcess = {
+  pid: number
+  ppid: number
+  /** Percent of one core. */
+  cpu: number
+  memory: number
+  command: string | null
+  cwd: string | null
+  /** Host epoch ms; compare with collectedAt, never with the reader's clock. */
+  startedAt: number | null
+}
+
+/** A session's process tree, read on request from the host's latest sweep. */
+export type SessionProcessTree = {
+  sessionId: string
+  rootPid: number
+  collectedAt: number
+  processes: SessionProcess[]
 }
 
 export type MemorySnapshot = {
@@ -112,4 +170,6 @@ export type MemorySnapshot = {
   /** App, agent-process and tracked-worktree committed bytes, present exactly with processCommitMetric; exceeding physical RAM is meaningful. */
   totalPrivateMemory?: number
   collectedAt: number
+  /** Set on a paired reply that carries chats; a host that predates it never sends them. */
+  chatsIncluded?: true
 }

@@ -16,6 +16,8 @@ import {
 } from '@/components/bots/settings-view/BotSettingsRows'
 import { useTranslate } from '@/i18n/use-translate'
 import { openBotChat } from '@/lib/bot-catalog'
+import { botTarget } from '@/lib/bot-hosts'
+import { RepositoryAgentAccountDefault } from '../repository/RepositoryAgentAccountDefault'
 import {
   AGENT_CHAT_PERMISSION_MODES,
   type AgentChatPermissionMode
@@ -72,6 +74,18 @@ export function BotAgentSettings({ bot, update }: { bot: Bot; update: Update }):
           worktreeId={folderWorkspaceKey(bot.folderWorkspaceId)}
           withPermission={false}
           onChange={(setup) => void setAgentSetup(setup)}
+        />
+        <RepositoryAgentAccountDefault
+          agent={bot.agent}
+          target={botTarget(bot)}
+          value={bot.agentAccount}
+          disabled={false}
+          inheritLabel={t('components.native-chat.account.followHost', 'Selected account')}
+          description={t(
+            'settings.bots.accountDescription',
+            'The account new conversations and automations start on. The Home Chat keeps its current one until you start a new one.'
+          )}
+          onChange={(choice) => void update({ agentAccount: choice ?? null })}
         />
       </div>
     </SettingsInsetGroup>

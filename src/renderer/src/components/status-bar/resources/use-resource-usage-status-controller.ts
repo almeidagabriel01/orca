@@ -34,12 +34,10 @@ import { getRepoExecutionHostId } from '../../../../../shared/execution-host/exe
 
 import { useResourceViewVisible } from './use-resource-view-visible'
 import { useResourcePtyActions } from './pty/use-resource-pty-actions'
-import { useResourceMemorySnapshot } from './use-resource-memory-snapshot'
+import { RESOURCE_POLL_MS, useResourceMemorySnapshot } from './use-resource-memory-snapshot'
 import { trackResourceManagerOpen } from './resource-manager-open-request'
 
 let lastSelectedResourceTab: 'resources' | 'ptys' = 'resources'
-
-const POLL_MS = 2_000
 
 export function useResourceUsageStatusController() {
   const snapshot = useAppStore((s) => s.memorySnapshot)
@@ -133,7 +131,7 @@ export function useResourceUsageStatusController() {
   const runtimeHostResults = useRuntimeHostResources(
     resourceViewActive,
     runtimeEnvironmentIds,
-    POLL_MS
+    RESOURCE_POLL_MS
   )
   const runtimeHostLabel = useCallback(
     (environmentId: string): string =>

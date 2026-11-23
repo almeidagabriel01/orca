@@ -7,7 +7,12 @@ import { parseWorkspaceKey } from '../../shared/workspace/identity/workspace-sco
 import { folderWorkspaceRepoId } from '../../shared/folder-workspaces/folder-workspace-worktree'
 
 export type MemorySnapshotStore = Pick<Store, 'getRepo' | 'getWorktreeMeta'> &
-  Partial<Pick<Store, 'getFolderWorkspace'>> & {
+  Partial<
+    Pick<
+      Store,
+      'getFolderWorkspace' | 'getRepos' | 'getAllWorktreeMetaForHost' | 'getFolderWorkspaces'
+    >
+  > & {
     getProjectGroup?: (id: string) => Pick<ProjectGroup, 'id' | 'name'> | undefined
     getProjectGroups?: () => Pick<ProjectGroup, 'id' | 'name'>[]
   }

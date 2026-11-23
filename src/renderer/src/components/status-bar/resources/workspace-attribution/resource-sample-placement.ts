@@ -12,8 +12,15 @@ import {
 /** Where a sampled workspace's row goes, and how it is named. */
 export type SamplePlacement = Pick<
   UnifiedWorktreeRow,
-  'worktreeId' | 'worktreeName' | 'repoId' | 'repoName' | 'isRemote' | 'hostLabel' | 'unplaced'
-> & { readOnly?: true }
+  | 'worktreeId'
+  | 'worktreeName'
+  | 'repoId'
+  | 'repoName'
+  | 'isRemote'
+  | 'hostLabel'
+  | 'unplaced'
+  | 'runtimeHostId'
+> & { readOnly?: true; environmentId?: string }
 
 /** The catalog inputs placement reads; a sample's cached rows stay valid while these keep their identity. */
 export function placementInputs(ctx: MergeContext): readonly unknown[] {
@@ -67,6 +74,10 @@ export function pairedSamplePlacement(
     repoName: (owned && ctx.repoDisplayNameById.get(repoId)) || wt.repoName,
     isRemote: true,
     hostLabel: host.hostLabel,
-    readOnly: true
+    readOnly: true,
+    environmentId: host.hostId.slice('runtime:'.length),
+    // Its chats open on the host; one this window doesn't place there can't be opened from here.
+    runtimeHostId: host.hostId,
+    ...(owned ? {} : { unplaced: true as const })
   }
 }

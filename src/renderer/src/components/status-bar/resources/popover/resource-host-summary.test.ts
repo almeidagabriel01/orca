@@ -55,7 +55,16 @@ describe('buildResourceHostSummaries', () => {
     const results = {
       'env-b': await read('env-b', async () => ({
         app: { cpu: 3, memory: 70, main: { cpu: 2, memory: 40 } },
-        worktrees: [worktree([session('r1', 'tab:agent'), session('r2', null)])]
+        worktrees: [
+          {
+            ...worktree([session('r1', 'tab:agent'), session('r2', null)]),
+            chats: [
+              { agentSessionId: 'c1', agent: 'claude', name: null, cpu: 1, memory: 5 },
+              { agentSessionId: 'c2', agent: 'claude', name: 7, cpu: 1, memory: 5 }
+            ]
+          }
+        ],
+        chatsIncluded: true
       })),
       // Older headless servers count only their daemon, leaving main empty.
       'env-a': await read('env-a', async () => ({
@@ -95,7 +104,8 @@ describe('buildResourceHostSummaries', () => {
         counts: { terminals: 4, agents: 2, commands: 1 },
         notice: false
       },
-      { id: 'env-a', orca: null, counts: { terminals: 0, agents: 0, commands: 0 }, notice: false },
+      // A server that predates sending chats says its chat workers are missing.
+      { id: 'env-a', orca: null, counts: { terminals: 0, agents: 0, commands: 0 }, notice: true },
       {
         id: 'env-b',
         orca: { cpu: 3, memory: 70 },
@@ -103,6 +113,10 @@ describe('buildResourceHostSummaries', () => {
         notice: false
       },
       { id: 'env-c', orca: null, counts: null, notice: true }
+    ])
+    const envB = results['env-b']
+    expect(envB.status === 'sampled' && envB.worktrees[0].chats).toEqual([
+      { agentSessionId: 'c1', agent: 'claude', name: null, cpu: 1, memory: 5 }
     ])
   })
 })
@@ -125,7 +139,38 @@ describe('parseHostMachineTotals', () => {
           { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 },
           { name: 'x', kind: 'daemon', cpu: 1, memory: 1, processCount: 1 },
           { name: 'y', kind: 'command', cpu: -1, memory: 1, processCount: 1 }
-        ]
+        ],
+        heavyQueue: {
+          readAt: 9_000,
+          slots: 2,
+          controls: true,
+          jobs: [
+            {
+              pid: 7,
+              status: 'running',
+              slot: 1,
+              position: 3,
+              queuedAt: 1_000,
+              startedAt: 2_000,
+              cwd: '/w/app',
+              command: 'x'.repeat(9_000),
+              workspace: { worktreeId: 'app::/w/app', worktreeName: 'app', repoName: 'App' }
+            },
+            {
+              pid: 8,
+              status: 'waiting',
+              slot: 0,
+              position: 1,
+              direct: true,
+              queuedAt: 3_000,
+              cwd: '/tmp',
+              command: 'make',
+              workspace: { worktreeId: 1 }
+            },
+            { pid: -1, status: 'waiting', queuedAt: 1, cwd: '/', command: 'bad' },
+            { pid: 9, status: 'paused', queuedAt: 1, cwd: '/', command: 'bad' }
+          ]
+        }
       })
     ).toEqual({
       cpuPercent: 37.5,
@@ -136,7 +181,41 @@ describe('parseHostMachineTotals', () => {
       loadAverage: [2, 1.5, 1],
       outsideOrca: [
         { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 }
-      ]
+      ],
+      heavyQueue: {
+        readAt: 9_000,
+        slots: 2,
+        controls: true,
+        jobs: [
+          {
+            pid: 7,
+            status: 'running',
+            slot: 1,
+            position: null,
+            ordered: false,
+            direct: false,
+            extra: false,
+            queuedAt: 1_000,
+            startedAt: 2_000,
+            cwd: '/w/app',
+            command: 'x'.repeat(8_192),
+            workspace: { worktreeId: 'app::/w/app', worktreeName: 'app', repoName: 'App' }
+          },
+          {
+            pid: 8,
+            status: 'waiting',
+            slot: null,
+            position: 1,
+            ordered: false,
+            direct: true,
+            extra: false,
+            queuedAt: 3_000,
+            startedAt: null,
+            cwd: '/tmp',
+            command: 'make'
+          }
+        ]
+      }
     })
   })
 
@@ -150,7 +229,8 @@ describe('parseHostMachineTotals', () => {
       swap: null,
       disk: null,
       loadAverage: null,
-      outsideOrca: null
+      outsideOrca: null,
+      heavyQueue: null
     })
   })
 
@@ -174,7 +254,8 @@ describe('parseHostMachineTotals', () => {
       swap: null,
       disk: null,
       loadAverage: null,
-      outsideOrca: null
+      outsideOrca: null,
+      heavyQueue: null
     })
     expect(parseHostMachineTotals('garbage').memory).toBeNull()
   })

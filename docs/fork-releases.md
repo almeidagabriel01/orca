@@ -63,11 +63,13 @@ remote, which `gh` would otherwise pick.
 Every run also disables any active workflow other than `fork-release.yml` and `fork-sync.yml`,
 since workflows that arrive from upstream start out enabled.
 
-Schedules run only on the default branch, so `fork-main` must be the default branch. GitHub keeps
-schedules off in a fork of a public repo even while the workflow reads `active`; changing the
-`cron` line does not turn them on. Disabling and enabling the workflow does:
-`gh workflow disable fork-sync.yml && gh workflow enable fork-sync.yml`. Check with
-`gh run list --workflow fork-sync.yml --event schedule`.
+Schedules run only on the default branch, so `fork-main` must be the default branch. As of
+2026-11-23 the hourly schedule has never fired in this fork, although `fork-main` is the default
+branch, Actions are on and the workflow reads `active`. Changing the `cron` line and disabling and
+enabling the workflow did not help. GitHub turns schedules off by default in forks of public repos,
+and the Actions tab may offer a switch the API does not show. Until a scheduled run appears in
+`gh run list --workflow fork-sync.yml --event schedule`, syncs start when an installed app checks
+for updates, or by hand.
 
 Each sync first re-enables `fork-release.yml` if anything disabled it, and says so in the run summary.
 

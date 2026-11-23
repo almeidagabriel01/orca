@@ -7,7 +7,7 @@ name: Fork upstream sync
 # See docs/fork-releases.md.
 
 on:
-  # In a fork GitHub keeps this off until the workflow is disabled and enabled (docs/fork-releases.md).
+  # Has never fired in this fork so far; installed apps dispatch the sync (docs/fork-releases.md).
   schedule:
     - cron: '41 * * * *'
   workflow_dispatch:

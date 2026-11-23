@@ -74,6 +74,12 @@ describe('orca repo set agent defaults', () => {
     })
   })
 
+  it('drops the old effort when only the model changes, as the Settings picker does', async () => {
+    const { sent } = await repoSet(['--default-model', 'codex=gpt-6'], SAVED)
+    expect(sent).toMatchObject({ agentLaunchChoices: { codex: { model: 'gpt-6' } } })
+    expect(sent).not.toHaveProperty('agentLaunchChoices.codex.options')
+  })
+
   it('sends null when the last saved field is cleared', async () => {
     const { error, sent } = await repoSet(['--default-agent', 'inherit'], {
       defaultTuiAgent: 'claude'

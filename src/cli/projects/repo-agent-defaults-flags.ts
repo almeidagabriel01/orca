@@ -3,6 +3,7 @@ import { RuntimeClientError } from '../runtime/connection/types'
 import { getOptionalStringFlag, getRepeatedStringFlag } from '../arguments/flags'
 import { resolveSavedAccountId } from '../accounts/account-selection'
 import { isTuiAgent } from '../../shared/agent-launch/catalog/tui-agent-config'
+import { reconcileAgentChoiceArgs } from '../../shared/agent-launch/choices/agent-choice-reconciliation'
 import type { TuiAgent } from '../../shared/agent-launch/catalog/tui-agent'
 import {
   normalizeAgentModelOptionChoices,
@@ -119,11 +120,13 @@ export async function resolveRepoDefaultAccount(
       refreshUsage: false
     })
   ).result
-  // Same rows the settings picker offers: WSL-managed logins can't run this host's chats.
+  // The Settings picker also hides needsSignIn rows; those stay saved accounts, so allow them.
+  // WSL-managed logins can't run this host's chats.
   const accounts = claude.accounts.filter((account) => account.managedAuthRuntime !== 'wsl')
   return resolveSavedAccountId('Claude', getManagedAccountLookupNames(accounts), value)
 }
 
+/** The same edit the Settings model and effort pickers make, so a new model drops the old one's effort. */
 function applyChoiceEntries(
   choices: AgentLaunchChoices,
   entries: AgentEntry[],
@@ -132,16 +135,15 @@ function applyChoiceEntries(
   for (const [agent, value] of entries) {
     const targets = agent === '*' ? Object.keys(choices).filter(isTuiAgent) : [agent]
     for (const target of targets) {
-      const { model, options } = choices[target] ?? {}
-      const next = { model, options: { ...options } }
-      if (field === 'model') {
-        next.model = value ?? undefined
-      } else if (value === null) {
-        delete next.options.effort
-      } else {
-        next.options.effort = value
-      }
-      choices[target] = next
+      const patch = field === 'model' ? { model: value } : { options: { effort: value } }
+      choices[target] = reconcileAgentChoiceArgs({
+        agent: target,
+        choices: choices[target] ?? {},
+        userArgs: '',
+        mode: 'choice-edit',
+        keys: new Set(['model', ...Object.keys(patch.options ?? {})]),
+        patch
+      }).choices
     }
   }
 }

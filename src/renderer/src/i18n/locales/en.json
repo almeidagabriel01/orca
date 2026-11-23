@@ -1973,14 +1973,16 @@
     },
     "projectAgentDefaults": {
       "title": "Agent defaults",
-      "description": "Default agent and model for new work in this project. Unset choices inherit this host’s defaults.",
+      "description": "Default agent, model and account for new work in this project. Unset choices inherit this host’s defaults.",
       "inherit": "Use host default",
       "agent": "Default agent",
       "blank": "Blank terminal",
       "modelsFor": "Model defaults for",
+      "account": "Account",
+      "accountDescription": "The account new chats in this project start on. Changing it in a chat changes only that chat.",
       "reset": "Reset to host defaults",
       "saveFailed": "Could not save project defaults. Check the connection and update the project’s runtime if needed.",
-      "keywords": "agent model reasoning effort default"
+      "keywords": "agent model reasoning effort account default"
     }
   },
   "menu": {

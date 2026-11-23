@@ -15,6 +15,10 @@ import {
 } from '@/lib/agent-session/launch/structured-agent-session-launch-state-store'
 import { agentSessionWriteFailureText } from '../../../messages/notices/agent-session-write-notice-text'
 import { useTranslate } from '@/i18n/use-translate'
+import { useAppStore } from '@/store'
+import { projectAgentAccountChoice } from '../../../../../../../shared/agent-launch/choices/project-agent-launch-defaults'
+import { findLaunchProjectRepo } from '@/runtime/agent-launch-settings/use-host-agent-launch-preferences'
+import { worktreeLaunchWorkspace } from '@/lib/agent-session/launch/routing/agent-launch-route-input'
 
 /** The account a chat runs on, as the composer shows and changes it. */
 export type NativeChatAccountControl = {
@@ -44,6 +48,20 @@ export function useStructuredChatAccount(args: {
     subscribeStructuredAgentLaunchStatus,
     () => getStructuredLaunchStateBySessionId(sessionId)?.intent.accountChoice
   )
+  // Until a pick, a new chat shows the project's account, which its host seeds at create.
+  const projectChoice = useAppStore((state) => {
+    const intent = getStructuredLaunchStateBySessionId(sessionId)?.intent
+    return intent && !intent.params.resumeFrom && !intent.params.forkFrom
+      ? projectAgentAccountChoice(
+          findLaunchProjectRepo(
+            state,
+            worktreeLaunchWorkspace(intent.worktreeId),
+            intent.executionHostId
+          ),
+          agent
+        )
+      : undefined
+  })
   const capability = useStructuredAgentSessionHostCapabilityState(
     target,
     AGENT_SESSION_CHAT_ACCOUNT_RUNTIME_CAPABILITY
@@ -76,7 +94,7 @@ export function useStructuredChatAccount(args: {
   }
   return {
     target,
-    choice: beforeCreate ? held : args.hostChoice,
+    choice: beforeCreate ? (held ?? projectChoice) : args.hostChoice,
     ...(beforeCreate || args.sessionNeverStarted === true
       ? { choose: (choice: string) => void choose(choice) }
       : {})

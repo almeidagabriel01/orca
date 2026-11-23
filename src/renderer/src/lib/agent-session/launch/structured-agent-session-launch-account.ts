@@ -1,4 +1,3 @@
-import { AGENT_CHAT_HOST_ACCOUNT } from '../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import {
   getStructuredLaunchStateBySessionId,
   notifyStructuredLaunchListeners
@@ -10,11 +9,8 @@ export function holdStructuredLaunchAccount(sessionId: string, choice: string): 
   if (!state || state.intent.createPrepared) {
     return false
   }
-  if (choice === AGENT_CHAT_HOST_ACCOUNT) {
-    delete state.intent.accountChoice
-  } else {
-    state.intent.accountChoice = choice
-  }
+  // `host` is sent too: it beats the project account the host would otherwise seed.
+  state.intent.accountChoice = choice
   notifyStructuredLaunchListeners(sessionId)
   return true
 }

@@ -8,6 +8,7 @@ import {
 } from '../../../agent-launch/permissions/agent-chat-permission-mode'
 import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../../../agent-launch/permissions/agent-chat-permission-mode-option-id'
 import type { GlobalSettings } from '../../../settings/global-settings-types'
+import { AGENT_CHAT_ACCOUNT_OPTION_ID } from '../../../agent-launch/accounts/agent-chat-account-choice'
 import {
   findCatalogModel,
   getAgentSessionOptionCatalog,
@@ -277,9 +278,24 @@ export function structuredLaunchCompatibleOptions(
     : requested
 }
 
-export function seededPermissionMode(
-  options: Readonly<Record<string, string>> | undefined
-): Record<string, string> {
-  const mode = options?.[AGENT_CHAT_PERMISSION_MODE_OPTION_ID]
-  return mode ? { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: mode } : {}
+/** Create's options: explicit picks over the host's seed. A model replacement keeps only the
+ *  seed's chat-owned permission mode and account. */
+export function structuredCreateOptions(
+  seed: Readonly<Record<string, string>> | undefined,
+  explicit: Readonly<Record<string, string>> | undefined,
+  overlays: boolean
+): Readonly<Record<string, string>> | undefined {
+  if (!explicit) {
+    return seed
+  }
+  if (overlays) {
+    return { ...seed, ...explicit }
+  }
+  const { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: mode, [AGENT_CHAT_ACCOUNT_OPTION_ID]: account } =
+    seed ?? {}
+  return {
+    ...(mode ? { [AGENT_CHAT_PERMISSION_MODE_OPTION_ID]: mode } : {}),
+    ...(account ? { [AGENT_CHAT_ACCOUNT_OPTION_ID]: account } : {}),
+    ...explicit
+  }
 }

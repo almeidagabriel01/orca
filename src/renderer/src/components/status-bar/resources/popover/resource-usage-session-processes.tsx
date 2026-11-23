@@ -18,7 +18,10 @@ import {
 } from './resource-session-processes'
 
 const FIRST_INDENT_PX = 44
-const DEPTH_INDENT_PX = 12
+// A narrow popover indents less and drops cwd and age, so the command keeps some width.
+const TREE_ROW_INDENT_CLS =
+  '[--proc-indent:20px] [--proc-step:8px] @sm/proctree:[--proc-indent:44px] @sm/proctree:[--proc-step:12px]'
+const WIDE_ONLY_CLS = 'hidden @sm/proctree:block'
 
 type TreeState =
   | { status: 'loading' | 'gone' | 'update-required' | 'failed' }
@@ -132,8 +135,8 @@ function TreeRow({
 }): React.JSX.Element {
   return (
     <div
-      className="group/procrow flex items-center gap-1.5 py-1 pr-3"
-      style={{ paddingLeft: FIRST_INDENT_PX + depth * DEPTH_INDENT_PX }}
+      className={`group/procrow flex items-center gap-1.5 py-1 pr-3 ${TREE_ROW_INDENT_CLS}`}
+      style={{ paddingLeft: `calc(var(--proc-indent) + ${depth} * var(--proc-step))` }}
     >
       {toggle ?? <span className="w-4 shrink-0" aria-hidden />}
       {children}
@@ -176,10 +179,16 @@ function ProcessRow({
         </TooltipContent>
       </Tooltip>
       {cwd && cwd !== '.' ? (
-        <span className="max-w-28 shrink truncate text-[10px] text-muted-foreground/60">{cwd}</span>
+        <span
+          className={`max-w-28 shrink truncate text-[10px] text-muted-foreground/60 ${WIDE_ONLY_CLS}`}
+        >
+          {cwd}
+        </span>
       ) : null}
       {process.startedAt !== null ? (
-        <span className="shrink-0 tabular-nums text-[10px] text-muted-foreground/60">
+        <span
+          className={`shrink-0 tabular-nums text-[10px] text-muted-foreground/60 ${WIDE_ONLY_CLS}`}
+        >
           {formatElapsed(collectedAt - process.startedAt)}
         </span>
       ) : null}
@@ -302,5 +311,9 @@ export function SessionProcessTreeView({
     }
   }
   pushNodes(buildProcessForest(tree.processes), 0, '')
-  return <div role="group">{rows}</div>
+  return (
+    <div role="group" className="@container/proctree">
+      {rows}
+    </div>
+  )
 }

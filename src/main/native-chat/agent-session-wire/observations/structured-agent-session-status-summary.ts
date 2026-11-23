@@ -70,6 +70,7 @@ export function structuredAgentSessionStatusSummary({
   const effort = record?.options?.effort
   const fastMode = record?.options?.fastMode
   const serviceTier = record?.options?.serviceTier
+  const accountChoice = record?.accountChoice
   const interactionMode = record?.options?.interactionMode
   const fallbackModel = session.child
     ? structuredAgentSessionRuntimeFallbackModel(session.child)
@@ -110,6 +111,7 @@ export function structuredAgentSessionStatusSummary({
     ...(effort ? { effort } : {}),
     ...(fastMode ? { fastMode } : {}),
     ...(serviceTier ? { serviceTier } : {}),
+    ...(accountChoice ? { accountChoice } : {}),
     ...(isAgentSessionInteractionMode(interactionMode) ? { interactionMode } : {}),
     ...childWork,
     ...(providerSession ? { providerSession } : {}),

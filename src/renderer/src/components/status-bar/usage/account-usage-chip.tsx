@@ -8,27 +8,9 @@ import { formatResetsInCaption } from './usage-reset-caption'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
 import { formatPaceSummary, getReadingPace } from './usage-pace-caption'
 
-/** The account's short name and, for the host's selected account, a quiet dot. */
-export function AccountChipName({
-  label,
-  selected
-}: {
-  label: string
-  selected: boolean
-}): React.JSX.Element {
-  const t = useTranslate()
-  return (
-    <span className="inline-flex min-w-0 items-center gap-1">
-      <span className="max-w-24 truncate text-foreground">{label}</span>
-      {selected ? (
-        <span
-          data-usage-selected-account=""
-          aria-label={t('components.status-bar.usage.accounts.selected', 'Selected')}
-          className="size-1.5 shrink-0 rounded-full bg-foreground/60"
-        />
-      ) : null}
-    </span>
-  )
+/** The account's short name; which one is selected lives in the chip's tooltip and the popover. */
+export function AccountChipName({ label }: { label: string }): React.JSX.Element {
+  return <span className="max-w-24 min-w-0 truncate text-foreground">{label}</span>
 }
 
 export function SelectedAccountBadge(): React.JSX.Element {

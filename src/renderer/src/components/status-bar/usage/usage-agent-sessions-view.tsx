@@ -78,9 +78,29 @@ export function getUsageActivity(sessions: readonly UsageAgentSession[]): UsageA
       : null
 }
 
+/** The turning arc on a faint track, in the theme's neutral accent: an agent is working. */
+function WorkingArc({ className }: { className?: string }): React.JSX.Element {
+  return (
+    <AgentWorkingSpinner
+      className={cn('border-primary/20 border-t-primary motion-reduce:border-t-primary', className)}
+    />
+  )
+}
+
+/** A session's state mark: the chip's arc while working, the usual glyphs otherwise. */
+function SessionStateMark({ state }: { state: UsageSessionState }): React.JSX.Element {
+  return state === 'working' ? (
+    <span className="inline-flex size-3 shrink-0 items-center justify-center">
+      <WorkingArc className="size-2.5 border-[1.5px]" />
+    </span>
+  ) : (
+    <AgentStateDot state={DOT_STATE[state]} title={null} />
+  )
+}
+
 /**
- * A thin ring around the provider icon: a turning arc while an agent works, a still ring while
- * one waits. Absolute, so it never changes the width the bar measured; frozen under reduced motion.
+ * A thin ring around the provider icon: a turning arc while an agent works, a still closed ring
+ * while one waits. Absolute, so it never changes the width the bar measured; frozen under reduced motion.
  */
 export function UsageActivityRing({
   sessions,
@@ -103,11 +123,12 @@ export function UsageActivityRing({
     >
       {children}
       {activity === 'working' ? (
-        <AgentWorkingSpinner className="pointer-events-none absolute -inset-[2.5px] border border-transparent border-t-agent-working motion-reduce:border-t-agent-working" />
+        <WorkingArc className="pointer-events-none absolute -inset-[2.5px] border" />
       ) : (
+        // Why a closed ring: still and whole reads apart from the turning arc, even frozen.
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-[2.5px] rounded-full border border-agent-question/50"
+          className="pointer-events-none absolute -inset-[2.5px] rounded-full border border-primary/55"
         />
       )}
     </span>
@@ -131,7 +152,7 @@ export function UsageRowSessionCounts({
       data-usage-sessions=""
       className="flex items-center gap-1.5 pl-[30px] text-[11px] text-muted-foreground"
     >
-      <AgentStateDot state={working ? 'working' : 'waiting'} title={null} />
+      <SessionStateMark state={working ? 'working' : 'waiting'} />
       {label}
     </span>
   )
@@ -166,7 +187,7 @@ function SessionRow({
       onSelect={() => openSession(session, owner)}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-        <AgentStateDot state={DOT_STATE[session.state]} title={null} />
+        <SessionStateMark state={session.state} />
         <span
           className={cn(
             'min-w-0 flex-1 truncate text-xs',

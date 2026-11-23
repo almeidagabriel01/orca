@@ -34,7 +34,12 @@ import { formatWindowLabel } from './rate-limit-window-localized-label'
 import { formatPoolCardLabel } from './usage-pool-label'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { UsageBar, UsageValue } from './usage-meter'
-import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import {
+  getReadingPace,
+  getWindowSeverity,
+  paceTickPercent,
+  SEVERITY_FILL_CLASS
+} from './usage-pace-caption'
 import { PaceLine } from './usage-pace-line'
 
 export function formatTimeAgo(ts: number, t: Translate = translate): string {
@@ -228,13 +233,14 @@ function ProviderRateLimitWindowSection({
           className={`shrink-0 font-semibold ${textClass}`}
         />
       </div>
-      {/* Why: fill follows the selected percentage; only this card colors it by consumption. */}
+      {/* Why: fill follows the selected percentage; its color is the window's pace severity. */}
       <UsageBar
         usedPercent={window.usedPercent}
         display={usagePercentageDisplay}
         tone="health"
         className="h-[6px] w-full"
         trackClassName={emptyBarClass}
+        fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, window, now)]}
         paceTickPercent={paceTickPercent(pace, usagePercentageDisplay)}
       />
       {pace ? (
@@ -242,6 +248,7 @@ function ProviderRateLimitWindowSection({
           pace={pace}
           display={usagePercentageDisplay}
           now={now}
+          usedPercent={window.usedPercent}
           mutedClass={mutedClass}
           inverted={inverted}
         />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPaceDelta, getPaceVerdict, getUsagePace } from './usage-pace'
+import { formatPaceDelta, getPaceVerdict, getUsagePace, getUsageSeverity } from './usage-pace'
 
 const HOUR = 3_600_000
 const week = (usedPercent: number, resetsAt: number) => ({
@@ -57,5 +57,24 @@ describe('formatPaceDelta', () => {
     expect(formatPaceDelta(27.14)).toBe('+27.1%')
     expect(formatPaceDelta(-70)).toBe('−70%')
     expect(formatPaceDelta(0.04)).toBe('±0%')
+  })
+})
+
+describe('getUsageSeverity', () => {
+  const pace = (deltaPoints: number, atResetPercent: number | null) => ({
+    elapsed: 0.5,
+    deltaPoints,
+    projection: atResetPercent === null ? null : { atResetPercent, runsOutAt: null },
+    dailyBudgetPercent: null
+  })
+  it('stays calm behind pace, turns yellow ahead of it, red when it runs out well before reset', () => {
+    expect(getUsageSeverity(20, pace(-22, 47))).toBe('calm')
+    expect(getUsageSeverity(64, pace(4, 107))).toBe('watch')
+    expect(getUsageSeverity(70, pace(27, 163))).toBe('critical')
+  })
+  it('falls back to how much is used when there is no pace', () => {
+    expect(getUsageSeverity(50, null)).toBe('calm')
+    expect(getUsageSeverity(85, null)).toBe('watch')
+    expect(getUsageSeverity(95, null)).toBe('critical')
   })
 })

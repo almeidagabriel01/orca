@@ -6,8 +6,7 @@ import React from 'react'
 import { useSectionOnScreen } from '../../right-sidebar/source-control/panel/section-viewport-presence'
 import type {
   OwnerNotSetUpPlaceholder,
-  ProviderRateLimits,
-  RateLimitWindow
+  ProviderRateLimits
 } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import {
   type UsagePercentageDisplay,
@@ -27,7 +26,7 @@ import {
 } from '../../../../../shared/agent-usage/status-copy/usage-error-copy'
 import { getTightestUsageSection, getUsageHeadlineSection } from './usage-headline-sections'
 import { getProviderDisplayName } from '../../../../../shared/agent-usage/display/usage-provider-windows'
-import { formatBareUsagePercentage, formatUsagePercentageLabel } from './usage-percentage-label'
+import { formatUsagePercentageLabel } from './usage-percentage-label'
 import { translate } from '@/i18n/i18n'
 import { useTranslate, useIntlLocale, type Translate } from '@/i18n/use-translate'
 import { getStatusBarUsageSections } from '../composition/status-bar-usage-sections'
@@ -38,35 +37,17 @@ import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCo
 import { useNow } from '@/lib/window-activity/use-now'
 import { getAccountChipSections } from '../composition/status-bar-usage-chips'
 import { AccountChipName, AccountUsageChip } from './account-usage-chip'
-import { getReadingPace, paceTickPercent } from './usage-pace-caption'
-import { ChipWindowPace } from './usage-pace-line'
+import {
+  getReadingPace,
+  getWindowSeverity,
+  paceTickPercent,
+  SEVERITY_FILL_CLASS
+} from './usage-pace-caption'
+import { ChipWindow } from './usage-pace-line'
 import { UsageActivityRing } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
 
 const CALM_STALE_USAGE_MAX_AGE_MS = 30 * 60_000
-
-function WindowLabel({
-  w,
-  label,
-  display,
-  showLabel = true,
-  labelFirst = false
-}: {
-  w: RateLimitWindow
-  label: string
-  display: UsagePercentageDisplay
-  showLabel?: boolean
-  labelFirst?: boolean
-}): React.JSX.Element {
-  const t = useTranslate()
-  return (
-    <span className="tabular-nums">
-      {showLabel && labelFirst ? `${label} ` : ''}
-      {formatBareUsagePercentage(w.usedPercent, display, t)}
-      {showLabel && !labelFirst ? ` ${label}` : ''}
-    </span>
-  )
-}
 
 // Share badge markup and data detection between the roster trigger and provider details.
 export function ProviderLetterBadge({ p }: { p: ProviderRateLimits }): React.JSX.Element {
@@ -279,7 +260,6 @@ function ProviderSegmentBody({
   mode = 'verbose',
   countdownActive = true,
   accountLabel,
-  selected = false,
   sessions
 }: ProviderSegmentProps): React.JSX.Element {
   const t = useTranslate()
@@ -290,7 +270,7 @@ function ProviderSegmentBody({
       <UsageActivityRing sessions={sessions}>
         <ProviderIcon provider={provider} />
       </UsageActivityRing>
-      {isAccountChip ? <AccountChipName label={accountLabel} selected={selected} /> : null}
+      {isAccountChip ? <AccountChipName label={accountLabel} /> : null}
     </>
   )
   const usageFormat = useAppStore((state) => state.statusBarUsageFormat)
@@ -316,9 +296,13 @@ function ProviderSegmentBody({
       : template && p
         ? [p.session?.resetsAt, p.weekly?.resetsAt, p.fableWeekly?.resetsAt, p.monthly?.resetsAt]
         : showLabels
-          ? groupedBuckets
-              .filter((bucket) => clampUsedPercent(bucket.usedPercent) >= USAGE_WARNING_PERCENT)
-              .map((bucket) => bucket.resetsAt)
+          ? [
+              ...groupedBuckets
+                .filter((bucket) => clampUsedPercent(bucket.usedPercent) >= USAGE_WARNING_PERCENT)
+                .map((bucket) => bucket.resetsAt),
+              // Why: a wide account chip shows its session reset, which must count down.
+              isAccountChip ? p?.session?.resetsAt : null
+            ]
           : []
   )
 
@@ -377,6 +361,7 @@ function ProviderSegmentBody({
           usedPercent={clampUsedPercent(tightest.window.usedPercent)}
           display={display}
           className="h-[6px] w-[48px] shrink-0"
+          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, tightest.window, now)]}
           paceTickPercent={paceTickPercent(getReadingPace(p, tightest.window, now), display)}
         />
       ) : null}
@@ -391,24 +376,18 @@ function ProviderSegmentBody({
         />
       ) : (
         sections.map((section, index) => (
-          <React.Fragment key={section.key}>
-            {index > 0 ? <span className="text-muted-foreground">·</span> : null}
-            <WindowLabel
-              w={section.window}
-              label={formatStatusBarSectionLabel(p, section, now, t)}
-              display={display}
-              showLabel={showLabels}
-              labelFirst={section.labelFirst}
-            />
-            <ChipWindowPace
-              p={p}
-              window={section.window}
-              now={now}
-              display={display}
-              withBar={isAccountChip && mode === 'verbose' && !compact}
-              short={compact}
-            />
-          </React.Fragment>
+          <ChipWindow
+            key={section.key}
+            p={p}
+            section={section}
+            divider={index > 0}
+            label={formatStatusBarSectionLabel(p, section, now, t)}
+            display={display}
+            now={now}
+            showLabel={showLabels}
+            wide={isAccountChip && mode === 'verbose' && !compact}
+            short={compact}
+          />
         ))
       )}
       {!template && showBalance && p.extraUsage ? (

@@ -6,7 +6,14 @@ import type { UsageSection } from './usage-headline-sections'
 import { formatLocalizedResetDuration } from './usage-reset-caption'
 import { formatScopedUsageTitle } from './usage-percentage-label'
 import { UsageBar, UsageValue } from './usage-meter'
-import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import { cn } from '@/lib/class-names'
+import {
+  getReadingPace,
+  getWindowSeverity,
+  paceTickPercent,
+  SEVERITY_FILL_CLASS,
+  SEVERITY_TEXT_CLASS
+} from './usage-pace-caption'
 import { PaceLine } from './usage-pace-line'
 
 /** One window on a Detailed popover row: label, bar with its pace mark, value, reset, then its pace. */
@@ -28,6 +35,7 @@ export function UsageWindowMetric({
   const t = useTranslate()
   const intlLocale = useIntlLocale()
   const pace = getReadingPace(p, section.window, now)
+  const severity = getWindowSeverity(p, section.window, now)
   const reset = showReset
     ? formatLocalizedResetDuration(section.window.resetsAt, now, intlLocale)
     : null
@@ -43,12 +51,16 @@ export function UsageWindowMetric({
           usedPercent={section.window.usedPercent}
           display={display}
           className="h-[5px] min-w-0 flex-1"
+          fillClassName={SEVERITY_FILL_CLASS[severity]}
           paceTickPercent={paceTickPercent(pace, display)}
         />
         <UsageValue
           usedPercent={section.window.usedPercent}
           display={display}
-          className="w-9 shrink-0 text-right text-[11px] text-foreground"
+          className={cn(
+            'w-9 shrink-0 text-right text-[11px] text-foreground',
+            SEVERITY_TEXT_CLASS[severity]
+          )}
         />
         {showReset ? (
           <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-muted-foreground">
@@ -62,6 +74,7 @@ export function UsageWindowMetric({
           pace={pace}
           display={display}
           now={now}
+          usedPercent={section.window.usedPercent}
           mutedClass="pl-[34px] text-[10px] leading-4 text-muted-foreground"
         />
       ) : null}

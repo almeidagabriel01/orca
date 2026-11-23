@@ -23,6 +23,7 @@ export function UsageBar({
   tone = 'plain',
   className,
   trackClassName = 'bg-muted',
+  fillClassName,
   paceTickPercent = null
 }: {
   usedPercent: number
@@ -30,6 +31,8 @@ export function UsageBar({
   tone?: UsageBarTone
   className?: string
   trackClassName?: string
+  /** Overrides the tone's fill, for surfaces colored by pace severity. */
+  fillClassName?: string
   /** Where even spending would be by now, on the bar's own scale; null hides the tick. */
   paceTickPercent?: number | null
 }): React.JSX.Element {
@@ -37,7 +40,7 @@ export function UsageBar({
     <span data-usage-bar className={cn('relative block rounded-full', trackClassName, className)}>
       <span className="absolute inset-0 overflow-hidden rounded-full">
         <span
-          className={`block h-full rounded-full transition-[width] duration-200 ease-out ${usageBarClass(usedPercent, tone)}`}
+          className={`block h-full rounded-full transition-[width] duration-200 ease-out ${fillClassName ?? usageBarClass(usedPercent, tone)}`}
           style={{
             width: `${getDisplayedUsagePercentage(usedPercent, display)}%`
           }}

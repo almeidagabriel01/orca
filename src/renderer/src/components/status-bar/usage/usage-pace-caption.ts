@@ -12,7 +12,9 @@ import {
   formatPacePoints,
   getPaceVerdict,
   getUsagePace,
+  getUsageSeverity,
   type PaceVerdict,
+  type UsageSeverity,
   type UsagePace
 } from '../../../../../shared/agent-usage/pace/usage-pace'
 
@@ -33,10 +35,28 @@ export function paceTickPercent(
   return pace ? getDisplayedUsagePercentage(pace.elapsed * 100, display) : null
 }
 
-export const PACE_TEXT_CLASS: Record<PaceVerdict, string> = {
-  over: 'text-red-600 dark:text-red-400',
-  under: 'text-emerald-600 dark:text-emerald-400',
-  on: 'text-muted-foreground'
+/** Number and verdict color per severity; calm keeps the surrounding text color. */
+export const SEVERITY_TEXT_CLASS: Record<UsageSeverity, string> = {
+  calm: '',
+  watch: 'text-yellow-700 dark:text-yellow-400',
+  critical: 'text-red-600 dark:text-red-400'
+}
+
+/** Bar fill per severity; calm stays neutral so color only ever means "look here". */
+export const SEVERITY_FILL_CLASS: Record<UsageSeverity, string> = {
+  calm: 'bg-muted-foreground/50',
+  // Why 600 in light: yellow-500 barely separates from the light track.
+  watch: 'bg-yellow-600 dark:bg-yellow-500',
+  critical: 'bg-red-500'
+}
+
+/** The one severity a window's bar, number, delta and verdict all share. */
+export function getWindowSeverity(
+  p: ProviderRateLimits,
+  window: RateLimitWindow,
+  now: number
+): UsageSeverity {
+  return getUsageSeverity(window.usedPercent, getReadingPace(p, window, now))
 }
 
 export function formatPaceVerdict(pace: UsagePace, t: Translate): string {

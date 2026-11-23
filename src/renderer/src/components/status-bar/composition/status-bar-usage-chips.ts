@@ -24,7 +24,6 @@ import {
   resolveCodexStatusAccountState
 } from '../accounts/status-bar-codex-accounts'
 import { claudeRowUsageId, getCodexStatusRuntimeKey } from '../accounts/status-bar-runtime-targets'
-import { formatWindowLabel } from '../usage/rate-limit-window-localized-label'
 import { USAGE_WARNING_PERCENT } from '../usage/usage-health-tone'
 import { clampUsedPercent } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import type { OwnerUsageRateLimits } from '../usage/use-owner-usage-rate-limits'
@@ -178,7 +177,8 @@ export function getAccountChipSections(
     sections.push({
       key: 'session',
       window: p.session,
-      label: formatWindowLabel(p.session.windowMinutes),
+      // Why words: the wide chip reads like the popover; the narrow one hides labels anyway.
+      label: t('auto.components.status.bar.tooltip.94038ad2fa', 'Session'),
       labelFirst: true
     })
   }
@@ -186,7 +186,7 @@ export function getAccountChipSections(
     sections.push({
       key: 'weekly',
       window: p.weekly,
-      label: formatWindowLabel(p.weekly.windowMinutes),
+      label: t('auto.components.status.bar.tooltip.252c096536', 'Weekly'),
       labelFirst: true
     })
   }

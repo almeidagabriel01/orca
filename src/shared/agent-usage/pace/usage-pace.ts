@@ -74,3 +74,22 @@ export function formatPaceDelta(deltaPoints: number): string {
     ? '±0%'
     : `${verdict === 'over' ? '+' : '−'}${formatPacePoints(deltaPoints)}%`
 }
+
+export type UsageSeverity = 'calm' | 'watch' | 'critical'
+
+/** Projected past this share of the limit at reset, the window runs out well before it resets. */
+const CRITICAL_PROJECTION_PERCENT = 120
+
+/**
+ * One color rule for every usage surface: neutral while spend keeps pace, yellow once it runs
+ * ahead (or 80% is used), red once it is on course to run out well before the reset (or 90%).
+ */
+export function getUsageSeverity(usedPercent: number, pace: UsagePace | null): UsageSeverity {
+  const used = Math.min(100, Math.max(0, usedPercent))
+  if (used >= 90 || (pace?.projection?.atResetPercent ?? 0) >= CRITICAL_PROJECTION_PERCENT) {
+    return 'critical'
+  }
+  return used >= 80 || (pace !== null && getPaceVerdict(pace.deltaPoints) === 'over')
+    ? 'watch'
+    : 'calm'
+}

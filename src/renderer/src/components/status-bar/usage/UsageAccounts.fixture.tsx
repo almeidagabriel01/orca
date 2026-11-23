@@ -126,7 +126,7 @@ export const statusBar = defineFixture({
       <Bar mode="verbose" compact />
       <span>Compact</span>
       <Bar mode="compact" compact />
-      <span>Too narrow: other accounts fold into +N first</span>
+      <span>Narrow: the rest folds into +N</span>
       <Bar mode="verbose" compact shown={3} />
     </div>
   )

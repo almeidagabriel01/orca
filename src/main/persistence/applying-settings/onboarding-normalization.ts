@@ -56,6 +56,7 @@ export function normalizeNotificationSettings(value: unknown): NotificationSetti
       booleanOr(candidate.agentTaskComplete, defaults.agentNeedsInput)
     ),
     terminalBell: booleanOr(candidate.terminalBell, defaults.terminalBell),
+    usageLimit: booleanOr(candidate.usageLimit, defaults.usageLimit),
     suppressWhenFocused: booleanOr(candidate.suppressWhenFocused, defaults.suppressWhenFocused),
     customSoundId,
     customSoundPath:

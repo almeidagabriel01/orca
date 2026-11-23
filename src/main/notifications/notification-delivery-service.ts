@@ -136,7 +136,9 @@ export function createNotificationDeliveryService(
       if (
         !request.mobileDeliveredByHost &&
         deps.dispatchMobileNotification &&
-        request.source !== 'test'
+        request.source !== 'test' &&
+        // The phone contract has no usage-limit source; it stays a desktop alert.
+        request.source !== 'usage-limit'
       ) {
         if (
           reserveNotificationCooldown(

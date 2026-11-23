@@ -23806,6 +23806,10 @@
         }
       },
       "notifications": {
+        "usageLimit": {
+          "label": "Usage limit",
+          "description": "A Claude or Codex account has 15% or less of its weekly limit left."
+        },
         "server": {
           "fallbackHost": "this server",
           "updateFailed": "Couldn't update notifications on {{host}}.",
@@ -24196,6 +24200,29 @@
           "selected": "Selected",
           "chipTitle": "{{provider}} · {{account}}",
           "chipTitleSelected": "{{provider}} · {{account}} (selected)"
+        },
+        "pace": {
+          "over": "{{points}}% over pace",
+          "under": "{{points}}% under pace",
+          "on": "On pace",
+          "runsOut": "Runs out {{when}}",
+          "usedAtReset": "≈{{value}}% used at reset",
+          "leftAtReset": "≈{{value}}% left at reset",
+          "dailyBudget": "Today {{value}}% of the daily budget",
+          "expected": "Expected {{value}}%"
+        },
+        "sessions": {
+          "working": "{{count}} working",
+          "waiting": "{{count}} waiting",
+          "untitled": "Untitled chat",
+          "heading": "Agents",
+          "recent": "Finished in the last hour ({{count}})"
+        },
+        "alerts": {
+          "title": "{{provider}} {{window}} limit: {{left}}% left",
+          "weekly": "weekly",
+          "session": "5h",
+          "resets": "resets {{when}}"
         }
       }
     }
@@ -24837,6 +24864,12 @@
     "bell": {
       "attentionRequested": "Attention requested",
       "title": "Bell in {{worktree}}"
+    },
+    "usageLimit": {
+      "title": "{{provider}} {{window}} limit: {{left}}% left",
+      "weekly": "weekly",
+      "session": "5h",
+      "resets": "resets {{when}}"
     },
     "test": {
       "title": "Orca notifications are on",

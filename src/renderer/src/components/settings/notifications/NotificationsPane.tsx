@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { GlobalSettings } from '../../../../../shared/settings/global-settings-types'
 import { SettingsGroup } from '../section-layout/SettingsGroup'
 import { Button } from '../../ui/button'
-import { BellRing, Bot, EyeOff, MessageCircleQuestion, Siren } from 'lucide-react'
+import { BellRing, Bot, EyeOff, Gauge, MessageCircleQuestion, Siren } from 'lucide-react'
 import { useAppStore } from '@/store/index'
 import {
   MacNotificationPermissionCard,
@@ -179,6 +179,22 @@ export function NotificationsPane({
           onToggle={() =>
             void updateNotificationSettings({
               terminalBell: !notificationSettings.terminalBell
+            })
+          }
+        />
+
+        <NotificationSettingToggle
+          icon={<Gauge className="size-4" />}
+          label={t('components.settings.notifications.usageLimit.label', 'Usage limit')}
+          description={t(
+            'components.settings.notifications.usageLimit.description',
+            'A Claude or Codex account has 15% or less of its weekly limit left.'
+          )}
+          checked={notificationSettings.usageLimit}
+          disabled={!notificationSettings.enabled}
+          onToggle={() =>
+            void updateNotificationSettings({
+              usageLimit: !notificationSettings.usageLimit
             })
           }
         />

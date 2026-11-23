@@ -6,6 +6,7 @@ import { getProviderDisplayName } from '../../../../../shared/agent-usage/displa
 import { shortUsageLabel, usedSections } from './usage-headline-sections'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
+import { formatPaceSummary, getReadingPace } from './usage-pace-caption'
 
 /** The account's short name and, for the host's selected account, a quiet dot. */
 export function AccountChipName({
@@ -70,9 +71,17 @@ export function AccountUsageChip({
   const [now, setNow] = React.useState<number | null>(null)
   const lines = usedSections(p, t).map((section) => {
     const usage = `${shortUsageLabel(p, section, false, t)}: ${formatUsagePercentageLabel(section.window.usedPercent, display, t)}`
-    const reset =
-      now === null ? null : formatResetsInCaption(section.window.resetsAt, now, intlLocale, t)
-    return reset ? `${usage} · ${reset}` : usage
+    if (now === null) {
+      return usage
+    }
+    const pace = getReadingPace(p, section.window, now)
+    return [
+      usage,
+      formatResetsInCaption(section.window.resetsAt, now, intlLocale, t),
+      pace ? formatPaceSummary(pace, display, now, intlLocale, t) : null
+    ]
+      .filter(Boolean)
+      .join(' · ')
   })
   return (
     <span

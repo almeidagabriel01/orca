@@ -32,6 +32,11 @@ import { useUsageRowWidths } from './composition/use-usage-row-widths'
 import { UsageUnitLabel, usageChipShowsPercentage } from './usage/usage-unit-label'
 import type { useStatusBarController } from './composition/use-status-bar-controller'
 import { isOwnerNotSetUpPlaceholder } from './usage/owner-usage-rate-limits'
+import { getUsageOwnerHostScope } from './usage/use-owner-usage-rate-limits'
+import { useUsageAccountSessions } from './usage/use-usage-account-sessions'
+import { sessionsInScope } from './usage/usage-account-sessions'
+import { UsageChipActivity, UsageRowSessionsScope } from './usage/usage-agent-sessions-view'
+import type { UsageRowChip } from './composition/status-bar-usage-chips'
 
 type StatusBarController = NonNullable<ReturnType<typeof useStatusBarController>>
 
@@ -94,6 +99,73 @@ export function StatusBarUsageArea({
   const shownChips = usageChips.filter((chip) => !usageLayout.collapsed.includes(chip.id))
   const hiddenChips = usageChips.filter((chip) => usageLayout.collapsed.includes(chip.id))
   const showUnitLabel = shownChips.some(({ p }) => usageChipShowsPercentage(p, usageMode, t))
+  const sessionOwner = getUsageOwnerHostScope(remoteOwner)
+  const sessions = useUsageAccountSessions(sessionOwner)
+  const chipSessions = (chip: UsageRowChip) =>
+    sessionsInScope(sessions, {
+      provider: chip.p.provider,
+      accountKey: chip.accountKey,
+      selected: chip.selected
+    })
+
+  const renderUsageRowMenu = (
+    p: UsageRowChip['p'],
+    rowNode: React.ReactNode,
+    entry: UsageRowChip
+  ): React.ReactNode => {
+    // Why: a placeholder has nothing to drill into; its row opens the host's accounts.
+    if (isOwnerNotSetUpPlaceholder(p)) {
+      return null
+    }
+    // Why: another account's row opens its own reading; switching stays on the selected row.
+    if (entry.accountLabel !== undefined && !entry.selected) {
+      return (
+        <ProviderDetailsMenu
+          provider={p}
+          asSubmenu
+          triggerContent={rowNode}
+          variant="account"
+          accountLabel={entry.accountLabel}
+          ariaLabel={t(
+            'auto.components.status.bar.UsageRosterPanel.openDetails',
+            'Open usage details'
+          )}
+        />
+      )
+    }
+    // Claude/Codex detail panels also expose account switching and runtime controls.
+    if (p.provider === 'claude') {
+      return (
+        <ClaudeSwitcherMenu claude={p} ownerUsage={ownerUsage} asSubmenu triggerContent={rowNode} />
+      )
+    }
+    if (p.provider === 'antigravity') {
+      return (
+        <AntigravityUsageMenu
+          antigravity={p}
+          accounts={antigravityAccounts}
+          triggerContent={rowNode}
+          onManageAccounts={() => handleOpenProviderAccounts('antigravity')}
+        />
+      )
+    }
+    if (p.provider === 'codex') {
+      return (
+        <CodexSwitcherMenu codex={p} ownerUsage={ownerUsage} asSubmenu triggerContent={rowNode} />
+      )
+    }
+    return (
+      <ProviderDetailsMenu
+        provider={p}
+        asSubmenu
+        triggerContent={rowNode}
+        ariaLabel={t(
+          'auto.components.status.bar.UsageRosterPanel.openDetails',
+          'Open usage details'
+        )}
+      />
+    )
+  }
 
   // Why: usage gives way first, but keeps enough width to stay clickable; its popover holds
   // every provider. Its form is chosen from widths measured off-layout (see useUsageRowWidths).
@@ -128,15 +200,18 @@ export function StatusBarUsageArea({
                 >
                   {showUnitLabel ? <UsageUnitLabel display={usagePercentageDisplay} /> : null}
                   {shownChips.map((chip) => (
-                    <ClippedRowProviderSegment
-                      key={chip.id}
-                      p={chip.p}
-                      accountLabel={chip.accountLabel}
-                      selected={chip.selected}
-                      compact={usageCompact}
-                      display={usagePercentageDisplay}
-                      mode={usageMode}
-                    />
+                    // Why absolute: the mark must not change the chip's width the layout measured.
+                    <span key={chip.id} className="relative inline-flex">
+                      <ClippedRowProviderSegment
+                        p={chip.p}
+                        accountLabel={chip.accountLabel}
+                        selected={chip.selected}
+                        compact={usageCompact}
+                        display={usagePercentageDisplay}
+                        mode={usageMode}
+                      />
+                      <UsageChipActivity sessions={chipSessions(chip)} />
+                    </span>
                   ))}
                   {hiddenChips.length > 0 ? (
                     <UsageOverflowChip
@@ -182,68 +257,13 @@ export function StatusBarUsageArea({
                   canSignIn={canSignInFromUsageRow}
                   onManageAccounts={handleManageAccounts}
                   onUsageDetails={handleUsageDetails}
+                  sessionsForRow={chipSessions}
                   renderRow={(p, rowNode, entry) => {
-                    // Why: a placeholder has nothing to drill into; its row opens the host's accounts.
-                    if (isOwnerNotSetUpPlaceholder(p)) {
-                      return null
-                    }
-                    // Why: another account's row opens its own reading; switching stays on the selected row.
-                    if (entry.accountLabel !== undefined && !entry.selected) {
-                      return (
-                        <ProviderDetailsMenu
-                          provider={p}
-                          asSubmenu
-                          triggerContent={rowNode}
-                          variant="account"
-                          accountLabel={entry.accountLabel}
-                          ariaLabel={t(
-                            'auto.components.status.bar.UsageRosterPanel.openDetails',
-                            'Open usage details'
-                          )}
-                        />
-                      )
-                    }
-                    // Claude/Codex detail panels also expose account switching and runtime controls.
-                    if (p.provider === 'claude') {
-                      return (
-                        <ClaudeSwitcherMenu
-                          claude={p}
-                          ownerUsage={ownerUsage}
-                          asSubmenu
-                          triggerContent={rowNode}
-                        />
-                      )
-                    }
-                    if (p.provider === 'antigravity') {
-                      return (
-                        <AntigravityUsageMenu
-                          antigravity={p}
-                          accounts={antigravityAccounts}
-                          triggerContent={rowNode}
-                          onManageAccounts={() => handleOpenProviderAccounts('antigravity')}
-                        />
-                      )
-                    }
-                    if (p.provider === 'codex') {
-                      return (
-                        <CodexSwitcherMenu
-                          codex={p}
-                          ownerUsage={ownerUsage}
-                          asSubmenu
-                          triggerContent={rowNode}
-                        />
-                      )
-                    }
-                    return (
-                      <ProviderDetailsMenu
-                        provider={p}
-                        asSubmenu
-                        triggerContent={rowNode}
-                        ariaLabel={t(
-                          'auto.components.status.bar.UsageRosterPanel.openDetails',
-                          'Open usage details'
-                        )}
-                      />
+                    const menu = renderUsageRowMenu(p, rowNode, entry)
+                    return menu === null ? null : (
+                      <UsageRowSessionsScope sessions={chipSessions(entry)} owner={sessionOwner}>
+                        {menu}
+                      </UsageRowSessionsScope>
                     )
                   }}
                 />

@@ -7,6 +7,7 @@ import { normalizeUsagePercentageDisplay } from '../../../../../shared/agent-usa
 import { useStatusBarUsagePreferences } from './use-status-bar-usage-preferences'
 import { getOwnerUsageRowChips } from './status-bar-usage-chips'
 import { useLocalUsageAccountRosters } from './use-local-usage-account-rosters'
+import { useUsageLimitAlerts } from './use-usage-limit-alerts'
 import { isStatusBarItemAvailable } from './status-bar-agent-gating'
 import { getVisibleUsageProvider, isUsageEmptyState } from './status-bar-provider-visibility'
 import {
@@ -45,6 +46,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   const localRosters = useLocalUsageAccountRosters(
     !remoteOwned && usagePreferences.statusBarUsageAccounts === 'all'
   )
+  useUsageLimitAlerts(ownerUsage, localRosters)
   const statusBarItems = useAppStore((s) => s.statusBarItems)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
   // Why: reuse the floating-button's unread dot so activity shows for either trigger location (see FloatingTerminalToggleButton).

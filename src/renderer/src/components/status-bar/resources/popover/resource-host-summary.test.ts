@@ -111,7 +111,12 @@ describe('parseHostMachineTotals', () => {
         swapUsed: 0,
         diskTotal: 500,
         diskUsed: 200,
-        loadAverage: [2, 1.5, 1]
+        loadAverage: [2, 1.5, 1],
+        outsideOrca: [
+          { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 },
+          { name: 'x', kind: 'daemon', cpu: 1, memory: 1, processCount: 1 },
+          { name: 'y', kind: 'command', cpu: -1, memory: 1, processCount: 1 }
+        ]
       })
     ).toEqual({
       cpuPercent: 37.5,
@@ -119,7 +124,10 @@ describe('parseHostMachineTotals', () => {
       memory: { used: 12, total: 16 },
       swap: { used: 0, total: 0 },
       disk: { used: 200, total: 500 },
-      loadAverage: [2, 1.5, 1]
+      loadAverage: [2, 1.5, 1],
+      outsideOrca: [
+        { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 }
+      ]
     })
   })
 
@@ -132,7 +140,8 @@ describe('parseHostMachineTotals', () => {
       memory: { used: 4, total: 16 },
       swap: null,
       disk: null,
-      loadAverage: null
+      loadAverage: null,
+      outsideOrca: null
     })
   })
 
@@ -155,7 +164,8 @@ describe('parseHostMachineTotals', () => {
       memory: null,
       swap: null,
       disk: null,
-      loadAverage: null
+      loadAverage: null,
+      outsideOrca: null
     })
     expect(parseHostMachineTotals('garbage').memory).toBeNull()
   })

@@ -26085,6 +26085,14 @@
       "noSwap": "none",
       "ram": "RAM",
       "disk": "Disk"
+    },
+    "outsideOrca": {
+      "title": "Outside Orca · {{value0}}",
+      "tooltip": "Apps, containers and commands Orca did not start, grouped. CPU is a share of one core, so it can pass 100% on multi-core machines.",
+      "kernel": "Kernel",
+      "processCount": "×{{value0}}",
+      "showLess": "Show less",
+      "showMore": "Show {{count}} more"
     }
   },
   "browserExtensions": {

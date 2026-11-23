@@ -71,6 +71,17 @@ export type HostMemory = {
   diskUsed?: number
   /** 1, 5 and 15 minute load averages; absent on Windows. */
   loadAverage?: number[]
+  /** Top groups by CPU and by memory outside Orca's process trees; absent on Windows and older hosts. */
+  outsideOrca?: OutsideOrcaProcessGroup[]
+}
+
+/** Processes folded by macOS app bundle, Linux container, or command name; cpu is percent of one core. */
+export type OutsideOrcaProcessGroup = {
+  name: string
+  kind: 'app' | 'container' | 'command' | 'kernel'
+  cpu: number
+  memory: number
+  processCount: number
 }
 
 export type MemorySnapshot = {

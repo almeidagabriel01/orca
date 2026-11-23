@@ -5,6 +5,7 @@ import {
   toRuntimeExecutionHostId
 } from '../../../../../shared/execution-host/execution-host'
 import type {
+  OutsideOrcaProcessGroup,
   SessionMemory,
   UsageValues,
   WorktreeMemory
@@ -24,6 +25,8 @@ export type HostMachineTotals = {
   disk: UsedOfTotal | null
   /** 1, 5 and 15 minute averages. */
   loadAverage: [number, number, number] | null
+  /** What runs outside Orca; null when the host does not report it. */
+  outsideOrca: OutsideOrcaProcessGroup[] | null
 }
 
 export type RuntimeHostResourceResult =
@@ -148,8 +151,56 @@ export function parseHostMachineTotals(value: unknown): HostMachineTotals {
     memory: usedOfTotal(host.usedMemory, host.totalMemory),
     swap: usedOfTotal(host.swapUsed, host.swapTotal, true),
     disk: usedOfTotal(host.diskUsed, host.diskTotal),
-    loadAverage: isLoadAverage(load) ? load : null
+    loadAverage: isLoadAverage(load) ? load : null,
+    outsideOrca: parseOutsideOrcaGroups(host.outsideOrca)
   }
+}
+
+const OUTSIDE_ORCA_KINDS: readonly unknown[] = [
+  'app',
+  'container',
+  'command',
+  'kernel'
+] satisfies OutsideOrcaProcessGroup['kind'][]
+
+function isOutsideOrcaKind(value: unknown): value is OutsideOrcaProcessGroup['kind'] {
+  return OUTSIDE_ORCA_KINDS.includes(value)
+}
+const MAX_OUTSIDE_ORCA_GROUPS = 100
+const MAX_OUTSIDE_ORCA_NAME_CHARS = 64
+
+// Why capped: a paired server is another machine; malformed or oversized rows must not reach the UI.
+function parseOutsideOrcaGroups(value: unknown): OutsideOrcaProcessGroup[] | null {
+  if (!Array.isArray(value)) {
+    return null
+  }
+  const groups: OutsideOrcaProcessGroup[] = []
+  for (const row of value.slice(0, MAX_OUTSIDE_ORCA_GROUPS)) {
+    const cpu = isRecord(row) ? finiteNumber(row.cpu) : null
+    const memory = isRecord(row) ? finiteNumber(row.memory) : null
+    const processCount = isRecord(row) ? finiteNumber(row.processCount) : null
+    if (
+      isRecord(row) &&
+      typeof row.name === 'string' &&
+      row.name.length > 0 &&
+      isOutsideOrcaKind(row.kind) &&
+      cpu !== null &&
+      cpu >= 0 &&
+      memory !== null &&
+      memory >= 0 &&
+      processCount !== null &&
+      processCount >= 1
+    ) {
+      groups.push({
+        name: row.name.slice(0, MAX_OUTSIDE_ORCA_NAME_CHARS),
+        kind: row.kind,
+        cpu,
+        memory,
+        processCount: Math.floor(processCount)
+      })
+    }
+  }
+  return groups
 }
 
 function isLoadAverage(load: (number | null)[]): load is [number, number, number] {

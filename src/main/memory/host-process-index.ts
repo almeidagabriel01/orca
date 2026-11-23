@@ -17,14 +17,14 @@ const PS_MAX_BUFFER = 10 * 1024 * 1024
 
 /** One whole-host sweep with per-process memory; spawns ps or PowerShell, so callers bound the rate. */
 export async function enumerateHostProcesses(
-  options: { trackCpu?: boolean; withNames?: boolean } = {}
+  options: { trackCpu?: boolean; withNames?: boolean; withCommands?: boolean } = {}
 ): Promise<ProcIndex> {
   const platform = os.platform()
   const withNames = options.withNames ?? false
   const [rows, footprints] = await Promise.all([
     platform === 'win32'
       ? enumerateWindowsProcessResources({ trackCpu: options.trackCpu ?? true, withNames })
-      : enumerateUnix(withNames ? PS_NAME_COLUMN[platform] : undefined),
+      : enumerateUnix(platform, withNames, options.withCommands ?? false),
     platform === 'darwin' ? readDarwinProcessFootprints() : Promise.resolve(null)
   ])
   return buildProcessIndex(rows, footprints, getProcessMemoryMetric(platform))
@@ -34,12 +34,45 @@ export async function enumerateHostProcesses(
 // the kernel name; Linux has no such column, so readExecutableNames reads /proc/<pid>/exe instead.
 const PS_NAME_COLUMN: Partial<Record<NodeJS.Platform, string>> = { darwin: 'ucomm=' }
 
-async function enumerateUnix(nameColumn: string | undefined): Promise<ProcRow[]> {
+// Shown only as folded group names (app bundle, container, command). The default cgroup width cuts container ids.
+const PS_COMMAND_COLUMNS: Partial<Record<NodeJS.Platform, string>> = {
+  darwin: 'comm=',
+  linux: 'cgroup:512=,comm='
+}
+const PS_BASE_COLUMNS = 'pid=,ppid=,pcpu=,rss='
+let commandColumnsSupported = true
+
+async function enumerateUnix(
+  platform: NodeJS.Platform,
+  withNames: boolean,
+  withCommands: boolean
+): Promise<ProcRow[]> {
+  const commandColumns =
+    withCommands && commandColumnsSupported ? PS_COMMAND_COLUMNS[platform] : undefined
+  if (commandColumns) {
+    const rows = await readPs(`${PS_BASE_COLUMNS},${commandColumns}`, 'command')
+    if (rows) {
+      return rows
+    }
+  }
+  const nameColumn = withNames ? PS_NAME_COLUMN[platform] : undefined
+  const rows = await readPs(
+    nameColumn ? `${PS_BASE_COLUMNS},${nameColumn}` : PS_BASE_COLUMNS,
+    nameColumn ? 'name' : undefined
+  )
+  // Why: BusyBox and old procps lack these columns; a failed extended sweep must not blank Orca's rows.
+  if (rows && commandColumns) {
+    commandColumnsSupported = false
+  }
+  return rows ?? []
+}
+
+async function readPs(columns: string, trailing?: 'name' | 'command'): Promise<ProcRow[] | null> {
   // Force dot decimals: parseFloat silently truncates locale-formatted comma values.
   try {
     const result = await runProcess({
       program: 'ps',
-      args: ['-eo', nameColumn ? `pid=,ppid=,pcpu=,rss=,${nameColumn}` : 'pid=,ppid=,pcpu=,rss='],
+      args: ['-eo', columns],
       maxOutputBytes: PS_MAX_BUFFER,
       timeoutMs: PS_EXEC_TIMEOUT_MS,
       env: { ...process.env, LC_ALL: 'C', LANG: 'C' }
@@ -47,10 +80,10 @@ async function enumerateUnix(nameColumn: string | undefined): Promise<ProcRow[]>
     if (result.timedOut || result.outputTruncated || result.code !== 0) {
       throw new Error(`ps exited ${result.code ?? 'on timeout'}`)
     }
-    return parsePsOutput(result.stdout, nameColumn !== undefined)
+    return parsePsOutput(result.stdout, trailing)
   } catch (err) {
     console.warn('[memory] ps enumeration failed', err)
-    return []
+    return null
   }
 }
 

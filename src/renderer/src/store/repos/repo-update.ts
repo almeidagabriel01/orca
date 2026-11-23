@@ -1,3 +1,4 @@
+import { normalizeProjectAgentLaunchDefaults } from '../../../../shared/agent-launch/choices/project-agent-launch-defaults'
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
 import type { Repo } from '../../../../shared/repository/repo-types'
@@ -19,8 +20,32 @@ import { adoptFromEndpoint } from '../host-catalog/endpoint-catalog-adoption'
 import { getProjectSetupRuntimeTarget } from '../projects/project-host-routing'
 import { mergeProjectCompatibilityForHostRepoChange } from './repo-catalog-identity'
 
+/** `null` drops a field the host clears; `undefined` keeps it. */
+function applyRepoFieldUpdate<K extends OptionalRepoField>(
+  repo: Repo,
+  key: K,
+  value: Repo[K] | null | undefined
+): Repo {
+  const next = { ...repo }
+  if (value === null) {
+    delete next[key]
+  } else if (value !== undefined) {
+    next[key] = value
+  }
+  return next
+}
+
+type OptionalRepoField = {
+  [K in keyof Repo]-?: undefined extends Repo[K] ? K : never
+}[keyof Repo]
+
 export function sanitizeRepoUpdate(updates: RepoUpdate): RepoUpdate {
   const sanitized = { ...updates }
+  if (sanitized.agentLaunchDefaults != null) {
+    sanitized.agentLaunchDefaults = normalizeProjectAgentLaunchDefaults(
+      sanitized.agentLaunchDefaults
+    )
+  }
   if ('defaultJiraProject' in sanitized) {
     const reference = normalizeJiraProjectReference(sanitized.defaultJiraProject)
     if (reference === undefined) {
@@ -151,6 +176,14 @@ export function createRepoUpdateActions(
                     { timeoutMs: 15_000 }
                   )
                 ).repo
+          // A host from before project agent defaults drops the field and still answers with its row.
+          if (
+            sanitizedUpdates.agentLaunchDefaults !== undefined &&
+            JSON.stringify(updatedRepo?.agentLaunchDefaults ?? null) !==
+              JSON.stringify(sanitizedUpdates.agentLaunchDefaults)
+          ) {
+            return false
+          }
           if (
             sanitizedUpdates.projectGroupOrder !== undefined &&
             (!updatedRepo ||
@@ -201,6 +234,7 @@ export function createRepoUpdateActions(
               let mergedRepo: Repo = r
               const {
                 projectGroupOrder: _projectGroupOrder,
+                agentLaunchDefaults,
                 sourceControlAi,
                 externalWorktreeDiscoverySuppressedAt,
                 hiddenAt,
@@ -212,13 +246,12 @@ export function createRepoUpdateActions(
                 ...updatesWithoutClearSentinels
               } = sanitizedUpdates
               mergedRepo = { ...mergedRepo, ...updatesWithoutClearSentinels }
-              if (sourceControlAi === null) {
-                const { sourceControlAi: _sourceControlAi, ...repoWithoutSourceControlAi } =
-                  mergedRepo
-                mergedRepo = repoWithoutSourceControlAi
-              } else if (sourceControlAi !== undefined) {
-                mergedRepo = { ...mergedRepo, sourceControlAi }
-              }
+              mergedRepo = applyRepoFieldUpdate(
+                mergedRepo,
+                'agentLaunchDefaults',
+                agentLaunchDefaults
+              )
+              mergedRepo = applyRepoFieldUpdate(mergedRepo, 'sourceControlAi', sourceControlAi)
               if (externalWorktreeVisibility === null) {
                 const { externalWorktreeVisibility: _visibility, ...repoWithoutVisibility } =
                   mergedRepo
@@ -226,47 +259,24 @@ export function createRepoUpdateActions(
               } else if (externalWorktreeVisibility !== undefined) {
                 mergedRepo = { ...mergedRepo, externalWorktreeVisibility }
               }
-              if (agentWorktreeVisibility === null) {
-                const { agentWorktreeVisibility: _agentVisibility, ...repoWithoutAgentVisibility } =
-                  mergedRepo
-                mergedRepo = repoWithoutAgentVisibility
-              } else if (agentWorktreeVisibility !== undefined) {
-                mergedRepo = { ...mergedRepo, agentWorktreeVisibility }
-              }
-              if (externalWorktreeDiscoverySuppressedAt === null) {
-                const {
-                  externalWorktreeDiscoverySuppressedAt: _suppressedAt,
-                  ...repoWithoutSuppression
-                } = mergedRepo
-                mergedRepo = repoWithoutSuppression
-              } else if (externalWorktreeDiscoverySuppressedAt !== undefined) {
-                mergedRepo = { ...mergedRepo, externalWorktreeDiscoverySuppressedAt }
-              }
-              if (hiddenAt === null) {
-                const { hiddenAt: _hiddenAt, ...repoWithoutHiddenAt } = mergedRepo
-                mergedRepo = repoWithoutHiddenAt
-              } else if (hiddenAt !== undefined) {
-                mergedRepo = { ...mergedRepo, hiddenAt }
-              }
-              if (ghAccount === null) {
-                const { ghAccount: _ghAccount, ...repoWithoutGhAccount } = mergedRepo
-                mergedRepo = repoWithoutGhAccount
-              } else if (ghAccount !== undefined) {
-                mergedRepo = { ...mergedRepo, ghAccount }
-              }
-              if (workspaceCleanupPolicy === null) {
-                const { workspaceCleanupPolicy: _policy, ...repoWithoutCleanupPolicy } = mergedRepo
-                mergedRepo = repoWithoutCleanupPolicy
-              } else if (workspaceCleanupPolicy !== undefined) {
-                mergedRepo = { ...mergedRepo, workspaceCleanupPolicy }
-              }
-              if (browserProfileId === null) {
-                const { browserProfileId: _browserProfileId, ...repoWithoutBrowserProfile } =
-                  mergedRepo
-                mergedRepo = repoWithoutBrowserProfile
-              } else if (browserProfileId !== undefined) {
-                mergedRepo = { ...mergedRepo, browserProfileId }
-              }
+              mergedRepo = applyRepoFieldUpdate(
+                mergedRepo,
+                'agentWorktreeVisibility',
+                agentWorktreeVisibility
+              )
+              mergedRepo = applyRepoFieldUpdate(
+                mergedRepo,
+                'externalWorktreeDiscoverySuppressedAt',
+                externalWorktreeDiscoverySuppressedAt
+              )
+              mergedRepo = applyRepoFieldUpdate(mergedRepo, 'hiddenAt', hiddenAt)
+              mergedRepo = applyRepoFieldUpdate(mergedRepo, 'ghAccount', ghAccount)
+              mergedRepo = applyRepoFieldUpdate(
+                mergedRepo,
+                'workspaceCleanupPolicy',
+                workspaceCleanupPolicy
+              )
+              mergedRepo = applyRepoFieldUpdate(mergedRepo, 'browserProfileId', browserProfileId)
               return s.githubSourceCollections?.adopt(mergedRepo) ?? mergedRepo
             })
             return {

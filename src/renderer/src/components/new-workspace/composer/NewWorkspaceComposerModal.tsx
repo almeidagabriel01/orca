@@ -1,4 +1,6 @@
 import type { ComposerModalData } from './composer-modal-data'
+import { findLaunchProjectRepo } from '@/runtime/agent-launch-settings/use-host-agent-launch-preferences'
+import { LOCAL_EXECUTION_HOST_ID } from '../../../../../shared/execution-host/execution-host'
 import { toast } from 'sonner'
 import {
   formatWorkspaceCreateError,
@@ -182,8 +184,16 @@ function QuickTabBody({
   // The rows' host list governs picks; until a paired server states it, preselect by this client's list.
   const disabledTuiAgents = observation.preferences.disabledTuiAgents
   // Pending discovery preserves the existing catalog fallback; current facts settle the default.
+  const projectDefaultAgent = useAppStore(
+    (s) =>
+      findLaunchProjectRepo(
+        s,
+        launchWorkspace,
+        launchWorkspace.executionHostId ?? LOCAL_EXECUTION_HOST_ID
+      )?.agentLaunchDefaults?.defaultTuiAgent
+  )
   const preferredQuickAgent = pickQuickWorkspaceAgent(
-    settings?.defaultTuiAgent,
+    projectDefaultAgent ?? settings?.defaultTuiAgent,
     cardProps.detectedAgentIds,
     observation.preferencesInherited ? settings?.disabledTuiAgents : disabledTuiAgents,
     offeredAgentIds,

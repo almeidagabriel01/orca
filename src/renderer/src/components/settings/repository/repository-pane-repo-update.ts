@@ -9,7 +9,9 @@ export type RepositoryPaneRepoUpdate = Omit<
   | 'ghAccount'
   | 'workspaceCleanupPolicy'
   | 'browserProfileId'
+  | 'agentLaunchDefaults'
 > & {
+  agentLaunchDefaults?: Repo['agentLaunchDefaults'] | null
   sourceControlAi?: Repo['sourceControlAi'] | null
   externalWorktreeVisibility?: Repo['externalWorktreeVisibility'] | null
   ghAccount?: GhAccountBinding | null

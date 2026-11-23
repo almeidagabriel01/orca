@@ -117,7 +117,7 @@ export function useAgentMenuObservation(
   const terminalPending = useAppStateValueWithHostStatuses(terminalPendingSelector)
   const input = buildRouteInputForStatuses(state, hostStatuses, { agent: 'claude', workspace })
   const hostPreferences = useHostAgentMenuSettings(
-    unresolvedTarget ? null : facts,
+    unresolvedTarget ? null : { ...facts, workspace },
     desktopSettings,
     viewActive && (open || shown),
     viewActive && open

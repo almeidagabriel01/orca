@@ -67,6 +67,16 @@ export abstract class StructuredSessionWorkspaceScope extends OrcaRuntimeWithStr
     return (await this.openAgentSessionRecordStore()).listWorkspaceSessions(location)
   }
 
+  /** The owning repo row carries this project's agent launch defaults. */
+  protected async resolveStructuredAgentSessionRepo(worktreeSelector: string | undefined) {
+    if (!worktreeSelector) {
+      return null
+    }
+    const target = await this.resolveRuntimeFileTarget(worktreeSelector)
+    const routing = resolveWorktreeHostRouting(this.store?.getRepos() ?? [], target.worktree)
+    return routing.kind === 'resolved' ? routing.repo : null
+  }
+
   protected async resolveStructuredAgentSessionLocation(worktreeSelector: string) {
     const target = await this.resolveRuntimeFileTarget(worktreeSelector)
     return this.structuredAgentSessionLocationForTarget(target)

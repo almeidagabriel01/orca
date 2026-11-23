@@ -1,3 +1,4 @@
+import { normalizeProjectAgentLaunchDefaults } from '../../../shared/agent-launch/choices/project-agent-launch-defaults'
 import type { PersistedState } from '../../../shared/orca-profiles/persisted-state-types'
 import type { Repo } from '../../../shared/repository/repo-types'
 import {
@@ -122,6 +123,7 @@ export class RepoUpdatePersistenceOperations {
       projectGroupOrder?: number | null
       externalWorktreeVisibility?: Repo['externalWorktreeVisibility'] | null
       agentWorktreeVisibility?: Repo['agentWorktreeVisibility'] | null
+      agentLaunchDefaults?: Repo['agentLaunchDefaults'] | null
       sourceControlAi?: Repo['sourceControlAi'] | null
       workspaceCleanupPolicy?: Repo['workspaceCleanupPolicy'] | null
       externalWorktreeDiscoverySuppressedAt?: Repo['externalWorktreeDiscoverySuppressedAt'] | null
@@ -248,6 +250,19 @@ export class RepoUpdatePersistenceOperations {
     ) {
       delete repo.hiddenAt
       delete sanitizedUpdates.hiddenAt
+    }
+    if ('agentLaunchDefaults' in sanitizedUpdates) {
+      if (sanitizedUpdates.agentLaunchDefaults == null) {
+        delete repo.agentLaunchDefaults
+        delete sanitizedUpdates.agentLaunchDefaults
+      } else {
+        const defaults = normalizeProjectAgentLaunchDefaults(sanitizedUpdates.agentLaunchDefaults)
+        if (defaults) {
+          sanitizedUpdates.agentLaunchDefaults = defaults
+        } else {
+          delete sanitizedUpdates.agentLaunchDefaults
+        }
+      }
     }
     if (
       'sourceControlAi' in sanitizedUpdates &&

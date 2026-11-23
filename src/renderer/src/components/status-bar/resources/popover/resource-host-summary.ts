@@ -7,6 +7,8 @@ import type {
 import type { PtyListedSession } from '../../../../../../shared/terminal/pty/lifecycle/pty-listed-session'
 import {
   getRuntimeHostResourceNotice,
+  parseHostMachineTotals,
+  type HostMachineTotals,
   type RuntimeHostResourceResult
 } from '../../host-connections/runtime-host-resources'
 import { isAgentSessionSample, type PaneActivityReader } from './resource-owner-split'
@@ -20,6 +22,8 @@ export type ResourceHostSummary = {
   isLocal: boolean
   /** Orca's own processes on that host; null when the host does not report them. */
   orca: UsageValues | null
+  /** The whole machine; null when the host could not be sampled. */
+  machine: HostMachineTotals | null
   /** Null when the host could not be sampled; notice says why. */
   counts: ResourceHostCounts | null
   notice: string | null
@@ -56,7 +60,11 @@ export function buildResourceHostSummaries(
     runtimeHostLabel,
     panes
   }: {
-    localSnapshot: { app: UsageValues; worktrees: readonly WorktreeMemory[] } | null
+    localSnapshot: {
+      app: UsageValues
+      worktrees: readonly WorktreeMemory[]
+      host: unknown
+    } | null
     localDaemonSessions: readonly DaemonSessionFacts[]
     runtimeResults: Readonly<Record<string, RuntimeHostResourceResult>>
     runtimeHostLabel: (environmentId: string) => string
@@ -71,6 +79,7 @@ export function buildResourceHostSummaries(
       label: t('resourceManager.hosts.local', 'This computer'),
       isLocal: true,
       orca: { cpu: localSnapshot.app.cpu, memory: localSnapshot.app.memory },
+      machine: parseHostMachineTotals(localSnapshot.host),
       counts: countHostSessions(
         localSnapshot.worktrees,
         new Map(localDaemonSessions.map((session) => [session.id, session])),
@@ -88,6 +97,7 @@ export function buildResourceHostSummaries(
       label,
       isLocal: false,
       orca: result.status === 'sampled' ? result.app : null,
+      machine: result.status === 'sampled' ? result.machine : null,
       // Why: paired-server sessions have no local daemon row; mirrored pane statuses classify them.
       counts:
         result.status === 'sampled' ? countHostSessions(result.worktrees, new Map(), panes) : null,

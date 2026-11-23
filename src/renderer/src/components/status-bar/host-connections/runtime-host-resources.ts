@@ -11,9 +11,29 @@ import type {
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
 
+export type UsedOfTotal = { used: number; total: number }
+
+/** Whole-machine numbers; each is null when the host does not report it. */
+export type HostMachineTotals = {
+  /** Busy share of all cores, 0-100. */
+  cpuPercent: number | null
+  cpuCores: number | null
+  memory: UsedOfTotal | null
+  /** total 0 means the host has no swap. */
+  swap: UsedOfTotal | null
+  disk: UsedOfTotal | null
+  /** 1, 5 and 15 minute averages. */
+  loadAverage: [number, number, number] | null
+}
+
 export type RuntimeHostResourceResult =
   // app is null for servers that predate reporting it: unknown, not idle.
-  | { status: 'sampled'; worktrees: WorktreeMemory[]; app: UsageValues | null }
+  | {
+      status: 'sampled'
+      worktrees: WorktreeMemory[]
+      app: UsageValues | null
+      machine: HostMachineTotals
+    }
   // An unanswered server is unverifiable, not idle.
   | { status: 'unreachable' }
   | { status: 'update-required' }
@@ -42,7 +62,12 @@ export async function readRuntimeHostResources(
     const snapshot = await call(environmentId)
     const worktrees = parseSnapshotWorktrees(snapshot)
     return worktrees
-      ? { status: 'sampled', worktrees, app: parseAppUsage(snapshot) }
+      ? {
+          status: 'sampled',
+          worktrees,
+          app: parseAppUsage(snapshot),
+          machine: parseHostMachineTotals(isRecord(snapshot) ? snapshot.host : null)
+        }
       : { status: 'update-required' }
   } catch (error) {
     return hasErrorCode(error, 'method_not_found')
@@ -100,6 +125,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function finiteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function usedOfTotal(used: unknown, total: unknown, allowEmpty = false): UsedOfTotal | null {
+  const u = finiteNumber(used)
+  const t = finiteNumber(total)
+  if (u === null || t === null || u < 0 || u > t || (allowEmpty ? t < 0 : t <= 0)) {
+    return null
+  }
+  return { used: u, total: t }
+}
+
+// Why per field: servers older than a field omit it, and that field alone must read as unknown.
+export function parseHostMachineTotals(value: unknown): HostMachineTotals {
+  const host = isRecord(value) ? value : {}
+  const cpuPercent = finiteNumber(host.cpuUsagePercent)
+  const cpuCores = finiteNumber(host.cpuCoreCount)
+  const load = Array.isArray(host.loadAverage) ? host.loadAverage.map(finiteNumber) : []
+  return {
+    cpuPercent: cpuPercent !== null && cpuPercent >= 0 && cpuPercent <= 100 ? cpuPercent : null,
+    cpuCores: cpuCores !== null && Number.isInteger(cpuCores) && cpuCores > 0 ? cpuCores : null,
+    memory: usedOfTotal(host.usedMemory, host.totalMemory),
+    swap: usedOfTotal(host.swapUsed, host.swapTotal, true),
+    disk: usedOfTotal(host.diskUsed, host.diskTotal),
+    loadAverage: isLoadAverage(load) ? load : null
+  }
+}
+
+function isLoadAverage(load: (number | null)[]): load is [number, number, number] {
+  return load.length === 3 && load.every((n) => n !== null && n >= 0)
 }
 
 // Why main must be sampled: older headless servers report only their terminal daemon, an undercount.

@@ -4,6 +4,8 @@ import { renderResourceHostsSummary } from './resource-usage-hosts-summary'
 import { ResourceUsageStatusSegment } from '../ResourceUsageStatusSegment'
 import type { MemorySnapshot } from '../../../../../../shared/diagnostics/process-stats-types'
 
+const GIB = 1024 ** 3
+
 const fixtureOwnerSplit = {
   orca: { memory: 987842478 },
   agents: { memory: 6023725056 },
@@ -116,6 +118,14 @@ export const hostsSummary = defineFixture({
         label: 'This computer',
         isLocal: true,
         orca: { cpu: 18.4, memory: 1288490188 },
+        machine: {
+          cpuPercent: 23.4,
+          cpuCores: 8,
+          memory: { used: 12.1 * GIB, total: 16 * GIB },
+          swap: { used: 1.2 * GIB, total: 4 * GIB },
+          disk: { used: 210 * GIB, total: 460 * GIB },
+          loadAverage: [2.41, 1.97, 1.62]
+        },
         counts: { terminals: 5, agents: 2, commands: 1 },
         notice: null
       },
@@ -124,6 +134,15 @@ export const hostsSummary = defineFixture({
         label: 'build-box',
         isLocal: false,
         orca: { cpu: 3.1, memory: 412316860 },
+        // Older server: RAM, cores and nothing else.
+        machine: {
+          cpuPercent: null,
+          cpuCores: 4,
+          memory: { used: 2.6 * GIB, total: 7.8 * GIB },
+          swap: null,
+          disk: null,
+          loadAverage: null
+        },
         counts: { terminals: 3, agents: 1, commands: 0 },
         notice: null
       },
@@ -132,6 +151,7 @@ export const hostsSummary = defineFixture({
         label: 'old-server',
         isLocal: false,
         orca: null,
+        machine: null,
         counts: null,
         notice: 'Update old-server to see its resources.'
       }

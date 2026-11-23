@@ -2928,6 +2928,8 @@
       "agents_other": "{{count}} agents",
       "commands_one": "{{count}} command",
       "commands_other": "{{count}} commands",
+      "cores_one": "{{count}} core",
+      "cores_other": "{{count}} cores",
       "terminals_one": "{{count}} terminal",
       "terminals_other": "{{count}} terminals"
     },

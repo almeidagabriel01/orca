@@ -1,4 +1,5 @@
 import { branchRefLabels } from '../../shared/git/refs/branch-ref-label'
+import { normalizeProjectAgentLaunchDefaults } from '../../shared/agent-launch/choices/project-agent-launch-defaults'
 import type {
   RuntimeRepoList,
   RuntimeRepoSearchRefs
@@ -16,13 +17,36 @@ export function formatRepoList(result: RuntimeRepoList): string {
     .join('\n')
 }
 
+/** Unset fields follow the host's own agent defaults. */
+function formatAgentLaunchDefaults(value: unknown): string {
+  const defaults = normalizeProjectAgentLaunchDefaults(value)
+  const agents = new Map<string, string[]>()
+  for (const [agent, choice] of Object.entries(defaults?.agentLaunchChoices ?? {})) {
+    agents.set(agent, [
+      ...(choice.model ? [`model=${choice.model}`] : []),
+      ...Object.entries(choice.options ?? {}).map(([key, option]) => `${key}=${option}`)
+    ])
+  }
+  for (const [agent, account] of Object.entries(defaults?.agentAccounts ?? {})) {
+    agents.set(agent, [...(agents.get(agent) ?? []), `account=${account}`])
+  }
+  return [
+    'agentDefaults:',
+    `  agent: ${defaults?.defaultTuiAgent ?? 'inherit'}`,
+    ...[...agents].map(([agent, parts]) => `  ${agent}: ${parts.join(' ')}`)
+  ].join('\n')
+}
+
 export function formatRepoShow(result: { repo: Record<string, unknown> }): string {
-  return Object.entries(result.repo)
-    .map(
-      ([key, value]) =>
-        `${key}: ${typeof value === 'object' ? JSON.stringify(value) : String(value)}`
-    )
-    .join('\n')
+  return [
+    ...Object.entries(result.repo)
+      .filter(([key]) => key !== 'agentLaunchDefaults')
+      .map(
+        ([key, value]) =>
+          `${key}: ${typeof value === 'object' ? JSON.stringify(value) : String(value)}`
+      ),
+    formatAgentLaunchDefaults(result.repo.agentLaunchDefaults)
+  ].join('\n')
 }
 
 export function formatRepoRefs(result: RuntimeRepoSearchRefs): string {

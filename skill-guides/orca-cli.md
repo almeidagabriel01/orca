@@ -141,6 +141,7 @@ ORCA repo show --repo id:<repoId> --json
 ORCA repo add --path /abs/repo --json
 ORCA repo add --path /abs/folder --kind folder --json
 ORCA repo set --repo id:<repoId> --external-worktree-visibility show --json
+ORCA repo set --repo id:<repoId> --default-agent claude --default-model claude=opus --default-effort claude=high --default-account system --json
 ORCA repo hide --repo id:<repoId> --json
 ORCA repo unhide --repo id:<repoId> --json
 ORCA repo set-base-ref --repo id:<repoId> --ref origin/main --json
@@ -172,6 +173,7 @@ Use `repo set --external-worktree-visibility show` to show a repo's non-Orca wor
 `hide` hides them; `inherit` clears the repo override and follows the global default.
 Per-worktree visibility rules still apply.
 Use `repo set --browser-profile <id>` (ids from `tab profile list`, `default` for Default) so new browser tabs in that repo open on that profile; `inherit` clears it.
+Use `repo set --default-agent <agent>|blank`, `--default-model <agent>=<model>`, `--default-effort <agent>=<level>` (both repeatable) and `--default-account <id|email|label>|system` (the Claude account) to set the project's agent defaults on the host that owns the repo (with `--environment`, that paired server). `inherit` clears a field (`<agent>=inherit` for one agent's model or effort; `host` also clears the account). `repo show` reports them as `agentLaunchDefaults`, null when everything follows the host.
 
 Selectors:
 

@@ -1,56 +1,54 @@
+import { useState } from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
+import {
+  fixtureAccountUsage,
+  fixtureProviderAccounts
+} from '../../../../component-fixtures/fixture-provider-accounts'
 import { NativeChatAgentSwitchMenuView } from './NativeChatAgentSwitchMenu'
-import type { ProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
 import type {
   NativeChatAccountControl,
   NativeChatAgentSwitch
 } from '../../session/options/structured/use-structured-chat-account'
 
-function Menu({ agent, busy }: { agent: string; busy: boolean }): React.JSX.Element {
+type MenuState = {
+  /** The host's roster and readings haven't loaded. */
+  loading?: boolean
+  agent: string
+  busy?: boolean
+  choice?: string
+  /** Minutes until Orca's automatic continue, when one is scheduled. */
+  autoIn?: number
+}
+
+function Menu({
+  loading = false,
+  agent,
+  busy = false,
+  choice,
+  autoIn
+}: MenuState): React.JSX.Element {
+  const [now] = useState(Date.now)
   const agentSwitch: NativeChatAgentSwitch = {
     agent,
     agents: ['claude', 'codex'],
     busy,
     switchTo: async () => {}
   }
-  const control: NativeChatAccountControl = {
-    target: { kind: 'local' },
-    choice: undefined,
-    agentSwitch
-  }
+  const control: NativeChatAccountControl = { target: { kind: 'local' }, choice, agentSwitch }
   return (
-    <div className="native-chat-appearance flex h-96 items-end bg-background p-4 text-chat-foreground">
+    <div className="native-chat-appearance flex h-104 items-end bg-background p-4 text-chat-foreground">
       <NativeChatAgentSwitchMenuView
         control={control}
         agentSwitch={agentSwitch}
         variant="pill"
-        accounts={accounts}
+        accounts={loading ? null : fixtureProviderAccounts}
+        usage={loading ? null : fixtureAccountUsage(now)}
+        autoContinueAt={autoIn === undefined ? null : now + autoIn * 60_000}
       />
     </div>
   )
-}
-
-const stamp = { createdAt: 0, updatedAt: 0, lastAuthenticatedAt: 0 }
-const accounts: ProviderAccountsSnapshot = {
-  claude: {
-    accounts: [
-      { id: 'work', email: 'work@example.com', authMethod: 'subscription-oauth', ...stamp },
-      {
-        id: 'personal',
-        email: 'personal@example.com',
-        displayName: 'Personal',
-        authMethod: 'subscription-oauth',
-        ...stamp
-      }
-    ],
-    activeAccountId: 'work',
-    systemDefaultEmail: 'me@example.com'
-  },
-  codex: {
-    accounts: [{ id: 'codex-main', email: 'dev@example.com', ...stamp }],
-    activeAccountId: 'codex-main'
-  },
-  rateLimits: null
 }
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
@@ -62,15 +60,34 @@ const openMenu = async (frame: HTMLElement): Promise<void> => {
   await wait(50)
 }
 
+/** Follows the host (Work): the rule is marked and Work says it is in use. */
 export const idle = defineFixture({
   width: 420,
-  render: () => <Menu agent="claude" busy={false} />,
+  render: () => <Menu agent="claude" />,
+  interact: openMenu
+})
+
+export const pinnedPersonal = defineFixture({
+  width: 420,
+  render: () => <Menu agent="claude" choice="personal" />,
+  interact: openMenu
+})
+
+export const accountsLoading = defineFixture({
+  width: 420,
+  render: () => <Menu loading agent="claude" />,
   interact: openMenu
 })
 
 export const codexCurrent = defineFixture({
   width: 420,
-  render: () => <Menu agent="codex" busy={false} />,
+  render: () => <Menu agent="codex" />,
+  interact: openMenu
+})
+
+export const autoContinueScheduled = defineFixture({
+  width: 420,
+  render: () => <Menu agent="claude" choice="work" autoIn={134.5} />,
   interact: openMenu
 })
 
@@ -85,8 +102,26 @@ export const busyConfirm = defineFixture({
   render: () => <Menu agent="claude" busy />,
   interact: async (frame) => {
     await openMenu(frame)
-    const rows = document.querySelectorAll<HTMLElement>('[role="menuitemradio"]')
-    ;[...rows].at(-1)?.click()
+    const rows = document.querySelectorAll<HTMLElement>(
+      '[role="menuitemradio"][aria-checked="false"]:not([data-disabled])'
+    )
+    ;[...rows].find((row) => row.textContent?.includes('Personal'))?.click()
     await wait(50)
+  }
+})
+
+// Rendered in pt-BR, so its times read on a 24-hour clock.
+export const autoContinueScheduledPtBr = defineFixture({
+  width: 420,
+  setup: () => {
+    useAppStore.setState((app) => ({
+      settings: app.settings && { ...app.settings, uiLanguage: 'pt' }
+    }))
+  },
+  render: () => <Menu agent="claude" choice="work" autoIn={134.5} />,
+  interact: async (frame) => {
+    await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+    await wait(50)
+    await openMenu(frame)
   }
 })

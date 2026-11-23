@@ -25,17 +25,20 @@ describe('chat tab agent switch', () => {
       worktreeId: 'w',
       tabs: [chat('tab-a', 's-a', 'claude'), chat('tab-b', 's-b', 'claude')],
       groups: [{ id: 'g', tabOrder: ['tab-a', 'tab-b'] }]
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a fixture with only the fields these commands read
     } as WorkspaceLayout
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a fixture with only the fields these commands read
     const model = { workspaces: { w: workspace } } as unknown as WorkspaceLayoutModel
     const switched = { open: { sessionId: 's-a', agent: 'codex', tabId: 'tab-a' } }
     const command = chatTabLayoutCommand(workspace, 'g', 'w', switched)
+    if (command?.type !== 'openAgentSessionTab') {
+      throw new Error(`expected an open, got ${command?.type}`)
+    }
     const result = openAgentSessionTab(
       model,
-      command as never,
-      {
-        mintId: () => 'minted',
-        now: () => 2
-      } as unknown as LayoutContext
+      command,
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a fixture with only the fields these commands read
+      { mintId: () => 'minted', now: () => 2 } as unknown as LayoutContext
     )
 
     expect(result.ok && result.model.workspaces.w).toEqual({

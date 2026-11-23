@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
 import { toast } from 'sonner'
 import {
   AGENT_CHAT_ACCOUNT_OPTION_ID,
@@ -119,6 +119,19 @@ export function useStructuredChatAccount(args: {
   // A created chat that never ran still picks its account through the option, as before.
   const switchFence =
     switchCapability === 'supported' && args.sessionNeverStarted !== true ? fence : null
+  useLayoutEffect(() => {
+    // Read at a stopped turn's end, so it switches on the fence the chat has by then.
+    switchNow.current = async (next) => {
+      if (switchFence === null) {
+        return
+      }
+      const outcome = await switchStructuredAgentSessionAgent(target, sessionId, switchFence, next)
+      if (outcome.kind === 'failed') {
+        toast.error(outcome.text)
+      }
+      reread()
+    }
+  })
   if (!ownsAccount && switchFence === null) {
     return undefined
   }
@@ -142,16 +155,6 @@ export function useStructuredChatAccount(args: {
           ? agentSessionWriteFailureText(failure, 'option')
           : t('components.native-chat.account.changeFailed', "Couldn't change the account.")
       )
-    }
-    reread()
-  }
-  switchNow.current = async (next) => {
-    if (switchFence === null) {
-      return
-    }
-    const outcome = await switchStructuredAgentSessionAgent(target, sessionId, switchFence, next)
-    if (outcome.kind === 'failed') {
-      toast.error(outcome.text)
     }
     reread()
   }

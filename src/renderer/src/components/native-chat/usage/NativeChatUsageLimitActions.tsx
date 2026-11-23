@@ -31,8 +31,9 @@ import { NativeChatAgentSwitchMenu } from '@/components/native-chat/composer/con
 
 export type UsageLimitActions = {
   account: ReactNode
-  /** "Switch account or provider now": continues this chat elsewhere; the host sends the continue. */
-  agentSwitch?: ReactNode
+  /** "Switch account or agent": continues this chat elsewhere; the host sends the continue.
+   *  `prominent` when it is the row's main action. */
+  agentSwitch?: (prominent: boolean) => ReactNode
   handOff?: () => void
   disabled: boolean
   /** Hand off is gathering the chat's context. */
@@ -202,16 +203,22 @@ export function NativeChatUsageLimitActionsProvider({
     messages,
     view.onUsageLimitHandOffStarted
   ])
-  let agentSwitch: ReactNode = null
-  if (chatAccount?.agentSwitch && active && pane.isVisible) {
-    agentSwitch = (
-      <NativeChatAgentSwitchMenu
-        control={chatAccount}
-        agentSwitch={chatAccount.agentSwitch}
-        variant="icon"
-      />
-    )
-  }
+  const switchControl = active && pane.isVisible ? chatAccount : undefined
+  const switchMove = switchControl?.agentSwitch
+  const agentSwitch = useMemo(
+    () =>
+      switchControl && switchMove
+        ? (prominent: boolean) => (
+            <NativeChatAgentSwitchMenu
+              control={switchControl}
+              agentSwitch={switchMove}
+              variant="button"
+              prominent={prominent}
+            />
+          )
+        : null,
+    [switchControl, switchMove]
+  )
   const actions = useMemo<UsageLimitActions>(
     () => ({
       account,

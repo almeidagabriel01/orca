@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { isRecord } from '../../agent-status/child-work/agent-status-child-work-value-guards'
 import {
   isAgentChatAccountChoice,
   isAgentChatAccountPick
@@ -85,10 +86,10 @@ const isText = (value: unknown, max: number): value is string =>
 export function isAgentSessionAgentSwitchTarget(
   value: unknown
 ): value is AgentSessionAgentSwitchTarget {
-  if (typeof value !== 'object' || value === null) {
+  if (!isRecord(value)) {
     return false
   }
-  const target = value as Record<string, unknown>
+  const target = value
   return (
     typeof target.agent === 'string' &&
     AGENT.test(target.agent) &&
@@ -99,11 +100,11 @@ export function isAgentSessionAgentSwitchTarget(
 export function isAgentSessionAgentSwitchMark(
   value: unknown
 ): value is AgentSessionAgentSwitchMark {
-  if (typeof value !== 'object' || value === null) {
+  if (!isRecord(value)) {
     return false
   }
-  const mark = value as Record<string, unknown>
-  const handoff = mark.handoff as Record<string, unknown> | undefined
+  const mark = value
+  const handoff = mark.handoff
   return (
     (mark.kind === 'account' || mark.kind === 'agent') &&
     isText(mark.fromAgent, 64) &&
@@ -111,8 +112,7 @@ export function isAgentSessionAgentSwitchMark(
     (mark.fromAccountLabel === undefined || isText(mark.fromAccountLabel, MAX_LABEL)) &&
     (mark.toAccountLabel === undefined || isText(mark.toAccountLabel, MAX_LABEL)) &&
     (handoff === undefined ||
-      (typeof handoff === 'object' &&
-        handoff !== null &&
+      (isRecord(handoff) &&
         typeof handoff.excerpt === 'string' &&
         handoff.excerpt.length <= MAX_AGENT_SESSION_AGENT_SWITCH_EXCERPT_CHARS &&
         (handoff.transcriptPath === undefined || isText(handoff.transcriptPath, MAX_PATH))))
@@ -122,10 +122,10 @@ export function isAgentSessionAgentSwitchMark(
 export function isAgentSessionProviderSegment(
   value: unknown
 ): value is AgentSessionProviderSegment {
-  if (typeof value !== 'object' || value === null) {
+  if (!isRecord(value)) {
     return false
   }
-  const segment = value as Record<string, unknown>
+  const segment = value
   return (
     isText(segment.provider, 64) &&
     (segment.accountChoice === undefined || isText(segment.accountChoice, 512)) &&
@@ -139,10 +139,10 @@ export function isAgentSessionProviderSegment(
 export function isAgentSessionRetiredConversations(
   value: unknown
 ): value is AgentSessionRetiredConversations {
-  if (typeof value !== 'object' || value === null) {
+  if (!isRecord(value)) {
     return false
   }
-  const retired = value as Record<string, unknown>
+  const retired = value
   const ids = retired.providerSessionIds
   return (
     isText(retired.provider, 64) &&
@@ -163,10 +163,10 @@ export function withAgentSessionProviderSegment(
 }
 
 export function isAgentSessionPendingHandoff(value: unknown): value is AgentSessionPendingHandoff {
-  if (typeof value !== 'object' || value === null) {
+  if (!isRecord(value)) {
     return false
   }
-  const pending = value as Record<string, unknown>
+  const pending = value
   return isText(pending.operationId, 512) && isText(pending.promptPath, MAX_PATH)
 }
 

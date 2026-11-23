@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { defineFixture } from '../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
 import type { NativeChatTextBlock } from '../../../../../shared/native-chat/native-chat-types'
 import type { AgentSessionUsageLimitWindow } from '../../../../../shared/agent-session/failures/agent-session-usage-limit'
 import { ProviderAccountChatButton } from '@/components/status-bar/accounts/ProviderAccountChatButton'
@@ -10,6 +12,10 @@ import {
 } from '../messages/notices/native-chat-orca-stop-context'
 import { NativeChatNoticeRow } from '../messages/notices/NativeChatNoticeRow'
 import { NativeChatAgentSwitchMenuView } from '../composer/controls/NativeChatAgentSwitchMenu'
+import {
+  fixtureAccountUsage,
+  fixtureProviderAccounts
+} from '../../../component-fixtures/fixture-provider-accounts'
 import { UsageLimitActionsContext, type UsageLimitActions } from './NativeChatUsageLimitActions'
 import type { NativeChatUsageLimitAutoContinueState } from './native-chat-usage-limit-auto-continue-setting'
 
@@ -119,9 +125,20 @@ function UsageLimitPanes({
       disabled: state.handOff === 'preparing' || state.account === 'loading',
       preparing: state.handOff === 'preparing',
       ...(state.handOff === 'none' ? {} : { handOff: () => {} }),
-      ...(state.agentSwitch ? { agentSwitch: <SwitchNow agent={state.agent} /> } : {})
+      ...(state.agentSwitch
+        ? {
+            agentSwitch: (prominent: boolean) => (
+              <SwitchNow
+                agent={state.agent}
+                prominent={prominent}
+                now={now}
+                autoContinueAt={view.usageLimitAutoContinue}
+              />
+            )
+          }
+        : {})
     }),
-    [state]
+    [state, now, view.usageLimitAutoContinue]
   )
   return (
     <NativeChatOrcaStopContext.Provider value={view}>
@@ -143,7 +160,17 @@ function UsageLimitPanes({
   )
 }
 
-function SwitchNow({ agent }: { agent: State['agent'] }): React.JSX.Element {
+function SwitchNow({
+  agent,
+  prominent,
+  now,
+  autoContinueAt
+}: {
+  agent: State['agent']
+  prominent: boolean
+  now: number
+  autoContinueAt: NativeChatOrcaStopView['usageLimitAutoContinue']
+}): React.JSX.Element {
   const agentSwitch = {
     agent: agent === 'Claude' ? 'claude' : 'codex',
     agents: ['claude', 'codex'],
@@ -154,8 +181,11 @@ function SwitchNow({ agent }: { agent: State['agent'] }): React.JSX.Element {
     <NativeChatAgentSwitchMenuView
       control={{ target: { kind: 'local' }, choice: undefined, agentSwitch }}
       agentSwitch={agentSwitch}
-      variant="icon"
-      accounts={null}
+      variant="button"
+      prominent={prominent}
+      accounts={fixtureProviderAccounts}
+      usage={fixtureAccountUsage(now)}
+      autoContinueAt={autoContinueAt?.kind === 'scheduled' ? autoContinueAt.resetsAt : null}
     />
   )
 }
@@ -165,17 +195,32 @@ const fixture = (
   {
     active = true,
     widths = PANE_WIDTHS,
-    interact
+    interact,
+    portuguese = false
   }: {
     active?: boolean
     widths?: readonly number[]
     interact?: (frame: HTMLElement) => void | Promise<void>
+    /** Rendered in pt-BR, whose labels run longest of the shipped ones checked here. */
+    portuguese?: boolean
   } = {}
 ) =>
   defineFixture({
     width: Math.max(...widths) + 40,
     render: () => <UsageLimitPanes state={state} active={active} widths={widths} />,
-    interact
+    ...(portuguese
+      ? {
+          setup: () => {
+            useAppStore.setState((app) => ({
+              settings: app.settings && { ...app.settings, uiLanguage: 'pt' }
+            }))
+          },
+          interact: async () => {
+            await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+            await new Promise((resolve) => setTimeout(resolve, 50))
+          }
+        }
+      : { interact })
   })
 
 export const codexSession = fixture({
@@ -194,16 +239,61 @@ export const claudeSwitchNow = fixture({
   agent: 'Claude',
   window: 'session',
   resetIn: 134,
+  auto: 'scheduled',
+  account: 'switch',
+  agentSwitch: true
+})
+export const claudeSwitchNowAutoOff = fixture({
+  agent: 'Claude',
+  window: 'session',
+  resetIn: 134,
+  auto: 'cancelled',
+  account: 'switch',
+  agentSwitch: true
+})
+export const claudeSwitchNowPtBr = fixture(
+  {
+    agent: 'Claude',
+    window: 'session',
+    resetIn: 134,
+    auto: 'scheduled',
+    account: 'switch',
+    agentSwitch: true
+  },
+  { portuguese: true }
+)
+export const claudeSwitchNowAutoOffPtBr = fixture(
+  {
+    agent: 'Claude',
+    window: 'session',
+    resetIn: 134,
+    auto: 'cancelled',
+    account: 'switch',
+    agentSwitch: true
+  },
+  { portuguese: true }
+)
+export const claudeSwitchNowReady = fixture({
+  agent: 'Claude',
+  window: 'session',
+  resetIn: -1,
   account: 'switch',
   agentSwitch: true
 })
 export const claudeSwitchNowOpen = fixture(
-  { agent: 'Claude', window: 'session', resetIn: 134, account: 'switch', agentSwitch: true },
+  {
+    agent: 'Claude',
+    window: 'session',
+    resetIn: 134,
+    auto: 'scheduled',
+    account: 'switch',
+    agentSwitch: true
+  },
   {
     widths: [600],
     interact: async (frame) => {
-      frame
-        .querySelector('button[aria-label="Switch account or provider now"]')
+      ;[...frame.querySelectorAll('button')]
+        .find((button) => button.textContent?.includes('Switch account or agent'))
         ?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }))
       await new Promise((resolve) => setTimeout(resolve, 50))
     }

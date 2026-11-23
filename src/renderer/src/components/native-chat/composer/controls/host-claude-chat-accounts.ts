@@ -6,7 +6,12 @@ import {
 import type { ClaudeRateLimitAccountsState } from '../../../../../../shared/agent-accounts/managed-account-types'
 import type { RuntimeClientTarget } from '../../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 
-export type ClaudeChatAccountRow = { value: string; label: string; description?: string }
+export type ClaudeChatAccountRow = {
+  value: string
+  label: string
+  description?: string
+  email?: string
+}
 
 /** The chat host's own Claude accounts; WSL accounts never run a native chat. */
 export function claudeChatAccountRows(state: ClaudeRateLimitAccountsState): ClaudeChatAccountRow[] {
@@ -15,6 +20,7 @@ export function claudeChatAccountRows(state: ClaudeRateLimitAccountsState): Clau
     .map((account) => ({
       value: account.id,
       label: account.displayName ?? account.email,
+      email: account.email,
       ...(account.organizationName ? { description: account.organizationName } : {})
     }))
 }

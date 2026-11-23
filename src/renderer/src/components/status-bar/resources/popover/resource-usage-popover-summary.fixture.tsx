@@ -130,7 +130,8 @@ export const hostsSummary = defineFixture({
           swap: { used: 1.2 * GIB, total: 4 * GIB },
           disk: { used: 210 * GIB, total: 460 * GIB },
           loadAverage: [2.41, 1.97, 1.62],
-          outsideOrca: null
+          outsideOrca: null,
+          heavyQueue: null
         },
         counts: { terminals: 5, agents: 2, commands: 1 },
         notice: null
@@ -148,7 +149,8 @@ export const hostsSummary = defineFixture({
           swap: null,
           disk: null,
           loadAverage: null,
-          outsideOrca: null
+          outsideOrca: null,
+          heavyQueue: null
         },
         counts: { terminals: 3, agents: 1, commands: 0 },
         notice: null

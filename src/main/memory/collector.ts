@@ -13,6 +13,7 @@ import { getLocalDaemonPid } from './local-daemon-pid'
 import { enumerateHostProcesses } from './host-process-index'
 import { claimProcessTree, claimPtyProcessTrees } from './pty-process-trees'
 import { collectOutsideOrcaProcesses } from './host-outside-orca-processes'
+import { collectHeavyCommandQueue } from './host-heavy-command-queue'
 import {
   agentRegistrationMark,
   hasAgentProcessRegistrations,
@@ -148,9 +149,10 @@ function bucketElectronMetrics(processIndex: ProcIndex): AppBucketsRaw {
 async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> {
   const projectGroupName = createProjectGroupNameLookup(store)
   const agentMark = agentRegistrationMark()
-  const [processIndex, host] = await Promise.all([
+  const [processIndex, host, heavyQueue] = await Promise.all([
     enumerateHostProcesses({ withCommands: true, withStartTimes: hasAgentProcessRegistrations() }),
-    collectHostMemory()
+    collectHostMemory(),
+    collectHeavyCommandQueue(store)
   ])
   const { hasPrivateMemory } = processIndex
   const appBuckets = bucketElectronMetrics(processIndex)
@@ -300,7 +302,7 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     app: { ...appBuckets, history: readAppMemoryHistory() },
     worktrees,
     ...(asPaired ? {} : { agentProcesses }),
-    host: outsideOrca ? { ...host, outsideOrca } : host,
+    host: { ...host, ...(outsideOrca && { outsideOrca }), ...(heavyQueue && { heavyQueue }) },
     processMemoryMetric: processIndex.memoryMetric,
     ...snapshotCommitFields(
       hasPrivateMemory,

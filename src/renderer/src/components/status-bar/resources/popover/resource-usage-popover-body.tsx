@@ -20,6 +20,7 @@ import {
 import type { getResourceMemoryMetricCopy } from './resource-memory-metric-copy'
 import type { ResourceHostSummary } from './resource-host-summary'
 import { OutsideOrcaSections } from './resource-usage-outside-orca'
+import { HeavyQueueSections } from './resource-usage-heavy-queue'
 import { SharedAgentProcessesRow } from './resource-usage-chat-row'
 
 export function renderResourceUsagePopoverBody(
@@ -163,6 +164,7 @@ export function renderResourceUsagePopoverBody(
           />
         )}
 
+        <HeavyQueueSections hosts={hostSummaries} />
         <OutsideOrcaSections hosts={hostSummaries} sortOption={sortOption} />
 
         {!resourceSnapshot && !daemonUnreachable && (

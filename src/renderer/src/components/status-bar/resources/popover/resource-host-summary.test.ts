@@ -139,7 +139,38 @@ describe('parseHostMachineTotals', () => {
           { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 },
           { name: 'x', kind: 'daemon', cpu: 1, memory: 1, processCount: 1 },
           { name: 'y', kind: 'command', cpu: -1, memory: 1, processCount: 1 }
-        ]
+        ],
+        heavyQueue: {
+          readAt: 9_000,
+          slots: 2,
+          controls: true,
+          jobs: [
+            {
+              pid: 7,
+              status: 'running',
+              slot: 1,
+              position: 3,
+              queuedAt: 1_000,
+              startedAt: 2_000,
+              cwd: '/w/app',
+              command: 'x'.repeat(9_000),
+              workspace: { worktreeId: 'app::/w/app', worktreeName: 'app', repoName: 'App' }
+            },
+            {
+              pid: 8,
+              status: 'waiting',
+              slot: 0,
+              position: 1,
+              direct: true,
+              queuedAt: 3_000,
+              cwd: '/tmp',
+              command: 'make',
+              workspace: { worktreeId: 1 }
+            },
+            { pid: -1, status: 'waiting', queuedAt: 1, cwd: '/', command: 'bad' },
+            { pid: 9, status: 'paused', queuedAt: 1, cwd: '/', command: 'bad' }
+          ]
+        }
       })
     ).toEqual({
       cpuPercent: 37.5,
@@ -150,7 +181,39 @@ describe('parseHostMachineTotals', () => {
       loadAverage: [2, 1.5, 1],
       outsideOrca: [
         { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 }
-      ]
+      ],
+      heavyQueue: {
+        readAt: 9_000,
+        slots: 2,
+        controls: true,
+        jobs: [
+          {
+            pid: 7,
+            status: 'running',
+            slot: 1,
+            position: null,
+            direct: false,
+            extra: false,
+            queuedAt: 1_000,
+            startedAt: 2_000,
+            cwd: '/w/app',
+            command: 'x'.repeat(8_192),
+            workspace: { worktreeId: 'app::/w/app', worktreeName: 'app', repoName: 'App' }
+          },
+          {
+            pid: 8,
+            status: 'waiting',
+            slot: null,
+            position: 1,
+            direct: true,
+            extra: false,
+            queuedAt: 3_000,
+            startedAt: null,
+            cwd: '/tmp',
+            command: 'make'
+          }
+        ]
+      }
     })
   })
 
@@ -164,7 +227,8 @@ describe('parseHostMachineTotals', () => {
       swap: null,
       disk: null,
       loadAverage: null,
-      outsideOrca: null
+      outsideOrca: null,
+      heavyQueue: null
     })
   })
 
@@ -188,7 +252,8 @@ describe('parseHostMachineTotals', () => {
       swap: null,
       disk: null,
       loadAverage: null,
-      outsideOrca: null
+      outsideOrca: null,
+      heavyQueue: null
     })
     expect(parseHostMachineTotals('garbage').memory).toBeNull()
   })

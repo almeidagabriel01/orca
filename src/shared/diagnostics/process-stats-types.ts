@@ -84,7 +84,42 @@ export type HostMemory = {
   loadAverage?: number[]
   /** Top groups by CPU and by memory outside Orca's process trees; absent on Windows and older hosts. */
   outsideOrca?: OutsideOrcaProcessGroup[]
+  /** The vps-heavy command queue; absent on hosts without one, on Windows and on older hosts. */
+  heavyQueue?: HeavyCommandQueue
 }
+
+/** Commands waiting for or holding one of the host's vps-heavy slots. */
+export type HeavyCommandQueue = {
+  /** Host epoch ms of the read; job times compare with it, never with the reader's clock. */
+  readAt: number
+  slots: number
+  /** True when the host can reorder, start, cancel and resize through diagnostics.heavyQueueAction. */
+  controls: boolean
+  jobs: HeavyCommandJob[]
+}
+
+export type HeavyCommandJob = {
+  pid: number
+  status: 'running' | 'waiting'
+  /** null while waiting and in an extra slot. */
+  slot: number | null
+  /** 1-based place among the waiting; null while running or when the host does not order its queue. */
+  position: number | null
+  /** Holds the lock through `flock` directly, outside the queue's order. */
+  direct: boolean
+  /** Started now in a temporary slot beyond the host's slots. */
+  extra: boolean
+  /** Host epoch ms. */
+  queuedAt: number
+  /** Host epoch ms; null while waiting and for commands that hold the lock through `flock` directly. */
+  startedAt: number | null
+  cwd: string
+  command: string
+  /** The Orca workspace holding cwd on that host; absent when none does. */
+  workspace?: HeavyCommandWorkspace
+}
+
+export type HeavyCommandWorkspace = { worktreeId: string; worktreeName: string; repoName: string }
 
 /** Processes folded by macOS app bundle, Linux container, or command name; cpu is percent of one core. */
 export type OutsideOrcaProcessGroup = {

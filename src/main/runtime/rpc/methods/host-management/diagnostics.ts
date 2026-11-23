@@ -4,10 +4,12 @@ import {
   toPairedMemoryReplyWithChats
 } from '../../../../memory/memory-snapshot-paired-reply'
 import {
+  DiagnosticsHeavyQueueActionParams,
   DiagnosticsMemoryParams,
   DiagnosticsProcessTreeParams
 } from '../../../../../shared/rpc-contract/diagnostics-params'
 import { collectSessionProcessTree } from '../../../../memory/session-process-tree'
+import { runHeavyQueueAction } from '../../../../memory/host-heavy-command-queue-actions'
 
 export const DIAGNOSTICS_METHODS = [
   defineMethod({
@@ -29,5 +31,14 @@ export const DIAGNOSTICS_METHODS = [
     params: DiagnosticsProcessTreeParams,
     handler: async ({ sessionId }, { runtime }) =>
       collectSessionProcessTree(sessionId, () => runtime.getMemorySnapshot())
+  }),
+  defineMethod({
+    name: 'diagnostics.heavyQueueAction',
+    permission: 'workspace',
+    params: DiagnosticsHeavyQueueActionParams,
+    handler: async (action) => {
+      await runHeavyQueueAction(action)
+      return { ok: true }
+    }
   })
 ]

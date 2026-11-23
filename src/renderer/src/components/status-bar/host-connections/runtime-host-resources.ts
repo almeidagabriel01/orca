@@ -12,6 +12,9 @@ import type {
   WorktreeMemory
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
+import type { HeavyCommandQueue } from '../../../../../shared/diagnostics/process-stats-types'
+import { parseHeavyCommandQueue } from './heavy-command-queue-parse'
+import { finiteNumber, isRecord } from './host-snapshot-value-guards'
 
 export type UsedOfTotal = { used: number; total: number }
 
@@ -28,6 +31,8 @@ export type HostMachineTotals = {
   loadAverage: [number, number, number] | null
   /** What runs outside Orca; null when the host does not report it. */
   outsideOrca: OutsideOrcaProcessGroup[] | null
+  /** The host's vps-heavy queue; null when it has none. */
+  heavyQueue: HeavyCommandQueue | null
 }
 
 export type RuntimeHostResourceResult =
@@ -156,14 +161,6 @@ export function hasErrorCode(error: unknown, code: string): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function finiteNumber(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
-}
-
 function usedOfTotal(used: unknown, total: unknown, allowEmpty = false): UsedOfTotal | null {
   const u = finiteNumber(used)
   const t = finiteNumber(total)
@@ -186,7 +183,8 @@ export function parseHostMachineTotals(value: unknown): HostMachineTotals {
     swap: usedOfTotal(host.swapUsed, host.swapTotal, true),
     disk: usedOfTotal(host.diskUsed, host.diskTotal),
     loadAverage: isLoadAverage(load) ? load : null,
-    outsideOrca: parseOutsideOrcaGroups(host.outsideOrca)
+    outsideOrca: parseOutsideOrcaGroups(host.outsideOrca),
+    heavyQueue: parseHeavyCommandQueue(host.heavyQueue)
   }
 }
 

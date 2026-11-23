@@ -1,6 +1,7 @@
 import type { BrowserExtensionsBannerAssignmentReply } from '../../../shared/browser/extensions/browser-extensions-banner'
 import type { ResourceViewAdmission } from '../../../shared/diagnostics/resource-view-admission'
 import type { PerfNoticeSignals } from '../../../shared/diagnostics/perf-notice-signals'
+import type { HeavyQueueAction } from '../../../shared/rpc-contract/diagnostics-params'
 import type { TelemetryConsentState } from '../../../shared/telemetry/telemetry-consent-types'
 import type {
   MemorySnapshot,
@@ -43,6 +44,8 @@ export type MemoryApi = {
     sessionId: string,
     admission?: ResourceViewAdmission
   ) => Promise<SessionProcessTree | null>
+  /** Controls this computer's vps-heavy queue; rejects with the script's message when it refuses. */
+  heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission) => Promise<void>
   readPerfNoticeSignals: () => Promise<PerfNoticeSignals | null>
   countHiddenBrowserPages: (hiddenForMs: number) => Promise<number>
   resourceWindowVisible: () => Promise<boolean>

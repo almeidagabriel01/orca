@@ -22,7 +22,8 @@ const machine = (outsideOrca: OutsideOrcaProcessGroup[] | null): HostMachineTota
   swap: null,
   disk: null,
   loadAverage: null,
-  outsideOrca
+  outsideOrca,
+  heavyQueue: null
 })
 
 const hosts: ResourceHostSummary[] = [

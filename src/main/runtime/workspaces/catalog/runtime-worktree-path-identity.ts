@@ -101,7 +101,7 @@ export function includeTargetResolvedWorktree(
 }
 
 export function findResolvedWorktreeIdForPath(
-  resolvedWorktrees: ResolvedWorktree[],
+  resolvedWorktrees: readonly Pick<ResolvedWorktree, 'id' | 'path'>[],
   cwd: string,
   targetWorktreeId?: string | null
 ): string | null {

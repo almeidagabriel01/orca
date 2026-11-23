@@ -110,7 +110,8 @@ export function ProcessTreeToggle({
   )
 }
 
-function CopyCommand({ command }: { command: string }): React.JSX.Element {
+/** Shows on hover of its `group/procrow` row, like the process tree's. */
+export function CopyCommand({ command }: { command: string }): React.JSX.Element {
   const t = useTranslate()
   return (
     <button

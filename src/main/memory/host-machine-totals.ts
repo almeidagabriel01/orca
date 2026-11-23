@@ -82,24 +82,39 @@ function readSysctlBytes(stdout: string, key: string): number | null {
     : null
 }
 
-/** Re-reads at most once per TTL, never overlaps a pending read, and never waits past the timeout. */
-export function createSlowSample<T>(read: () => Promise<T | null>): () => Promise<T | null> {
+/**
+ * Re-reads at most once per TTL, never overlaps a pending read, and never waits past the timeout.
+ * A timed-out wait yields null, or with keepLastOnTimeout the last settled value.
+ */
+export function createSlowSample<T>(
+  read: () => Promise<T | null>,
+  { ttlMs = SLOW_SAMPLE_TTL_MS, keepLastOnTimeout = false } = {}
+): (() => Promise<T | null>) & { invalidate: () => void } {
   let sample: { at: number; settled: boolean; value: Promise<T | null> } | null = null
-  return () => {
+  let last: T | null = null
+  const readSample = (): Promise<T | null> => {
     const now = Date.now()
-    if (!sample || (sample.settled && now - sample.at >= SLOW_SAMPLE_TTL_MS)) {
+    if (!sample || (sample.settled && now - sample.at >= ttlMs)) {
       const next = { at: now, settled: false, value: read().catch(() => null) }
-      void next.value.finally(() => {
+      void next.value.then((value) => {
         next.settled = true
+        last = value
       })
       sample = next
     }
     let timer: ReturnType<typeof setTimeout> | undefined
-    const timeout = new Promise<null>((resolve) => {
-      timer = setTimeout(() => resolve(null), SLOW_SAMPLE_TIMEOUT_MS)
+    const timeout = new Promise<T | null>((resolve) => {
+      timer = setTimeout(() => resolve(keepLastOnTimeout ? last : null), SLOW_SAMPLE_TIMEOUT_MS)
     })
     return Promise.race([sample.value, timeout]).finally(() => clearTimeout(timer))
   }
+  // A settled sample is dropped so the next call reads again; a pending one is already fresh.
+  const invalidate = (): void => {
+    if (sample?.settled) {
+      sample = null
+    }
+  }
+  return Object.assign(readSample, { invalidate })
 }
 
 // Why home: it is the volume holding the user's projects; on macOS that is the Data volume.

@@ -32,6 +32,33 @@ export function createFixturePageRunner(baseUrl, browserPromise) {
     return worker
   }
 
+  // Why: a cold load serves ~2.6k unbundled modules and can take over a minute on a busy machine,
+  // so the page fails on a stall (no response for FIXTURE_TIMEOUT_MS), not on its total time.
+  async function loadFixtureHost(page) {
+    let lastResponseAt = Date.now()
+    const onResponse = () => {
+      lastResponseAt = Date.now()
+    }
+    page.on('response', onResponse)
+    try {
+      await page.goto(`${baseUrl}/fixtures.html?worker=1`, {
+        waitUntil: 'commit',
+        timeout: FIXTURE_TIMEOUT_MS
+      })
+      onResponse()
+      while (
+        !(await page.evaluate(() => Boolean(window.__orcaComponentFixtureHost)).catch(() => false))
+      ) {
+        if (Date.now() - lastResponseAt > FIXTURE_TIMEOUT_MS) {
+          throw new Error(`fixtures.html stalled: no response for ${FIXTURE_TIMEOUT_MS / 1000}s`)
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+    } finally {
+      page.off('response', onResponse)
+    }
+  }
+
   async function readyWorker(scale) {
     if (!workers.has(scale)) {
       workers.set(scale, createWorker(scale))
@@ -40,12 +67,7 @@ export function createFixturePageRunner(baseUrl, browserPromise) {
     worker.pageErrors = []
     if (worker.revision !== sourceRevision) {
       const revision = sourceRevision
-      await worker.page.goto(`${baseUrl}/fixtures.html?worker=1`)
-      await worker.page.waitForFunction(
-        () => Boolean(window.__orcaComponentFixtureHost),
-        undefined,
-        { timeout: FIXTURE_TIMEOUT_MS }
-      )
+      await loadFixtureHost(worker.page)
       worker.revision = revision
     }
     return worker

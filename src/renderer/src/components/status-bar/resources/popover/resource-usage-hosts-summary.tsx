@@ -124,7 +124,7 @@ function MachineMeters({ machine }: { machine: HostMachineTotals }): React.JSX.E
           machine.swap === null
             ? '—'
             : machine.swap.total === 0
-              ? t('resourceManager.hosts.noSwap', 'none')
+              ? t('resourceManager.hosts.noSwap', 'No swap')
               : formatUsedOfTotal(machine.swap)
         }
         percent={usedPercent(machine.swap)}

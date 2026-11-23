@@ -202,9 +202,19 @@ export function QueueRow({
             {row.place}
           </span>
           {job.direct && (
-            <span className="shrink-0 rounded-sm border border-border px-1 text-3xs leading-4 text-muted-foreground">
-              {t('resourceManager.heavyQueue.direct', 'flock')}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="shrink-0 cursor-default rounded-sm border border-border px-1 text-3xs leading-4 text-muted-foreground">
+                  {t('resourceManager.heavyQueue.direct', 'flock')}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={4} className="max-w-64">
+                {t(
+                  'resourceManager.heavyQueue.directTooltip',
+                  'Started through flock directly, outside the queue order: it cannot be moved, only removed while it waits.'
+                )}
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
         <div className="[grid-area:actions]">

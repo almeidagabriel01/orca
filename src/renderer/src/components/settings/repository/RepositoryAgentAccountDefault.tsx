@@ -22,6 +22,8 @@ export function RepositoryAgentAccountDefault(props: {
   value: string | undefined
   disabled: boolean
   inheritLabel: string
+  /** Absent says what a project's default does. */
+  description?: string
   onChange: (choice: string | undefined) => void
 }): React.JSX.Element | null {
   const capability = useStructuredAgentSessionHostCapabilityState(
@@ -38,6 +40,7 @@ function AccountSelect({
   value,
   disabled,
   inheritLabel,
+  description,
   onChange
 }: Parameters<typeof RepositoryAgentAccountDefault>[0]): React.JSX.Element | null {
   const t = useTranslate()
@@ -62,10 +65,13 @@ function AccountSelect({
   return (
     <SettingsRow
       label={label}
-      description={t(
-        'settings.projectAgentDefaults.accountDescription',
-        'The account new chats in this project start on. Changing it in a chat changes only that chat.'
-      )}
+      description={
+        description ??
+        t(
+          'settings.projectAgentDefaults.accountDescription',
+          'The account new chats in this project start on. Changing it in a chat changes only that chat.'
+        )
+      }
       control={
         <Select
           value={value ?? INHERIT}

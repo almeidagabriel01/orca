@@ -1487,6 +1487,7 @@
       "pictureCurrent": "Current picture",
       "agent": "Agent",
       "agentModelDescription": "Used for bot conversations and automations. A new model applies to new conversations; the Home Chat keeps its current one.",
+      "accountDescription": "The account new conversations and automations start on. The Home Chat keeps its current one until you start a new one.",
       "permissions": "Permissions",
       "permissionsDescription": "The starting permission for new sessions. Anything beyond it asks in the session.",
       "active": "Active",

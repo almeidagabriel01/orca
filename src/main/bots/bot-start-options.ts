@@ -2,6 +2,8 @@
 import type { Bot } from '../../shared/bot-types'
 import { botLaunchSeedOptions } from '../../shared/bots/bot-launch'
 import { explicitStructuredLaunchSeedOptions } from '../../shared/native-chat/input/session-options/native-chat-session-option-defaults'
+import { AGENT_CHAT_ACCOUNT_OPTION_ID } from '../../shared/agent-launch/accounts/agent-chat-account-choice'
+import { usableChatAccountChoice } from '../claude-accounts/selection/claude-chat-account-choice'
 
 type LaunchSettings = Parameters<typeof explicitStructuredLaunchSeedOptions>[0]
 
@@ -25,4 +27,11 @@ export function botStartOptions(
     ...explicitStructuredLaunchSeedOptions(settings(), bot.agent),
     ...own
   }
+}
+
+/** The bot's own account as a create option, for every new conversation and automation run; none
+ *  follows the host's selection, as does an account this host can no longer run. */
+export function botStartAccount(bot: Pick<Bot, 'agent' | 'agentAccount'>): Record<string, string> {
+  const account = usableChatAccountChoice(bot.agent, bot.agentAccount)
+  return account ? { [AGENT_CHAT_ACCOUNT_OPTION_ID]: account } : {}
 }

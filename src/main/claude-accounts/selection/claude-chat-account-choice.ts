@@ -1,5 +1,9 @@
-import { AGENT_CHAT_SYSTEM_ACCOUNT } from '../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import {
+  AGENT_CHAT_SYSTEM_ACCOUNT,
+  agentSupportsChatAccountChoice
+} from '../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import type { ClaudeProfileRouter } from '../profiles/routing/claude-profile-router'
+import { getClaudeProfileRouter } from '../profiles/routing/claude-profile-installed-router'
 import { CLAUDE_CHAT_ACCOUNT_MISSING_MESSAGE } from '../profiles/routing/claude-profile-launch-errors'
 import { CLAUDE_ACCOUNT_NEEDS_SIGN_IN_MESSAGE } from './claude-account-selection'
 
@@ -21,4 +25,17 @@ export function claudeChatAccountChoiceProblem(
   return router.accountLogin(choice) || router.coveredBySystemDefault(choice)
     ? null
     : CLAUDE_ACCOUNT_NEEDS_SIGN_IN_MESSAGE
+}
+
+/** A saved default `choice` a new chat of `agent` can start on here; a removed or signed-out account
+ *  falls back to the host's selection instead of refusing every chat. */
+export function usableChatAccountChoice(
+  agent: string,
+  choice: string | undefined
+): string | undefined {
+  return choice &&
+    agentSupportsChatAccountChoice(agent) &&
+    !claudeChatAccountChoiceProblem(getClaudeProfileRouter(), choice)
+    ? choice
+    : undefined
 }

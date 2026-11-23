@@ -184,6 +184,15 @@ export function ResourceTree({
     onOpenChat
   }
 
+  if (filtering && sortedRepos.length === 0) {
+    return (
+      <p className="px-3 py-4 text-center text-xs text-muted-foreground" role="status">
+        {t('resourceManager.tree.noMatches', 'Nothing matches “{{value0}}”', {
+          value0: filter.trim()
+        })}
+      </p>
+    )
+  }
   return (
     <RuntimePaneTitlesProvider>
       {sortedRepos.map((group) => {

@@ -1,9 +1,16 @@
-import { readlink } from 'node:fs/promises'
+import { readFile, readlink } from 'node:fs/promises'
+import { performance } from 'node:perf_hooks'
 import os from 'node:os'
 import { runProcess } from '@orca/process-host'
 import { enumerateWindowsProcessResources } from './windows-process-resource-collector'
 import { getProcessMemoryMetric } from './process-memory-metric'
 import { readDarwinProcessFootprints } from './darwin-process-footprint'
+import {
+  applyCpuTimeDeltas,
+  parseLinuxProcStat,
+  type ProcessCpuSample,
+  type ProcessCpuTimes
+} from './process-cpu-deltas'
 import {
   buildProcessIndex,
   executableBasename,
@@ -21,12 +28,16 @@ export async function enumerateHostProcesses(
 ): Promise<ProcIndex> {
   const platform = os.platform()
   const withNames = options.withNames ?? false
+  const trackCpu = options.trackCpu ?? true
   const [rows, footprints] = await Promise.all([
     platform === 'win32'
-      ? enumerateWindowsProcessResources({ trackCpu: options.trackCpu ?? true, withNames })
+      ? enumerateWindowsProcessResources({ trackCpu, withNames })
       : enumerateUnix(platform, withNames, options.withCommands ?? false),
     platform === 'darwin' ? readDarwinProcessFootprints() : Promise.resolve(null)
   ])
+  if (platform === 'linux' && trackCpu) {
+    await applyLinuxCpuSample(rows)
+  }
   return buildProcessIndex(rows, footprints, getProcessMemoryMetric(platform))
 }
 
@@ -85,6 +96,44 @@ async function readPs(columns: string, trailing?: 'name' | 'command'): Promise<P
     console.warn('[memory] ps enumeration failed', err)
     return null
   }
+}
+
+// Linux USER_HZ: /proc reports CPU time in 1/100 s ticks.
+const LINUX_TICKS_PER_MS = 0.1
+let previousLinuxCpuSample: ProcessCpuSample | null = null
+
+/** Linux ps pcpu is a lifetime average; replace it with use since the previous sweep (0 on the first). */
+async function applyLinuxCpuSample(rows: ProcRow[]): Promise<void> {
+  const stats = await withTimeout(
+    Promise.all(
+      rows.map((row) =>
+        readFile(`/proc/${row.pid}/stat`, 'utf8').then(
+          (stat) => [row.pid, parseLinuxProcStat(stat)] as const,
+          () => [row.pid, null] as const
+        )
+      )
+    ),
+    READLINK_TIMEOUT_MS
+  )
+  const cpuByPid = new Map<number, ProcessCpuTimes>()
+  for (const [pid, times] of stats ?? []) {
+    if (times) {
+      cpuByPid.set(pid, times)
+    }
+  }
+  if (cpuByPid.size === 0) {
+    // No readable /proc: keep ps's figure rather than report every process idle.
+    return
+  }
+  for (const row of rows) {
+    row.cpu = 0
+  }
+  previousLinuxCpuSample = applyCpuTimeDeltas(
+    rows,
+    { sampledAtMs: performance.now(), cpuByPid },
+    previousLinuxCpuSample,
+    LINUX_TICKS_PER_MS
+  )
 }
 
 const READLINK_TIMEOUT_MS = 1_000

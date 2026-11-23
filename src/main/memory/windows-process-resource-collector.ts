@@ -3,7 +3,6 @@ import {
   windowsPowerShellPath,
   windowsSystem32Binary
 } from '@orca/process-host/windows-system-binary'
-import os from 'node:os'
 import { performance } from 'node:perf_hooks'
 import {
   parseTypeperfProcessOutput,
@@ -12,13 +11,12 @@ import {
   type ParsedWindowsProcessSample,
   type WindowsProcessResourceRow
 } from './windows-process-sample-parsing'
+import { applyCpuTimeDeltas, type ProcessCpuSample } from './process-cpu-deltas'
 
 export type { WindowsProcessResourceRow } from './windows-process-sample-parsing'
 
 const PROCESS_QUERY_TIMEOUT_MS = 5_000
 const PROCESS_QUERY_MAX_BUFFER = 10 * 1024 * 1024
-const CPU_MIN_SAMPLE_MS = 250
-const CPU_STALE_AFTER_MS = 10_000
 const HUNDRED_NS_TICKS_PER_MS = 10_000
 const CIM_RETRY_AFTER_MS = 30_000
 
@@ -27,7 +25,7 @@ type WindowsProcessSample = ParsedWindowsProcessSample & {
 }
 
 let processBackend: 'cim' | 'typeperf' = 'cim'
-let previousCpuSample: WindowsProcessSample | null = null
+let previousCpuSample: ProcessCpuSample | null = null
 let retryCimAtMs = 0
 
 /** `trackCpu: false` leaves the resource view's CPU baseline untouched and reports no CPU. */
@@ -57,38 +55,12 @@ export async function enumerateWindowsProcessResources({
 }
 
 function applyWindowsCpuSample(sample: WindowsProcessSample): WindowsProcessResourceRow[] {
-  const previous = previousCpuSample
-  if (!previous) {
-    previousCpuSample = sample
-    return sample.rows
-  }
-  const elapsedMs = sample.sampledAtMs - previous.sampledAtMs
-  if (elapsedMs < CPU_MIN_SAMPLE_MS) {
-    // Preserve the baseline when samples are too close for stable CPU rates.
-    return sample.rows
-  }
-  previousCpuSample = sample
-  if (elapsedMs > CPU_STALE_AFTER_MS) {
-    // Long gaps after sleep/closed dashboards produce stale averages; discard them.
-    return sample.rows
-  }
-
-  const maxProcessCpu = Math.max(1, os.cpus().length) * 100
-  for (const row of sample.rows) {
-    const currentTimes = sample.cpuByPid.get(row.pid)
-    const previousTimes = previous.cpuByPid.get(row.pid)
-    // PID reuse and reset counters must not inherit another process's CPU baseline.
-    if (
-      !currentTimes ||
-      !previousTimes ||
-      currentTimes.startTimeId !== previousTimes.startTimeId ||
-      currentTimes.cpuTicks < previousTimes.cpuTicks
-    ) {
-      continue
-    }
-    const cpuMs = Number(currentTimes.cpuTicks - previousTimes.cpuTicks) / HUNDRED_NS_TICKS_PER_MS
-    row.cpu = Math.min(maxProcessCpu, nonNegativeNumber((cpuMs / elapsedMs) * 100))
-  }
+  previousCpuSample = applyCpuTimeDeltas(
+    sample.rows,
+    sample,
+    previousCpuSample,
+    HUNDRED_NS_TICKS_PER_MS
+  )
   return sample.rows
 }
 
@@ -145,8 +117,4 @@ async function execFileText(file: string, args: string[]): Promise<string> {
     throw new Error(`${file} exited ${result.code ?? 'on timeout'}`)
   }
   return result.stdout
-}
-
-function nonNegativeNumber(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0
 }

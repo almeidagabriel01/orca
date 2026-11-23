@@ -9,6 +9,7 @@ import { UpdateErrorCardContent, type UpdateErrorCardModel } from './UpdateError
 import { LinuxPackageInstallRecoveryCard } from './LinuxPackageInstallRecoveryCard'
 import { useTranslate } from '@/i18n/use-translate'
 import { UpdateCheckFeedback } from './UpdateCheckFeedback'
+import { forkBuildPendingCopy } from '../../settings/updates/fork-build-pending-copy'
 import {
   UpdateAvailableRichContent,
   UpdateAvailableSimpleContent
@@ -63,6 +64,24 @@ export function UpdateCardStateContent({
   }
   if (status.state === 'not-available') {
     const unsupported = status.unsupportedSystemUpdate
+    const forkPending = status.forkBuildPending
+    if (forkPending) {
+      const failureUrl = forkPending.failure?.url
+      return (
+        <UpdateCheckFeedback
+          icon={forkPending.failure ? 'error' : 'spinner'}
+          text={forkBuildPendingCopy(forkPending, t)}
+          action={
+            failureUrl
+              ? {
+                  label: t('auto.components.UpdateCard.forkBuildFailureLink', 'See what failed'),
+                  url: failureUrl
+                }
+              : undefined
+          }
+        />
+      )
+    }
     return (
       <UpdateCheckFeedback
         icon="check"

@@ -32,8 +32,11 @@ export type DelayedUpdate = {
   delayDays: number
 }
 
-/** Upstream released this version and the fork's build of it is still being made. */
-export type ForkBuildPending = { version: string }
+/** The fork's sync or release failed; url is its issue or run on the fork's GitHub, when known. */
+export type ForkBuildFailure = { url: string | null }
+
+/** Upstream released this version and the fork's build of it is still being made, or failed. */
+export type ForkBuildPending = { version: string; failure?: ForkBuildFailure }
 
 /** Derive nonrelease origins from dev channels so new dedicated repos cannot be mislabeled ordinary releases. */
 export type UpdateSource = 'local' | DedicatedRepoChannel

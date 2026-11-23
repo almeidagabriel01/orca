@@ -48,7 +48,9 @@ export function statusesEqual(left: UpdateStatus, right: UpdateStatus): boolean 
         left.unsupportedSystemUpdate?.version === right.unsupportedSystemUpdate?.version &&
         left.unsupportedSystemUpdate?.minimumMacosVersion ===
           right.unsupportedSystemUpdate?.minimumMacosVersion &&
-        left.forkBuildPending?.version === right.forkBuildPending?.version
+        left.forkBuildPending?.version === right.forkBuildPending?.version &&
+        left.forkBuildPending?.failure?.url === right.forkBuildPending?.failure?.url &&
+        !left.forkBuildPending?.failure === !right.forkBuildPending?.failure
       )
     case 'available':
       return (

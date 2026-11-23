@@ -3,11 +3,16 @@ import { compareVersions, isPrereleaseVersion, isValidVersion } from './updater-
 import { FETCH_TIMEOUT_MS, requestGitHubReleaseHead } from './updater-release-readiness'
 import { resolveReleaseApiToken } from './updater-release-api-token'
 import { FORK_RELEASE_REPO, UPSTREAM_RELEASE_REPO } from '../../../shared/updater/fork-release-repo'
-import type { ForkBuildPending } from '../../../shared/updater/update-status-types'
+import type {
+  ForkBuildFailure,
+  ForkBuildPending
+} from '../../../shared/updater/update-status-types'
 
-// Must match the fork's sync workflow file and the branch it runs from (docs/fork-releases.md).
+// Must match the fork's workflow files, the branch they run from and the sync's issue (docs/fork-releases.md).
 const FORK_SYNC_WORKFLOW = 'fork-sync.yml'
+const FORK_RELEASE_WORKFLOW = 'fork-release.yml'
 const FORK_SYNC_REF = 'fork-main'
+const FORK_SYNC_ISSUE_LABEL = 'upstream-sync'
 let syncRequestedFor: string | null = null
 
 /** Squirrel.Mac installs only Developer ID builds, so the fork's self-signed Mac build is downloaded by hand. */
@@ -44,8 +49,64 @@ export async function fetchForkBuildPending(
   if (!version || compareVersions(version, currentVersion) <= 0) {
     return null
   }
+  // Asked even after a failure: once fork-main is fixed, this run is the one that builds it.
   void requestForkSync(version)
-  return { version }
+  const failure = await fetchForkBuildFailure(version).catch(() => null)
+  return failure ? { version, failure } : { version }
+}
+
+type ForkWorkflowRun = { conclusion?: unknown; html_url?: unknown }
+type ForkSyncIssue = { title?: unknown; html_url?: unknown }
+
+/** Where the fork's build of `version` failed: its open sync issue, else the latest failed sync or release run. */
+export function findForkBuildFailure(
+  repo: string,
+  version: string,
+  latestRuns: readonly unknown[],
+  openSyncIssues: unknown
+): ForkBuildFailure | null {
+  const title = `Sync com o Orca original falhou: v${version}`
+  const issue = Array.isArray(openSyncIssues)
+    ? (openSyncIssues as ForkSyncIssue[]).find((candidate) => candidate?.title === title)
+    : undefined
+  const run = (latestRuns as (ForkWorkflowRun | undefined)[]).find(
+    (candidate) => candidate?.conclusion === 'failure'
+  )
+  const url = issue?.html_url ?? run?.html_url
+  if (!issue && !run) {
+    return null
+  }
+  // Only this fork's pages reach the UI's link.
+  const forkPages = `https://github.com/${repo}/`
+  return { url: typeof url === 'string' && url.startsWith(forkPages) ? url : null }
+}
+
+async function fetchForkBuildFailure(version: string): Promise<ForkBuildFailure | null> {
+  const token = await resolveReleaseApiToken().catch(() => null)
+  const api = `https://api.github.com/repos/${FORK_RELEASE_REPO}`
+  const getJson = async (path: string): Promise<unknown> => {
+    const response = await net.fetch(`${api}/${path}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        ...(token ? { Authorization: `Bearer ${token.token}` } : {})
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)
+    })
+    return response.ok ? response.json() : null
+  }
+  const latestRun = async (workflow: string): Promise<unknown> => {
+    const body = await getJson(
+      `actions/workflows/${workflow}/runs?branch=${FORK_SYNC_REF}&per_page=1&exclude_pull_requests=true`
+    )
+    const runs = (body as { workflow_runs?: unknown } | null)?.workflow_runs
+    return Array.isArray(runs) ? runs[0] : undefined
+  }
+  const [syncRun, releaseRun, issues] = await Promise.all([
+    latestRun(FORK_SYNC_WORKFLOW),
+    latestRun(FORK_RELEASE_WORKFLOW),
+    getJson(`issues?labels=${FORK_SYNC_ISSUE_LABEL}&state=open&per_page=50`)
+  ])
+  return findForkBuildFailure(FORK_RELEASE_REPO, version, [syncRun, releaseRun], issues)
 }
 
 // Best effort: the hourly schedule syncs anyway; a signed-in gh only shortens the wait.

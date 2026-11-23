@@ -19,6 +19,7 @@ import { UpdateDelaySetting } from './UpdateDelaySetting'
 import { AutomaticUpdatesSetting } from './AutomaticUpdatesSetting'
 import { isWebClientLocation } from '@/app-shell/platform/web-client-location'
 import { formatUpdateDelayDate } from './update-delay-copy'
+import { forkBuildPendingCopy } from './fork-build-pending-copy'
 import { useNow } from '@/lib/window-activity/use-now'
 import { isDelayedUpdatePending } from '../../../../../shared/updater/update-delay'
 import { getReleaseNotesUrlForVersion } from '../../../../../shared/updater/release-channel'
@@ -249,11 +250,7 @@ export function GeneralUpdateSettingsSection({
           )}
           {updateStatus.state === 'not-available' &&
             (updateStatus.forkBuildPending
-              ? t(
-                  'auto.components.settings.GeneralUpdateSettingsSection.forkBuildPending',
-                  'Orca {{version}} is out. The fork build is being made; check again in a few minutes.',
-                  { version: updateStatus.forkBuildPending.version }
-                )
+              ? forkBuildPendingCopy(updateStatus.forkBuildPending, t)
               : updateStatus.unsupportedSystemUpdate
                 ? t(
                     'macosUpdateRequirement.settingsStatus',

@@ -123,10 +123,14 @@ export function botChatSessions(deps: BotChatDependencies) {
     return sessionId
   }
 
-  /** The current Chat, or a new one when it is gone or runs another agent than the bot's. */
+  /** The current Chat, or a new one when it is gone or never ran the bot's agent: a Chat its owner
+   *  switched to another agent stays, while a bot moved to another agent starts afresh. */
   const open = (host: BotChatHost, bot: Bot): Promise<string> | string => {
     const record = bot.chatSessionId ? host.deps.store.getConversation(bot.chatSessionId) : null
-    return record?.provider === bot.agent ? record.sessionId : replace(host, bot)
+    const ranBotAgent =
+      record?.provider === bot.agent ||
+      !!record?.providerSegments?.some((segment) => segment.provider === bot.agent)
+    return record && ranBotAgent ? record.sessionId : replace(host, bot)
   }
 
   const underLock = <T>(botId: string, work: (host: BotChatHost, bot: Bot) => Promise<T> | T) =>

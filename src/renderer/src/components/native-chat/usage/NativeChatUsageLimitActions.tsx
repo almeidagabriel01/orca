@@ -26,9 +26,13 @@ import type { AgentSessionOptionsResult } from '../../../../../shared/agent-sess
 import type { NativeChatMessage } from '../../../../../shared/native-chat/native-chat-types'
 import type { NativeChatStructuredViewProps } from '@/components/native-chat/native-chat-view-types'
 import type { NativeChatFileLinkContext } from '@/components/native-chat/links/actions/native-chat-file-link-context'
+import type { NativeChatAccountControl } from '@/components/native-chat/session/options/structured/use-structured-chat-account'
+import { NativeChatAgentSwitchMenu } from '@/components/native-chat/composer/controls/NativeChatAgentSwitchMenu'
 
 export type UsageLimitActions = {
   account: ReactNode
+  /** "Switch account or provider now": continues this chat elsewhere; the host sends the continue. */
+  agentSwitch?: ReactNode
   handOff?: () => void
   disabled: boolean
   /** Hand off is gathering the chat's context. */
@@ -43,9 +47,12 @@ export function NativeChatUsageLimitActionsProvider({
   messages,
   view,
   recovery,
+  chatAccount,
   children
 }: {
   pane: Omit<NativeChatStructuredViewProps, 'mode'>
+  /** The composer's account control, whose agent switch the row offers too. */
+  chatAccount?: NativeChatAccountControl
   directory: NativeChatFileLinkContext | null
   messages: readonly NativeChatMessage[]
   view: NativeChatOrcaStopView
@@ -195,9 +202,20 @@ export function NativeChatUsageLimitActionsProvider({
     messages,
     view.onUsageLimitHandOffStarted
   ])
+  let agentSwitch: ReactNode = null
+  if (chatAccount?.agentSwitch && active && pane.isVisible) {
+    agentSwitch = (
+      <NativeChatAgentSwitchMenu
+        control={chatAccount}
+        agentSwitch={chatAccount.agentSwitch}
+        variant="icon"
+      />
+    )
+  }
   const actions = useMemo<UsageLimitActions>(
     () => ({
       account,
+      ...(agentSwitch ? { agentSwitch } : {}),
       disabled,
       preparing: handOffPreparing,
       ...(canHandOff || (loading && isTuiAgent(pane.agent))
@@ -208,7 +226,7 @@ export function NativeChatUsageLimitActionsProvider({
           }
         : {})
     }),
-    [account, canHandOff, disabled, handOffPreparing, loading, openHandOff, pane.agent]
+    [account, agentSwitch, canHandOff, disabled, handOffPreparing, loading, openHandOff, pane.agent]
   )
   const stopView = useMemo(
     () => ({

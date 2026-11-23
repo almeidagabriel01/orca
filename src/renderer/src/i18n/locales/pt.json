@@ -21891,6 +21891,31 @@
           "plugin": "Plugin",
           "session": "Sessão"
         }
+      },
+      "agentSwitch": {
+        "title": "Continuar com",
+        "hostAccount": "Conta do host",
+        "stopFirst": "Pare o turno para trocar",
+        "stopAndSwitch": "Parar e trocar",
+        "stopAndSwitchBody": "Isso interrompe o turno atual e continua o chat em {{target}}.",
+        "switchNow": "Trocar conta/provedor agora",
+        "hostAccountHint": "{{agent}} não tem conta por chat; usa a conta selecionada no host.",
+        "accountSwitched": "Conta trocada para {{account}}",
+        "accountSwitchedUnnamed": "Conta trocada",
+        "continuedWith": "Continuado com {{agent}} · {{account}}",
+        "continuedWithAgent": "Continuado com {{agent}}",
+        "from": "Veio de {{from}}",
+        "handedContext": "Contexto passado ao novo agente",
+        "savedTranscript": "Transcript salvo",
+        "copyPath": "Copiar caminho"
+      },
+      "account": {
+        "systemDefault": "Padrão do sistema",
+        "followHost": "Conta selecionada",
+        "title": "Conta",
+        "locked": "Este chat mantém a conta com que começou.",
+        "hint": "A conta em que este chat roda. Os outros chats mantêm a conta selecionada.",
+        "changeFailed": "Não foi possível trocar a conta."
       }
     },
     "tab": {

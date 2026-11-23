@@ -22844,6 +22844,23 @@
         "sampleCall": "Sample call",
         "sampleNote": "Starts a real run",
         "send": "Send"
+      },
+      "agentSwitch": {
+        "title": "Continue with",
+        "hostAccount": "Host account",
+        "stopFirst": "Stop the turn to switch",
+        "stopAndSwitch": "Stop and switch",
+        "stopAndSwitchBody": "This stops the current turn and continues the chat on {{target}}.",
+        "switchNow": "Switch account or provider now",
+        "hostAccountHint": "{{agent}} has no per-chat account; it uses the account selected on the host.",
+        "accountSwitched": "Account switched to {{account}}",
+        "accountSwitchedUnnamed": "Account switched",
+        "continuedWith": "Continued with {{agent}} · {{account}}",
+        "continuedWithAgent": "Continued with {{agent}}",
+        "from": "From {{from}}",
+        "handedContext": "Context passed to the new agent",
+        "savedTranscript": "Saved transcript",
+        "copyPath": "Copy path"
       }
     },
     "tab": {

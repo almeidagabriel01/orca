@@ -3,7 +3,8 @@ import type { AgentSessionDeathEvidence } from './leases/agent-session-death-evi
 import { isAgentSessionRewindRecord } from './rewind/agent-session-rewind'
 import type { AgentSessionRewindRecord } from './rewind/agent-session-rewind'
 import { isAgentSessionLaunchArgs } from './records/agent-session-launch-args'
-import { isAgentChatAccountChoice } from '../../agent-launch/accounts/agent-chat-account-choice'
+import { isAgentSessionSwitchFields } from '../conversation-context/agent-session-agent-switch'
+import type { AgentSessionSwitchFields } from '../conversation-context/agent-session-agent-switch'
 import { isAgentSessionConversationName } from '../conversation-naming/agent-session-conversation-name'
 import {
   isPersistedAgentSessionHandoffStage,
@@ -106,7 +107,7 @@ export type AgentSessionLease = {
   deathEvidence: AgentSessionDeathEvidence | null
 }
 
-export type AgentSessionRecord = {
+export type AgentSessionRecord = AgentSessionSwitchFields & {
   schemaVersion: typeof AGENT_SESSION_RECORD_SCHEMA_VERSION
   sessionId: string
   location: AgentSessionExecutionLocation
@@ -125,9 +126,6 @@ export type AgentSessionRecord = {
   options?: Record<string, string>
   /** The permission mode the user chose; Orca's, so a provider's options answer never replaces it. */
   permissionMode?: string
-  /** The account the user chose for this chat (`isAgentChatAccountChoice`); absent: its launches
-   *  follow the host's selection. */
-  accountChoice?: string
   usageLimitContinueCancel?: { turnItemId: string; resetsAt: number }
   /** The newest async question row the person skipped; it and every earlier question stop
    *  waiting on them, on every device. A malformed one is dropped on read. */
@@ -323,7 +321,6 @@ export function isPersistedAgentSessionObservationRecord(
       (record.options === undefined || isAgentSessionOptions(record.options)) &&
       (record.permissionMode === undefined ||
         isBoundedString(record.permissionMode, MAX_ID_LENGTH)) &&
-      (record.accountChoice === undefined || isAgentChatAccountChoice(record.accountChoice)) &&
       isOptionalUsageLimitContinueCancel(record.usageLimitContinueCancel) &&
       (record.rewind === undefined || isAgentSessionRewindRecord(record.rewind)) &&
       (record.providerContextBoundary === undefined ||
@@ -334,6 +331,7 @@ export function isPersistedAgentSessionObservationRecord(
         isAgentSessionConversationName(record.conversationName)) &&
       (record.conversationNameSource === undefined || record.conversationNameSource === 'user') &&
       (record.launchArgs === undefined || isAgentSessionLaunchArgs(record.launchArgs)) &&
+      isAgentSessionSwitchFields(record) &&
       !Object.hasOwn(record, 'launchEnv') &&
       isPersistedAgentSessionObservationLease(record.lease) &&
       record.lease.sessionId === record.sessionId &&

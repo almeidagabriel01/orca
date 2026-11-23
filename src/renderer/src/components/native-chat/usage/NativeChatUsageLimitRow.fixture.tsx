@@ -9,6 +9,7 @@ import {
   type NativeChatOrcaStopView
 } from '../messages/notices/native-chat-orca-stop-context'
 import { NativeChatNoticeRow } from '../messages/notices/NativeChatNoticeRow'
+import { NativeChatAgentSwitchMenuView } from '../composer/controls/NativeChatAgentSwitchMenu'
 import { UsageLimitActionsContext, type UsageLimitActions } from './NativeChatUsageLimitActions'
 import type { NativeChatUsageLimitAutoContinueState } from './native-chat-usage-limit-auto-continue-setting'
 
@@ -27,6 +28,8 @@ type State = {
   auto?: 'off' | 'scheduled' | 'cancelled'
   account?: 'switch' | 'loading'
   handOff?: 'ready' | 'preparing' | 'none'
+  /** The host can move this chat to another agent or account in place. */
+  agentSwitch?: true
   frame?: boolean
 }
 
@@ -115,7 +118,8 @@ function UsageLimitPanes({
         ),
       disabled: state.handOff === 'preparing' || state.account === 'loading',
       preparing: state.handOff === 'preparing',
-      ...(state.handOff === 'none' ? {} : { handOff: () => {} })
+      ...(state.handOff === 'none' ? {} : { handOff: () => {} }),
+      ...(state.agentSwitch ? { agentSwitch: <SwitchNow agent={state.agent} /> } : {})
     }),
     [state]
   )
@@ -136,6 +140,23 @@ function UsageLimitPanes({
         </div>
       </UsageLimitActionsContext.Provider>
     </NativeChatOrcaStopContext.Provider>
+  )
+}
+
+function SwitchNow({ agent }: { agent: State['agent'] }): React.JSX.Element {
+  const agentSwitch = {
+    agent: agent === 'Claude' ? 'claude' : 'codex',
+    agents: ['claude', 'codex'],
+    busy: false,
+    switchTo: async () => {}
+  }
+  return (
+    <NativeChatAgentSwitchMenuView
+      control={{ target: { kind: 'local' }, choice: undefined, agentSwitch }}
+      agentSwitch={agentSwitch}
+      variant="icon"
+      accounts={null}
+    />
   )
 }
 
@@ -169,6 +190,25 @@ export const claudeSwitch = fixture({
   resetIn: 134,
   account: 'switch'
 })
+export const claudeSwitchNow = fixture({
+  agent: 'Claude',
+  window: 'session',
+  resetIn: 134,
+  account: 'switch',
+  agentSwitch: true
+})
+export const claudeSwitchNowOpen = fixture(
+  { agent: 'Claude', window: 'session', resetIn: 134, account: 'switch', agentSwitch: true },
+  {
+    widths: [600],
+    interact: async (frame) => {
+      frame
+        .querySelector('button[aria-label="Switch account or provider now"]')
+        ?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }))
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+  }
+)
 export const claudeAccountLoading = fixture({
   agent: 'Claude',
   window: 'session',

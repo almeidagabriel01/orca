@@ -26,6 +26,7 @@ import {
   type AgentSessionInstructionsReceipt
 } from './agent-session-instructions-receipt'
 import { pinAgentSessionRecordLaunchDirectory } from './agent-session-record-launch-directory'
+import { withAgentSessionHandoffGiven } from './agent-session-agent-switch-record'
 import {
   pickAgentSessionOption,
   recordAgentSessionRanOptions,
@@ -76,6 +77,7 @@ export type AgentSessionRecordCommand =
       args: WithoutRecord<typeof releaseAgentSessionOwnerAfterSurfaceClose>
     }
   | { kind: 'cancel-continue'; cut: UsageLimitContinueIdentity }
+  | { kind: 'handoff-given'; switchId: string }
   | { kind: 'skip-async-questions'; itemId: string }
   | { kind: 'last-turn'; lastTurn?: AgentSessionLastTurn }
   | { kind: 'rewind'; fence: number; rewind: AgentSessionRewindRecord }
@@ -182,6 +184,9 @@ export function applyAgentSessionRecordCommand(
       break
     case 'cancel-continue':
       next = cancelAgentSessionUsageLimitContinue(record, command.cut)
+      break
+    case 'handoff-given':
+      next = withAgentSessionHandoffGiven(record, command.switchId)
       break
     case 'skip-async-questions':
       next = { ...record, asyncQuestionsSkippedThrough: command.itemId }

@@ -45,11 +45,19 @@ function chatLineage(
 /** Every provider conversation the chat's records name, as Session History rows them. */
 function chatConversations(records: readonly AgentSessionRecord[]): DeletedChatConversation[] {
   const conversations = new Map<string, DeletedChatConversation>()
-  for (const { provider, providerHandleChain } of records) {
+  for (const { provider, providerHandleChain, retiredConversations } of records) {
     const history = structuredAgentRuntimeMetadata(provider)?.sessionHistory
     for (const link of providerHandleChain) {
       const providerSessionId = history ? history.rowSessionId(link) : link.handle.nativeId
       conversations.set(`${provider}\0${providerSessionId}`, { provider, providerSessionId })
+    }
+    for (const retired of retiredConversations ?? []) {
+      for (const providerSessionId of retired.providerSessionIds) {
+        conversations.set(`${retired.provider}\0${providerSessionId}`, {
+          provider: retired.provider,
+          providerSessionId
+        })
+      }
     }
   }
   return [...conversations.values()]

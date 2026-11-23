@@ -26,6 +26,8 @@ export const MOBILE_AGENT_SESSION_RPC_METHODS = [
   'agentSession.options',
   'agentSession.modelCatalog',
   'agentSession.conversationCommand',
+  // Switch a chat's agent or account; phones gate on agentSession.agent-switch.v1.
+  'agentSession.switchAgent',
   // Gated on the phone by agent-session.thread-goal.phone.v1.
   'agentSession.threadGoal',
   'agentSession.commands',

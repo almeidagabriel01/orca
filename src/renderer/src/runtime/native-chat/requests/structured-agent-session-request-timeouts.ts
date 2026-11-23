@@ -3,6 +3,8 @@ import { AGENT_SESSION_CONVERSATION_COMMAND_TIMEOUT_MS } from '../../../../../sh
 
 export const STRUCTURED_AGENT_SESSION_METHOD_TIMEOUT_MS: ReadonlyMap<string, number> = new Map([
   ['agentSession.conversationCommand', AGENT_SESSION_CONVERSATION_COMMAND_TIMEOUT_MS],
+  // A switch may stop the running turn and start the new agent before it answers.
+  ['agentSession.switchAgent', AGENT_SESSION_CONVERSATION_COMMAND_TIMEOUT_MS],
   // The host may start an agent at rest before rewinding it, as it does for a command.
   ['agentSession.rewind', 195_000],
   // Waiting model catalogs can take Claude’s 60s listing plus 15s account switch and 5s login environment.

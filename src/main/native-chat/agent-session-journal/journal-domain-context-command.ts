@@ -2,7 +2,8 @@ import type { JournalStopSettleFact } from './journal-writer-host-facts'
 import type { AgentJournalCursor } from '../../../shared/agent-session/journal/agent-session-journal-identity'
 import type {
   AgentJournalRenderItem,
-  AgentJournalAcceptanceReceipt
+  AgentJournalAcceptanceReceipt,
+  AgentJournalPlainStatusItem
 } from '../../../shared/agent-session/journal/agent-session-journal-types'
 import type { JournalSqlAcceptedInputs } from './journal-sql-accepted-inputs'
 import type { QueuedMessageRow } from './queued-messages/queued-message-table'
@@ -30,7 +31,12 @@ import { writeJournalDomainQueueClear } from './journal-domain-queue-clear'
 type Target = { sessionId: string; epoch: string }
 
 export type JournalDomainContextOperation =
-  | { kind: 'context-clear'; boundary: AgentSessionProviderContextBoundary }
+  | {
+      kind: 'context-clear'
+      boundary: AgentSessionProviderContextBoundary
+      /** The divider's own words in place of "Context cleared", as an agent switch writes. */
+      divider?: AgentJournalPlainStatusItem
+    }
   | JournalDomainContextReplacement
 
 export type JournalDomainContextCoordinate = {
@@ -72,14 +78,17 @@ export function applyJournalDomainContextCommand(
     throw new Error('journal context command requires its writer transaction')
   }
   return operation.kind === 'context-clear'
-    ? clearJournalDomainContext(db, target, operation.boundary, savedAt, stopSettle)
+    ? clearJournalDomainContext(db, target, operation, savedAt, stopSettle)
     : replaceJournalDomainContext(db, target, operation, savedAt, stopSettle)
 }
 
 function clearJournalDomainContext(
   db: Database.Database,
   target: Target,
-  boundary: AgentSessionProviderContextBoundary,
+  {
+    boundary,
+    divider: dividerBody
+  }: Extract<JournalDomainContextOperation, { kind: 'context-clear' }>,
   savedAt: number,
   stopSettle?: JournalStopSettleFact
 ): JournalDomainContextCommit {
@@ -91,9 +100,11 @@ function clearJournalDomainContext(
       kind: 'item',
       identity: { provider: 'orca', clientMessageId: `context-clear:${boundary.operationId}` },
       body: {
-        kind: 'status',
-        text: 'Context cleared',
-        presentation: 'context-cleared',
+        ...(dividerBody ?? {
+          kind: 'status',
+          text: 'Context cleared',
+          presentation: 'context-cleared'
+        }),
         contextClear: boundary
       },
       options: { fence, turnScope: { kind: 'thread' } }

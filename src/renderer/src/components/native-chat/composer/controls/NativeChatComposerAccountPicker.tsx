@@ -19,9 +19,23 @@ import {
   type ClaudeChatAccountRow
 } from './host-claude-chat-accounts'
 import type { NativeChatAccountControl } from '../../session/options/structured/use-structured-chat-account'
+import { NativeChatAgentSwitchMenu } from './NativeChatAgentSwitchMenu'
+
+/** The chat's account before it starts; once started, where it continues ("Continue with"). */
+export function NativeChatComposerAccountPicker({
+  control
+}: {
+  control: NativeChatAccountControl
+}): React.JSX.Element | null {
+  return control.agentSwitch ? (
+    <NativeChatAgentSwitchMenu control={control} agentSwitch={control.agentSwitch} variant="pill" />
+  ) : (
+    <NativeChatComposerAccountOnlyPicker control={control} />
+  )
+}
 
 /** Picks which of the host's accounts this chat runs on, apart from the host-wide selection. */
-export function NativeChatComposerAccountPicker({
+function NativeChatComposerAccountOnlyPicker({
   control
 }: {
   control: NativeChatAccountControl

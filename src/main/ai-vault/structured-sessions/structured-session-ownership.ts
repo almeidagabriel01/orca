@@ -29,8 +29,8 @@ import {
   historyRowOwnershipLookup
 } from './history-row-ownership-lookup'
 import { ensureStructuredAgentSessionHostUnlessRefused } from '../../runtime/agent-session/installation/structured-agent-session-host-refusal'
+import { listChatProviderSessionOwnership } from '../../native-chat/conversation-adoption/retired-conversation-ownership'
 import {
-  listStructuredProviderSessionOwnership,
   terminalResumeBlocked,
   type StructuredProviderSessionOwnership
 } from '../../native-chat/agent-session-wire/host/structured-provider-session-ownership'
@@ -160,7 +160,7 @@ function ownedRow(rowAgent: string, ownership: StructuredProviderSessionOwnershi
 }
 
 function projectedAccountHome(ownership: StructuredProviderSessionOwnership) {
-  const home = acquiredAccountHome(ownership.sessionId) ?? ownership.key.home
+  const home = acquiredAccountHome(ownership) ?? ownership.key.home
   if (!home) {
     return undefined
   }
@@ -191,10 +191,16 @@ function projectedAccountHome(ownership: StructuredProviderSessionOwnership) {
 }
 
 /** The account the host last launched this chat under, when it observed one; the founding home otherwise. */
-function acquiredAccountHome(sessionId: string): AgentSessionAccountHome | undefined {
+function acquiredAccountHome(
+  ownership: StructuredProviderSessionOwnership
+): AgentSessionAccountHome | undefined {
   const store = getStructuredAgentSessionHost()?.deps.store
-  const record = store?.getRecord(sessionId)
-  const acquired = store && record ? acquiredAgentSessionAccount(record, store.hostId) : null
+  const record = store?.getRecord(ownership.sessionId)
+  // A conversation of an agent the chat switched away from keeps the home it was written under.
+  const acquired =
+    store && record?.provider === ownership.provider
+      ? acquiredAgentSessionAccount(record, store.hostId)
+      : null
   return acquired
     ? agentSessionAccountHome(CLAUDE_STRUCTURED_AGENT, acquired.recipe.home)
     : undefined
@@ -253,7 +259,7 @@ function resumeOwnerships(
 
 function listOwnership(): StructuredProviderSessionOwnership[] {
   const host = getStructuredAgentSessionHost()
-  return host ? listStructuredProviderSessionOwnership(host.deps.store.listConversations()) : []
+  return host ? listChatProviderSessionOwnership(host.deps.store.listConversations()) : []
 }
 
 function resumesOwnedSession(

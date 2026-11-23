@@ -224,6 +224,8 @@ export function MobileNativeChatNoticeRow({
     }
     case 'divider':
       return <MobileNativeChatDivider label={copy[look.label]} />
+    case 'agent-switch':
+      return <MobileNativeChatDivider label={notice.text} />
     case 'forked-from': {
       const { sourceName, sourceSessionId } = look
       return (

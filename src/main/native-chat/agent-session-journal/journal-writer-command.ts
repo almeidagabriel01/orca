@@ -1,6 +1,9 @@
 import type { JournalForkInstall } from './journal-fork-stages'
 import type { JournalSendAdmission } from './journal-send-admission'
-import type { AgentJournalMessageItem } from '../../../shared/agent-session/journal/agent-session-journal-types'
+import type {
+  AgentJournalMessageItem,
+  AgentJournalPlainStatusItem
+} from '../../../shared/agent-session/journal/agent-session-journal-types'
 import type { AgentSessionExecutionOptions } from '../../../shared/agent-session/options/protocol/agent-session-execution-options'
 import type { AgentSessionQueuedMessageMoveAnchor } from '../../../shared/agent-session/requests/agent-session-queued-message-wire'
 import type { AgentSessionProviderContextBoundary } from '../../../shared/agent-session/conversation-context/agent-session-provider-context'
@@ -156,7 +159,12 @@ export type JournalWriterContextOperation =
       fence: number
       expectedCut: JournalRewindCut | null
     }
-  | { kind: 'context-clear'; boundary: AgentSessionProviderContextBoundary }
+  | {
+      kind: 'context-clear'
+      boundary: AgentSessionProviderContextBoundary
+      /** The divider's own words in place of "Context cleared", as an agent switch writes. */
+      divider?: AgentJournalPlainStatusItem
+    }
   | {
       kind: 'context-rewind'
       floor: AgentJournalCursor

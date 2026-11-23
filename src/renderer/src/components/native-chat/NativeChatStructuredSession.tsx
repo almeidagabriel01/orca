@@ -293,6 +293,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
                       directory={fileLinkContext}
                       messages={controller.messages}
                       view={continuation.view}
+                      chatAccount={controller.chatAccount}
                     >
                       <NativeChatHostSetupContext.Provider value={setup}>
                         <NativeChatWorkerApprovalTimeline

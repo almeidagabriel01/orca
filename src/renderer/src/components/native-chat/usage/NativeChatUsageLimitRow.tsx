@@ -340,7 +340,8 @@ function UsageLimitCard({
               {slotKey === 'tools' ? (
                 <>
                   {actions?.account ? <span className="contents">{actions.account}</span> : null}
-                  {actions?.handOff ? (
+                  {/* The in-place switch supersedes handing off to a new chat. */}
+                  {actions?.handOff && !actions.agentSwitch ? (
                     <UsageLimitToolButton
                       label={t(
                         'components.native-chat.usageLimitActions.handOff',
@@ -374,6 +375,9 @@ function UsageLimitCard({
               )}
             </UsageLimitFocusSlot>
           )}
+          {active && actions?.agentSwitch ? (
+            <span className="contents">{actions.agentSwitch}</span>
+          ) : null}
           <UsageLimitMoreMenu triggerRef={moreRef} items={moreItems} />
         </div>
       </div>

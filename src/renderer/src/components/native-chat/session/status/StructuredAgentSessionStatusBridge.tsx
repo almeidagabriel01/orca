@@ -5,6 +5,7 @@ import { getStructuredAgentSessionLaunchLifecycle } from '@/lib/agent-session/la
 import { subscribeStructuredAgentLaunchStatus } from '@/lib/agent-session/launch/structured-agent-session-launch-state-store'
 import { getStructuredAgentSessionLaunchFailedAt } from '@/lib/agent-session/launch/structured-agent-session-launch-failed-at'
 import { useAppStore } from '@/store'
+import { isTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent-config'
 import type { AppState } from '@/store/types'
 import type { StructuredChatCompanionWrite } from '@/store/slices/agent-status/structured-sessions/structured-chat-companion-writes'
 import { structuredAgentSessionTargetForHost } from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
@@ -107,6 +108,10 @@ function installStatusProjection(): () => void {
     }
     if (!current(input)) {
       return
+    }
+    const agent = input.summary?.agent
+    if (agent && agent !== tab.agentSessionAgent && isTuiAgent(agent)) {
+      writes.push({ kind: 'agent', tabId: tab.id, sessionId: tab.entityId, agent })
     }
     const latestDirectory = member.group?.feed.getSnapshot().get(tab.entityId)?.launchDirectory
     if (latestDirectory !== directory) {

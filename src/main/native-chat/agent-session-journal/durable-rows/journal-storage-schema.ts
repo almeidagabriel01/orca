@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { AgentSessionAgentSwitchMarkSchema } from '../../../../shared/agent-session/conversation-context/agent-session-agent-switch'
 import {
   AgentJournalKnownSchemas,
   AgentJournalRenderItemSchema
@@ -136,7 +137,8 @@ const block = z.discriminatedUnion('type', [
         sourceForked: z.literal(true).optional(),
         sourceMissing: z.literal(true).optional()
       })
-      .optional()
+      .optional(),
+    agentSwitch: AgentSessionAgentSwitchMarkSchema.optional()
   }),
   toolCallBlock.extend({ state: text, endedAs: text }),
   toolResultBlock.extend({

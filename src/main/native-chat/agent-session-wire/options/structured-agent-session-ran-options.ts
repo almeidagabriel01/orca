@@ -111,6 +111,7 @@ export type StructuredAgentSessionRanRecorder = (
   checkpoint?: () => void
   /** The host instructions the taken turn vouched for, by this owner; resolves whether written. */
   instructions?: (key: string, context: string) => Promise<boolean>
+  handoffGiven?: (switchId: string) => Promise<void>
 }
 
 /** Capture report identity at input to preserve early reports and avoid stale fallbacks. */
@@ -134,6 +135,18 @@ export function createStructuredAgentSessionRanRecorder(
         const child = currentChild(context, sessionId, fence)
         checkpoint = { reported: child ? childRuns.get(child)?.reported : undefined }
       },
+      /** The new agent took the turn that carried a switch's context; later turns don't repeat it. */
+      handoffGiven: (switchId: string) =>
+        context.deps.store
+          .updateRecord(sessionId, { kind: 'handoff-given', switchId })
+          .then(() => undefined)
+          .catch((error: unknown) => {
+            context.deps.logger.warn('recording a handed-off context failed', {
+              scope: 'agent-switch',
+              sessionId,
+              error
+            })
+          }),
       instructions: (key: string, instructionsContext: string) =>
         context.deps.store
           .updateRecord(sessionId, {

@@ -33,6 +33,8 @@ export type UnifiedSessionRow = {
   hasLocalSamples: boolean
   /** Sampled on a paired server; this client cannot end it. */
   readOnly?: true
+  /** The paired server that runs it, which answers for its processes; absent for this machine. */
+  environmentId?: string
 }
 
 export type UnifiedWorktreeRow = {

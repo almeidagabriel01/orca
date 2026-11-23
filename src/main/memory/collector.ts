@@ -19,6 +19,7 @@ import {
   listAgentProcessRoots,
   readAgentProcessChat
 } from './agent-process-registry'
+import { rememberSessionProcessRows } from './session-process-tree'
 import type { ProcIndex } from './process-index'
 import { recordPairedReplyParts } from './memory-snapshot-paired-reply'
 import {

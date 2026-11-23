@@ -26197,6 +26197,17 @@
     }
   },
   "resourceManager": {
+    "sessionProcesses": {
+      "copy": "Copy command",
+      "count": "×{{value0}}",
+      "failed": "Couldn't read the processes.",
+      "gone": "No running processes.",
+      "hide": "Hide processes",
+      "loading": "Reading processes…",
+      "pid": "PID {{value0}}",
+      "show": "Show processes",
+      "updateRequired": "Update Orca on this host to see its processes."
+    },
     "pty": {
       "bound": "Has tab",
       "unbound": "No tab",

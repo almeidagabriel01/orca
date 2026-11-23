@@ -13,7 +13,7 @@ import {
 export type SamplePlacement = Pick<
   UnifiedWorktreeRow,
   'worktreeId' | 'worktreeName' | 'repoId' | 'repoName' | 'isRemote' | 'hostLabel' | 'unplaced'
-> & { readOnly?: true }
+> & { readOnly?: true; environmentId?: string }
 
 /** The catalog inputs placement reads; a sample's cached rows stay valid while these keep their identity. */
 export function placementInputs(ctx: MergeContext): readonly unknown[] {
@@ -67,6 +67,7 @@ export function pairedSamplePlacement(
     repoName: (owned && ctx.repoDisplayNameById.get(repoId)) || wt.repoName,
     isRemote: true,
     hostLabel: host.hostLabel,
-    readOnly: true
+    readOnly: true,
+    environmentId: host.hostId.slice('runtime:'.length)
   }
 }

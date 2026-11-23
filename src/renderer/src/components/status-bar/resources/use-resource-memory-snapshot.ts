@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useAppStore } from '../../../store/index'
 import { isResourceViewInactive } from '../../../../../shared/diagnostics/resource-view-admission'
 
+/** How often every open Resource Manager view re-reads its hosts. */
+export const RESOURCE_POLL_MS = 2_000
+
 export function useResourceMemorySnapshot(active: boolean): () => Promise<void> {
   const lifetime = useRef<{
     active: boolean
@@ -58,7 +61,7 @@ export function useResourceMemorySnapshot(active: boolean): () => Promise<void> 
     void refresh()
     const timer = window.setInterval(() => {
       void refresh()
-    }, 2_000)
+    }, RESOURCE_POLL_MS)
     return () => {
       current.active = false
       current.epoch++

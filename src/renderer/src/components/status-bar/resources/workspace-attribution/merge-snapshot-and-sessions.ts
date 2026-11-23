@@ -70,7 +70,7 @@ export function mergeSnapshotAndSessions(
     placement: SamplePlacement,
     chats: readonly ChatAgentMemory[] | undefined = wt.chats
   ): void {
-    const { readOnly, ...rowPlacement } = placement
+    const { readOnly, environmentId, ...rowPlacement } = placement
     const sessions: UnifiedSessionRow[] = wt.sessions.map((s) => {
       seenSessionIds.add(s.sessionId)
       const tabId = index.ptyIdToTabId.get(s.sessionId) ?? null
@@ -87,7 +87,8 @@ export function mergeSnapshotAndSessions(
         cpu: s.cpu,
         memory: s.memory,
         hasLocalSamples: true,
-        ...(readOnly ? { readOnly: true } : {})
+        ...(readOnly ? { readOnly: true } : {}),
+        ...(environmentId ? { environmentId } : {})
       }
     })
     groups.appendNewRow({

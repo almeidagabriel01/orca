@@ -1,5 +1,7 @@
 import { defineMethod } from '../../core'
 import { toPairedMemoryReply } from '../../../../memory/memory-snapshot-paired-reply'
+import { DiagnosticsProcessTreeParams } from '../../../../../shared/rpc-contract/diagnostics-params'
+import { collectSessionProcessTree } from '../../../../memory/session-process-tree'
 
 export const DIAGNOSTICS_METHODS = [
   defineMethod({
@@ -13,5 +15,12 @@ export const DIAGNOSTICS_METHODS = [
         ? snapshot
         : toPairedMemoryReply(snapshot)
     }
+  }),
+  defineMethod({
+    name: 'diagnostics.processTree',
+    permission: 'workspace',
+    params: DiagnosticsProcessTreeParams,
+    handler: async ({ sessionId }, { runtime }) =>
+      collectSessionProcessTree(sessionId, () => runtime.getMemorySnapshot())
   })
 ]

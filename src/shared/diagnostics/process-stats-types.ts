@@ -95,6 +95,27 @@ export type OutsideOrcaProcessGroup = {
   processCount: number
 }
 
+/** One process under a session; command, cwd and startedAt are null where the host cannot read them. */
+export type SessionProcess = {
+  pid: number
+  ppid: number
+  /** Percent of one core. */
+  cpu: number
+  memory: number
+  command: string | null
+  cwd: string | null
+  /** Host epoch ms; compare with collectedAt, never with the reader's clock. */
+  startedAt: number | null
+}
+
+/** A session's process tree, read on request from the host's latest sweep. */
+export type SessionProcessTree = {
+  sessionId: string
+  rootPid: number
+  collectedAt: number
+  processes: SessionProcess[]
+}
+
 export type MemorySnapshot = {
   app: AppMemory
   worktrees: WorktreeMemory[]

@@ -116,6 +116,8 @@ function createWebPreloadApi(): Omit<Partial<PreloadApi>, 'settings' | 'plugins'
     },
     memory: {
       getSnapshot: () => Promise.resolve(createEmptyMemorySnapshot()),
+      // Its sessions all run on paired servers, which answer for their own processes.
+      getProcessTree: () => Promise.resolve(null),
       // The web client reads no local host, so it has nothing to warn about.
       readPerfNoticeSignals: () => Promise.resolve(null),
       countHiddenBrowserPages: () => Promise.resolve(0),

@@ -7,7 +7,7 @@ name: Fork upstream sync
 # See docs/fork-releases.md.
 
 on:
-  # GitHub keeps schedules off in a forked repo until a commit changes this cron line.
+  # In a fork GitHub keeps this off until the workflow is disabled and enabled (docs/fork-releases.md).
   schedule:
     - cron: '41 * * * *'
   workflow_dispatch:
@@ -33,6 +33,8 @@ jobs:
     timeout-minutes: 120
     env:
       GH_TOKEN: ${{ github.token }}
+      # The merge adds an `upstream` remote, which gh would otherwise pick as the repo to act on.
+      GH_REPO: ${{ github.repository }}
       ORCA_BACKGROUND_LAUNCH: '1'
       NODE_OPTIONS: --max-old-space-size=8192
     steps:
@@ -159,6 +161,21 @@ jobs:
         id: release
         if: steps.push.outcome == 'success'
         run: gh workflow run fork-release.yml --ref "$FORK_BRANCH" -f publish=true
+
+      # Installed builds read an open issue as a failed build of that version; close it once fork-main has it.
+      - name: Close the sync issue
+        if: steps.push.outcome == 'success' || steps.upstream.outputs.newer == 'false'
+        continue-on-error: true
+        env:
+          UPSTREAM: ${{ steps.upstream.outputs.upstream }}
+        run: |
+          set -euo pipefail
+          title="Sync com o Orca original falhou: v$UPSTREAM"
+          gh issue list --label "$ISSUE_LABEL" --state open --search "\"$title\" in:title" --json number,title \
+            --jq ".[] | select(.title == \"$title\") | .number" |
+            while read -r number; do
+              gh issue close "$number" --comment "Resolvido: \`$FORK_BRANCH\` mesclou upstream v$UPSTREAM e o release foi disparado."
+            done
 
       - name: Open an issue
         if: failure() && steps.upstream.outputs.newer == 'true'

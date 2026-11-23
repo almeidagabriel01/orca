@@ -37,9 +37,11 @@ On macOS the build is self-signed, and Squirrel.Mac installs only Developer ID b
 fork has a newer release, the update button reads **Download fork build** and opens the release
 page; download the DMG and drag Orca over the installed app. Nothing installs on its own.
 
-When upstream has a newer stable release that the fork has not built yet, Settings → Updates says
-"Orca X is out. The fork build is being made". If `gh` is signed in, the app also dispatches the
-sync workflow.
+When upstream has a newer stable release that the fork has not built yet, Settings → Updates and
+the update card say "Orca X is out. The fork build is being made". If the open `upstream-sync` issue
+names that version, or the latest `Fork upstream sync` or `Fork release` run failed, they say the
+fork build failed and link to it instead. If `gh` is signed in, the app also dispatches the sync
+workflow.
 
 The Linux server package updates from this repo's `latest-linux.yml` like an official one.
 
@@ -54,14 +56,18 @@ typechecks (`pnpm tc`), runs the test files the fork adds or changes, bumps to
 On a conflict or a failing check nothing is pushed or released. An issue labelled `upstream-sync`,
 titled `Sync com o Orca original falhou: vX`, lists the upstream version and commit, the
 conflicting files or the failed step, and the run link. A second failure for the same version
-comments on the open issue.
+comments on the open issue. A later run that pushes vX, or finds `fork-main` already on it, closes
+the issue. Every `gh` call acts on this repo through `GH_REPO`: the merge adds an `upstream`
+remote, which `gh` would otherwise pick.
 
 Every run also disables any active workflow other than `fork-release.yml` and `fork-sync.yml`,
 since workflows that arrive from upstream start out enabled.
 
-Schedules run only on the default branch, so `fork-main` must be the default branch. GitHub also
-keeps schedules off in a forked repo until a commit changes the `cron` line; if the hourly runs stop,
-change the minute and push.
+Schedules run only on the default branch, so `fork-main` must be the default branch. GitHub keeps
+schedules off in a fork of a public repo even while the workflow reads `active`; changing the
+`cron` line does not turn them on. Disabling and enabling the workflow does:
+`gh workflow disable fork-sync.yml && gh workflow enable fork-sync.yml`. Check with
+`gh run list --workflow fork-sync.yml --event schedule`.
 
 Each sync first re-enables `fork-release.yml` if anything disabled it, and says so in the run summary.
 

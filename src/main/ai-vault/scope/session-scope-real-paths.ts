@@ -1,17 +1,18 @@
 import { realpath } from 'node:fs/promises'
-import { isAbsolute, join } from 'node:path'
+import { isAbsolute } from 'node:path'
 import type {
   AiVaultListResult,
   AiVaultSession
 } from '../../../shared/ai-vault/contracts/ai-vault-types'
-import {
-  normalizeRuntimePathForComparison,
-  relativePathInsideRoot
-} from '../../../shared/file-access/cross-platform-path'
+import { normalizeRuntimePathForComparison } from '../../../shared/file-access/cross-platform-path'
 import { sessionFileExecutionNamespace } from '../../../shared/ai-vault/scanning/ai-vault-scope-cwd-match'
 import { parseWslUncPath } from '../../../shared/file-access/wsl-paths'
-
-type AiVaultScopeLink = { scopePath: string; realPath: string }
+import {
+  hostPathsForRecordedCwd,
+  readSessionHostPathMap,
+  recordedSpellingsForHostPath,
+  type AiVaultScopeLink
+} from './session-host-path-map'
 
 export type AiVaultScopeRealPaths = {
   /** Admit both registered spellings and resolved paths. */
@@ -21,9 +22,11 @@ export type AiVaultScopeRealPaths = {
 
 /** Resolve on the execution host so links refer to the filesystem that recorded each cwd. */
 export async function resolveAiVaultScopeRealPaths(
-  scopePaths: readonly string[]
+  scopePaths: readonly string[],
+  hostPathMap?: readonly AiVaultScopeLink[]
 ): Promise<AiVaultScopeRealPaths> {
   const links: AiVaultScopeLink[] = []
+  const mapped = hostPathMap ?? (await readSessionHostPathMap())
   for (const scopePath of scopePaths) {
     // Windows cannot resolve Linux symlinks through a WSL UNC share.
     if (!isAbsolute(scopePath) || parseWslUncPath(scopePath)) {
@@ -35,12 +38,17 @@ export async function resolveAiVaultScopeRealPaths(
     }
   }
   const scanScopePaths = [...scopePaths]
-  for (const { realPath } of links) {
-    if (!scanScopePaths.some((path) => sameComparisonPath(path, realPath))) {
-      scanScopePaths.push(realPath)
+  const recordedSpellings = [
+    ...links.map(({ realPath }) => realPath),
+    ...scopePaths.flatMap((scopePath) => recordedSpellingsForHostPath(scopePath, mapped))
+  ]
+  for (const spelling of recordedSpellings) {
+    if (!scanScopePaths.some((path) => sameComparisonPath(path, spelling))) {
+      scanScopePaths.push(spelling)
     }
   }
-  return { scanScopePaths, links }
+  // Host-wide, so project grouping places synced transcripts without a scope too.
+  return { scanScopePaths, links: [...links, ...mapped] }
 }
 
 /** Add matching-only aliases without resolving arbitrary cwds on network mounts or protected folders. */
@@ -63,7 +71,7 @@ export function attachAiVaultScopeCwdAliases(
     }
     let aliases = aliasesByCwd.get(cwd)
     if (!aliases) {
-      aliases = scopeAliasesFor(cwd, scope.links)
+      aliases = hostPathsForRecordedCwd(cwd, scope.links)
       aliasesByCwd.set(cwd, aliases)
     }
     if (aliases.length === 0) {
@@ -74,17 +82,6 @@ export function attachAiVaultScopeCwdAliases(
     sessions.push({ ...session, cwdAliases: aliases })
   }
   return changed ? { ...result, sessions } : result
-}
-
-function scopeAliasesFor(cwd: string, links: readonly AiVaultScopeLink[]): string[] {
-  const aliases: string[] = []
-  for (const { scopePath, realPath } of links) {
-    const suffix = relativePathInsideRoot(realPath, cwd)
-    if (suffix !== null) {
-      aliases.push(suffix ? join(scopePath, suffix) : scopePath)
-    }
-  }
-  return aliases
 }
 
 function sameComparisonPath(left: string, right: string): boolean {

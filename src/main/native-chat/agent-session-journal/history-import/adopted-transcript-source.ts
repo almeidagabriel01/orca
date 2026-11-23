@@ -27,6 +27,7 @@ import {
 import { grokEncodedCwdDirName } from '../../../../shared/agent-hook-listener/providers/grok/grok-session-paths'
 import { resolveNativeChatTranscriptAgent } from '../../../../shared/native-chat/native-chat-agent-support'
 import { decodeTranscriptStream } from '../../transcript-streaming/transcript-stream-lines'
+import { mappedSourceFolder } from '../../../ai-vault/scope/session-host-path-map'
 
 export type AdoptedTranscriptSource = {
   providerSessionId: string
@@ -90,6 +91,10 @@ async function adoptedSourceFolder(
   const inside = nested ? relativePathInsideRoot(workspaceCwd.trim(), cwd) : null
   if (inside) {
     return join(workspaceCwd, inside)
+  }
+  const mapped = nested ? await mappedSourceFolder(workspaceCwd, cwd) : null
+  if (mapped) {
+    return mapped
   }
   // Pi's launch compares real paths, so its adoption must agree with that compare.
   if (agent === 'pi' && (await samePiDirectory(cwd, workspaceCwd))) {

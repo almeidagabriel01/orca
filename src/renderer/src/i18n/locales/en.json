@@ -26294,7 +26294,9 @@
       "kernel": "Kernel",
       "processCount": "×{{value0}}",
       "showLess": "Show less",
-      "showMore": "Show {{count}} more"
+      "showMore": "Show {{count}} more",
+      "expand": "Expand Outside Orca",
+      "collapse": "Collapse Outside Orca"
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"

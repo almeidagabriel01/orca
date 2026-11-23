@@ -24029,13 +24029,15 @@
     },
     "status-bar": {
       "usage": {
-        "activeAccount": "Active",
         "accounts": {
           "aria": "Accounts in the status bar",
           "active": "Active account",
           "activeTooltip": "One chip per agent, for the account it runs on",
           "all": "All accounts",
-          "allTooltip": "Adds a chip for each saved Claude and Codex account Orca has read"
+          "allTooltip": "One chip and row per saved account of each agent",
+          "selected": "Selected",
+          "chipTitle": "{{provider}} · {{account}}",
+          "chipTitleSelected": "{{provider}} · {{account}} (selected)"
         }
       }
     }

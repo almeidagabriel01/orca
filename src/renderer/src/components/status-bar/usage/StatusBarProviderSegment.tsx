@@ -36,6 +36,8 @@ import { formatStatusBarSectionLabel } from './usage-pool-label'
 import { isGroupedUsagePool } from '../../../../../shared/agent-usage/display/grouped-usage-pool'
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { useNow } from '@/lib/window-activity/use-now'
+import { getAccountChipSections } from '../composition/status-bar-usage-chips'
+import { AccountChipName, AccountUsageChip } from './account-usage-chip'
 
 const CALM_STALE_USAGE_MAX_AGE_MS = 30 * 60_000
 
@@ -247,8 +249,10 @@ type ProviderSegmentProps = {
   display: UsagePercentageDisplay
   mode?: StatusBarUsageMode
   countdownActive?: boolean
-  /** Names the account when the row shows more than one account of this provider. */
+  /** With 'All accounts', the account's short name; the chip then reads as one account. */
   accountLabel?: string
+  /** The account the owning host has selected for this provider. */
+  selected?: boolean
 }
 
 /** A chip in the clipping status bar row: clipped chips stop their countdown wakes. */
@@ -267,16 +271,45 @@ export function ProviderSegment({
   display,
   mode = 'verbose',
   countdownActive = true,
-  accountLabel
+  accountLabel,
+  selected = false
+}: ProviderSegmentProps): React.JSX.Element {
+  const segment = (
+    <ProviderSegmentBody
+      p={p}
+      compact={compact}
+      display={display}
+      mode={mode}
+      countdownActive={countdownActive}
+      accountLabel={accountLabel}
+      selected={selected}
+    />
+  )
+  return accountLabel === undefined || !p ? (
+    segment
+  ) : (
+    <AccountUsageChip p={p} accountLabel={accountLabel} selected={selected} display={display}>
+      {segment}
+    </AccountUsageChip>
+  )
+}
+
+function ProviderSegmentBody({
+  p,
+  compact = false,
+  display,
+  mode = 'verbose',
+  countdownActive = true,
+  accountLabel,
+  selected = false
 }: ProviderSegmentProps): React.JSX.Element {
   const t = useTranslate()
   const provider = p?.provider ?? 'claude'
+  const isAccountChip = accountLabel !== undefined
   const icon = (
     <>
       <ProviderIcon provider={provider} />
-      {accountLabel ? (
-        <span className="max-w-24 truncate text-muted-foreground">{accountLabel}</span>
-      ) : null}
+      {isAccountChip ? <AccountChipName label={accountLabel} selected={selected} /> : null}
     </>
   )
   const usageFormat = useAppStore((state) => state.statusBarUsageFormat)
@@ -290,9 +323,11 @@ export function ProviderSegment({
       ? getUsageHeadlineSection(p, t, 'all')
       : getTightestUsageSection(p, t, 'all')
     : null
-  const sections = getStatusBarUsageSections(p, mode, t)
+  const sections =
+    isAccountChip && p ? getAccountChipSections(p, mode, t) : getStatusBarUsageSections(p, mode, t)
   const groupedBuckets = sections.map((section) => section.window).filter(isGroupedUsagePool)
-  const showLabels = mode === 'verbose' || !compact
+  // Why: an account chip's narrow form drops its window names; its tooltip still spells them out.
+  const showLabels = isAccountChip ? !compact : mode === 'verbose' || !compact
   // Why: gate only the clock, never the label, so visibility can't change width and re-trigger itself.
   const now = useResetCountdownClock(
     !countdownActive
@@ -355,7 +390,7 @@ export function ProviderSegment({
   return (
     <span className="inline-flex items-center gap-1.5">
       {icon}
-      {!template && mode === 'verbose' && tightest && !compact ? (
+      {!template && !isAccountChip && mode === 'verbose' && tightest && !compact ? (
         <MiniBar usedPct={clampUsedPercent(tightest.window.usedPercent)} display={display} />
       ) : null}
       {template ? (

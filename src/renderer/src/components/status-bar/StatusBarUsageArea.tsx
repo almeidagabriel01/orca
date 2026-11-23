@@ -72,7 +72,12 @@ export function StatusBarUsageArea({
   } = controller
   const levelMode = (level: number) =>
     USAGE_ROW_LEVELS[level]?.tightestOnly ? 'compact' : statusBarUsageMode
-  const chipFacts: UsageChipFacts[] = usageChips.map(({ id, p }) => ({
+  // Why this order: chips fold from the end, so other accounts give way before any provider's selected one.
+  const foldOrder = [
+    ...usageChips.filter((chip) => chip.accountLabel === undefined || chip.selected),
+    ...usageChips.filter((chip) => chip.accountLabel !== undefined && !chip.selected)
+  ]
+  const chipFacts: UsageChipFacts[] = foldOrder.map(({ id, p }) => ({
     id,
     urgent: isUsageUrgent(p),
     percentage: [
@@ -127,6 +132,7 @@ export function StatusBarUsageArea({
                       key={chip.id}
                       p={chip.p}
                       accountLabel={chip.accountLabel}
+                      selected={chip.selected}
                       compact={usageCompact}
                       display={usagePercentageDisplay}
                       mode={usageMode}
@@ -157,6 +163,9 @@ export function StatusBarUsageArea({
                   actionsAvailable={remoteOwner === null || remoteOwner.environmentId !== null}
                   unavailableReason={remoteOwner?.unavailableReason}
                   providers={rosterProviders}
+                  {...(usageChips.some((chip) => chip.accountLabel !== undefined)
+                    ? { accountRows: usageChips }
+                    : {})}
                   display={usagePercentageDisplay}
                   statusBarUsageMode={statusBarUsageMode}
                   onStatusBarUsageModeChange={setStatusBarUsageMode}
@@ -173,10 +182,26 @@ export function StatusBarUsageArea({
                   canSignIn={canSignInFromUsageRow}
                   onManageAccounts={handleManageAccounts}
                   onUsageDetails={handleUsageDetails}
-                  renderRow={(p, rowNode) => {
+                  renderRow={(p, rowNode, entry) => {
                     // Why: a placeholder has nothing to drill into; its row opens the host's accounts.
                     if (isOwnerNotSetUpPlaceholder(p)) {
                       return null
+                    }
+                    // Why: another account's row opens its own reading; switching stays on the selected row.
+                    if (entry.accountLabel !== undefined && !entry.selected) {
+                      return (
+                        <ProviderDetailsMenu
+                          provider={p}
+                          asSubmenu
+                          triggerContent={rowNode}
+                          variant="account"
+                          accountLabel={entry.accountLabel}
+                          ariaLabel={t(
+                            'auto.components.status.bar.UsageRosterPanel.openDetails',
+                            'Open usage details'
+                          )}
+                        />
+                      )
                     }
                     // Claude/Codex detail panels also expose account switching and runtime controls.
                     if (p.provider === 'claude') {
@@ -272,6 +297,7 @@ export function StatusBarUsageArea({
                 <ProviderSegment
                   p={chip.p}
                   accountLabel={chip.accountLabel}
+                  selected={chip.selected}
                   compact={level.compact}
                   display={usagePercentageDisplay}
                   mode={levelMode(index)}

@@ -201,6 +201,12 @@ export function getAccountChipSections(
 
 const EMPTY_ROSTER = { accounts: [], activeAccountId: null }
 
+/** This device's account snapshots, when loaded; Settings alone still names saved accounts. */
+export type LocalUsageAccountRosters = {
+  claude?: ClaudeRateLimitAccountsState
+  codex?: CodexRateLimitAccountsState
+}
+
 function readingFor(
   inactive: readonly InactiveAccountUsage[],
   usageId: string | null
@@ -268,17 +274,23 @@ function codexEntries(
 export function getOwnerUsageAccounts(
   ownerUsage: OwnerUsageRateLimits,
   settings: GlobalSettings | null,
-  t: Translate = translate
+  t: Translate = translate,
+  localRosters: LocalUsageAccountRosters = {}
 ): Partial<Record<ProviderId, UsageAccountEntry[]>> {
   const remote = ownerUsage.remoteOwner !== null
   const systemDefaultLabel = t('auto.components.status.bar.StatusBar.c676918adc', 'System default')
-  // Why: a remote owner's roster rides its own accounts snapshot; this device's lives in Settings.
+  const localCodex: CodexRateLimitAccountsState = localRosters.codex ?? EMPTY_ROSTER
+  // Why: a remote owner's roster rides its own accounts snapshot; this device's selection and
+  // names live in Settings, and its roster adds what only the host reads (System default's login).
   const claudeState = remote
     ? ownerUsage.accounts?.claude
-    : resolveClaudeStatusAccountState(settings, EMPTY_ROSTER, null)
+    : resolveClaudeStatusAccountState(settings, localRosters.claude ?? EMPTY_ROSTER, null)
   const codexState = remote
     ? ownerUsage.accounts?.codex
-    : resolveCodexStatusAccountState(settings, EMPTY_ROSTER, null)
+    : {
+        ...resolveCodexStatusAccountState(settings, localCodex, null),
+        ...(localCodex.systemDefault ? { systemDefault: localCodex.systemDefault } : {})
+      }
   const result: Partial<Record<ProviderId, UsageAccountEntry[]>> = {}
   if (claudeState?.accounts.length && !ownerUsage.accounts?.failedProviders?.includes('claude')) {
     result.claude = claudeEntries(claudeState, ownerUsage, systemDefaultLabel)
@@ -306,9 +318,15 @@ export function getOwnerUsageRowChips(args: {
   settings: GlobalSettings | null
   providers: readonly ProviderRateLimits[]
   accounts: StatusBarUsageAccounts
+  localRosters?: LocalUsageAccountRosters
   t?: Translate
 }): { usageChips: UsageRowChip[]; hasSavedAccounts: boolean } {
-  const accountsByProvider = getOwnerUsageAccounts(args.ownerUsage, args.settings, args.t)
+  const accountsByProvider = getOwnerUsageAccounts(
+    args.ownerUsage,
+    args.settings,
+    args.t,
+    args.localRosters
+  )
   return {
     usageChips: buildUsageRowChips({
       providers: args.providers,

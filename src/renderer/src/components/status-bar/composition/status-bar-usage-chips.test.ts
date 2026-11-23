@@ -189,4 +189,23 @@ describe('per-account usage rows', () => {
       ['codex', undefined, undefined, 'ok']
     ])
   })
+
+  it("names this device's selected System default login by its email", () => {
+    const { usageChips } = getOwnerUsageRowChips({
+      ownerUsage,
+      settings: { ...settings, activeClaudeManagedAccountId: null },
+      providers: [liveClaude],
+      accounts: 'all',
+      localRosters: {
+        claude: { accounts: [], activeAccountId: null, systemDefaultEmail: 'gabriel@home.dev' }
+      }
+    })
+    expect(
+      usageChips.map(({ id, accountLabel, selected }) => [id, accountLabel, selected])
+    ).toEqual([
+      ['claude', 'gabriel@home', true],
+      ['claude:work', 'Work', false],
+      ['claude:side', 'gabriel@side', false]
+    ])
+  })
 })

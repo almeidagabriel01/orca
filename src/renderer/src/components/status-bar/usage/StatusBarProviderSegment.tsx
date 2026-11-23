@@ -326,7 +326,8 @@ function ProviderSegmentBody({
   const sections =
     isAccountChip && p ? getAccountChipSections(p, mode, t) : getStatusBarUsageSections(p, mode, t)
   const groupedBuckets = sections.map((section) => section.window).filter(isGroupedUsagePool)
-  const showLabels = mode === 'verbose' || !compact
+  // Why: an account chip's narrow form drops its window names; its tooltip still spells them out.
+  const showLabels = isAccountChip ? !compact : mode === 'verbose' || !compact
   // Why: gate only the clock, never the label, so visibility can't change width and re-trigger itself.
   const now = useResetCountdownClock(
     !countdownActive

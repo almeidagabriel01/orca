@@ -6,6 +6,7 @@ import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-
 import { normalizeUsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { useStatusBarUsagePreferences } from './use-status-bar-usage-preferences'
 import { getOwnerUsageRowChips } from './status-bar-usage-chips'
+import { useLocalUsageAccountRosters } from './use-local-usage-account-rosters'
 import { isStatusBarItemAvailable } from './status-bar-agent-gating'
 import { getVisibleUsageProvider, isUsageEmptyState } from './status-bar-provider-visibility'
 import {
@@ -40,6 +41,10 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   const usageMenuFocusHandoff = useStatusBarMenuFocusHandoff()
   const statusBarVisible = useAppStore((s) => s.statusBarVisible)
   const usagePreferences = useStatusBarUsagePreferences()
+  // Why only for 'all': the rosters name each account's chip, which 'active' never shows.
+  const localRosters = useLocalUsageAccountRosters(
+    !remoteOwned && usagePreferences.statusBarUsageAccounts === 'all'
+  )
   const statusBarItems = useAppStore((s) => s.statusBarItems)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
   // Why: reuse the floating-button's unread dot so activity shows for either trigger location (see FloatingTerminalToggleButton).
@@ -236,6 +241,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     settings,
     providers: rosterProviders,
     accounts: usagePreferences.statusBarUsageAccounts,
+    localRosters,
     t
   })
 

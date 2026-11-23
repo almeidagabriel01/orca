@@ -10,7 +10,7 @@ import type {
 } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
 import { buildUsageRowChips, type UsageAccountEntry } from '../composition/status-bar-usage-chips'
-import { ProviderSegment } from './StatusBarProviderSegment'
+import { ProviderSegment, UsageOverflowChip } from './StatusBarProviderSegment'
 import { UsageRosterPanel } from './UsageRosterPanel'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
 import { UsageUnitLabel } from './usage-unit-label'
@@ -86,11 +86,19 @@ const CHIPS = buildUsageRowChips({
 
 const noop = (): void => {}
 
-function Bar({ mode, compact = false }: { mode: StatusBarUsageMode; compact?: boolean }) {
+function Bar({
+  mode,
+  compact = false,
+  shown = CHIPS.length
+}: {
+  mode: StatusBarUsageMode
+  compact?: boolean
+  shown?: number
+}) {
   return (
     <div className="flex h-[22px] items-center gap-3 whitespace-nowrap border-t border-border bg-sidebar px-2 text-xs">
       <UsageUnitLabel display="used" />
-      {CHIPS.map((chip) => (
+      {CHIPS.slice(0, shown).map((chip) => (
         <ProviderSegment
           key={chip.id}
           p={chip.p}
@@ -101,12 +109,15 @@ function Bar({ mode, compact = false }: { mode: StatusBarUsageMode; compact?: bo
           mode={mode}
         />
       ))}
+      {shown < CHIPS.length ? (
+        <UsageOverflowChip hidden={CHIPS.slice(shown)} chipCount={CHIPS.length} display="used" />
+      ) : null}
     </div>
   )
 }
 
 export const statusBar = defineFixture({
-  width: 1000,
+  width: 1240,
   render: () => (
     <div className="flex flex-col gap-2 bg-background p-3 text-xs text-muted-foreground">
       <span>Detailed</span>
@@ -115,6 +126,8 @@ export const statusBar = defineFixture({
       <Bar mode="verbose" compact />
       <span>Compact</span>
       <Bar mode="compact" compact />
+      <span>Too narrow: other accounts fold into +N first</span>
+      <Bar mode="verbose" compact shown={3} />
     </div>
   )
 })

@@ -82,6 +82,11 @@ export type UpdateInstallBlock = {
   instances: UpdateInstallBlocker[]
 }
 
+export type TeamUpdateRestart = { deadlineAt: number } & (
+  | { phase: 'ready' | 'snoozed' | 'waiting-for-agents' | 'retry-next-launch' | 'manual' }
+  | { phase: 'countdown'; countdownEndsAt: number }
+)
+
 export type UpdateStatus = (
   | { state: 'idle' }
   | { state: 'checking'; userInitiated?: boolean }
@@ -117,10 +122,12 @@ export type UpdateStatus = (
       activeNudgeId?: string
       /** Install preparation is in progress; older clients can still render downloaded. */
       installing?: boolean
+      teamRestart?: TeamUpdateRestart
     }
   | {
       state: 'error'
       message: string
+      failurePhase?: 'download' | 'install'
       /** Translation code for `message`; older hosts omit it and newer ones may send unknown codes. */
       messageCode?: string
       messageParams?: Record<string, string | number>
@@ -136,7 +143,15 @@ export type UpdateStatus = (
       /** Optional so older paired clients retain the diagnostic and install retry. */
       installBlock?: UpdateInstallBlock
     }
-) & { source?: UpdateSource; automaticDownload?: boolean }
+) & {
+  source?: UpdateSource
+  automaticDownload?: boolean
+  requiredByTeam?: boolean
+  /** Emergency requirements share the managed restart flow. */
+  requiredByOrca?: boolean
+  /** macOS desktop has staged this version for installation on a normal quit. */
+  installOnQuit?: true
+}
 
 export type ReleaseBuildListResult =
   | { ok: true; channel: ReleaseChannel; builds: ReleaseBuild[] }

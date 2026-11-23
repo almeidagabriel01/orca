@@ -20,6 +20,7 @@ import {
 import type { getResourceMemoryMetricCopy } from './resource-memory-metric-copy'
 import type { ResourceHostSummary } from './resource-host-summary'
 import { OutsideOrcaSections } from './resource-usage-outside-orca'
+import { SharedAgentProcessesRow } from './resource-usage-chat-row'
 
 export function renderResourceUsagePopoverBody(
   {
@@ -36,6 +37,8 @@ export function renderResourceUsagePopoverBody(
     toggleWorktree,
     navigateToWorktree,
     navigateToTab,
+    openChat,
+    sharedAgentUsage,
     deleteWorktree,
     handleKillSession,
     appCollapsed,
@@ -56,6 +59,8 @@ export function renderResourceUsagePopoverBody(
     toggleWorktree: (worktreeId: string) => void
     navigateToWorktree: (worktreeId: string) => void
     navigateToTab: (tabId: string, paneKey: string | null) => void
+    openChat: (worktreeId: string, agentSessionId: string, runtimeHostId?: string) => void
+    sharedAgentUsage: { cpu: number; memory: number } | null
     deleteWorktree: (worktreeId: string) => void
     handleKillSession: (session: UnifiedSessionRow) => void
     appCollapsed: boolean
@@ -65,6 +70,7 @@ export function renderResourceUsagePopoverBody(
   },
   t: Translate = translate
 ): React.JSX.Element {
+  const listsNothing = unifiedRepos.length === 0 && sharedAgentUsage === null
   return (
     <div
       ref={setPopoverBodyNode}
@@ -135,10 +141,12 @@ export function renderResourceUsagePopoverBody(
             navigateToTab={navigateToTab}
             onDelete={deleteWorktree}
             onKillSession={handleKillSession}
+            onOpenChat={openChat}
           />
         )}
+        {sharedAgentUsage && <SharedAgentProcessesRow usage={sharedAgentUsage} />}
 
-        {unifiedRepos.length === 0 && resourceSnapshot && (
+        {listsNothing && resourceSnapshot && (
           <div className="px-3 py-4 text-center text-xs text-muted-foreground">
             {t(
               'auto.components.status.bar.ResourceUsageStatusSegment.27a74f91f0',

@@ -15,12 +15,12 @@ export type ReleaseAssetPolicyChannel = 'next' | 'stable'
 
 export type ReleaseAssetPolicyParse<P> = { ok: true; policy: P } | { ok: false; error: string }
 
-/** A JSON policy published as a GitHub release asset, one release per channel. */
+/** A JSON policy published as a GitHub release asset, shared or channel-specific. */
 export type ReleaseAssetPolicySpec<P extends { revision: number }> = {
   /** Log prefix and file stem, e.g. `wsl-hosts-policy`. */
   name: string
-  /** The release tag holding the asset, e.g. `wsl-hosts-policy-stable`. */
-  releaseTag: (channel: ReleaseAssetPolicyChannel) => string
+  /** A fixed tag shares the policy and cache between stable and prerelease builds. */
+  releaseTag: string | ((channel: ReleaseAssetPolicyChannel) => string)
   assetName: string
   maxBytes: number
   parse: (text: string) => ReleaseAssetPolicyParse<P>
@@ -41,7 +41,8 @@ export function releaseAssetPolicyDownloadUrl<P extends { revision: number }>(
   spec: ReleaseAssetPolicySpec<P>,
   channel: ReleaseAssetPolicyChannel
 ): string {
-  return `https://github.com/${UPSTREAM_RELEASE_REPO}/releases/download/${spec.releaseTag(channel)}/${spec.assetName}`
+  const tag = typeof spec.releaseTag === 'string' ? spec.releaseTag : spec.releaseTag(channel)
+  return `https://github.com/${UPSTREAM_RELEASE_REPO}/releases/download/${tag}/${spec.assetName}`
 }
 
 // Shared userData must not apply a prerelease-only switch to stable builds.
@@ -49,7 +50,7 @@ export function releaseAssetPolicyCacheFileName<P extends { revision: number }>(
   spec: ReleaseAssetPolicySpec<P>,
   channel: ReleaseAssetPolicyChannel
 ): string {
-  return `${spec.name}-${channel}.json`
+  return typeof spec.releaseTag === 'string' ? `${spec.name}.json` : `${spec.name}-${channel}.json`
 }
 
 function describeError(error: unknown): string {

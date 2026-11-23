@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   parseHostMachineTotals,
-  readRuntimeHostResources
+  readRuntimeHostResources,
+  type RuntimeHostResourceCall
 } from '../../host-connections/runtime-host-resources'
 import { buildResourceHostSummaries } from './resource-host-summary'
 
@@ -24,6 +25,14 @@ const worktree = (sessions: ReturnType<typeof session>[]) => ({
   history: []
 })
 
+async function read(environmentId: string, call: RuntimeHostResourceCall) {
+  const result = await readRuntimeHostResources(environmentId, call)
+  if (!result) {
+    throw new Error('a wanted read returned nothing')
+  }
+  return result
+}
+
 const panes = {
   has: (paneKey: string) => paneKey === 'tab:agent',
   isRunningCommand: (paneKey: string) => paneKey === 'tab:command'
@@ -44,16 +53,16 @@ describe('buildResourceHostSummaries', () => {
       ]
     }
     const results = {
-      'env-b': await readRuntimeHostResources('env-b', async () => ({
+      'env-b': await read('env-b', async () => ({
         app: { cpu: 3, memory: 70, main: { cpu: 2, memory: 40 } },
         worktrees: [worktree([session('r1', 'tab:agent'), session('r2', null)])]
       })),
       // Older headless servers count only their daemon, leaving main empty.
-      'env-a': await readRuntimeHostResources('env-a', async () => ({
+      'env-a': await read('env-a', async () => ({
         app: { cpu: 1, memory: 30, main: { cpu: 0, memory: 0 } },
         worktrees: []
       })),
-      'env-c': await readRuntimeHostResources('env-c', async () => {
+      'env-c': await read('env-c', async () => {
         throw new Error('timeout')
       })
     }

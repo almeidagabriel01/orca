@@ -84,7 +84,9 @@ function WorkingArc({ className }: { className?: string }): React.JSX.Element {
   return (
     <AgentWorkingSpinner
       className={cn(
-        'border-agent-working/20 border-t-agent-working border-r-agent-working motion-reduce:border-t-agent-working',
+        // Why amber-600 in light: working yellow drops under 3:1 on white; amber-600 keeps it.
+        'border-amber-600/20 border-t-amber-600 border-r-amber-600 motion-reduce:border-t-amber-600',
+        'dark:border-agent-working/20 dark:border-t-agent-working dark:border-r-agent-working dark:motion-reduce:border-t-agent-working',
         className
       )}
     />
@@ -103,15 +105,21 @@ function SessionStateMark({ state }: { state: UsageSessionState }): React.JSX.El
 }
 
 /**
- * Glyph size inside the 16px ring box. Logos drawn on a filled tile (or taller than wide) carry
- * more visual weight and would touch the ring at 11px, so they step down to match the others.
+ * Glyph size inside the 18px ring box (14px inside its 2px stroke), leaving 2px clear around the
+ * painted logo. Logos on a filled square tile reach the ring with their corners, and taller-than-
+ * wide ones with their ends, so they step down until the corners clear it too.
  */
 const RING_ICON_SIZE: Partial<Record<string, number>> = {
-  'opencode-go': 8,
-  kimi: 10,
-  grok: 9,
-  zcode: 9,
-  cursor: 9
+  claude: 9,
+  codex: 9,
+  minimax: 7,
+  'opencode-go': 6,
+  kimi: 7,
+  antigravity: 7,
+  grok: 7,
+  zcode: 7,
+  muse: 7,
+  cursor: 7
 }
 
 /**
@@ -136,16 +144,16 @@ export function UsageActivityRing({
       data-usage-activity={activity ?? 'idle'}
       role={activity ? 'img' : undefined}
       aria-label={activity ? formatSessionCounts(sessions, t) : undefined}
-      className="relative grid size-4 shrink-0 place-items-center"
+      className="relative grid size-[18px] shrink-0 place-items-center"
     >
-      <ProviderIcon provider={provider} size={RING_ICON_SIZE[provider] ?? 11} />
+      <ProviderIcon provider={provider} size={RING_ICON_SIZE[provider] ?? 9} />
       {activity === 'working' ? (
-        <WorkingArc className="pointer-events-none absolute inset-0 border-[1.5px]" />
+        <WorkingArc className="pointer-events-none absolute inset-0 border-2" />
       ) : activity === 'waiting' ? (
         // Why a closed ring: still and whole reads apart from the turning arc, even frozen.
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-full border-[1.5px] border-foreground/45"
+          className="pointer-events-none absolute inset-0 rounded-full border-2 border-foreground/45"
         />
       ) : null}
     </span>

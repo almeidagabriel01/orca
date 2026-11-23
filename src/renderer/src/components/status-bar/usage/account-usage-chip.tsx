@@ -70,7 +70,7 @@ export function AccountUsageChip({
       data-usage-account-chip=""
       title={[heading, ...lines].join('\n')}
       onPointerEnter={() => setNow(Date.now())}
-      className="inline-flex h-[18px] items-center rounded border border-border px-1.5"
+      className="inline-flex h-5 items-center rounded border border-border px-1.5"
     >
       {children}
     </span>

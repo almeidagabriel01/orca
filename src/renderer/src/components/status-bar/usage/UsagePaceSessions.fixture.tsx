@@ -196,9 +196,12 @@ const RING_PROVIDERS = [
   'cursor'
 ] as const
 
+/** Smallest gap allowed between a painted logo and the inner edge of its ring. */
+const RING_CLEARANCE_PX = 2
+
 /**
- * Layout check: every provider glyph sits on its ring's center. interact() measures the painted
- * glyph (SVG content bbox) against the ring box and fails the shot past half a pixel.
+ * Layout check for every provider: the painted outline (points along each SVG shape, or an image
+ * tile's corners) is centered on the ring within half a pixel and stays 2px inside its stroke.
  */
 export const ringCentering = defineFixture({
   width: 560,
@@ -222,36 +225,62 @@ export const ringCentering = defineFixture({
     </div>
   ),
   interact: (frame) => {
-    const misses: string[] = []
+    const misses = new Set<string>()
     for (const box of frame.querySelectorAll<HTMLElement>('[data-usage-activity]')) {
-      const ring = box.getBoundingClientRect()
-      const svg = box.querySelector('svg')
-      let cx: number
-      let cy: number
-      if (svg) {
-        // Painted content, not the element box: a glyph off-center in its viewBox shows here.
-        const content = svg.getBBox()
-        const matrix = svg.getScreenCTM()!
-        cx = matrix.a * (content.x + content.width / 2) + matrix.e
-        cy = matrix.d * (content.y + content.height / 2) + matrix.f
-      } else {
-        const img = box.querySelector('img')
-        if (!img) {
-          continue
-        }
-        const rect = img.getBoundingClientRect()
-        cx = rect.left + rect.width / 2
-        cy = rect.top + rect.height / 2
-      }
-      const dx = cx - (ring.left + ring.width / 2)
-      const dy = cy - (ring.top + ring.height / 2)
       const name = box.closest('[data-ring-provider]')?.getAttribute('data-ring-provider')
+      const ring = box.getBoundingClientRect()
+      const cx = ring.left + ring.width / 2
+      const cy = ring.top + ring.height / 2
+      const svg = box.querySelector('svg')
+      const img = box.querySelector('img')
+      // Painted outline: points along every visible SVG shape, or an image tile's four corners.
+      const points: { x: number; y: number }[] = []
+      if (svg) {
+        for (const shape of svg.querySelectorAll<SVGGeometryElement>(
+          'path, rect, circle, ellipse, polygon, polyline, line'
+        )) {
+          // Why mask shapes count: a masked group paints only where its mask shape is.
+          if (shape.closest('[mask], clipPath, pattern')) {
+            continue
+          }
+          const m = shape.getScreenCTM()!
+          const length = shape.getTotalLength()
+          for (let i = 0; i <= 200; i++) {
+            const pt = shape.getPointAtLength((length * i) / 200)
+            points.push({ x: m.a * pt.x + m.c * pt.y + m.e, y: m.b * pt.x + m.d * pt.y + m.f })
+          }
+        }
+      } else if (img) {
+        const r = img.getBoundingClientRect()
+        points.push(
+          { x: r.left, y: r.top },
+          { x: r.right, y: r.top },
+          { x: r.left, y: r.bottom },
+          { x: r.right, y: r.bottom }
+        )
+      }
+      if (points.length === 0) {
+        continue
+      }
+      const xs = points.map((pt) => pt.x)
+      const ys = points.map((pt) => pt.y)
+      const dx = (Math.min(...xs) + Math.max(...xs)) / 2 - cx
+      const dy = (Math.min(...ys) + Math.max(...ys)) / 2 - cy
       if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-        misses.push(`${name} dx=${dx.toFixed(2)} dy=${dy.toFixed(2)}`)
+        misses.add(`${name} off center dx=${dx.toFixed(2)} dy=${dy.toFixed(2)}`)
+      }
+      const stroke = box.querySelector<HTMLElement>('.absolute')
+      if (!stroke) {
+        continue
+      }
+      const inner = ring.width / 2 - Number.parseFloat(getComputedStyle(stroke).borderTopWidth)
+      const reach = Math.max(...points.map((pt) => Math.hypot(pt.x - cx, pt.y - cy)))
+      if (inner - reach < RING_CLEARANCE_PX - 0.01) {
+        misses.add(`${name} only ${(inner - reach).toFixed(2)}px inside the ring`)
       }
     }
-    if (misses.length > 0) {
-      throw new Error(`Glyphs off their ring's center: ${[...new Set(misses)].join('; ')}`)
+    if (misses.size > 0) {
+      throw new Error(`Ring layout: ${[...misses].join('; ')}`)
     }
   }
 })

@@ -55,8 +55,18 @@ export async function fetchForkBuildPending(
   return failure ? { version, failure } : { version }
 }
 
-type ForkWorkflowRun = { conclusion?: unknown; html_url?: unknown }
-type ForkSyncIssue = { title?: unknown; html_url?: unknown }
+type ForkGitHubItem = { title?: unknown; conclusion?: unknown; htmlUrl?: unknown }
+
+function parseForkGitHubItem(value: unknown): ForkGitHubItem | null {
+  if (typeof value !== 'object' || value === null) {
+    return null
+  }
+  return {
+    title: 'title' in value ? value.title : undefined,
+    conclusion: 'conclusion' in value ? value.conclusion : undefined,
+    htmlUrl: 'html_url' in value ? value.html_url : undefined
+  }
+}
 
 /** Where the fork's build of `version` failed: its open sync issue, else the latest failed sync or release run. */
 export function findForkBuildFailure(
@@ -66,19 +76,18 @@ export function findForkBuildFailure(
   openSyncIssues: unknown
 ): ForkBuildFailure | null {
   const title = `Sync com o Orca original falhou: v${version}`
-  const issue = Array.isArray(openSyncIssues)
-    ? (openSyncIssues as ForkSyncIssue[]).find((candidate) => candidate?.title === title)
-    : undefined
-  const run = (latestRuns as (ForkWorkflowRun | undefined)[]).find(
-    (candidate) => candidate?.conclusion === 'failure'
-  )
-  const url = issue?.html_url ?? run?.html_url
-  if (!issue && !run) {
+  const issues: unknown[] = Array.isArray(openSyncIssues) ? openSyncIssues : []
+  const issue = issues.map(parseForkGitHubItem).find((item) => item?.title === title)
+  const run = latestRuns.map(parseForkGitHubItem).find((item) => item?.conclusion === 'failure')
+  const failed = issue ?? run
+  if (!failed) {
     return null
   }
+  const url = failed.htmlUrl
   // Only this fork's pages reach the UI's link.
-  const forkPages = `https://github.com/${repo}/`
-  return { url: typeof url === 'string' && url.startsWith(forkPages) ? url : null }
+  return {
+    url: typeof url === 'string' && url.startsWith(`https://github.com/${repo}/`) ? url : null
+  }
 }
 
 async function fetchForkBuildFailure(version: string): Promise<ForkBuildFailure | null> {
@@ -98,7 +107,10 @@ async function fetchForkBuildFailure(version: string): Promise<ForkBuildFailure 
     const body = await getJson(
       `actions/workflows/${workflow}/runs?branch=${FORK_SYNC_REF}&per_page=1&exclude_pull_requests=true`
     )
-    const runs = (body as { workflow_runs?: unknown } | null)?.workflow_runs
+    const runs =
+      typeof body === 'object' && body !== null && 'workflow_runs' in body
+        ? body.workflow_runs
+        : undefined
     return Array.isArray(runs) ? runs[0] : undefined
   }
   const [syncRun, releaseRun, issues] = await Promise.all([

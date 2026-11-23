@@ -1,10 +1,6 @@
-import { app, powerMonitor } from 'electron'
-import type { BrowserWindow } from 'electron'
-import {
-  MAIN_RELEASE_REPO,
-  type ReleaseBuild,
-  type ReleaseChannel
-} from '../../../shared/updater/release-channel'
+import { app, powerMonitor, type BrowserWindow } from 'electron'
+import type { ReleaseBuild, ReleaseChannel } from '../../../shared/updater/release-channel'
+import { MAIN_RELEASE_REPO } from '../../../shared/updater/release-channel'
 import type { ReleaseBuildListOptions } from '../releases/updater-release-build-cache'
 import {
   managesUpdates,

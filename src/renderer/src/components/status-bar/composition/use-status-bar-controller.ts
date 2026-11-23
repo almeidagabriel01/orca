@@ -235,9 +235,8 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     ownerUsage,
     settings,
     providers: rosterProviders,
-    shown: { claude: showClaude, codex: showCodex },
     accounts: usagePreferences.statusBarUsageAccounts,
-    activeLabel: t('components.status-bar.usage.activeAccount', 'Active')
+    t
   })
 
   // Why: the shown accounts are the owning host's; without a scope Settings opens on the default host.

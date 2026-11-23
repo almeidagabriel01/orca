@@ -68,7 +68,7 @@ export function UsageRowPreferencePickers({
               label: t('components.status-bar.usage.accounts.all', 'All accounts'),
               tooltip: t(
                 'components.status-bar.usage.accounts.allTooltip',
-                'Adds a chip for each saved Claude and Codex account Orca has read'
+                'One chip and row per saved account of each agent'
               )
             }
           ]}

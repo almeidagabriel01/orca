@@ -13,6 +13,8 @@ import { getUsageRosterRowState, type UsageRosterRowState } from './usage-roster
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
 import type { StatusBarUsageAccounts } from '../../../../../shared/status-bar/status-bar-usage-accounts'
 import { UsageRowPreferencePickers } from './UsageRowPreferencePickers'
+import { sortUsageRosterRows, type UsageRowChip } from '../composition/status-bar-usage-chips'
+import { SelectedAccountBadge } from './account-usage-chip'
 import {
   getTopScopedSection,
   getUrgentScopedSection,
@@ -38,12 +40,14 @@ function DetailMetric({
   section,
   label,
   display,
-  title
+  title,
+  reset
 }: {
   section: UsageSection
   label: string
   display: UsagePercentageDisplay
   title?: string
+  reset?: string | null
 }): React.JSX.Element {
   return (
     <span
@@ -62,6 +66,7 @@ function DetailMetric({
         display={display}
         className="text-[11px]"
       />
+      {reset ? <span className="text-[10px] text-muted-foreground">{reset}</span> : null}
     </span>
   )
 }
@@ -163,7 +168,9 @@ export function UsageRow({
   state,
   showSignInAction,
   now,
-  mode = 'verbose'
+  mode = 'verbose',
+  accountLabel,
+  selected = false
 }: {
   p: ProviderRateLimits
   display: UsagePercentageDisplay
@@ -171,6 +178,9 @@ export function UsageRow({
   showSignInAction: boolean
   now: number
   mode?: StatusBarUsageMode
+  /** With 'All accounts': the row is this account's, and each window shows its own reset. */
+  accountLabel?: string
+  selected?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
@@ -180,7 +190,9 @@ export function UsageRow({
   const plan = formatPlanLabel(p.planType)
   // Why: Detailed lists every window below, so a top-right summary would repeat one of them.
   const showDetails = hasUsage && mode === 'verbose'
-  const soonestReset = showDetails ? soonestResetLabel(sections, now, intlLocale, t) : null
+  const isAccountRow = accountLabel !== undefined
+  const soonestReset =
+    showDetails && !isAccountRow ? soonestResetLabel(sections, now, intlLocale, t) : null
 
   return (
     <div data-usage-mode={mode} className="flex min-w-0 flex-1 flex-col gap-1">
@@ -196,8 +208,10 @@ export function UsageRow({
           )}
         >
           {name}
+          {isAccountRow ? <span> · {accountLabel}</span> : null}
           {plan ? <span className="font-normal text-muted-foreground"> · {plan}</span> : null}
         </span>
+        {isAccountRow && selected ? <SelectedAccountBadge /> : null}
         {!hasUsage ? (
           <>
             <span className="min-w-0 truncate text-[11px] text-muted-foreground">
@@ -233,6 +247,11 @@ export function UsageRow({
                 label={label}
                 display={display}
                 title={formatScopedUsageTitle(p, { ...section, label }, display, t)}
+                reset={
+                  isAccountRow
+                    ? formatLocalizedResetDuration(section.window.resetsAt, now, intlLocale)
+                    : null
+                }
               />
             )
           })}
@@ -245,6 +264,7 @@ export function UsageRow({
 /** Render one usage row per provider; hosts can wrap rows with account controls or detail menus. */
 export function UsageRosterPanel({
   providers,
+  accountRows,
   display,
   statusBarUsageMode,
   onStatusBarUsageModeChange,
@@ -262,6 +282,8 @@ export function UsageRosterPanel({
   renderRow
 }: {
   providers: ProviderRateLimits[]
+  /** With 'All accounts': one row per account, grouped by provider; replaces the provider rows. */
+  accountRows?: readonly UsageRowChip[]
   display: UsagePercentageDisplay
   statusBarUsageMode: StatusBarUsageMode
   onStatusBarUsageModeChange: (mode: StatusBarUsageMode) => void
@@ -278,19 +300,15 @@ export function UsageRosterPanel({
   unavailableReason?: string
   onUsageDetails: () => void
   // Return null to use the default row instead of a host-supplied detail/account wrapper.
-  renderRow?: (p: ProviderRateLimits, row: React.ReactNode) => React.ReactNode
+  renderRow?: (p: ProviderRateLimits, row: React.ReactNode, entry: UsageRowChip) => React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
   // Why: one boundary-scheduled clock keeps every open row current without per-provider timers.
+  const rows: readonly UsageRowChip[] = accountRows ?? providers.map((p) => ({ id: p.provider, p }))
   const now = useResetCountdownClock(
-    providers.flatMap((provider) =>
-      usedSections(provider, t).map((section) => section.window.resetsAt)
-    )
+    rows.flatMap((row) => usedSections(row.p, t).map((section) => section.window.resetsAt))
   )
-  // Why primary-only: a spent Fable/MCP window must not push a healthy provider to the top.
-  const sorted = [...providers].sort(
-    (a, b) => providerPrimaryMaxUsed(b, t) - providerPrimaryMaxUsed(a, t)
-  )
+  const sorted = sortUsageRosterRows(rows, (p) => providerPrimaryMaxUsed(p, t))
 
   return (
     <div className="@container w-full text-xs">
@@ -327,7 +345,14 @@ export function UsageRosterPanel({
         <div className="px-3.5 pb-2 text-2xs text-muted-foreground">{unavailableReason}</div>
       ) : null}
       <div className="border-t border-border/70" />
-      {sorted.map((p) => {
+      {sorted.map((entry, index) => {
+        const p = entry.p
+        const key = entry.id
+        // Why: with accounts, a rule between providers keeps each provider's rows together.
+        const groupRule =
+          accountRows && index > 0 && sorted[index - 1]!.p.provider !== p.provider ? (
+            <div className="border-t border-border/50" />
+          ) : null
         const state = getUsageRosterRowState(p, usedSections(p, t).length > 0, t)
         const showSignInAction =
           actionsAvailable && state.kind === 'sign-in' && canSignIn(p.provider)
@@ -339,32 +364,37 @@ export function UsageRosterPanel({
             showSignInAction={showSignInAction}
             now={now}
             mode={statusBarUsageMode}
+            accountLabel={entry.accountLabel}
+            selected={entry.selected}
           />
         )
         if (showSignInAction) {
           return (
-            <DropdownMenuItem
-              key={p.provider}
-              onSelect={() => onSignIn(p.provider)}
-              className="w-full cursor-pointer rounded-none px-3.5 py-2.5"
-            >
-              {rowNode}
-            </DropdownMenuItem>
+            <React.Fragment key={key}>
+              {groupRule}
+              <DropdownMenuItem
+                onSelect={() => onSignIn(p.provider)}
+                className="w-full cursor-pointer rounded-none px-3.5 py-2.5"
+              >
+                {rowNode}
+              </DropdownMenuItem>
+            </React.Fragment>
           )
         }
-        const custom = actionsAvailable ? renderRow?.(p, rowNode) : null
-        if (custom) {
-          return <React.Fragment key={p.provider}>{custom}</React.Fragment>
-        }
+        const custom = actionsAvailable ? renderRow?.(p, rowNode, entry) : null
         return (
-          <DropdownMenuItem
-            key={p.provider}
-            disabled={!actionsAvailable}
-            onSelect={() => onOpenProvider(p.provider)}
-            className="w-full cursor-pointer rounded-none px-3.5 py-2.5"
-          >
-            {rowNode}
-          </DropdownMenuItem>
+          <React.Fragment key={key}>
+            {groupRule}
+            {custom ?? (
+              <DropdownMenuItem
+                disabled={!actionsAvailable}
+                onSelect={() => onOpenProvider(p.provider)}
+                className="w-full cursor-pointer rounded-none px-3.5 py-2.5"
+              >
+                {rowNode}
+              </DropdownMenuItem>
+            )}
+          </React.Fragment>
         )
       })}
       <div className="border-t border-border/70" />

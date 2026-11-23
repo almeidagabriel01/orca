@@ -46,7 +46,7 @@ export function UsageWindowMetric({
       className="flex flex-col gap-0.5"
     >
       <span className="flex items-center gap-1.5">
-        <span className="w-7 shrink-0 truncate text-[10px] text-muted-foreground">{label}</span>
+        <span className="w-11 shrink-0 truncate text-[10px] text-muted-foreground">{label}</span>
         <UsageBar
           usedPercent={section.window.usedPercent}
           display={display}
@@ -75,7 +75,7 @@ export function UsageWindowMetric({
           display={display}
           now={now}
           usedPercent={section.window.usedPercent}
-          mutedClass="pl-[34px] text-[10px] leading-4 text-muted-foreground"
+          mutedClass="pl-[50px] text-[10px] leading-4 text-muted-foreground"
         />
       ) : null}
     </div>

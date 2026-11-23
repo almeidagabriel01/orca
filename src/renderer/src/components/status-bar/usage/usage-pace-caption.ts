@@ -50,6 +50,14 @@ export const SEVERITY_FILL_CLASS: Record<UsageSeverity, string> = {
   critical: 'bg-red-500'
 }
 
+/** Delta and verdict color: running behind pace reads soft green, otherwise the severity's. */
+export function paceTextClass(usedPercent: number, pace: UsagePace): string {
+  const severity = getUsageSeverity(usedPercent, pace)
+  return severity === 'calm' && getPaceVerdict(pace.deltaPoints) === 'under'
+    ? 'text-emerald-600 dark:text-emerald-400'
+    : SEVERITY_TEXT_CLASS[severity]
+}
+
 /** The one severity a window's bar, number, delta and verdict all share. */
 export function getWindowSeverity(
   p: ProviderRateLimits,

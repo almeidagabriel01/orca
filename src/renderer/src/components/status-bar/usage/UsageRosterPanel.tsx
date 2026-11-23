@@ -20,7 +20,7 @@ import {
   getUrgentScopedSection,
   getUsageHeadlineSection,
   providerPrimaryMaxUsed,
-  shortUsageLabel,
+  windowWordLabel,
   usedSections,
   type UsageSection
 } from './usage-headline-sections'
@@ -220,7 +220,7 @@ export function UsageRow({
                 key={section.label}
                 p={p}
                 section={section}
-                label={shortUsageLabel(p, section, false, t)}
+                label={windowWordLabel(p, section, t)}
                 display={display}
                 now={now}
                 showReset={isAccountRow}

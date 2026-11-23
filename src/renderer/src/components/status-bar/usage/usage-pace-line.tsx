@@ -2,11 +2,7 @@ import React from 'react'
 import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import type { UsagePace } from '../../../../../shared/agent-usage/pace/usage-pace'
-import {
-  formatPaceDelta,
-  getPaceVerdict,
-  getUsageSeverity
-} from '../../../../../shared/agent-usage/pace/usage-pace'
+import { formatPaceDelta, getPaceVerdict } from '../../../../../shared/agent-usage/pace/usage-pace'
 import { cn } from '@/lib/class-names'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { StatusBarUsageSection } from '../composition/status-bar-usage-sections'
@@ -19,6 +15,7 @@ import {
   formatPaceVerdict,
   getReadingPace,
   getWindowSeverity,
+  paceTextClass,
   paceTickPercent,
   SEVERITY_FILL_CLASS,
   SEVERITY_TEXT_CLASS
@@ -48,9 +45,7 @@ export function PaceLine({
   return (
     <div data-usage-pace={details.tone} className={`tabular-nums ${mutedClass}`}>
       {details.expected} ·{' '}
-      <span
-        className={inverted ? undefined : SEVERITY_TEXT_CLASS[getUsageSeverity(usedPercent, pace)]}
-      >
+      <span className={inverted ? undefined : paceTextClass(usedPercent, pace)}>
         {details.verdict}
       </span>
       {details.extra.map((line) => ` · ${line}`).join('')}
@@ -80,7 +75,7 @@ export function PaceDelta({
       aria-label={formatPaceVerdict(pace, t)}
       className={cn(
         'text-[10px] tabular-nums',
-        SEVERITY_TEXT_CLASS[getUsageSeverity(usedPercent, pace)] || 'text-muted-foreground',
+        paceTextClass(usedPercent, pace) || 'text-muted-foreground',
         className
       )}
     >

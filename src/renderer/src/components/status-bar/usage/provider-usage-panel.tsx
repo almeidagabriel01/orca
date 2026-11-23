@@ -30,7 +30,6 @@ import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/d
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { recomputeOn } from '@/lib/recompute-on'
 import { ProviderExtraUsageSection } from './provider-extra-usage-section'
-import { formatWindowLabel } from './rate-limit-window-localized-label'
 import { formatPoolCardLabel } from './usage-pool-label'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { UsageBar, UsageValue } from './usage-meter'
@@ -38,7 +37,8 @@ import {
   getReadingPace,
   getWindowSeverity,
   paceTickPercent,
-  SEVERITY_FILL_CLASS
+  SEVERITY_FILL_CLASS,
+  SEVERITY_TEXT_CLASS
 } from './usage-pace-caption'
 import { PaceLine } from './usage-pace-line'
 
@@ -172,10 +172,7 @@ function getWindowSectionLabel(
         ? formatPoolCardLabel(section.window, buckets, t)
         : section.name
     case 'session':
-      // Why: name the window by its length ("5h") when known, matching the roster and status bar.
-      return section.window && section.window.windowMinutes > 0
-        ? formatWindowLabel(section.window.windowMinutes)
-        : t('auto.components.status.bar.tooltip.94038ad2fa', 'Session')
+      return t('auto.components.status.bar.tooltip.94038ad2fa', 'Session')
     case 'weekly':
       return t('auto.components.status.bar.tooltip.252c096536', 'Weekly')
     case 'fableWeekly':
@@ -230,7 +227,7 @@ function ProviderRateLimitWindowSection({
         <UsageValue
           usedPercent={window.usedPercent}
           display={usagePercentageDisplay}
-          className={`shrink-0 font-semibold ${textClass}`}
+          className={`shrink-0 font-semibold ${inverted ? textClass : SEVERITY_TEXT_CLASS[getWindowSeverity(p, window, now)] || textClass}`}
         />
       </div>
       {/* Why: fill follows the selected percentage; its color is the window's pace severity. */}

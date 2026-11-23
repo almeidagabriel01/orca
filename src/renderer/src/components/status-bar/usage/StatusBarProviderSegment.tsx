@@ -349,20 +349,22 @@ function ProviderSegmentBody({
   const isStale =
     p.status === 'error' && (!calm || calmClock - p.updatedAt > CALM_STALE_USAGE_MAX_AGE_MS)
   const showBalance = isExtraUsageActive(p)
+  // Why the first window: the bar sits beside that number, so it must show the same window.
+  const barWindow = sections[0]?.window ?? tightest?.window
   const showGroupedPools =
     mode === 'verbose' && groupedBuckets.length > 0 && groupedBuckets.length === sections.length
 
   return (
     <span className="inline-flex items-center gap-1.5">
       {icon}
-      {!template && !isAccountChip && mode === 'verbose' && tightest && !compact ? (
+      {!template && !isAccountChip && mode === 'verbose' && barWindow && !compact ? (
         // Why plain: usage is colored only inside a provider's details card, never in the status bar.
         <UsageBar
-          usedPercent={clampUsedPercent(tightest.window.usedPercent)}
+          usedPercent={clampUsedPercent(barWindow.usedPercent)}
           display={display}
           className="h-[6px] w-[48px] shrink-0"
-          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, tightest.window, now)]}
-          paceTickPercent={paceTickPercent(getReadingPace(p, tightest.window, now), display)}
+          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, barWindow, now)]}
+          paceTickPercent={paceTickPercent(getReadingPace(p, barWindow, now), display)}
         />
       ) : null}
       {template ? (

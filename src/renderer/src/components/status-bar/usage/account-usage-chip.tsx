@@ -3,7 +3,7 @@ import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { getProviderDisplayName } from '../../../../../shared/agent-usage/display/usage-provider-windows'
-import { shortUsageLabel, usedSections } from './usage-headline-sections'
+import { usedSections, windowWordLabel } from './usage-headline-sections'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
 import { formatPaceSummary, getReadingPace } from './usage-pace-caption'
@@ -52,7 +52,7 @@ export function AccountUsageChip({
   // Why read on hover: resets count down live, and a ticking clock per chip would redraw the bar.
   const [now, setNow] = React.useState<number | null>(null)
   const lines = usedSections(p, t).map((section) => {
-    const usage = `${shortUsageLabel(p, section, false, t)}: ${formatUsagePercentageLabel(section.window.usedPercent, display, t)}`
+    const usage = `${windowWordLabel(p, section, t)}: ${formatUsagePercentageLabel(section.window.usedPercent, display, t)}`
     if (now === null) {
       return usage
     }

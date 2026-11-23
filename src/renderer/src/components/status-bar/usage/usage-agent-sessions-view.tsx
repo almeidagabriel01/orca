@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { AgentStateDot, type AgentDotState } from '@/components/agent/status/AgentStateDot'
 import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
+import { ProviderIcon } from './provider-usage-panel'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { useNow } from '@/lib/window-activity/use-now'
@@ -78,11 +79,14 @@ export function getUsageActivity(sessions: readonly UsageAgentSession[]): UsageA
       : null
 }
 
-/** The turning arc on a faint track, in the theme's neutral accent: an agent is working. */
+/** Half a ring turning on a faint track, in Orca's working yellow: an agent is working. */
 function WorkingArc({ className }: { className?: string }): React.JSX.Element {
   return (
     <AgentWorkingSpinner
-      className={cn('border-primary/20 border-t-primary motion-reduce:border-t-primary', className)}
+      className={cn(
+        'border-agent-working/20 border-t-agent-working border-r-agent-working motion-reduce:border-t-agent-working',
+        className
+      )}
     />
   )
 }
@@ -91,7 +95,7 @@ function WorkingArc({ className }: { className?: string }): React.JSX.Element {
 function SessionStateMark({ state }: { state: UsageSessionState }): React.JSX.Element {
   return state === 'working' ? (
     <span className="inline-flex size-3 shrink-0 items-center justify-center">
-      <WorkingArc className="size-2.5 border-[1.5px]" />
+      <WorkingArc className="size-3 border-[1.5px]" />
     </span>
   ) : (
     <AgentStateDot state={DOT_STATE[state]} title={null} />
@@ -99,38 +103,51 @@ function SessionStateMark({ state }: { state: UsageSessionState }): React.JSX.El
 }
 
 /**
- * A thin ring around the provider icon: a turning arc while an agent works, a still closed ring
- * while one waits. Absolute, so it never changes the width the bar measured; frozen under reduced motion.
+ * Glyph size inside the 16px ring box. Logos drawn on a filled tile (or taller than wide) carry
+ * more visual weight and would touch the ring at 11px, so they step down to match the others.
+ */
+const RING_ICON_SIZE: Partial<Record<string, number>> = {
+  'opencode-go': 8,
+  kimi: 10,
+  grok: 9,
+  zcode: 9,
+  cursor: 9
+}
+
+/**
+ * The provider icon in a square box with its activity ring: half a ring turning while an agent
+ * works, a still closed ring while one waits. Box, ring and glyph share one center (grid
+ * place-items), and the box is the same size idle or busy, so the bar's measured width holds.
  */
 export function UsageActivityRing({
-  sessions,
-  children
+  provider,
+  sessions
 }: {
+  provider: string
   sessions: readonly UsageAgentSession[] | undefined
-  children: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
-  const activity = sessions ? getUsageActivity(sessions) : null
-  if (!sessions || !activity) {
-    return <>{children}</>
+  if (!sessions) {
+    return <ProviderIcon provider={provider} />
   }
+  const activity = getUsageActivity(sessions)
   return (
     <span
-      data-usage-activity={activity}
-      role="img"
-      aria-label={formatSessionCounts(sessions, t)}
-      className="relative inline-flex shrink-0"
+      data-usage-activity={activity ?? 'idle'}
+      role={activity ? 'img' : undefined}
+      aria-label={activity ? formatSessionCounts(sessions, t) : undefined}
+      className="relative grid size-4 shrink-0 place-items-center"
     >
-      {children}
+      <ProviderIcon provider={provider} size={RING_ICON_SIZE[provider] ?? 11} />
       {activity === 'working' ? (
-        <WorkingArc className="pointer-events-none absolute -inset-[2.5px] border" />
-      ) : (
+        <WorkingArc className="pointer-events-none absolute inset-0 border-[1.5px]" />
+      ) : activity === 'waiting' ? (
         // Why a closed ring: still and whole reads apart from the turning arc, even frozen.
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute -inset-[2.5px] rounded-full border border-primary/55"
+          className="pointer-events-none absolute inset-0 rounded-full border-[1.5px] border-foreground/45"
         />
-      )}
+      ) : null}
     </span>
   )
 }

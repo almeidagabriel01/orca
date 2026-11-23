@@ -15,7 +15,6 @@ import {
 import type { StatusBarUsageMode } from '../../../../../shared/status-bar/status-bar-usage-mode'
 import { formatCurrencyAmount } from '../../../../../shared/agent-usage/display/currency-format'
 import { formatCreditCount } from '../../../../../shared/agent-usage/display/credit-count-format'
-import { ProviderIcon } from './provider-usage-panel'
 import { USAGE_WARNING_PERCENT } from './usage-health-tone'
 import { UsageBar } from './usage-meter'
 import { getOwnerNotSetUpLabelParts } from '../../../../../shared/agent-usage/status-copy/owner-not-set-up-copy'
@@ -267,9 +266,7 @@ function ProviderSegmentBody({
   const isAccountChip = accountLabel !== undefined
   const icon = (
     <>
-      <UsageActivityRing sessions={sessions}>
-        <ProviderIcon provider={provider} />
-      </UsageActivityRing>
+      <UsageActivityRing provider={provider} sessions={sessions} />
       {isAccountChip ? <AccountChipName label={accountLabel} /> : null}
     </>
   )

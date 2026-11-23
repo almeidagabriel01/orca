@@ -9,7 +9,7 @@ import type {
 import { ProviderSegment } from './StatusBarProviderSegment'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
 import { UsageRow } from './UsageRosterPanel'
-import { UsageRowSessionsScope } from './usage-agent-sessions-view'
+import { UsageActivityRing, UsageRowSessionsScope } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
 
 const NOW = Date.now()
@@ -180,4 +180,78 @@ export const alertToggle = defineFixture({
       updateSettings={() => {}}
     />
   )
+})
+
+const RING_PROVIDERS = [
+  'claude',
+  'codex',
+  'gemini',
+  'opencode-go',
+  'kimi',
+  'antigravity',
+  'minimax',
+  'grok',
+  'zcode',
+  'muse',
+  'cursor'
+] as const
+
+/**
+ * Layout check: every provider glyph sits on its ring's center. interact() measures the painted
+ * glyph (SVG content bbox) against the ring box and fails the shot past half a pixel.
+ */
+export const ringCentering = defineFixture({
+  width: 560,
+  render: () => (
+    <div className="flex flex-col gap-3 bg-background p-3 text-xs">
+      {(['working', 'waiting', 'idle'] as const).map((state) => (
+        <div key={state} className="flex items-center gap-4">
+          <span className="w-14 text-muted-foreground">{state}</span>
+          {RING_PROVIDERS.map((provider) => (
+            <span key={provider} data-ring-provider={provider} className="inline-flex">
+              <UsageActivityRing
+                provider={provider}
+                sessions={
+                  state === 'idle' ? [] : [session(provider, state, provider, 'repo::/a', MIN)]
+                }
+              />
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  ),
+  interact: (frame) => {
+    const misses: string[] = []
+    for (const box of frame.querySelectorAll<HTMLElement>('[data-usage-activity]')) {
+      const ring = box.getBoundingClientRect()
+      const svg = box.querySelector('svg')
+      let cx: number
+      let cy: number
+      if (svg) {
+        // Painted content, not the element box: a glyph off-center in its viewBox shows here.
+        const content = svg.getBBox()
+        const matrix = svg.getScreenCTM()!
+        cx = matrix.a * (content.x + content.width / 2) + matrix.e
+        cy = matrix.d * (content.y + content.height / 2) + matrix.f
+      } else {
+        const img = box.querySelector('img')
+        if (!img) {
+          continue
+        }
+        const rect = img.getBoundingClientRect()
+        cx = rect.left + rect.width / 2
+        cy = rect.top + rect.height / 2
+      }
+      const dx = cx - (ring.left + ring.width / 2)
+      const dy = cy - (ring.top + ring.height / 2)
+      const name = box.closest('[data-ring-provider]')?.getAttribute('data-ring-provider')
+      if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+        misses.push(`${name} dx=${dx.toFixed(2)} dy=${dy.toFixed(2)}`)
+      }
+    }
+    if (misses.length > 0) {
+      throw new Error(`Glyphs off their ring's center: ${[...new Set(misses)].join('; ')}`)
+    }
+  }
 })

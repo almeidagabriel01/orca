@@ -6,7 +6,6 @@ import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCo
 import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
-import { ProviderIcon } from './provider-usage-panel'
 import { getProviderDisplayName } from '../../../../../shared/agent-usage/display/usage-provider-windows'
 import { formatPlanLabel } from './usage-roster-formatting'
 import { getUsageRosterRowState, type UsageRosterRowState } from './usage-roster-row-state'
@@ -172,9 +171,7 @@ export function UsageRow({
     <div data-usage-mode={mode} className="flex min-w-0 flex-1 flex-col gap-1">
       <div className="flex items-center gap-2.5">
         <span className="flex size-5 shrink-0 items-center justify-center rounded-md border border-border bg-secondary">
-          <UsageActivityRing sessions={sessions}>
-            <ProviderIcon provider={p.provider} />
-          </UsageActivityRing>
+          <UsageActivityRing provider={p.provider} sessions={sessions} />
         </span>
         <span
           className={cn(

@@ -14,6 +14,8 @@ import {
 } from './updater-release-delay'
 import { listMainRepoReleaseBuildsUntil } from './updater-release-builds'
 import { MAIN_RELEASE_REPO, type ReleaseBuild } from '../../../shared/updater/release-channel'
+import { FORK_RELEASE_REPO } from '../../../shared/updater/fork-release-repo'
+import { isForkAppVersion } from '../../../shared/app-lifecycle/identity/app-version'
 
 const ATOM_FEED_URL = `https://github.com/${MAIN_RELEASE_REPO}/releases.atom`
 const RELEASE_TAG_PATH = `/${MAIN_RELEASE_REPO}/releases/tag/`
@@ -66,7 +68,8 @@ async function fetchReleaseFeedTags(): Promise<ReleaseFeedTag[] | null> {
         continue
       }
       const version = normalizeTagToVersion(tag)
-      if (isValidVersion(version)) {
+      // A fork's feed also lists upstream's mirrored tags, which have no fork build behind them.
+      if (isValidVersion(version) && (!FORK_RELEASE_REPO || isForkAppVersion(version))) {
         const releasedAt = Date.parse(entry[1].match(ENTRY_UPDATED_RE)?.[1] ?? '')
         tags.push({ tag, version, releasedAt: Number.isNaN(releasedAt) ? null : releasedAt })
       }

@@ -36,6 +36,11 @@ export function isPrereleaseAppVersion(value: string): boolean {
   return parsed !== null && releaseRank(parsed.prerelease) === 0
 }
 
+export function isForkAppVersion(value: string): boolean {
+  const parsed = parseVersion(value)
+  return parsed !== null && releaseRank(parsed.prerelease) === 2
+}
+
 /** 0 prerelease, 1 release, 2 fork build: `X.Y.Z-fork.N` ships on top of upstream X.Y.Z, not before it. */
 function releaseRank(prerelease: string[]): number {
   return prerelease.length === 0 ? 1 : prerelease[0] === 'fork' ? 2 : 0

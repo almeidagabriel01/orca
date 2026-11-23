@@ -7,8 +7,9 @@ name: Fork upstream sync
 # See docs/fork-releases.md.
 
 on:
+  # GitHub keeps schedules off in a forked repo until a commit changes this cron line.
   schedule:
-    - cron: '23 * * * *'
+    - cron: '41 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -35,6 +36,17 @@ jobs:
       ORCA_BACKGROUND_LAUNCH: '1'
       NODE_OPTIONS: --max-old-space-size=8192
     steps:
+      # Something outside these workflows has disabled the release more than once; a sync must still publish.
+      - name: Keep the fork release enabled
+        run: |
+          set -euo pipefail
+          state="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/fork-release.yml" --jq .state)"
+          if [[ "$state" != active ]]; then
+            gh workflow enable fork-release.yml --repo "$GITHUB_REPOSITORY"
+            echo "::warning::fork-release.yml was $state; re-enabled it."
+            echo "Re-enabled \`fork-release.yml\`, which was \`$state\`." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - uses: actions/checkout@v6
         with:
           ref: ${{ env.FORK_BRANCH }}

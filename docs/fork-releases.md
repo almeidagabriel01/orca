@@ -59,7 +59,11 @@ comments on the open issue.
 Every run also disables any active workflow other than `fork-release.yml` and `fork-sync.yml`,
 since workflows that arrive from upstream start out enabled.
 
-Schedules run only on the default branch, so `fork-main` must be the default branch.
+Schedules run only on the default branch, so `fork-main` must be the default branch. GitHub also
+keeps schedules off in a forked repo until a commit changes the `cron` line; if the hourly runs stop,
+change the minute and push.
+
+Each sync first re-enables `fork-release.yml` if anything disabled it, and says so in the run summary.
 
 ## GitHub secrets
 

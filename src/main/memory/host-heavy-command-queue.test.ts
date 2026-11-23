@@ -3,7 +3,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { Repo } from '../../shared/repository/repo-types'
-import { attributeHeavyQueueWorkspaces, readHeavyCommandQueue } from './host-heavy-command-queue'
+import {
+  attributeHeavyQueueWorkspaces,
+  parseHeavyQueueListing,
+  readHeavyCommandQueue
+} from './host-heavy-command-queue'
 import type { MemorySnapshotStore } from './memory-snapshot-buckets'
 
 let home: string
@@ -140,6 +144,7 @@ describe('parseHeavyQueueListing', () => {
           status: 'waiting',
           slot: 0,
           position: 1,
+          ordered: true,
           direct: false,
           queuedAt: 3,
           startedAt: null,
@@ -162,17 +167,18 @@ describe('parseHeavyQueueListing', () => {
     expect(v2?.controls).toBe(true)
     expect(v2?.slots).toBe(3)
     expect(
-      v2?.jobs.map(({ pid, slot, position, direct, extra }) => ({
+      v2?.jobs.map(({ pid, slot, position, ordered, direct, extra }) => ({
         pid,
         slot,
         position,
+        ordered,
         direct,
         extra
       }))
     ).toEqual([
-      { pid: 5, slot: null, position: null, direct: false, extra: true },
-      { pid: 6, slot: null, position: 1, direct: false, extra: false },
-      { pid: 7, slot: null, position: null, direct: true, extra: false }
+      { pid: 5, slot: null, position: null, ordered: false, direct: false, extra: true },
+      { pid: 6, slot: null, position: 1, ordered: true, direct: false, extra: false },
+      { pid: 7, slot: null, position: null, ordered: false, direct: true, extra: false }
     ])
     expect(parseHeavyQueueListing([])).toEqual({ jobs: [], slots: null, controls: false })
     expect(parseHeavyQueueListing({ version: 1, jobs: [] })).toBeNull()
@@ -197,6 +203,7 @@ describe('attributeHeavyQueueWorkspaces', () => {
       status: 'waiting' as const,
       slot: null,
       position: 1,
+      ordered: true,
       direct: false,
       extra: false,
       queuedAt: 0,
@@ -209,6 +216,7 @@ describe('attributeHeavyQueueWorkspaces', () => {
       {
         readAt: 0,
         slots: 1,
+        controls: false,
         jobs: [job('/w/app/trees/fix/src'), job('/w/app'), job('/w/far'), job('/w/apple')]
       },
       store

@@ -16,6 +16,7 @@ const job = (pid: number, fields: Partial<HeavyCommandJob>): HeavyCommandJob => 
   status: 'waiting',
   slot: null,
   position: null,
+  ordered: false,
   direct: false,
   extra: false,
   queuedAt: NOW - MIN,
@@ -84,18 +85,21 @@ const busyQueue: HeavyCommandQueue = {
     }),
     job(104, {
       position: 1,
+      ordered: true,
       queuedAt: NOW - 38 * MIN,
       workspace: workspace('orca', 'hydra'),
       command: 'timeout 1500 pnpm check:changed --base=fork/fork-main --maxWorkers=2'
     }),
     job(105, {
       position: 2,
+      ordered: true,
       queuedAt: NOW - 27 * MIN,
       workspace: workspace('orca', 'snakehead'),
       command: 'timeout 600 pnpm fixtures:shot status-bar/usage/UsagePaceSessions --theme both'
     }),
     job(106, {
       position: 3,
+      ordered: true,
       queuedAt: NOW - 8 * MIN,
       cwd: '/home/dev/projects/site/apps/web',
       command: 'pnpm test:e2e e2e/safe-area-landscape.spec.ts'

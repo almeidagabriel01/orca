@@ -67,6 +67,7 @@ export function parseHeavyQueueJob(value: unknown): HeavyCommandJob | null {
     // The wrapper writes slot 0 while it waits.
     slot: running && isPositiveInteger(slot) ? slot : null,
     position: !running && isPositiveInteger(value.position) ? value.position : null,
+    ordered: !running && value.ordered === true,
     direct: value.direct === true,
     extra: running && value.extra === true,
     queuedAt: queuedAt * 1000,

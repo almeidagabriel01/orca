@@ -7,6 +7,7 @@ const job = (pid: number, fields: Partial<HeavyCommandJob>): HeavyCommandJob => 
   status: 'waiting',
   slot: null,
   position: null,
+  ordered: false,
   direct: false,
   extra: false,
   queuedAt: 0,
@@ -23,7 +24,7 @@ describe('buildHeavyQueueView', () => {
       slots: 2,
       controls: true,
       jobs: [
-        job(1, { status: 'waiting', position: 2, queuedAt: 10_000 }),
+        job(1, { status: 'waiting', position: 2, ordered: true, queuedAt: 10_000 }),
         job(2, { status: 'running', extra: true, queuedAt: 50_000, startedAt: 90_000 }),
         job(3, { status: 'waiting', direct: true, queuedAt: 1_000 }),
         job(4, { status: 'running', slot: 2, queuedAt: 5_000, startedAt: 40_000 }),
@@ -31,6 +32,7 @@ describe('buildHeavyQueueView', () => {
         job(6, {
           status: 'waiting',
           position: 1,
+          ordered: true,
           queuedAt: 20_000,
           workspace: { worktreeId: 'w', worktreeName: 'fix', repoName: 'app' }
         })
@@ -54,8 +56,8 @@ describe('buildHeavyQueueView', () => {
 
   it('offers only the moves the order allows, and none without controls', () => {
     const jobs = [
-      job(1, { position: 1 }),
-      job(2, { position: 2 }),
+      job(1, { position: 1, ordered: true }),
+      job(2, { position: 2, ordered: true }),
       job(3, { direct: true, queuedAt: 5 })
     ]
     const can = buildHeavyQueueView({ readAt: 0, slots: 1, controls: true, jobs }).waiting.map(

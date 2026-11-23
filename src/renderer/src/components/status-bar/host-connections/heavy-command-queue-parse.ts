@@ -59,6 +59,7 @@ function parseJob(value: unknown): HeavyCommandJob | null {
     status,
     slot: running ? positiveInteger(value.slot) : null,
     position: running ? null : positiveInteger(value.position),
+    ordered: !running && value.ordered === true,
     direct: value.direct === true,
     extra: running && value.extra === true,
     queuedAt,

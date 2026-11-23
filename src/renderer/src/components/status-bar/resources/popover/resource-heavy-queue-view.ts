@@ -73,8 +73,8 @@ function byWaitingOrder(a: HeavyCommandJob, b: HeavyCommandJob): number {
 export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
   const running = queue.jobs.filter((job) => job.status === 'running').sort(byRunningOrder)
   const waiting = queue.jobs.filter((job) => job.status === 'waiting').sort(byWaitingOrder)
-  // Only jobs in the host's order move; a direct flock user grabs slot 1 on its own.
-  const orderable = waiting.filter((job) => queue.controls && !job.direct && job.position !== null)
+  // Only jobs in the host's order move; direct flock users and older waiters take slots on their own.
+  const orderable = waiting.filter((job) => queue.controls && job.ordered)
   const first = orderable[0]
   const last = orderable.at(-1)
   return {

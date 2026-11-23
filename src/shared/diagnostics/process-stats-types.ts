@@ -105,6 +105,8 @@ export type HeavyCommandJob = {
   slot: number | null
   /** 1-based place among the waiting; null while running or when the host does not order its queue. */
   position: number | null
+  /** Waits in the host's order, so it can move and start now; direct flock users and older waiters cannot. */
+  ordered: boolean
   /** Holds the lock through `flock` directly, outside the queue's order. */
   direct: boolean
   /** Started now in a temporary slot beyond the host's slots. */

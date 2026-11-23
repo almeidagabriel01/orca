@@ -49,7 +49,7 @@ export type CliAgentLaunch = {
   surface?: AgentLaunchSurface
 }
 
-function readSurfaceFlag(flags: Flags): AgentLaunchSurface | undefined {
+export function readSurfaceFlag(flags: Flags): AgentLaunchSurface | undefined {
   if (!flags.has('surface')) {
     return undefined
   }

@@ -5,7 +5,11 @@ import { getOptionalStringFlag, getPresentStringFlag } from '../../arguments/fla
 import { RuntimeClientError } from '../../runtime/connection/types'
 import type { RuntimeClient } from '../../runtime/client'
 import type { RuntimeStatus } from '../../../shared/remote-runtime/session-graph/runtime-session-contracts'
-import { ORCHESTRATION_WORKER_LAUNCH_PREFERENCES_RUNTIME_CAPABILITY } from '../../../shared/orchestration/orchestration-runtime-capabilities'
+import {
+  ORCHESTRATION_WORKER_LAUNCH_PREFERENCES_RUNTIME_CAPABILITY,
+  ORCHESTRATION_WORKER_SURFACE_RUNTIME_CAPABILITY
+} from '../../../shared/orchestration/orchestration-runtime-capabilities'
+import { readSurfaceFlag } from '../../agents/agent-launch-request'
 import { callOrchestrationMutation } from '../recovery/mutation-request'
 import { getOptionalPositiveIntegerValueFlag } from '../numeric-flags'
 import { isDevCliInvocation } from '../recovery/runtime-compatibility'
@@ -34,8 +38,20 @@ export const ORCHESTRATION_WORKER_LAUNCH_HANDLER: Record<string, CommandHandler>
     const terminal = getPresentStringFlag(flags, 'terminal')
     const model = getOptionalStringFlag(flags, 'model')
     const effort = getOptionalStringFlag(flags, 'effort')
-    if (model || effort) {
-      const status = await client.call<RuntimeStatus>('status.get')
+    const surface = readSurfaceFlag(flags)
+    const status =
+      model || effort || surface ? await client.call<RuntimeStatus>('status.get') : undefined
+    // An older host drops an unknown surface and follows its own setting.
+    if (
+      surface &&
+      !status?.result.capabilities?.includes(ORCHESTRATION_WORKER_SURFACE_RUNTIME_CAPABILITY)
+    ) {
+      throw new RuntimeClientError(
+        'incompatible_runtime',
+        'The connected Orca runtime cannot start a worker as a chat or a terminal on request. Update Orca on that host, or omit --surface.'
+      )
+    }
+    if (status && (model || effort)) {
       if (
         !status.result.capabilities?.includes(
           ORCHESTRATION_WORKER_LAUNCH_PREFERENCES_RUNTIME_CAPABILITY
@@ -74,6 +90,7 @@ export const ORCHESTRATION_WORKER_LAUNCH_HANDLER: Record<string, CommandHandler>
       agent: getOptionalStringFlag(flags, 'agent'),
       model,
       effort,
+      ...(surface ? { surface } : {}),
       terminal,
       retryOf: getOptionalStringFlag(flags, 'retry-of'),
       timeoutMs: getOptionalPositiveIntegerValueFlag(flags, 'timeout-ms'),

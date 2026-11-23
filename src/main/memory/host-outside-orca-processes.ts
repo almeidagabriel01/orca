@@ -10,16 +10,31 @@ const MAX_GROUP_NAME_CHARS = 64
 // First match is the outermost bundle, so nested helper apps fold into their app.
 const APP_BUNDLE = /\/([^/]+)\.app\//
 const CONTAINER_ID = /(?:docker|containerd|libpod|crio|kubepods)\S*?([0-9a-f]{64})/
-// Linux PTYs run in their own systemd scopes, so reparented descendants still carry this marker.
-const ORCA_PTY_CGROUP = 'orca_pty'
+// Orca's systemd units (serve service, daemon and PTY scopes) keep detached and reparented children.
+const ORCA_CGROUP_LEAF = /orca[^/,]*(?:,|$)/i
+
+function isOrcaCgroup(row: ProcRow, platform: NodeJS.Platform): boolean {
+  return (
+    platform === 'linux' &&
+    row.command !== undefined &&
+    ORCA_CGROUP_LEAF.test(splitLinuxCommand(row.command).cgroup)
+  )
+}
 
 /** Rows outside Orca's own process trees; null when the sweep carried no command columns. */
 export function listOutsideOrcaRows(
   index: Pick<ProcIndex, 'byPid' | 'childrenOf'>,
-  orcaRootPids: Iterable<number | null | undefined>
+  orcaRootPids: Iterable<number | null | undefined>,
+  platform: NodeJS.Platform
 ): ProcRow[] | null {
+  const roots = [...orcaRootPids]
+  for (const row of index.byPid.values()) {
+    if (isOrcaCgroup(row, platform)) {
+      roots.push(row.pid)
+    }
+  }
   const orca = new Set<number>()
-  for (const root of orcaRootPids) {
+  for (const root of roots) {
     if (root != null) {
       for (const pid of collectSubtree(index, root, orca)) {
         orca.add(pid)
@@ -52,17 +67,13 @@ function groupOf(
   row: ProcRow,
   platform: NodeJS.Platform,
   containerNames: ReadonlyMap<string, string> | null
-): Pick<OutsideOrcaProcessGroup, 'kind' | 'name'> | null {
+): Pick<OutsideOrcaProcessGroup, 'kind' | 'name'> {
   const command = row.command ?? ''
   if (platform === 'darwin') {
     const bundle = APP_BUNDLE.exec(command)?.[1]
     return bundle
       ? { kind: 'app', name: bundle }
       : { kind: 'command', name: executableBasename(command) ?? '?' }
-  }
-  const { cgroup, comm } = splitLinuxCommand(command)
-  if (cgroup.includes(ORCA_PTY_CGROUP)) {
-    return null
   }
   if (row.pid === 2 || row.ppid === 2) {
     return { kind: 'kernel', name: 'kernel' }
@@ -71,7 +82,7 @@ function groupOf(
   if (containerId) {
     return { kind: 'container', name: containerNames?.get(containerId) ?? containerId.slice(0, 12) }
   }
-  return { kind: 'command', name: executableBasename(comm) ?? '?' }
+  return { kind: 'command', name: executableBasename(splitLinuxCommand(command).comm) ?? '?' }
 }
 
 /** Folds outside rows into groups and keeps the leaders by CPU and by memory. */
@@ -83,9 +94,6 @@ export function groupOutsideOrcaProcesses(
   const groups = new Map<string, OutsideOrcaProcessGroup>()
   for (const row of rows) {
     const group = groupOf(row, platform, containerNames)
-    if (!group) {
-      continue
-    }
     const name = group.name.slice(0, MAX_GROUP_NAME_CHARS)
     const key = `${group.kind}:${name}`
     const existing = groups.get(key)
@@ -135,7 +143,7 @@ export async function collectOutsideOrcaProcesses(
   orcaRootPids: Iterable<number | null | undefined>,
   platform: NodeJS.Platform = os.platform()
 ): Promise<OutsideOrcaProcessGroup[] | undefined> {
-  const rows = listOutsideOrcaRows(index, orcaRootPids)
+  const rows = listOutsideOrcaRows(index, orcaRootPids, platform)
   if (!rows) {
     return undefined
   }

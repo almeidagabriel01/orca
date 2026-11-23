@@ -28,7 +28,7 @@ describe('processes outside Orca', () => {
       ' 23  22 50.0   512 node',
       ' 30   1  0.5   256 /Users/me/Secret Tools/postgres'
     ].join('\n')
-    const rows = listOutsideOrcaRows(index(ps), [20, null])
+    const rows = listOutsideOrcaRows(index(ps), [20, null], 'darwin')
     const groups = byName(groupOutsideOrcaProcesses(rows ?? [], 'darwin', null))
     expect(Object.keys(groups).sort()).toEqual(['Google Chrome', 'launchd', 'postgres'])
     expect(groups['Google Chrome']).toEqual({
@@ -41,7 +41,7 @@ describe('processes outside Orca', () => {
     expect(groups.postgres.kind).toBe('command')
   })
 
-  it('folds Linux container cgroups into named containers and skips Orca PTY scopes', () => {
+  it('folds Linux containers by cgroup and skips Orca units with their reparented children', () => {
     const pad = ' '.repeat(40)
     const ps = [
       `    1     0  0.1 10436 0::/init.scope${pad}systemd`,
@@ -52,11 +52,13 @@ describe('processes outside Orca', () => {
       `  201   200  3.0  2000 0::/system.slice/docker-${HARVEY}.scope${pad}gunicorn`,
       `  300   100  1.0   500 12:pids:/docker/${SCRAPER},11:memory:/docker/${SCRAPER}${pad}chrome`,
       `  400     1  0.0   100 0::/user.slice/orca_pty_orca_daemon_x_2.scope${pad}claude`,
+      `  401   400  9.0  9000 0::/user.slice/app.slice/app-com.google.Chrome-401.scope${pad}chrome`,
+      `  450     1  2.0  2000 0::/user.slice/app.slice/orca-serve.service${pad}chrome`,
       `  500     1  7.0  3000 0::/user.slice/user@1000.service/app.slice${pad}orca-ide`,
       `  501   500  0.0   100 0::/user.slice/user@1000.service/app.slice${pad}ps`,
       `  600     1  4.0   700 0::/user.slice/session-1.scope${pad}Web Content`
     ].join('\n')
-    const rows = listOutsideOrcaRows(index(ps), [500])
+    const rows = listOutsideOrcaRows(index(ps), [500], 'linux')
     const names = parseDockerContainerNames(`${HARVEY} harvey-harvey-1\nnot a row\n`)
     const groups = byName(groupOutsideOrcaProcesses(rows ?? [], 'linux', names))
     expect(Object.keys(groups).sort()).toEqual([
@@ -79,6 +81,6 @@ describe('processes outside Orca', () => {
 
   it('reports nothing when the sweep had no command columns', () => {
     const rows = buildProcessIndex(parsePsOutput('  1  0  0.0  1024\n'), null, 'rss')
-    expect(listOutsideOrcaRows(rows, [])).toBeNull()
+    expect(listOutsideOrcaRows(rows, [], 'linux')).toBeNull()
   })
 })

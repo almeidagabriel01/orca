@@ -131,7 +131,30 @@ export const hostsSummary = defineFixture({
           disk: { used: 210 * GIB, total: 460 * GIB },
           loadAverage: [2.41, 1.97, 1.62],
           outsideOrca: null,
-          heavyQueue: null
+          heavyQueue: {
+            readAt: 0,
+            slots: 2,
+            controls: true,
+            jobs: [
+              { status: 'running', slot: 1 },
+              { status: 'running', slot: 2 },
+              { status: 'waiting', slot: null },
+              { status: 'waiting', slot: null },
+              { status: 'waiting', slot: null }
+            ].map((job, index) => ({
+              ...job,
+              pid: index + 1,
+              status: job.status === 'running' ? ('running' as const) : ('waiting' as const),
+              position: job.slot === null ? index - 1 : null,
+              ordered: job.slot === null,
+              direct: false,
+              extra: false,
+              queuedAt: 0,
+              startedAt: null,
+              cwd: '/',
+              command: 'pnpm test'
+            }))
+          }
         },
         counts: { terminals: 5, agents: 2, commands: 1 },
         notice: null

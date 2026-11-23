@@ -5,6 +5,14 @@ export const FLAG_HELP_TEXT: Record<string, string> = {
     '--external-worktree-visibility show|hide|inherit  Override or inherit non-Orca worktree visibility',
   'browser-profile':
     '--browser-profile <id>|inherit  Browser profile for new tabs in this repo, or inherit the Browser setting',
+  'default-agent':
+    "--default-agent <agent>|blank|inherit  Agent new work in this project starts, or inherit the host's",
+  'default-model':
+    '--default-model <agent>=<model>|inherit  Project model for an agent (repeatable); inherit clears',
+  'default-effort':
+    '--default-effort <agent>=<level>|inherit  Project reasoning effort for an agent (repeatable); inherit clears',
+  'default-account':
+    '--default-account <account>|system|host|inherit  Claude account new chats in this project start on',
   agent: '--agent <id>          Launch a known TUI agent in the first terminal',
   'agent-wait': "--agent-wait           Add each agent row's terminal wait verdict to JSON output",
   'base-branch': '--base-branch <ref>    Base branch/ref to create the worktree from',

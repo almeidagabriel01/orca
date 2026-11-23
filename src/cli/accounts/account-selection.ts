@@ -253,7 +253,7 @@ function resolveAccountId(
   return resolveSavedAccountId(label, accounts, query)
 }
 
-function resolveSavedAccountId(
+export function resolveSavedAccountId(
   label: string,
   accounts: readonly AccountChoice[],
   query: string

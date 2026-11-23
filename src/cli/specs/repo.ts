@@ -23,22 +23,40 @@ export const REPO_COMMAND_SPECS: CommandSpec[] = [
     path: ['repo', 'show'],
     summary: 'Show one registered repo',
     usage: 'orca repo show --repo <selector> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'repo']
+    allowedFlags: [...GLOBAL_FLAGS, 'repo'],
+    notes: [
+      "agentLaunchDefaults is the project's agent defaults (null when every one follows the host): defaultTuiAgent, agentLaunchChoices.<agent>.model and .options.effort, and agentAccounts.claude."
+    ]
   },
   {
     path: ['repo', 'set'],
-    summary: "Set a repo's non-Orca worktree visibility or browser profile",
+    summary: "Set a repo's non-Orca worktree visibility, browser profile, or agent defaults",
     usage:
-      'orca repo set --repo <selector> [--external-worktree-visibility show|hide|inherit] [--browser-profile <id>|inherit] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'repo', 'external-worktree-visibility', 'browser-profile'],
+      'orca repo set --repo <selector> [--external-worktree-visibility show|hide|inherit] [--browser-profile <id>|inherit] [--default-agent <agent>|blank|inherit] [--default-model <agent>=<model>|<agent>=inherit|inherit]... [--default-effort <agent>=<level>|<agent>=inherit|inherit]... [--default-account <account>|system|host|inherit] [--json]',
+    allowedFlags: [
+      ...GLOBAL_FLAGS,
+      'repo',
+      'external-worktree-visibility',
+      'browser-profile',
+      'default-agent',
+      'default-model',
+      'default-effort',
+      'default-account'
+    ],
+    repeatableFlags: ['default-model', 'default-effort'],
     notes: [
       'show and hide override the global non-Orca worktree visibility default for this repo; inherit clears the override.',
       'Per-worktree visibility rules still apply.',
-      "--browser-profile picks the profile new browser tabs in this repo use, overriding the Browser setting's profile for new tabs; inherit clears it. Ids come from `orca tab profile list`; `default` is the Default profile."
+      "--browser-profile picks the profile new browser tabs in this repo use, overriding the Browser setting's profile for new tabs; inherit clears it. Ids come from `orca tab profile list`; `default` is the Default profile.",
+      "The --default-* flags set the project's agent defaults (Settings > Projects > Agent defaults), saved on the host that owns the repo; with --environment, that paired server. Unset choices follow the host's own defaults.",
+      '--default-agent picks the agent new work in this project starts (blank for a plain terminal); --default-model and --default-effort take <agent>=<value> and repeat for several agents; <agent>=inherit clears one agent, a bare inherit clears every agent.',
+      "--default-account picks the Claude account new Claude chats in this project start on: an id, email or label from `orca account list --agent claude` (run on that host), or system for the provider's own sign-in; host or inherit clears it."
     ],
     examples: [
       'orca repo set --repo path:/path/to/repo --external-worktree-visibility show --json',
-      'orca repo set --repo name:acme-web --browser-profile <profileId> --json'
+      'orca repo set --repo name:acme-web --browser-profile <profileId> --json',
+      'orca repo set --repo name:acme-web --default-agent claude --default-model claude=opus --default-effort claude=high --default-account system --json',
+      'orca repo set --repo name:acme-web --default-model codex=inherit --default-account inherit'
     ]
   },
   {

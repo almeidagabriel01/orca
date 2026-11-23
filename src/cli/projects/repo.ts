@@ -16,6 +16,12 @@ import { resolveRepoPathArgument } from './repo-path-arguments'
 import { RuntimeClientError } from '../runtime/connection/types'
 import { attachCliErrorData } from '../workspaces/worktree-setup-decision-recovery'
 import { resolveHostFlagTarget } from '../hosts/execution-host-flag'
+import {
+  applyRepoAgentDefaultsPatch,
+  readRepoAgentDefaultsPatch,
+  resolveRepoDefaultAccount
+} from './repo-agent-defaults-flags'
+import { normalizeProjectAgentLaunchDefaults } from '../../shared/agent-launch/choices/project-agent-launch-defaults'
 
 /** `inherit` clears the pick; anything else must name a profile on the repo's Orca host. */
 async function resolveBrowserProfileFlag(
@@ -82,16 +88,20 @@ export const REPO_HANDLERS: Record<string, CommandHandler> = {
     const result = await client.call<{ repo: Record<string, unknown> }>('repo.show', {
       repo: getRequiredStringFlag(flags, 'repo')
     })
-    printResult(result, json, formatRepoShow)
+    const { repo: row } = result.result
+    // null: every agent default follows the host's own settings.
+    const repo = { ...row, agentLaunchDefaults: row.agentLaunchDefaults ?? null }
+    printResult({ ...result, result: { ...result.result, repo } }, json, formatRepoShow)
   },
   'repo set': async ({ flags, client, json }) => {
     const repo = getRequiredStringFlag(flags, 'repo')
     const visibility = getOptionalStringFlag(flags, 'external-worktree-visibility')
     const browserProfile = getOptionalStringFlag(flags, 'browser-profile')
-    if (visibility === undefined && browserProfile === undefined) {
+    const agentDefaultsPatch = readRepoAgentDefaultsPatch(flags)
+    if (visibility === undefined && browserProfile === undefined && !agentDefaultsPatch) {
       throw new RuntimeClientError(
         'invalid_argument',
-        'Pass --external-worktree-visibility or --browser-profile.'
+        'Pass --external-worktree-visibility, --browser-profile, or a --default-agent/--default-model/--default-effort/--default-account flag.'
       )
     }
     if (
@@ -109,15 +119,42 @@ export const REPO_HANDLERS: Record<string, CommandHandler> = {
       browserProfile === undefined
         ? undefined
         : await resolveBrowserProfileFlag(client, browserProfile)
+    let agentLaunchDefaults: ReturnType<typeof applyRepoAgentDefaultsPatch> | undefined
+    if (agentDefaultsPatch) {
+      if (typeof agentDefaultsPatch.account === 'string') {
+        agentDefaultsPatch.account = await resolveRepoDefaultAccount(
+          client,
+          agentDefaultsPatch.account
+        )
+      }
+      // The host replaces the whole record, so merge into what it holds now, as Settings does.
+      const current = await client.call<{ repo: Record<string, unknown> }>('repo.show', { repo })
+      agentLaunchDefaults = applyRepoAgentDefaultsPatch(
+        current.result.repo.agentLaunchDefaults,
+        agentDefaultsPatch
+      )
+    }
     const result = await client.call<{ repo: Record<string, unknown> }>('repo.update', {
       repo,
       updates: {
         ...(visibility === undefined
           ? {}
           : { externalWorktreeVisibility: visibility === 'inherit' ? null : visibility }),
-        ...(browserProfileId === undefined ? {} : { browserProfileId })
+        ...(browserProfileId === undefined ? {} : { browserProfileId }),
+        ...(agentLaunchDefaults === undefined ? {} : { agentLaunchDefaults })
       }
     })
+    if (
+      agentLaunchDefaults !== undefined &&
+      JSON.stringify(
+        normalizeProjectAgentLaunchDefaults(result.result.repo.agentLaunchDefaults) ?? null
+      ) !== JSON.stringify(agentLaunchDefaults)
+    ) {
+      throw new RuntimeClientError(
+        'incompatible_runtime',
+        'This Orca host did not save the project agent defaults; any other flags were applied. Update Orca on that host.'
+      )
+    }
     // A host from before per-repo browser profiles drops the field and still answers with its row.
     if (
       browserProfileId !== undefined &&

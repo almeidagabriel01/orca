@@ -26355,6 +26355,7 @@
       "directTooltip": "Started through flock directly, outside the queue order: it cannot be moved, only removed while it waits.",
       "expandCommand": "Show the whole command",
       "collapseCommand": "Show less of the command",
+      "actions": "Queue actions",
       "runNext": "Run next",
       "moveUp": "Move up",
       "moveDown": "Move down",

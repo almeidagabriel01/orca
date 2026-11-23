@@ -152,7 +152,7 @@ export const commandExpanded = defineFixture({
   render: () => <Queues />,
   interact: async (frame) => {
     frame
-      .querySelectorAll<HTMLButtonElement>('button[aria-label="Show the whole command"]')[1]
+      .querySelectorAll<HTMLButtonElement>('button[aria-description="Show the whole command"]')[1]
       ?.click()
     await new Promise(requestAnimationFrame)
   }
@@ -173,4 +173,22 @@ export const startNowConfirm = defineFixture({
   width: 512,
   render: () => <Queues />,
   interact: confirmFrom('Start now…')
+})
+
+export const narrowCommandExpanded = defineFixture({
+  ...commandExpanded,
+  width: 352
+})
+
+export const narrowActionsMenu = defineFixture({
+  width: 352,
+  render: () => <Queues />,
+  interact: async (frame) => {
+    frame
+      .querySelectorAll('button[aria-label="Queue actions"]')[1]
+      ?.dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' })
+      )
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
 })

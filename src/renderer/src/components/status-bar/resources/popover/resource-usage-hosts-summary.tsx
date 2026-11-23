@@ -170,9 +170,12 @@ function HostCard({ host }: { host: ResourceHostSummary }): React.JSX.Element {
   const sampled = host.counts !== null
   return (
     <li className="overflow-hidden rounded-lg border border-border bg-card/40">
-      <div className="flex items-center gap-2 px-3 pt-2.5">
+      {/* Why wrap: on a narrow card Orca's usage drops to its own line before the name is cut. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 pt-2.5">
         <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-        <span className="min-w-0 truncate text-xs font-semibold text-foreground">{host.label}</span>
+        <span className="min-w-0 break-words text-xs font-semibold text-foreground">
+          {host.label}
+        </span>
         <span className="shrink-0 text-3xs uppercase tracking-wider text-muted-foreground">
           {host.isLocal
             ? t('resourceManager.hosts.localBadge', 'Local')

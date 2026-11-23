@@ -105,7 +105,9 @@ export const hostOffline = defineFixture({
 })
 
 /** A small window: the popover shrinks to the screen, meters fall to two a row. */
-export const narrow = defineFixture({ width: 352, render: () => <Popover height={1500} /> })
+export const narrow = defineFixture({ width: 372, render: () => <Popover height={1500} /> })
+
+export const narrowest = defineFixture({ width: 352, render: () => <Popover height={1500} /> })
 
 export const filtered = defineFixture({
   width: 512,

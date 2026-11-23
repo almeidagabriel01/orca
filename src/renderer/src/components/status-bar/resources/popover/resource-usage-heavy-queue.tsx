@@ -65,7 +65,7 @@ export function HostHeavyQueue({
           )}
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="truncate text-2xs font-semibold uppercase tracking-wider">
+              <span className="whitespace-nowrap text-2xs font-semibold uppercase tracking-wider">
                 {t('resourceManager.heavyQueue.heading', 'Heavy queue')}
               </span>
             </TooltipTrigger>
@@ -77,7 +77,7 @@ export function HostHeavyQueue({
             </TooltipContent>
           </Tooltip>
         </button>
-        <span className="min-w-0 truncate text-2xs tabular-nums text-muted-foreground [grid-area:summary] @max-[24rem]/queue:pl-4">
+        <span className="min-w-0 text-2xs tabular-nums text-muted-foreground [grid-area:summary] @max-[24rem]/queue:pl-4">
           <span className={cn('font-medium', full ? 'text-foreground' : undefined)}>
             {t('resourceManager.heavyQueue.busy', '{{value0}}/{{value1}} busy', {
               value0: view.busy,

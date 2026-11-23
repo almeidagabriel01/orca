@@ -19,7 +19,7 @@ import {
   listAgentProcessRoots,
   readAgentProcessChat
 } from './agent-process-registry'
-import type { ProcIndex, ProcRow } from './process-index'
+import type { ProcIndex } from './process-index'
 import { recordPairedReplyParts } from './memory-snapshot-paired-reply'
 import {
   hasChatSeries,
@@ -37,10 +37,14 @@ import {
   type WorktreeMemoryBucket
 } from './memory-snapshot-buckets'
 import {
+  addUsage,
   clampMemoryMetric,
   emptyMemorySnapshot,
   optionalCommitField,
-  snapshotCommitFields
+  snapshotCommitFields,
+  sumRows,
+  usageOf,
+  type RowTotals
 } from './memory-snapshot-values'
 
 export type { MemorySnapshotStore } from './memory-snapshot-buckets'
@@ -140,32 +144,6 @@ function bucketElectronMetrics(processIndex: ProcIndex): AppBucketsRaw {
   }
 }
 
-type RowTotals = { cpu: number; memory: number; privateMemory: number }
-
-function sumRows(rows: readonly ProcRow[]): RowTotals {
-  const totals = { cpu: 0, memory: 0, privateMemory: 0 }
-  for (const row of rows) {
-    totals.cpu += row.cpu
-    totals.memory += row.memory
-    totals.privateMemory += clampMemoryMetric(row.privateMemory)
-  }
-  return totals
-}
-
-function usageOf(totals: RowTotals, hasPrivateMemory: boolean): UsageValues {
-  return {
-    cpu: clampMemoryMetric(totals.cpu),
-    memory: clampMemoryMetric(totals.memory),
-    ...optionalCommitField(hasPrivateMemory, totals.privateMemory)
-  }
-}
-
-function addUsage(target: RowTotals, usage: UsageValues): void {
-  target.cpu += usage.cpu
-  target.memory += usage.memory
-  target.privateMemory += clampMemoryMetric(usage.privateMemory)
-}
-
 async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> {
   const projectGroupName = createProjectGroupNameLookup(store)
   const agentMark = agentRegistrationMark()
@@ -183,12 +161,12 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     // An agent's tree outlives its starting process, so a reused parent PID is ruled out by start order.
     rows: claimProcessTree(processIndex, root.pid, claimed, true)
   }))
-  // Electron helpers descend from main; the detached daemon, systemd-scoped PTYs and agents need their own roots.
+  // Electron helpers descend from main; the detached daemon, systemd-scoped PTYs and claimed agent rows need their own roots.
   const outsideOrca = await collectOutsideOrcaProcesses(processIndex, [
     process.pid,
     getLocalDaemonPid(),
     ...ptys.map((pty) => pty.pid),
-    ...agentTrees.map((tree) => tree.pid)
+    ...claimed
   ])
 
   const orphan = createEmptyWorktreeMemoryBucket(

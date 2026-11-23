@@ -1,8 +1,10 @@
 import type {
   MemorySnapshot,
-  ProcessCommitMetric
+  ProcessCommitMetric,
+  UsageValues
 } from '../../shared/diagnostics/process-stats-types'
 import { fallbackHostMemory } from './host-memory'
+import type { ProcRow } from './process-index'
 import { getProcessMemoryMetric } from './process-memory-metric'
 
 const PROCESS_COMMIT_METRIC: ProcessCommitMetric = 'private-bytes'
@@ -45,4 +47,30 @@ export function emptyMemorySnapshot(): MemorySnapshot {
     totalMemory: 0,
     collectedAt: Date.now()
   }
+}
+
+export type RowTotals = { cpu: number; memory: number; privateMemory: number }
+
+export function sumRows(rows: readonly ProcRow[]): RowTotals {
+  const totals = { cpu: 0, memory: 0, privateMemory: 0 }
+  for (const row of rows) {
+    totals.cpu += row.cpu
+    totals.memory += row.memory
+    totals.privateMemory += clampMemoryMetric(row.privateMemory)
+  }
+  return totals
+}
+
+export function usageOf(totals: RowTotals, hasPrivateMemory: boolean): UsageValues {
+  return {
+    cpu: clampMemoryMetric(totals.cpu),
+    memory: clampMemoryMetric(totals.memory),
+    ...optionalCommitField(hasPrivateMemory, totals.privateMemory)
+  }
+}
+
+export function addUsage(target: RowTotals, usage: UsageValues): void {
+  target.cpu += usage.cpu
+  target.memory += usage.memory
+  target.privateMemory += clampMemoryMetric(usage.privateMemory)
 }

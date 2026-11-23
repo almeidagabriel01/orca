@@ -143,47 +143,6 @@ export function getRuntimeHostResourceNotice(
   return null
 }
 
-/** A paired server the panel cannot sample: shown as a row whose memory is unknown, not zero. */
-export type RuntimeHostResourceNotice = { environmentId: string; hostLabel: string; reason: string }
-
-export function getRuntimeHostResourceNotices(
-  results: Readonly<Record<string, RuntimeHostResourceResult>>,
-  hostLabel: (environmentId: string) => string,
-  t: Translate = translate
-): RuntimeHostResourceNotice[] {
-  return Object.entries(results).flatMap(([environmentId, result]) => {
-    if (result.status === 'unreachable') {
-      const label = hostLabel(environmentId)
-      return [
-        {
-          environmentId,
-          hostLabel: label,
-          reason: t(
-            'auto.components.status.bar.ResourceUsageStatusSegment.8a0472ab54',
-            "Couldn't reach {{value0}}; its resources are unknown.",
-            { value0: label }
-          )
-        }
-      ]
-    }
-    if (result.status === 'update-required') {
-      const label = hostLabel(environmentId)
-      return [
-        {
-          environmentId,
-          hostLabel: label,
-          reason: t(
-            'auto.components.status.bar.ResourceUsageStatusSegment.1ea066b73f',
-            'Update {{value0}} to see its resources.',
-            { value0: label }
-          )
-        }
-      ]
-    }
-    return []
-  })
-}
-
 function hasErrorCode(error: unknown, code: string): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === code
 }

@@ -89,6 +89,19 @@ describe('a new chat in a project with defaults', () => {
     ).toBeUndefined()
   })
 
+  it('beats a model the composer remembered from another chat', () => {
+    const remembered = {
+      ...host,
+      nativeChatSessionOptions: {
+        claude: { model: 'haiku', valuesByModel: { haiku: { effort: 'low' } } }
+      }
+    }
+    expect(structuredProjectLaunchSeedOptions(remembered, project, 'claude', true)).toMatchObject({
+      model: 'opus',
+      effort: 'high'
+    })
+  })
+
   it('never shows the account in what the host reports before create', () => {
     expect(structuredProjectLaunchSeedOptions(host, project, 'claude')?.[ACCOUNT]).toBeUndefined()
   })

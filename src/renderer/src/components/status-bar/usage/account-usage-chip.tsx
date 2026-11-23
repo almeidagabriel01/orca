@@ -58,13 +58,14 @@ export function AccountUsageChip({
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
-  const heading = t(
-    selected
-      ? 'components.status-bar.usage.accounts.chipTitleSelected'
-      : 'components.status-bar.usage.accounts.chipTitle',
-    selected ? '{{provider}} · {{account}} (selected)' : '{{provider}} · {{account}}',
-    { provider: getProviderDisplayName(p.provider), account: accountLabel }
-  )
+  const names = { provider: getProviderDisplayName(p.provider), account: accountLabel }
+  const heading = selected
+    ? t(
+        'components.status-bar.usage.accounts.chipTitleSelected',
+        '{{provider}} · {{account}} (selected)',
+        names
+      )
+    : t('components.status-bar.usage.accounts.chipTitle', '{{provider}} · {{account}}', names)
   // Why read on hover: resets count down live, and a ticking clock per chip would redraw the bar.
   const [now, setNow] = React.useState<number | null>(null)
   const lines = usedSections(p, t).map((section) => {

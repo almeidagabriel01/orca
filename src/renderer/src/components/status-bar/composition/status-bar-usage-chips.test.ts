@@ -4,6 +4,8 @@ import type {
   RateLimitState
 } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { GlobalSettings } from '../../../../../shared/settings/global-settings-types'
+import { createEmptyRateLimitState } from '../../../../../shared/agent-usage/rate-limits/rate-limit-state-factory'
+import { getDefaultSettings } from '../../../../../shared/orca-profiles/constants'
 import type { OwnerUsageRateLimits } from '../usage/use-owner-usage-rate-limits'
 import {
   getOwnerUsageRowChips,
@@ -31,7 +33,7 @@ function owner(
 ): OwnerUsageRateLimits {
   return {
     owner: null,
-    rateLimits: {
+    rateLimits: createEmptyRateLimitState({
       claude: liveClaude,
       codex: liveCodex,
       claudeTarget: HOST,
@@ -40,7 +42,7 @@ function owner(
       inactiveCodexAccounts: [],
       antigravityAccounts: [],
       ...rateLimits
-    } as RateLimitState,
+    }),
     accounts: remote?.accounts ?? null,
     remoteOwner: remote ? { environmentId: 'server', label: 'Server' } : null,
     refreshRemote: null
@@ -81,7 +83,8 @@ describe('usage account labels', () => {
 })
 
 describe('per-account usage rows', () => {
-  const settings = {
+  const settings: GlobalSettings = {
+    ...getDefaultSettings('/home/test'),
     claudeManagedAccounts: [
       {
         id: 'work',
@@ -105,7 +108,7 @@ describe('per-account usage rows', () => {
     ],
     activeCodexManagedAccountId: 'alpha',
     managedAccountDisplayNames: { claude: { work: 'Work' } }
-  } as unknown as GlobalSettings
+  }
   const ownerUsage = owner({
     inactiveClaudeAccounts: [
       { accountId: 'side', rateLimits: sideClaude, updatedAt: 1, isFetching: false }

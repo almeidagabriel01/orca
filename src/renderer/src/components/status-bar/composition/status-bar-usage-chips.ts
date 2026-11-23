@@ -308,7 +308,6 @@ export function getOwnerUsageRowChips(args: {
   accounts: StatusBarUsageAccounts
   t?: Translate
 }): { usageChips: UsageRowChip[]; hasSavedAccounts: boolean } {
-  const shown = new Set(args.providers.map((p) => p.provider))
   const accountsByProvider = getOwnerUsageAccounts(args.ownerUsage, args.settings, args.t)
   return {
     usageChips: buildUsageRowChips({
@@ -317,8 +316,6 @@ export function getOwnerUsageRowChips(args: {
       accountsByProvider
     }),
     // Why listed, not read: readings may not be in yet, and the choice is what shows them.
-    hasSavedAccounts: Object.entries(accountsByProvider).some(
-      ([provider, entries]) => shown.has(provider as ProviderId) && entries.length > 0
-    )
+    hasSavedAccounts: args.providers.some((p) => (accountsByProvider[p.provider]?.length ?? 0) > 0)
   }
 }

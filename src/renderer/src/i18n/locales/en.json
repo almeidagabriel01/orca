@@ -26310,18 +26310,18 @@
       "agents_other": "{{count}} agents",
       "commands_one": "{{count}} command",
       "commands_other": "{{count}} commands",
-      "title": "Hosts · Orca usage",
-      "memory": "Memory",
-      "machine": "Machine",
       "cores_one": "{{count}} core",
       "cores_other": "{{count}} cores",
-      "load": "Load {{value0}}",
-      "swap": "Swap {{value0}}",
       "noSwap": "none",
       "ram": "RAM",
       "disk": "Disk",
-      "heavyQueue": "Heavy queue {{value0}}/{{value1}} busy",
-      "heavyQueueWaiting": "{{count}} waiting"
+      "localBadge": "Local",
+      "remoteBadge": "Remote",
+      "orcaUsage": "Orca's own CPU and memory on this machine",
+      "machines": "Machines",
+      "loadLabel": "Load",
+      "loadDetail": "1, 5 and 15 min: {{value0}}",
+      "swapLabel": "Swap"
     },
     "outsideOrca": {
       "title": "Outside Orca · {{value0}}",
@@ -26354,7 +26354,6 @@
       "direct": "flock",
       "expandCommand": "Show the whole command",
       "collapseCommand": "Show less of the command",
-      "actions": "Queue actions",
       "runNext": "Run next",
       "moveUp": "Move up",
       "moveDown": "Move down",
@@ -26368,13 +26367,21 @@
       "removeQuestion": "Remove from the queue? The command stops waiting and fails.",
       "removeConfirm": "Remove",
       "removeFailed": "Couldn't remove it. {{value0}}",
-      "keep": "Keep"
+      "keep": "Keep",
+      "heading": "Heavy queue",
+      "waiting": "{{count}} waiting"
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"
     },
     "sharedAgentProcesses": "Shared agent processes",
-    "hostChatsUpdateRequired": "Update {{value0}} to see its chats."
+    "hostChatsUpdateRequired": "Update {{value0}} to see its chats.",
+    "tree": {
+      "filter": "Filter workspaces",
+      "filterPlaceholder": "Filter projects, workspaces, terminals",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all"
+    }
   },
   "browserExtensions": {
     "permission": {

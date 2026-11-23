@@ -10,6 +10,7 @@ import type {
 } from '../workspace-attribution/resource-usage-merge-types'
 import { MetricPair, ROW_TRAILING_GUTTER_CLS } from './resource-usage-metrics'
 import { RuntimePaneTitlesProvider, WorktreeRow } from './resource-usage-session-rows'
+import { filterProjectGroups } from './resource-tree-filter'
 
 export type SortOption = 'memory' | 'cpu' | 'name'
 
@@ -108,8 +109,11 @@ const ProjectRows = React.memo(function ProjectRows({
   )
 })
 
+const NO_COLLAPSED = new Set<string>()
+
 export function ResourceTree({
   repos,
+  filter,
   sortOption,
   collapsedRepos,
   toggleRepo,
@@ -123,6 +127,8 @@ export function ResourceTree({
   onOpenChat
 }: {
   repos: UnifiedProjectGroup[]
+  /** Narrows the tree to matching projects and workspaces, unfolded while it is set. */
+  filter: string
   sortOption: SortOption
   collapsedRepos: Set<string>
   toggleRepo: (repoId: string) => void
@@ -143,23 +149,32 @@ export function ResourceTree({
     () =>
       new WeakMap<UnifiedProjectGroup, { sortOption: SortOption; sorted: UnifiedProjectGroup }>()
   )
+  const filtering = filter.trim() !== ''
   const sortedRepos = useMemo(
     () =>
-      sortProjectGroups(repos, sortOption).map((repo) => {
+      sortProjectGroups(
+        filtering
+          ? filterProjectGroups(repos, filter, (id) => worktreeById.get(id)?.displayName)
+          : repos,
+        sortOption
+      ).map((repo) => {
         const cached = sortedGroups.get(repo)
         if (cached?.sortOption === sortOption) {
           return cached.sorted
         }
-        const sorted = { ...repo, worktrees: sortWorktrees(repo.worktrees, sortOption) }
+        const sorted = {
+          ...repo,
+          worktrees: sortWorktrees(repo.worktrees, sortOption)
+        }
         sortedGroups.set(repo, { sortOption, sorted })
         return sorted
       }),
-    [repos, sortOption, sortedGroups]
+    [repos, filter, filtering, worktreeById, sortOption, sortedGroups]
   )
 
   const rowProps: ProjectRowsProps = {
     activeWorktreeId,
-    collapsedWorktrees,
+    collapsedWorktrees: filtering ? NO_COLLAPSED : collapsedWorktrees,
     worktreeById,
     toggleWorktree,
     navigateToWorktree,
@@ -169,65 +184,58 @@ export function ResourceTree({
     onOpenChat
   }
 
-  // One project shows no header. Its rows keep the same parents either way, so a paired project
-  // appearing or leaving never remounts them.
-  const showHeaders = sortedRepos.length > 1
   return (
     <RuntimePaneTitlesProvider>
       {sortedRepos.map((group) => {
-        const repoCollapsed = showHeaders && collapsedRepos.has(group.repoId)
+        const repoCollapsed = !filtering && collapsedRepos.has(group.repoId)
         return (
-          <div
-            key={group.repoId}
-            className={showHeaders ? 'border-b border-border/50 last:border-b-0' : undefined}
-          >
-            {showHeaders && (
-              <div className="flex items-center">
-                <button
-                  type="button"
-                  onClick={() => toggleRepo(group.repoId)}
-                  className="pl-2 py-2 pr-0.5 transition-colors hover:bg-muted/50"
-                  aria-label={
-                    repoCollapsed
-                      ? t(
-                          'auto.components.status.bar.ResourceUsageStatusSegment.b12e31dfcb',
-                          'Expand repo'
-                        )
-                      : t(
-                          'auto.components.status.bar.ResourceUsageStatusSegment.73a3fd68a9',
-                          'Collapse repo'
-                        )
-                  }
-                >
-                  {repoCollapsed ? (
-                    <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                  )}
-                </button>
-                <div className="flex-1 min-w-0 py-2 pr-3 flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide truncate text-muted-foreground">
-                      {group.repoName}
-                    </span>
-                    {group.hasRemoteChildren && (
-                      <span className="shrink-0 text-[9px] uppercase tracking-wide text-muted-foreground/70">
-                        {t(
-                          'auto.components.status.bar.ResourceUsageStatusSegment.21cacb16d1',
-                          '· remote'
-                        )}
-                      </span>
-                    )}
+          <div key={group.repoId} className="border-b border-border/50 last:border-b-0">
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => toggleRepo(group.repoId)}
+                className="pl-2 py-2 pr-0.5 transition-colors hover:bg-muted/50"
+                aria-expanded={!repoCollapsed}
+                aria-label={
+                  repoCollapsed
+                    ? t(
+                        'auto.components.status.bar.ResourceUsageStatusSegment.b12e31dfcb',
+                        'Expand repo'
+                      )
+                    : t(
+                        'auto.components.status.bar.ResourceUsageStatusSegment.73a3fd68a9',
+                        'Collapse repo'
+                      )
+                }
+              >
+                {repoCollapsed ? (
+                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                )}
+              </button>
+              <div className="flex-1 min-w-0 py-2 pr-3 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-2xs font-semibold uppercase tracking-wide truncate text-muted-foreground">
+                    {group.repoName}
                   </span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <MetricPair cpu={group.cpu} memory={group.memory} />
-                    <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
-                  </div>
+                  {group.hasRemoteChildren && (
+                    <span className="shrink-0 text-[9px] uppercase tracking-wide text-muted-foreground/70">
+                      {t(
+                        'auto.components.status.bar.ResourceUsageStatusSegment.21cacb16d1',
+                        '· remote'
+                      )}
+                    </span>
+                  )}
+                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <MetricPair cpu={group.cpu} memory={group.memory} />
+                  <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
                 </div>
               </div>
-            )}
+            </div>
             {!repoCollapsed && (
-              <div className={showHeaders ? 'border-t border-border/30' : undefined}>
+              <div className="border-t border-border/30">
                 <ProjectRows group={group} {...rowProps} />
               </div>
             )}

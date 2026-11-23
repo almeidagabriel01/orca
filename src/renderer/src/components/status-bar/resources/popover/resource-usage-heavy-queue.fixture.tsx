@@ -1,3 +1,4 @@
+import React from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import type {
   HeavyCommandJob,
@@ -5,7 +6,7 @@ import type {
 } from '../../../../../../shared/diagnostics/process-stats-types'
 import type { HostMachineTotals } from '../../host-connections/runtime-host-resources'
 import type { ResourceHostSummary } from './resource-host-summary'
-import { HeavyQueueSections } from './resource-usage-heavy-queue'
+import { HostHeavyQueue } from './resource-usage-heavy-queue'
 
 const NOW = 1_795_450_000_000
 const MIN = 60_000
@@ -128,20 +129,27 @@ const hosts: ResourceHostSummary[] = [
   host('env-none', 'no-queue', null)
 ]
 
-const pointerDown = (element: Element | null | undefined): void => {
-  element?.dispatchEvent(
-    new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' })
+function Queues(): React.JSX.Element {
+  return (
+    <div className="flex flex-col gap-2">
+      {hosts.map((h) =>
+        h.machine?.heavyQueue ? (
+          <div key={h.id} className="overflow-hidden rounded-lg border border-border">
+            <HostHeavyQueue hostId={h.id} label={h.label} queue={h.machine.heavyQueue} />
+          </div>
+        ) : null
+      )}
+    </div>
   )
 }
 
-export const queues = defineFixture({
-  width: 448,
-  render: () => <HeavyQueueSections hosts={hosts} />
-})
+export const queues = defineFixture({ width: 512, render: () => <Queues /> })
+
+export const narrowQueues = defineFixture({ width: 352, render: () => <Queues /> })
 
 export const commandExpanded = defineFixture({
-  width: 448,
-  render: () => <HeavyQueueSections hosts={hosts} />,
+  width: 512,
+  render: () => <Queues />,
   interact: async (frame) => {
     frame
       .querySelectorAll<HTMLButtonElement>('button[aria-label="Show the whole command"]')[1]
@@ -150,33 +158,19 @@ export const commandExpanded = defineFixture({
   }
 })
 
-export const actionsMenu = defineFixture({
-  width: 448,
-  render: () => <HeavyQueueSections hosts={hosts} />,
-  interact: async (frame) => {
-    pointerDown(frame.querySelectorAll('button[aria-label="Queue actions"]')[1])
-    await new Promise((resolve) => setTimeout(resolve, 150))
-  }
-})
-
-const confirmFrom = (item: string) => async (frame: HTMLElement) => {
-  pointerDown(frame.querySelectorAll('button[aria-label="Queue actions"]')[1])
-  await new Promise((resolve) => setTimeout(resolve, 150))
-  const menuItem = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find((el) =>
-    el.textContent?.startsWith(item)
-  )
-  menuItem?.click()
-  await new Promise((resolve) => setTimeout(resolve, 150))
+const confirmFrom = (label: string) => async (frame: HTMLElement) => {
+  frame.querySelectorAll<HTMLButtonElement>(`button[aria-label="${label}"]`)[0]?.click()
+  await new Promise(requestAnimationFrame)
 }
 
 export const removeConfirm = defineFixture({
-  width: 448,
-  render: () => <HeavyQueueSections hosts={hosts} />,
-  interact: confirmFrom('Remove from queue')
+  width: 512,
+  render: () => <Queues />,
+  interact: confirmFrom('Remove from queue…')
 })
 
 export const startNowConfirm = defineFixture({
-  width: 448,
-  render: () => <HeavyQueueSections hosts={hosts} />,
-  interact: confirmFrom('Start now')
+  width: 512,
+  render: () => <Queues />,
+  interact: confirmFrom('Start now…')
 })

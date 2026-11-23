@@ -125,13 +125,28 @@ jobs:
           mapfile -t tests < <(git diff --name-only --diff-filter=AM upstream/main HEAD | grep -E '\.test\.(ts|tsx|mjs)$' || true)
           if (( ${#tests[@]} )); then pnpm test "${tests[@]}" --maxWorkers=2; fi
 
-      - name: Push and release
+      - name: Push
         id: push
         if: steps.tests.outcome == 'success'
+        run: git push origin "HEAD:$FORK_BRANCH"
+
+      # Upstream workflows arrive enabled with every merge; only the fork's own may run here. Every
+      # run sweeps, so one registered a moment after the push is caught the next hour.
+      - name: Disable upstream workflows
+        if: always()
         run: |
           set -euo pipefail
-          git push origin "HEAD:$FORK_BRANCH"
-          gh workflow run fork-release.yml --ref "$FORK_BRANCH" -f publish=true
+          gh workflow list --all --limit 1000 --json path,state --jq '.[] | select(.state == "active") | .path' |
+            { grep -vE '/fork-(release|sync)\.yml$' || true; } |
+            while read -r path; do
+              echo "Disabling $path"
+              gh workflow disable "$(basename "$path")"
+            done
+
+      - name: Release
+        id: release
+        if: steps.push.outcome == 'success'
+        run: gh workflow run fork-release.yml --ref "$FORK_BRANCH" -f publish=true
 
       - name: Open an issue
         if: failure() && steps.upstream.outputs.newer == 'true'
@@ -144,6 +159,7 @@ jobs:
           TYPECHECK: ${{ steps.typecheck.outcome }}
           TESTS: ${{ steps.tests.outcome }}
           PUSH: ${{ steps.push.outcome }}
+          RELEASE: ${{ steps.release.outcome }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
@@ -152,17 +168,19 @@ jobs:
             details="$(printf -- '- `%s`\n' $CONFLICTS)"
           else
             failed=""
-            for step in "merge:$MERGE" "install:$INSTALL" "typecheck (pnpm tc):$TYPECHECK" "fork feature tests:$TESTS" "push to $FORK_BRANCH / release dispatch:$PUSH"; do
+            for step in "merge:$MERGE" "install:$INSTALL" "typecheck (pnpm tc):$TYPECHECK" "fork feature tests:$TESTS" "push to $FORK_BRANCH:$PUSH" "release dispatch:$RELEASE"; do
               [[ "${step##*:}" == failure ]] && failed="${step%:*}"
             done
             reason="Verificação falhou: ${failed:-veja a run}."
             details="Veja o log da etapa na run."
           fi
+          sent="nada foi enviado nem lançado"
+          [[ "$PUSH" == success ]] && sent="merge enviado, release não disparado"
           title="Sync com o Orca original falhou: v$UPSTREAM"
           body="$(cat <<EOF
           Upstream: [$UPSTREAM_REPO v$UPSTREAM](https://github.com/$UPSTREAM_REPO/releases/tag/v$UPSTREAM)
           Commit do upstream/main mesclado: [\`$COMMIT\`](https://github.com/$UPSTREAM_REPO/commit/$COMMIT)
-          Branch: \`$FORK_BRANCH\` (nada foi enviado nem lançado)
+          Branch: \`$FORK_BRANCH\` ($sent)
           Run: $RUN_URL
 
           **$reason**

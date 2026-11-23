@@ -56,6 +56,9 @@ titled `Sync com o Orca original falhou: vX`, lists the upstream version and com
 conflicting files or the failed step, and the run link. A second failure for the same version
 comments on the open issue.
 
+Every run also disables any active workflow other than `fork-release.yml` and `fork-sync.yml`,
+since workflows that arrive from upstream start out enabled.
+
 Schedules run only on the default branch, so `fork-main` must be the default branch.
 
 ## GitHub secrets

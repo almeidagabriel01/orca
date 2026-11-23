@@ -71,7 +71,7 @@ const busyQueue: HeavyCommandQueue = {
       slot: 2,
       queuedAt: NOW - 21 * MIN,
       startedAt: NOW - 19 * MIN,
-      workspace: workspace('ProOps', 'porpoise'),
+      workspace: workspace('shop', 'porpoise'),
       command:
         'bash -c cd apps/web && rm -rf .next-test && npm -w web run build:test > /tmp/build-test.log 2>&1 && npx playwright test --config=tests/playwright.config.ts --project=chromium --project=mobile-chrome --workers=1 tests/e2e/smoke.spec.ts tests/e2e/billing/cupons.spec.ts'
     }),

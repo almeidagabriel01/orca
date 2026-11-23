@@ -3514,6 +3514,10 @@
     }
   },
   "resourceManager": {
+    "heavyQueue": {
+      "slots_one": "Runs one at a time",
+      "slots_other": "Runs up to {{count}} at once"
+    },
     "hosts": {
       "agents_one": "{{count}} agent",
       "agents_other": "{{count}} agents",

@@ -188,10 +188,17 @@ describe('parseHeavyQueueListing', () => {
 
 describe('attributeHeavyQueueWorkspaces', () => {
   it("names the deepest local workspace holding a job's cwd", () => {
-    const repo = (id: string, repoPath: string, extra: Partial<Repo> = {}): Repo =>
-      ({ id, path: repoPath, displayName: id, ...extra }) as Repo
+    const repo = (id: string, repoPath: string, extra: Partial<Repo> = {}): Repo => ({
+      id,
+      path: repoPath,
+      displayName: id,
+      badgeColor: '#fff',
+      addedAt: 1,
+      ...extra
+    })
     const repos = [repo('app', '/w/app'), repo('far', '/w/far', { executionHostId: 'runtime:vps' })]
-    const store: MemorySnapshotStore = {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: attribution reads only the store members stubbed here.
+    const store = {
       getRepos: () => repos,
       getRepo: (id: string) => repos.find((r) => r.id === id),
       getWorktreeMeta: (id: string) =>

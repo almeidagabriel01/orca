@@ -6,13 +6,13 @@ import {
 } from '../../../../../shared/execution-host/execution-host'
 import type {
   ChatAgentMemory,
+  HeavyCommandQueue,
   OutsideOrcaProcessGroup,
   SessionMemory,
   UsageValues,
   WorktreeMemory
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
-import type { HeavyCommandQueue } from '../../../../../shared/diagnostics/process-stats-types'
 import { parseHeavyCommandQueue } from './heavy-command-queue-parse'
 import { finiteNumber, isRecord } from './host-snapshot-value-guards'
 

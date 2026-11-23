@@ -34,6 +34,7 @@ import { getRepositoryPaneSearchMetadata } from './repository-search'
 import { RepositoryHostSetupsSection } from './hosts/RepositoryHostSetupsSection'
 import { RepoSettingsDraftInput } from './RepositorySettingsDraftInput'
 import { RepositoryForkSyncSection } from './source-control/RepositoryForkSyncSection'
+import { RepositoryAgentDefaultsSection } from './RepositoryAgentDefaultsSection'
 import { RepositoryAgentTrustSection } from './RepositoryAgentTrustSection'
 import { RepositoryBrowserProfileSection } from './RepositoryBrowserProfileSection'
 import type { RepositoryPaneRepoUpdate } from './repository-pane-repo-update'
@@ -141,6 +142,11 @@ export function RepositoryPane({
   const isMountedRef = useRef(false)
   // Project-name search navigates to the project; it must not hide child controls that omit the name.
   const forceFullPaneForRepoMatch = matchesRepositoryIdentitySearch(searchQuery, repo)
+  const sectionProps = {
+    repo,
+    updateRepo: updateSelectedRepo,
+    forceVisible: forceFullPaneForRepoMatch
+  }
 
   const clearCopiedTemplateResetTimer = useCallback((): void => {
     if (copiedTemplateResetTimerRef.current !== null) {
@@ -286,24 +292,11 @@ export function RepositoryPane({
           <RepositoryIconPicker repo={repo} updateRepo={updateSelectedRepo} />
         </SearchableSetting>
 
-        <RepositoryJiraProjectSection
-          key={`${selectedHostId}:${repo.id}`}
-          repo={repo}
-          updateRepo={updateSelectedRepo}
-          forceVisible={forceFullPaneForRepoMatch}
-        />
+        <RepositoryJiraProjectSection key={`${selectedHostId}:${repo.id}`} {...sectionProps} />
 
-        <RepositoryAgentTrustSection
-          repo={repo}
-          updateRepo={updateSelectedRepo}
-          forceVisible={forceFullPaneForRepoMatch}
-        />
+        <RepositoryAgentTrustSection {...sectionProps} />
 
-        <RepositoryBrowserProfileSection
-          repo={repo}
-          updateRepo={updateSelectedRepo}
-          forceVisible={forceFullPaneForRepoMatch}
-        />
+        <RepositoryBrowserProfileSection {...sectionProps} />
 
         {!isFolder ? (
           <>
@@ -333,17 +326,9 @@ export function RepositoryPane({
               searchEntries={projectRuntimeEntries}
             />
 
-            <RepositoryForkSyncSection
-              repo={repo}
-              updateRepo={updateSelectedRepo}
-              forceVisible={forceFullPaneForRepoMatch}
-            />
+            <RepositoryForkSyncSection {...sectionProps} />
 
-            <RepositoryGitHubAccountSection
-              repo={repo}
-              updateRepo={updateSelectedRepo}
-              forceVisible={forceFullPaneForRepoMatch}
-            />
+            <RepositoryGitHubAccountSection {...sectionProps} />
 
             <RepositoryWorktreeDefaultsSection
               repo={repo}
@@ -363,18 +348,18 @@ export function RepositoryPane({
     ) : null,
     <RepositoryWorkspaceCleanupSection
       key={`workspace-cleanup:${selectedHostId}:${repo.id}`}
-      repo={repo}
-      updateRepo={updateSelectedRepo}
-      forceVisible={forceFullPaneForRepoMatch}
+      {...sectionProps}
+    />,
+    <RepositoryAgentDefaultsSection
+      key={`${selectedHostId}:${repo.id}:agent-defaults`}
+      {...sectionProps}
     />,
     hooksSection,
     forceFullPaneForRepoMatch ||
     matchesSettingsSearch(searchQuery, [getRepositoryFormatterSearchEntry(t)]) ? (
       <RepositoryFormatterSection
         key={`formatter-${repo.id}-${selectedHostId}`}
-        repo={repo}
-        updateRepo={updateSelectedRepo}
-        forceVisible={forceFullPaneForRepoMatch}
+        {...sectionProps}
       />
     ) : null,
     !isFolder &&

@@ -17,6 +17,7 @@ import {
   getRepositoryGitWorktreeSearchMetadata
 } from './worktrees/repository-git-worktree-search-entries'
 import { getRepositoryFormatterSearchEntry } from './RepositoryFormatterSection'
+import { getRepositoryAgentDefaultsSearchEntry } from './RepositoryAgentDefaultsSection'
 import { getRepositoryAgentTrustSearchEntry } from './RepositoryAgentTrustSection'
 import { getRepositoryBrowserProfileSearchEntry } from './RepositoryBrowserProfileSection'
 import { getRepositoryWorkspaceCleanupSearchEntry } from './workspace-cleanup/repository-workspace-cleanup-search'
@@ -231,20 +232,17 @@ export function getRepositoryPaneSearchEntries(
   const parts = getRepositorySearchParts(repo, options, t)
   const entries = [
     getRepositoryFormatterSearchEntry(t),
+    getRepositoryAgentDefaultsSearchEntry(t),
     parts.agentTrust,
     parts.browserProfile,
     parts.jira,
     parts.displayName,
     parts.icon
   ]
-  if (parts.github) {
-    entries.push(parts.github)
-  }
-  if (parts.fork) {
-    entries.push(parts.fork)
-  }
-  if (parts.projectRuntime) {
-    entries.push(parts.projectRuntime)
+  for (const entry of [parts.github, parts.fork, parts.projectRuntime]) {
+    if (entry) {
+      entries.push(entry)
+    }
   }
   if (!isFolderRepo(repo)) {
     entries.push(...getRepositoryGitWorktreeSearchEntries(repo, t))

@@ -16,6 +16,7 @@ export type MobileWorkspaceRepo = Pick<SharedRepo, 'id' | 'displayName' | 'path'
       | 'gitRemoteIdentity'
       | 'hiddenAt'
       | 'hookSettings'
+      | 'agentLaunchDefaults'
     >
   >
 

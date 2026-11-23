@@ -59,6 +59,7 @@ type RepositoryUpdates = Partial<
   >
 > & {
   projectGroupOrder?: number | null
+  agentLaunchDefaults?: Repo['agentLaunchDefaults'] | null
   sourceControlAi?: Repo['sourceControlAi'] | null
   workspaceCleanupPolicy?: Repo['workspaceCleanupPolicy'] | null
   externalWorktreeDiscoverySuppressedAt?: Repo['externalWorktreeDiscoverySuppressedAt'] | null

@@ -1,4 +1,7 @@
-import { useAppViewExternalStore } from '@/store/retained-views/app-state-view'
+import { withProjectAgentLaunchDefaults } from '../../../../shared/agent-launch/choices/project-agent-launch-defaults'
+import { getRepoIdFromWorktreeId } from '../../../../shared/worktree/id'
+import { repoMatchesHostIdentity } from '@/store/repos/repo-host-identity'
+import { useAppStateValue, useAppViewExternalStore } from '@/store/retained-views/app-state-view'
 import { useCallback, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import type { GlobalSettings } from '../../../../shared/settings/global-settings-types'
@@ -34,7 +37,8 @@ function preferencesForWorkspace(state: AppState, workspace: ProspectiveWorkspac
       ? { agentLaunchChoices: state.settings.agentLaunchChoices }
       : {})
   }
-  const host = parseExecutionHostId(resolveAgentLaunchOwner(state, workspace).executionHostId)
+  const { executionHostId } = resolveAgentLaunchOwner(state, workspace)
+  const host = parseExecutionHostId(executionHostId)
   const owner =
     host?.kind === 'runtime'
       ? {
@@ -44,7 +48,20 @@ function preferencesForWorkspace(state: AppState, workspace: ProspectiveWorkspac
             ?.runtimeId
         }
       : null
-  return { desktop, owner }
+  return { desktop, owner, project: findLaunchProjectRepo(state, workspace, executionHostId) }
+}
+
+/** The workspace's repo row on its execution host carries the project's launch defaults. */
+export function findLaunchProjectRepo(
+  state: Pick<AppState, 'repos'>,
+  workspace: ProspectiveWorkspace,
+  executionHostId: string
+) {
+  const repoId =
+    workspace.repoId ?? (workspace.worktreeId ? getRepoIdFromWorktreeId(workspace.worktreeId) : '')
+  return workspace.kind === 'git-worktree' && repoId
+    ? (state.repos?.find((repo) => repoMatchesHostIdentity(repo, repoId, executionHostId)) ?? null)
+    : null
 }
 
 /** The current owner model map shares the existing availability fallback. */
@@ -52,14 +69,17 @@ export function readAgentLaunchPreferencesForWorkspace(
   state: AppState,
   workspace: ProspectiveWorkspace
 ): AgentLaunchPreferences {
-  const { desktop, owner } = preferencesForWorkspace(state, workspace)
+  const { desktop, owner, project } = preferencesForWorkspace(state, workspace)
   const snapshot = owner
     ? cachedSnapshot(
         owner.environmentId,
         snapshotKey(owner.environmentId, owner.pairingRevision, owner.runtimeId)
       )
     : null
-  return effectiveAgentLaunchPreferences(owner, desktop, snapshot)
+  return withProjectAgentLaunchDefaults(
+    effectiveAgentLaunchPreferences(owner, desktop, snapshot),
+    project
+  )
 }
 
 export function readAgentLaunchPreferencesForWorktree(
@@ -80,9 +100,9 @@ export async function ensureAgentLaunchPreferences(
   if (signal?.aborted) {
     throw cancelled()
   }
-  const { desktop, owner } = preferencesForWorkspace(state, workspace)
+  const { desktop, owner, project } = preferencesForWorkspace(state, workspace)
   if (!owner) {
-    return desktop
+    return withProjectAgentLaunchDefaults(desktop, project)
   }
   const entry = resource(owner)
   const { promise, resolve, reject } = Promise.withResolvers<Snapshot>()
@@ -101,7 +121,10 @@ export async function ensureAgentLaunchPreferences(
     if (signal?.aborted || !current(entry)) {
       throw cancelled()
     }
-    return effectiveAgentLaunchPreferences(owner, desktop, snapshot)
+    return withProjectAgentLaunchDefaults(
+      effectiveAgentLaunchPreferences(owner, desktop, snapshot),
+      project
+    )
   } finally {
     signal?.removeEventListener('abort', listener)
     release()
@@ -138,11 +161,16 @@ export function useHostAgentMenuSettings(
     pairingRevision: number | undefined
     runtimeId: string | null | undefined
     contact: string
+    /** Omitted by surfaces that edit the host's own defaults. */
+    workspace?: ProspectiveWorkspace
   } | null,
   desktopSettings: GlobalSettings | null,
   active: boolean,
   open: boolean
 ) {
+  const project = useAppStateValue((state) =>
+    owner?.workspace ? findLaunchProjectRepo(state, owner.workspace, owner.executionHostId) : null
+  )
   const host = parseExecutionHostId(owner?.executionHostId)
   const environmentId = host?.kind === 'runtime' ? host.environmentId : undefined
   const { pairingRevision, runtimeId, contact } = owner ?? {}
@@ -192,23 +220,30 @@ export function useHostAgentMenuSettings(
     () => effectiveSnapshot(undefined)
   )
   if (!environmentId) {
-    return { settings: desktopSettings, pending: false, inherited: false }
+    return {
+      settings: desktopSettings && withProjectAgentLaunchDefaults(desktopSettings, project),
+      pending: false,
+      inherited: false
+    }
   }
   return {
     pending,
     inherited,
-    settings: {
-      ...desktopSettings,
-      defaultTuiAgent,
-      disabledTuiAgents,
-      agentLaunchChoices,
-      agentDefaultArgs,
-      agentPermissionDefault,
-      agentPermissionOverrides,
-      agentCmdOverrides: {},
-      agentDefaultEnv: {},
-      nativeChatSessionOptions: {},
-      nativeChatPermissionMode: undefined
-    }
+    settings: withProjectAgentLaunchDefaults(
+      {
+        ...desktopSettings,
+        defaultTuiAgent,
+        disabledTuiAgents,
+        agentLaunchChoices,
+        agentDefaultArgs,
+        agentPermissionDefault,
+        agentPermissionOverrides,
+        agentCmdOverrides: {},
+        agentDefaultEnv: {},
+        nativeChatSessionOptions: {},
+        nativeChatPermissionMode: undefined
+      },
+      project
+    )
   }
 }

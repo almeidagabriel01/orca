@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { ChevronDown, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,26 +9,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
-import { fetchProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
-import type { ClaudeRateLimitAccountsState } from '../../../../../../shared/agent-accounts/managed-account-types'
 import {
   AGENT_CHAT_HOST_ACCOUNT,
   AGENT_CHAT_SYSTEM_ACCOUNT
 } from '../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import {
+  claudeChatAccountRows,
+  useHostClaudeAccounts,
+  type ClaudeChatAccountRow
+} from './host-claude-chat-accounts'
 import type { NativeChatAccountControl } from '../../session/options/structured/use-structured-chat-account'
-
-type AccountRow = { value: string; label: string; description?: string }
-
-/** The chat host's own Claude accounts; WSL accounts never run a native chat. */
-function accountRows(state: ClaudeRateLimitAccountsState): AccountRow[] {
-  return state.accounts
-    .filter((account) => account.managedAuthRuntime !== 'wsl' && !account.needsSignIn)
-    .map((account) => ({
-      value: account.id,
-      label: account.displayName ?? account.email,
-      ...(account.organizationName ? { description: account.organizationName } : {})
-    }))
-}
 
 /** Picks which of the host's accounts this chat runs on, apart from the host-wide selection. */
 export function NativeChatComposerAccountPicker({
@@ -38,22 +27,8 @@ export function NativeChatComposerAccountPicker({
   control: NativeChatAccountControl
 }): React.JSX.Element | null {
   const t = useTranslate()
-  const [state, setState] = useState<ClaudeRateLimitAccountsState | null>(null)
-  const { target } = control
-  useEffect(() => {
-    let current = true
-    fetchProviderAccountsSnapshot(target)
-      .then((snapshot) => {
-        if (current && !snapshot.failedProviders?.includes('claude')) {
-          setState(snapshot.claude)
-        }
-      })
-      .catch((error: unknown) => console.warn('[native-chat] Claude accounts unavailable', error))
-    return () => {
-      current = false
-    }
-  }, [target])
-  const accounts = state ? accountRows(state) : []
+  const state = useHostClaudeAccounts(control.target)
+  const accounts = state ? claudeChatAccountRows(state) : []
   // With no saved account every chat already runs on System default.
   if (!state || accounts.length === 0) {
     return null
@@ -62,7 +37,7 @@ export function NativeChatComposerAccountPicker({
   const hostLabel = selected
     ? (selected.displayName ?? selected.email)
     : t('components.native-chat.account.systemDefault', 'System default')
-  const rows: AccountRow[] = [
+  const rows: ClaudeChatAccountRow[] = [
     {
       value: AGENT_CHAT_HOST_ACCOUNT,
       label: t('components.native-chat.account.followHost', 'Selected account'),

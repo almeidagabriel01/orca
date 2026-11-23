@@ -16,6 +16,7 @@ import { useAppStore } from '@/store'
 import { getProjectSetupRuntimeTarget } from '@/store/projects/project-host-routing'
 import { getRuntimeEnvironmentRevision } from '@/runtime/rpc/environment-revisions/runtime-environment-revision'
 import { useHostAgentMenuSettings } from '@/runtime/agent-launch-settings/use-host-agent-launch-preferences'
+import { RepositoryAgentAccountDefault } from './RepositoryAgentAccountDefault'
 import { AgentChoiceControls } from '../../agent/launch-settings/AgentChoiceControls'
 import { useAgentSettingsModelCatalog } from '../../agent/launch-settings/use-agent-settings-model-catalog'
 import { Button } from '../../ui/button'
@@ -32,9 +33,11 @@ export function getRepositoryAgentDefaultsSearchEntry(t: Translate = translate) 
     title: t('settings.projectAgentDefaults.title', 'Agent defaults'),
     description: t(
       'settings.projectAgentDefaults.description',
-      'Default agent and model for new work in this project. Unset choices inherit this host’s defaults.'
+      'Default agent, model and account for new work in this project. Unset choices inherit this host’s defaults.'
     ),
-    keywords: [t('settings.projectAgentDefaults.keywords', 'agent model reasoning effort default')]
+    keywords: [
+      t('settings.projectAgentDefaults.keywords', 'agent model reasoning effort account default')
+    ]
   }
 }
 
@@ -125,6 +128,15 @@ function RepositoryAgentDefaultsEditor({
     }
     void save({ ...defaults, agentLaunchChoices: choices })
   }
+  const saveAccount = (choice: string | undefined): void => {
+    const accounts = { ...defaults?.agentAccounts }
+    if (choice) {
+      accounts[modelAgent] = choice
+    } else {
+      delete accounts[modelAgent]
+    }
+    void save({ ...defaults, agentAccounts: accounts })
+  }
   const disabled = pending || saving
   const inherit = t('settings.projectAgentDefaults.inherit', 'Use host default')
   const agents = getAgentCatalog()
@@ -201,6 +213,14 @@ function RepositoryAgentDefaultsEditor({
             onChange={saveChoices}
           />
         </div>
+        <RepositoryAgentAccountDefault
+          agent={modelAgent}
+          target={target}
+          value={defaults?.agentAccounts?.[modelAgent]}
+          disabled={disabled}
+          inheritLabel={inherit}
+          onChange={saveAccount}
+        />
         <div className="py-3">
           <Button
             variant="ghost"

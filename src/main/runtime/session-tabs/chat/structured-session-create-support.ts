@@ -78,10 +78,12 @@ export abstract class OrcaRuntimeWithGetStructuredAgentSessionCreateSupport exte
   /** Share new-chat selection between create and createSupport so client pickers show what create will run. */
   async structuredAgentSessionLaunchSeedOptions(
     agent: StructuredAgentId,
-    worktreeSelector?: string
+    worktreeSelector?: string,
+    withAccount = false
   ): Promise<Record<string, string> | undefined> {
     const repo = await this.resolveStructuredAgentSessionRepo(worktreeSelector)
-    return structuredProjectLaunchSeedOptions(this.requireStore().getSettings(), repo, agent)
+    const settings = this.requireStore().getSettings()
+    return structuredProjectLaunchSeedOptions(settings, repo, agent, withAccount)
   }
 
   async resolveStructuredAgentSessionCreateIntent(
@@ -185,7 +187,7 @@ export abstract class OrcaRuntimeWithGetStructuredAgentSessionCreateSupport exte
     const launchEnv = this.structuredAgentLaunchEnv(input.agent, settings)
     const options = input.resumeFrom
       ? structuredLaunchSeedOptions({ ...settings, agentLaunchChoices: undefined }, input.agent)
-      : await this.structuredAgentSessionLaunchSeedOptions(input.agent, input.worktree)
+      : await this.structuredAgentSessionLaunchSeedOptions(input.agent, input.worktree, true)
     const location = await this.resolveStructuredAgentSessionLocation(input.worktree)
     const definition = this.requireRegisteredStructuredAgent(input.agent)
     const host = getStructuredAgentSessionHost()

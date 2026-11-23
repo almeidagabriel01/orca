@@ -1,7 +1,7 @@
 import { computeAgentSessionPayloadFingerprint } from '../../../../../../shared/agent-session/lifecycle/operations/agent-session-mutation-envelope'
 import type { StructuredSessionSurface } from '../../../../agent-session/lifecycle/structured-agent-session-close'
 import { structuredAgentSessionTabId } from '../../../../../../shared/agent-session/view/structured-agent-session-projection'
-import { seededPermissionMode } from '../../../../../../shared/native-chat/input/session-options/native-chat-session-option-defaults'
+import { structuredCreateOptions } from '../../../../../../shared/native-chat/input/session-options/native-chat-session-option-defaults'
 // Resolve the host launch identity, then commit an at-rest create or the compatible acquired path.
 
 import { assertAgentPromptRequestActive } from '../../../../terminal/input/agent-prompt-signals'
@@ -137,11 +137,7 @@ export async function prepareStructuredAgentSessionCreateForWorktree(args: {
   const overlays = atRest
     ? args.optionsMode !== 'replace-model-selection'
     : Object.keys(args.options ?? {}).every((id) => id === AGENT_CHAT_PERMISSION_MODE_OPTION_ID)
-  const picked = args.options
-    ? overlays
-      ? { ...resolved.options, ...args.options }
-      : { ...seededPermissionMode(resolved.options), ...args.options }
-    : resolved.options
+  const picked = structuredCreateOptions(resolved.options, args.options, overlays)
   return {
     host,
     ...(hostLaunchDirectory ? { hostLaunchDirectory } : {}),

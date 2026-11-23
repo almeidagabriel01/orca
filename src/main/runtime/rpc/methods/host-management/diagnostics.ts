@@ -1,19 +1,26 @@
 import { defineMethod } from '../../core'
-import { toPairedMemoryReply } from '../../../../memory/memory-snapshot-paired-reply'
-import { DiagnosticsProcessTreeParams } from '../../../../../shared/rpc-contract/diagnostics-params'
+import {
+  toPairedMemoryReply,
+  toPairedMemoryReplyWithChats
+} from '../../../../memory/memory-snapshot-paired-reply'
+import {
+  DiagnosticsMemoryParams,
+  DiagnosticsProcessTreeParams
+} from '../../../../../shared/rpc-contract/diagnostics-params'
 import { collectSessionProcessTree } from '../../../../memory/session-process-tree'
 
 export const DIAGNOSTICS_METHODS = [
   defineMethod({
     name: 'diagnostics.memory',
     permission: 'workspace',
-    params: null,
-    handler: async (_params, { runtime, caller }) => {
-      // Paired machines get terminals only, as before; chat detail stays on this machine for now.
+    params: DiagnosticsMemoryParams,
+    handler: async ({ withChats }, { runtime, caller }) => {
+      // Paired machines get terminals only unless they ask for chats, which older clients never do.
       const snapshot = await runtime.getMemorySnapshot()
-      return caller?.kind === 'local-cli' || caller?.kind === 'desktop'
-        ? snapshot
-        : toPairedMemoryReply(snapshot)
+      if (caller?.kind === 'local-cli' || caller?.kind === 'desktop') {
+        return withChats ? { ...snapshot, chatsIncluded: true } : snapshot
+      }
+      return withChats ? toPairedMemoryReplyWithChats(snapshot) : toPairedMemoryReply(snapshot)
     }
   }),
   defineMethod({

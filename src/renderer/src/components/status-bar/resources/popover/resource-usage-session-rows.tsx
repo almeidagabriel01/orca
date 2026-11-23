@@ -151,7 +151,13 @@ export function SessionRow({
           )}
         </span>
       </div>
-      {expanded ? <SessionProcessTreeView session={session} workspacePath={workspacePath} /> : null}
+      {expanded ? (
+        <SessionProcessTreeView
+          sessionId={session.sessionId}
+          environmentId={session.environmentId}
+          workspacePath={workspacePath}
+        />
+      ) : null}
     </>
   )
 }
@@ -325,6 +331,7 @@ export const WorktreeRow = React.memo(function WorktreeRow({
           worktreeId={worktree.worktreeId}
           runtimeHostId={worktree.runtimeHostId}
           unplaced={worktree.unplaced}
+          workspacePath={storeRecord?.path ?? null}
           onOpenChat={onOpenChat}
         />
       )}

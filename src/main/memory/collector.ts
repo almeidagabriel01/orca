@@ -162,6 +162,7 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     // An agent's tree outlives its starting process, so a reused parent PID is ruled out by start order.
     rows: claimProcessTree(processIndex, root.pid, claimed, true)
   }))
+  rememberSessionProcessRows(ptyTrees, agentTrees, Date.now())
   // Electron helpers descend from main; the detached daemon, systemd-scoped PTYs and claimed agent rows need their own roots.
   const outsideOrca = await collectOutsideOrcaProcesses(processIndex, [
     process.pid,

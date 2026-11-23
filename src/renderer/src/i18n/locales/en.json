@@ -26301,7 +26301,8 @@
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"
     },
-    "sharedAgentProcesses": "Shared agent processes"
+    "sharedAgentProcesses": "Shared agent processes",
+    "hostChatsUpdateRequired": "Update {{value0}} to see its chats."
   },
   "browserExtensions": {
     "permission": {

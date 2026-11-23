@@ -159,7 +159,7 @@ export function mergeSnapshotAndSessions(
     groups.addChatRowGroup(part)
   }
 
-  // Paired machines send terminals only, so their samples go straight to placement.
+  // Paired samples go straight to placement; a current host's chats come with them.
   for (const host of ctx.runtimeHostResources ?? []) {
     for (const wt of host.worktrees) {
       ingestSampledWorktree(wt, pairedSamplePlacement(ctx, host, wt))

@@ -154,6 +154,11 @@ export function renderResourceHostsSummary(
               <div className="truncate pl-[18px] text-2xs text-muted-foreground">
                 {host.counts ? formatHostCounts(host.counts, t) : host.notice}
               </div>
+              {host.counts && host.notice ? (
+                <div className="truncate pl-[18px] text-2xs text-muted-foreground/70">
+                  {host.notice}
+                </div>
+              ) : null}
               {host.machine ? renderMachineTotals(host.machine, t) : null}
             </li>
           )

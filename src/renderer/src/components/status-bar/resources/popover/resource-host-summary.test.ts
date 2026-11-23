@@ -55,7 +55,16 @@ describe('buildResourceHostSummaries', () => {
     const results = {
       'env-b': await read('env-b', async () => ({
         app: { cpu: 3, memory: 70, main: { cpu: 2, memory: 40 } },
-        worktrees: [worktree([session('r1', 'tab:agent'), session('r2', null)])]
+        worktrees: [
+          {
+            ...worktree([session('r1', 'tab:agent'), session('r2', null)]),
+            chats: [
+              { agentSessionId: 'c1', agent: 'claude', name: null, cpu: 1, memory: 5 },
+              { agentSessionId: 'c2', agent: 'claude', name: 7, cpu: 1, memory: 5 }
+            ]
+          }
+        ],
+        chatsIncluded: true
       })),
       // Older headless servers count only their daemon, leaving main empty.
       'env-a': await read('env-a', async () => ({
@@ -95,7 +104,8 @@ describe('buildResourceHostSummaries', () => {
         counts: { terminals: 4, agents: 2, commands: 1 },
         notice: false
       },
-      { id: 'env-a', orca: null, counts: { terminals: 0, agents: 0, commands: 0 }, notice: false },
+      // A server that predates sending chats says its chat workers are missing.
+      { id: 'env-a', orca: null, counts: { terminals: 0, agents: 0, commands: 0 }, notice: true },
       {
         id: 'env-b',
         orca: { cpu: 3, memory: 70 },
@@ -103,6 +113,10 @@ describe('buildResourceHostSummaries', () => {
         notice: false
       },
       { id: 'env-c', orca: null, counts: null, notice: true }
+    ])
+    const envB = results['env-b']
+    expect(envB.status === 'sampled' && envB.worktrees[0].chats).toEqual([
+      { agentSessionId: 'c1', agent: 'claude', name: null, cpu: 1, memory: 5 }
     ])
   })
 })

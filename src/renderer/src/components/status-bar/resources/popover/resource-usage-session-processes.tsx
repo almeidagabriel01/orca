@@ -7,7 +7,6 @@ import { installWindowVisibilityInterval } from '@/lib/window-activity/window-vi
 import type { SessionProcessTree } from '../../../../../../shared/diagnostics/process-stats-types'
 import { hasErrorCode } from '../../host-connections/runtime-host-resources'
 import { RESOURCE_POLL_MS } from '../use-resource-memory-snapshot'
-import type { UnifiedSessionRow } from '../workspace-attribution/resource-usage-merge-types'
 import { MetricPair, ROW_TRAILING_GUTTER_CLS } from './resource-usage-metrics'
 import {
   buildProcessForest,
@@ -197,14 +196,18 @@ function ProcessRow({
 
 /** A session's processes as a tree; siblings running the same command fold into one row. */
 export function SessionProcessTreeView({
-  session,
+  sessionId,
+  environmentId,
   workspacePath
 }: {
-  session: UnifiedSessionRow
+  /** A terminal's session id, or a chat's agent session id. */
+  sessionId: string
+  /** The paired server that runs it; absent for this machine. */
+  environmentId?: string
   workspacePath: string | null
 }): React.JSX.Element {
   const t = useTranslate()
-  const state = useSessionProcessTree(session.sessionId, session.environmentId)
+  const state = useSessionProcessTree(sessionId, environmentId)
   const [openGroups, setOpenGroups] = useState<ReadonlySet<string>>(new Set())
   const [closedPids, setClosedPids] = useState<ReadonlySet<number>>(new Set())
   if (state.status !== 'ready') {

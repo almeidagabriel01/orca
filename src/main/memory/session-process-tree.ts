@@ -24,13 +24,20 @@ let latest: { at: number; bySession: Map<string, SessionRows> } | null = null
 
 /** Every snapshot sweep records each session's rows, so a tree read never sweeps the host again. */
 export function rememberSessionProcessRows(
-  trees: readonly { pty: PtyRegistration; rows: ProcRow[] }[],
+  ptyTrees: readonly { pty: PtyRegistration; rows: ProcRow[] }[],
+  agentTrees: readonly { pid: number; agentSessionId: string | null; rows: ProcRow[] }[],
   at: number
 ): void {
   const bySession = new Map<string, SessionRows>()
-  for (const { pty, rows } of trees) {
+  for (const { pty, rows } of ptyTrees) {
     if (pty.pid != null) {
       bySession.set(pty.sessionId ?? pty.ptyId, { rootPid: pty.pid, rows })
+    }
+  }
+  // A chat is read by its agent session id; a process several chats share belongs to none.
+  for (const { pid, agentSessionId, rows } of agentTrees) {
+    if (agentSessionId !== null) {
+      bySession.set(agentSessionId, { rootPid: pid, rows })
     }
   }
   latest = { at, bySession }

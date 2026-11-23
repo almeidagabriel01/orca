@@ -133,4 +133,6 @@ export type MemorySnapshot = {
   /** App, agent-process and tracked-worktree committed bytes, present exactly with processCommitMetric; exceeding physical RAM is meaningful. */
   totalPrivateMemory?: number
   collectedAt: number
+  /** Set on a paired reply that carries chats; a host that predates it never sends them. */
+  chatsIncluded?: true
 }

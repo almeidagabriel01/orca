@@ -14,7 +14,7 @@ function callDiagnosticsMemory(environmentId: string): Promise<unknown> {
   return callRuntimeRpc<unknown>(
     { kind: 'environment', environmentId },
     'diagnostics.memory',
-    undefined,
+    { withChats: true },
     {
       timeoutMs: RUNTIME_RESOURCE_TIMEOUT_MS,
       reuseRecentCompatibilityFailure: true

@@ -18,6 +18,8 @@ import {
   ROW_TRAILING_GUTTER_CLS
 } from './resource-usage-metrics'
 import type { getResourceMemoryMetricCopy } from './resource-memory-metric-copy'
+import type { ResourceHostSummary } from './resource-host-summary'
+import { OutsideOrcaSections } from './resource-usage-outside-orca'
 
 export function renderResourceUsagePopoverBody(
   {
@@ -38,7 +40,8 @@ export function renderResourceUsagePopoverBody(
     handleKillSession,
     appCollapsed,
     setAppCollapsed,
-    daemonUnreachable
+    daemonUnreachable,
+    hostSummaries
   }: {
     setPopoverBodyNode: (node: HTMLDivElement | null) => void
     unifiedRepos: UnifiedProjectGroup[]
@@ -58,6 +61,7 @@ export function renderResourceUsagePopoverBody(
     appCollapsed: boolean
     setAppCollapsed: Dispatch<SetStateAction<boolean>>
     daemonUnreachable: boolean
+    hostSummaries: readonly ResourceHostSummary[]
   },
   t: Translate = translate
 ): React.JSX.Element {
@@ -150,6 +154,8 @@ export function renderResourceUsagePopoverBody(
             onToggle={() => setAppCollapsed((v) => !v)}
           />
         )}
+
+        <OutsideOrcaSections hosts={hostSummaries} sortOption={sortOption} />
 
         {!resourceSnapshot && !daemonUnreachable && (
           <div className="px-3 py-4 text-center text-xs text-muted-foreground">

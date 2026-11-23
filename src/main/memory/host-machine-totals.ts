@@ -83,7 +83,7 @@ function readSysctlBytes(stdout: string, key: string): number | null {
 }
 
 /** Re-reads at most once per TTL, never overlaps a pending read, and never waits past the timeout. */
-function createSlowSample<T>(read: () => Promise<T | null>): () => Promise<T | null> {
+export function createSlowSample<T>(read: () => Promise<T | null>): () => Promise<T | null> {
   let sample: { at: number; settled: boolean; value: Promise<T | null> } | null = null
   return () => {
     const now = Date.now()

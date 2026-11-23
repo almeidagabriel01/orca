@@ -15,6 +15,8 @@ export type ProcRow = {
   privateMemory?: number
   /** Executable basename; never a path or command line. */
   name?: string
+  /** Raw trailing ps columns (macOS comm path; Linux cgroup and comm); main process only, never sent as is. */
+  command?: string
   /** Creation time in 100 ns ticks (Windows CIM only); orders a parent before its children. */
   startTicks?: bigint
 }
@@ -58,7 +60,7 @@ export function buildProcessIndex(
   }
 }
 
-export function parsePsOutput(stdout: string, withName = false): ProcRow[] {
+export function parsePsOutput(stdout: string, trailing?: 'name' | 'command'): ProcRow[] {
   const rows: ProcRow[] = []
   for (const line of iterateProcessOutputLines(stdout)) {
     const fields = getProcessOutputFields(line, 4)
@@ -72,13 +74,15 @@ export function parsePsOutput(stdout: string, withName = false): ProcRow[] {
     if (Number.isNaN(pid) || Number.isNaN(ppid)) {
       continue
     }
-    const name = withName ? executableBasename(PS_COMM_COLUMN.exec(line)?.[1]) : undefined
+    const rest = trailing ? PS_COMM_COLUMN.exec(line)?.[1]?.trim() : undefined
+    const name = trailing === 'name' ? executableBasename(rest) : undefined
     rows.push({
       pid,
       ppid,
       cpu: Number.isFinite(cpu) && cpu > 0 ? cpu : 0,
       memory: Number.isFinite(rssKb) && rssKb > 0 ? rssKb * 1024 : 0,
-      ...(name ? { name } : {})
+      ...(name ? { name } : {}),
+      ...(trailing === 'command' && rest ? { command: rest } : {})
     })
   }
   return rows

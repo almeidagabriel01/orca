@@ -12,6 +12,7 @@ import { collectHostMemory } from './host-memory'
 import { getLocalDaemonPid } from './local-daemon-pid'
 import { enumerateHostProcesses } from './host-process-index'
 import { claimPtyProcessTrees } from './pty-process-trees'
+import { collectOutsideOrcaProcesses } from './host-outside-orca-processes'
 import type { ProcIndex } from './process-index'
 import {
   createEmptyWorktreeMemoryBucket,
@@ -131,9 +132,19 @@ function bucketElectronMetrics(processIndex: ProcIndex): AppBucketsRaw {
 
 async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> {
   const projectGroupName = createProjectGroupNameLookup(store)
-  const [processIndex, host] = await Promise.all([enumerateHostProcesses(), collectHostMemory()])
+  const [processIndex, host] = await Promise.all([
+    enumerateHostProcesses({ withCommands: true }),
+    collectHostMemory()
+  ])
   const appBuckets = bucketElectronMetrics(processIndex)
-  const ptyTrees = claimPtyProcessTrees(processIndex, listRegisteredPtys())
+  const ptys = listRegisteredPtys()
+  const ptyTrees = claimPtyProcessTrees(processIndex, ptys)
+  // Electron helpers descend from main; the detached daemon and systemd-scoped PTYs need their own roots.
+  const outsideOrca = await collectOutsideOrcaProcesses(processIndex, [
+    process.pid,
+    getLocalDaemonPid(),
+    ...ptys.map((pty) => pty.pid)
+  ])
 
   const orphan = createEmptyWorktreeMemoryBucket(
     ORPHAN_WORKTREE_ID,
@@ -218,7 +229,7 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
   return {
     app: { ...appBuckets, history: readAppMemoryHistory() },
     worktrees,
-    host,
+    host: outsideOrca ? { ...host, outsideOrca } : host,
     processMemoryMetric: processIndex.memoryMetric,
     ...snapshotCommitFields(
       processIndex.hasPrivateMemory,

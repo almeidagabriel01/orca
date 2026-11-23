@@ -84,9 +84,7 @@ function WorkingArc({ className }: { className?: string }): React.JSX.Element {
   return (
     <AgentWorkingSpinner
       className={cn(
-        // Why amber-600 in light: working yellow drops under 3:1 on white; amber-600 keeps it.
-        'border-amber-600/20 border-t-amber-600 border-r-amber-600 motion-reduce:border-t-amber-600',
-        'dark:border-agent-working/20 dark:border-t-agent-working dark:border-r-agent-working dark:motion-reduce:border-t-agent-working',
+        'border-agent-working-ring/20 border-t-agent-working-ring border-r-agent-working-ring motion-reduce:border-t-agent-working-ring',
         className
       )}
     />

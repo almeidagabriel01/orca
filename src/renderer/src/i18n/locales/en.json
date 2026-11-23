@@ -24195,6 +24195,23 @@
           "selected": "Selected",
           "chipTitle": "{{provider}} · {{account}}",
           "chipTitleSelected": "{{provider}} · {{account}} (selected)"
+        },
+        "pace": {
+          "over": "{{points}}% over pace",
+          "under": "{{points}}% under pace",
+          "on": "On pace",
+          "runsOut": "Runs out {{when}}",
+          "usedAtReset": "≈{{value}}% used at reset",
+          "leftAtReset": "≈{{value}}% left at reset",
+          "dailyBudget": "Today {{value}}% of the daily budget",
+          "expected": "Expected {{value}}%"
+        },
+        "sessions": {
+          "working": "{{count}} working",
+          "waiting": "{{count}} waiting",
+          "untitled": "Untitled chat",
+          "heading": "Agents",
+          "recent": "Finished in the last hour ({{count}})"
         }
       }
     }

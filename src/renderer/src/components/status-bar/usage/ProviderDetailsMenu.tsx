@@ -16,6 +16,7 @@ import { ProviderIdentityCard } from '../accounts/ProviderIdentityCard'
 import { UsageDisplayToggle } from './usage-meter'
 import { ProviderLetterBadge, ProviderSegment } from './StatusBarProviderSegment'
 import { STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS } from '../composition/status-bar-context-menu-policy'
+import { UsageSessionList } from './usage-agent-sessions-view'
 
 export function ProviderDetailsMenu({
   provider,
@@ -89,6 +90,7 @@ export function ProviderDetailsMenu({
           )}
         </div>
       ) : null}
+      <UsageSessionList />
       {children ? (
         <>
           {/* Why: the account card is already bordered, so a rule under it is redundant. */}

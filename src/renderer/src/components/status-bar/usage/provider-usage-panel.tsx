@@ -34,6 +34,8 @@ import { formatWindowLabel } from './rate-limit-window-localized-label'
 import { formatPoolCardLabel } from './usage-pool-label'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { UsageBar, UsageValue } from './usage-meter'
+import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import { PaceLine } from './usage-pace-line'
 
 export function formatTimeAgo(ts: number, t: Translate = translate): string {
   const diff = Date.now() - ts
@@ -185,6 +187,8 @@ function getWindowSectionLabel(
 // Tooltips invert the theme; use background text tokens for legible primary and secondary content.
 
 function ProviderRateLimitWindowSection({
+  p,
+  inverted,
   window,
   label,
   textClass,
@@ -200,6 +204,8 @@ function ProviderRateLimitWindowSection({
   emptyBarClass: string
   usagePercentageDisplay: UsagePercentageDisplay
   now: number
+  p: ProviderRateLimits
+  inverted: boolean
 }): React.JSX.Element | null {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
@@ -207,6 +213,7 @@ function ProviderRateLimitWindowSection({
     return null
   }
   const caption = formatResetsInCaption(window.resetsAt, now, intlLocale, t)
+  const pace = getReadingPace(p, window, now)
 
   return (
     <div className="space-y-1.5" data-usage-window={label}>
@@ -228,7 +235,17 @@ function ProviderRateLimitWindowSection({
         tone="health"
         className="h-[6px] w-full"
         trackClassName={emptyBarClass}
+        paceTickPercent={paceTickPercent(pace, usagePercentageDisplay)}
       />
+      {pace ? (
+        <PaceLine
+          pace={pace}
+          display={usagePercentageDisplay}
+          now={now}
+          mutedClass={mutedClass}
+          inverted={inverted}
+        />
+      ) : null}
     </div>
   )
 }
@@ -365,6 +382,8 @@ export function ProviderPanel({
       {windowSections.map((s) => (
         <ProviderRateLimitWindowSection
           key={s.label}
+          p={p}
+          inverted={inverted}
           window={s.window}
           label={s.label}
           textClass={textClass}

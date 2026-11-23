@@ -33,43 +33,13 @@ import {
 import { formatBareUsagePercentage, formatScopedUsageTitle } from './usage-percentage-label'
 import { getUsageHealthTone } from './usage-health-tone'
 import { UsageBar, UsageDisplayToggle, UsageValue } from './usage-meter'
+import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import { UsageWindowMetric } from './usage-window-metric'
+import { UsageRowSessionCounts } from './usage-agent-sessions-view'
+import type { UsageAgentSession } from './usage-account-sessions'
 
 type ProviderId = ProviderRateLimits['provider']
-
-function DetailMetric({
-  section,
-  label,
-  display,
-  title,
-  reset
-}: {
-  section: UsageSection
-  label: string
-  display: UsagePercentageDisplay
-  title?: string
-  reset?: string | null
-}): React.JSX.Element {
-  return (
-    <span
-      data-usage-window={section.label}
-      title={title}
-      className="flex shrink-0 items-center gap-1.5"
-    >
-      <span className="text-[10px] text-muted-foreground">{label}</span>
-      <UsageBar
-        usedPercent={section.window.usedPercent}
-        display={display}
-        className="h-[5px] w-7"
-      />
-      <UsageValue
-        usedPercent={section.window.usedPercent}
-        display={display}
-        className="text-[11px]"
-      />
-      {reset ? <span className="text-[10px] text-muted-foreground">{reset}</span> : null}
-    </span>
-  )
-}
+const NO_SESSIONS: readonly UsageAgentSession[] = []
 
 function ScopedUsageFlag({
   p,
@@ -152,6 +122,7 @@ function RowUsageSummary({
         usedPercent={headline.window.usedPercent}
         display={display}
         className="h-[5px] w-[30px]"
+        paceTickPercent={paceTickPercent(getReadingPace(p, headline.window, now), display)}
       />
       <UsageValue
         usedPercent={headline.window.usedPercent}
@@ -170,7 +141,8 @@ export function UsageRow({
   now,
   mode = 'verbose',
   accountLabel,
-  selected = false
+  selected = false,
+  sessions = NO_SESSIONS
 }: {
   p: ProviderRateLimits
   display: UsagePercentageDisplay
@@ -181,6 +153,8 @@ export function UsageRow({
   /** With 'All accounts': the row is this account's, and each window shows its own reset. */
   accountLabel?: string
   selected?: boolean
+  /** The agents billing this row's account, already scoped to it. */
+  sessions?: readonly UsageAgentSession[]
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
@@ -239,24 +213,21 @@ export function UsageRow({
       {showDetails ? (
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pl-[30px]">
           {sections.map((section) => {
-            const label = shortUsageLabel(p, section, false, t)
             return (
-              <DetailMetric
+              <UsageWindowMetric
                 key={section.label}
+                p={p}
                 section={section}
-                label={label}
+                label={shortUsageLabel(p, section, false, t)}
                 display={display}
-                title={formatScopedUsageTitle(p, { ...section, label }, display, t)}
-                reset={
-                  isAccountRow
-                    ? formatLocalizedResetDuration(section.window.resetsAt, now, intlLocale)
-                    : null
-                }
+                now={now}
+                showReset={isAccountRow}
               />
             )
           })}
         </div>
       ) : null}
+      <UsageRowSessionCounts sessions={sessions} />
     </div>
   )
 }
@@ -279,7 +250,8 @@ export function UsageRosterPanel({
   onUsageDetails,
   actionsAvailable = true,
   unavailableReason,
-  renderRow
+  renderRow,
+  sessionsForRow
 }: {
   providers: ProviderRateLimits[]
   /** With 'All accounts': one row per account, grouped by provider; replaces the provider rows. */
@@ -301,6 +273,7 @@ export function UsageRosterPanel({
   onUsageDetails: () => void
   // Return null to use the default row instead of a host-supplied detail/account wrapper.
   renderRow?: (p: ProviderRateLimits, row: React.ReactNode, entry: UsageRowChip) => React.ReactNode
+  sessionsForRow?: (entry: UsageRowChip) => readonly UsageAgentSession[]
 }): React.JSX.Element {
   const t = useTranslate()
   // Why: one boundary-scheduled clock keeps every open row current without per-provider timers.
@@ -366,6 +339,7 @@ export function UsageRosterPanel({
             mode={statusBarUsageMode}
             accountLabel={entry.accountLabel}
             selected={entry.selected}
+            sessions={sessionsForRow?.(entry)}
           />
         )
         if (showSignInAction) {

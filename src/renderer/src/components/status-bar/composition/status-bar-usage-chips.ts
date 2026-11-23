@@ -42,6 +42,8 @@ export type UsageRowChip = {
   accountLabel?: string
   /** The account the owning host has selected for this provider. */
   selected?: boolean
+  /** With 'all', the account's key (saved id or 'system-default'); its agents are counted here. */
+  accountKey?: string
 }
 
 /** What an account can be called by, most specific first. */
@@ -128,7 +130,8 @@ export function buildUsageRowChips(args: {
         ? p
         : (entry.reading ?? unreadReading(p.provider, entry.isFetching === true)),
       accountLabel: labels[index],
-      selected: entry.selected
+      selected: entry.selected,
+      accountKey: entry.key
     }))
     // Why: the live reading must show even when the host's selection names no listed account.
     if (!chips.some((chip) => chip.selected)) {

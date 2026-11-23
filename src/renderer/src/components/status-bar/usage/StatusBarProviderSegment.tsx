@@ -38,19 +38,9 @@ import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCo
 import { useNow } from '@/lib/window-activity/use-now'
 import { getAccountChipSections } from '../composition/status-bar-usage-chips'
 import { AccountChipName, AccountUsageChip } from './account-usage-chip'
+import { getReadingPace, paceTickPercent } from './usage-pace-caption'
 
 const CALM_STALE_USAGE_MAX_AGE_MS = 30 * 60_000
-
-function MiniBar({
-  usedPct,
-  display
-}: {
-  usedPct: number
-  display: UsagePercentageDisplay
-}): React.JSX.Element {
-  // Why plain: usage is colored only inside a provider's details card, never in the status bar.
-  return <UsageBar usedPercent={usedPct} display={display} className="h-[6px] w-[48px] shrink-0" />
-}
 
 function WindowLabel({
   w,
@@ -391,7 +381,13 @@ function ProviderSegmentBody({
     <span className="inline-flex items-center gap-1.5">
       {icon}
       {!template && !isAccountChip && mode === 'verbose' && tightest && !compact ? (
-        <MiniBar usedPct={clampUsedPercent(tightest.window.usedPercent)} display={display} />
+        // Why plain: usage is colored only inside a provider's details card, never in the status bar.
+        <UsageBar
+          usedPercent={clampUsedPercent(tightest.window.usedPercent)}
+          display={display}
+          className="h-[6px] w-[48px] shrink-0"
+          paceTickPercent={paceTickPercent(getReadingPace(p, tightest.window, now), display)}
+        />
       ) : null}
       {template ? (
         <CustomUsageText template={template} limits={p} display={display} now={now} />

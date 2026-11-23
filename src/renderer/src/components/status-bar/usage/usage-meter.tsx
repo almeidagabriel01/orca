@@ -22,23 +22,34 @@ export function UsageBar({
   display,
   tone = 'plain',
   className,
-  trackClassName = 'bg-muted'
+  trackClassName = 'bg-muted',
+  paceTickPercent = null
 }: {
   usedPercent: number
   display: UsagePercentageDisplay
   tone?: UsageBarTone
   className?: string
   trackClassName?: string
+  /** Where even spending would be by now, on the bar's own scale; null hides the tick. */
+  paceTickPercent?: number | null
 }): React.JSX.Element {
   return (
     <span
       data-usage-bar
-      className={cn('block overflow-hidden rounded-full', trackClassName, className)}
+      className={cn('relative block overflow-hidden rounded-full', trackClassName, className)}
     >
       <span
         className={`block h-full rounded-full transition-all duration-300 ${usageBarClass(usedPercent, tone)}`}
         style={{ width: `${getDisplayedUsagePercentage(usedPercent, display)}%` }}
       />
+      {paceTickPercent === null ? null : (
+        <span
+          aria-hidden="true"
+          data-usage-pace-tick=""
+          className="absolute inset-y-0 w-px -translate-x-1/2 bg-current opacity-70"
+          style={{ left: `${Math.min(100, Math.max(0, paceTickPercent))}%` }}
+        />
+      )}
     </span>
   )
 }

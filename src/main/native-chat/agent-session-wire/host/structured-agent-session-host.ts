@@ -27,7 +27,8 @@ import * as sessionLogger from './structured-agent-session-logger'
 import { createStructuredAgentSessionWorkspaceSleeper } from '../termination/structured-agent-session-workspace-sleep'
 
 export class StructuredAgentSessionHost {
-  private readonly conversationCommands = new CommandController(() => this.mutationContext(), this)
+  // Public for agentSession.switchAgent: this file sits at its line limit.
+  readonly conversationCommands = new CommandController(() => this.mutationContext(), this)
   private readonly sessions = createStructuredAgentSessionPublicationWiring({
     client: () => this.clientDelivery,
     delivery: () => this.conversationDelivery,

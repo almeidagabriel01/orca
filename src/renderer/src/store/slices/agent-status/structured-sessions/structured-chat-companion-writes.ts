@@ -1,16 +1,18 @@
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../../../types'
+import { followChatTabAgent, type ChatTabAgentChange } from './structured-chat-tab-agent'
 import { withStructuredChatSleptAt } from './structured-chat-slept-at'
 import {
   withoutStructuredSessionLaunchDirectory,
   withStructuredSessionLaunchDirectory
 } from './structured-session-launch-directories'
 
-/** A status projection's sleep and launch-directory side facts, applied in order. */
+/** A status projection's sleep, launch-directory and agent side facts, applied in order. */
 export type StructuredChatCompanionWrite =
   | { kind: 'slept-at'; paneKey: string; sleptAt: number | null | undefined }
   | { kind: 'launch-directory'; tabId: string; sessionId: string; launchDirectory: string }
   | { kind: 'clear-launch-directory'; tabId: string; sessionId: string }
+  | ({ kind: 'agent' } & ChatTabAgentChange)
 
 export type StructuredChatCompanionWritesSlice = {
   /** One store write per projection, so a reconnect snapshot does not notify once per chat. */
@@ -22,10 +24,15 @@ export const createStructuredChatCompanionWritesSlice: StateCreator<
   [],
   [],
   StructuredChatCompanionWritesSlice
-> = (set) => ({
+> = (set, get) => ({
   applyStructuredChatCompanionWrites: (writes) => {
     if (!writes.length) {
       return
+    }
+    for (const write of writes) {
+      if (write.kind === 'agent') {
+        followChatTabAgent(set, get(), write)
+      }
     }
     set((state) => {
       let sleptAt = state.structuredChatSleptAtByPaneKey
@@ -40,7 +47,7 @@ export const createStructuredChatCompanionWritesSlice: StateCreator<
             write.sessionId,
             write.launchDirectory
           )
-        } else {
+        } else if (write.kind === 'clear-launch-directory') {
           directories = withoutStructuredSessionLaunchDirectory(
             directories,
             write.tabId,

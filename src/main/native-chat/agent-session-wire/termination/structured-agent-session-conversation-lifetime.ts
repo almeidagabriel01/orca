@@ -209,8 +209,7 @@ export function createStructuredAgentSessionConversationLifetime(
   return {
     closeForWorkspaceSleep,
     idleSweep,
-    stopAgent,
-    /** Expire only the matching still-starting child; its end fails queued work. */
+    stopAgent /** Expire only the matching still-starting child; its end fails queued work. */,
     expireStartup: ({ sessionId, child }: StructuredAgentSessionExpiredStartup): void =>
       stopStartingChild(sessionId, child),
     stopStartingChild,

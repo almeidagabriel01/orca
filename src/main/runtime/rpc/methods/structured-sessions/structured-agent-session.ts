@@ -53,6 +53,7 @@ import {
   RewindParams,
   SendParams,
   SleepWorkspaceParams,
+  SwitchAgentParams,
   UnsubscribeParams
 } from '../../../../../shared/rpc-contract/structured-agent-session/structured-agent-session-params'
 import '../../../../../shared/rpc-contract/structured-agent-session/structured-agent-session-continue-params'
@@ -76,6 +77,17 @@ export const STRUCTURED_AGENT_SESSION_METHODS = [
       requireStructuredCapability(ctx)
       await ensureHostInstalled(ctx)
       return requireSessionHost(ctx, params.envelope.sessionId).rewind(callerFor(ctx), params)
+    }
+  }),
+  defineMethod({
+    name: 'agentSession.switchAgent',
+    permission: 'workspace',
+    params: SwitchAgentParams,
+    handler: async (params, ctx) => {
+      requireStructuredCapability(ctx)
+      await ensureHostInstalled(ctx)
+      const host = requireSessionHost(ctx, params.envelope.sessionId)
+      return host.conversationCommands.switchAgent(callerFor(ctx), params)
     }
   }),
   defineMethod({

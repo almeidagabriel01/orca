@@ -6,6 +6,7 @@ import type {
 } from '../../../../native-chat/agent-session-wire/observations/structured-agent-session-request-failures'
 import type { AdmittedMessage } from '../../../../native-chat/agent-session-wire/host/structured-agent-session-host-types'
 import { reportChatWorkerProviderDeath } from './chat-worker-provider-death'
+import type { AgentSessionStatusSummary } from '../../../../../shared/agent-session/agent-session-wire'
 import { RuntimeStructuredAgentHost } from '../../../agent-session/installation/runtime-structured-agent-host'
 
 export abstract class RuntimeChatWorkerEvents extends RuntimeStructuredAgentHost {
@@ -23,6 +24,11 @@ export abstract class RuntimeChatWorkerEvents extends RuntimeStructuredAgentHost
 
   /** A message a chat took; the connector seam keeps its turn's source for the chat's thread. */
   abstract onChatMessageAdmitted(message: AdmittedMessage): void
+
+  /** A chat's status names its agent; a switched chat's tab follows it. */
+  abstract followStructuredChatTabAgent(
+    chat: Pick<AgentSessionStatusSummary, 'sessionId' | 'workspaceId' | 'agent'>
+  ): void
 
   /** A chat worker whose request settled failed tells the Run that dispatched it; a bot, its senders. */
   onStructuredRequestFailureForErrorMail(failure: StructuredAgentSessionRequestFailure): void {

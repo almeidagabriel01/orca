@@ -20,6 +20,10 @@ import {
   type AgentSessionOperationAcceptance
 } from '../ownership/agent-session-operation-admission'
 import {
+  commitAgentSessionAgentSwitchRecord,
+  type AgentSessionAgentSwitch
+} from './agent-session-agent-switch-record'
+import {
   commitConversationClearRecord,
   type AgentSessionConversationClear
 } from './agent-session-conversation-command-record'
@@ -62,6 +66,11 @@ export type AgentSessionStoreMutation =
       clear: AgentSessionConversationClear
       operation: { callerKey: string; operationId: string }
     }
+  | {
+      kind: 'agent-switch'
+      change: AgentSessionAgentSwitch
+      operation: { callerKey: string; operationId: string }
+    }
   | { kind: 'cancel-continue'; sessionId: string; cut: UsageLimitContinueIdentity }
   | { kind: 'submission-wake'; sessionId: string }
 
@@ -88,7 +97,7 @@ export function agentSessionStoreMutationKeys(mutation: AgentSessionStoreMutatio
     }
   }
   const operation =
-    mutation.kind === 'operation' || mutation.kind === 'clear'
+    mutation.kind === 'operation' || mutation.kind === 'clear' || mutation.kind === 'agent-switch'
       ? mutation.operation
       : mutation.kind === 'rewind-complete'
         ? { callerKey: mutation.rewind.callerKey, operationId: mutation.rewind.operationId }
@@ -98,7 +107,13 @@ export function agentSessionStoreMutationKeys(mutation: AgentSessionStoreMutatio
       ? [mutation.record?.sessionId, mutation.wakeSessionId].filter(
           (id): id is string => id !== undefined
         )
-      : [mutation.kind === 'clear' ? mutation.clear.sessionId : mutation.sessionId]
+      : [
+          mutation.kind === 'clear'
+            ? mutation.clear.sessionId
+            : mutation.kind === 'agent-switch'
+              ? mutation.change.sessionId
+              : mutation.sessionId
+        ]
   return {
     recordIds: [...new Set(recordIds)],
     operationId: operation?.operationId,
@@ -194,6 +209,13 @@ export function applyAgentSessionStoreMutation(
           sessionId: mutation.clear.sessionId,
           conversationCommand: mutation.clear.command
         }
+      })
+      return
+    case 'agent-switch':
+      commitAgentSessionAgentSwitchRecord(state, mutation.change)
+      settleAgentSessionOperationInto(state, {
+        ...mutation.operation,
+        outcome: { status: 'succeeded', sessionId: mutation.change.sessionId }
       })
       return
     case 'cancel-continue':

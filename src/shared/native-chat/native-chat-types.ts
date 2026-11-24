@@ -1,3 +1,4 @@
+import type { AgentSessionAgentSwitchMark } from '../agent-session/conversation-context/agent-session-agent-switch'
 import type { BotTidyUpNote } from '../bots/bot-tidy-up'
 import type { TookOverNotice } from './took-over-notice'
 import type {
@@ -77,6 +78,8 @@ export type NativeChatTextBlock = {
   orcaStop?: AgentSessionOrcaStop & { turnItemId?: string }
   /** On the "Forked from" divider: the source chat it links to. */
   forkedFrom?: AgentSessionForkedFromMark
+  /** On the row a switch writes: the agent and account the chat continues on. */
+  agentSwitch?: AgentSessionAgentSwitchMark
   /** On a usage-limit line: the turn the limit ended, which its Continue picks up. */
   usageLimitTurnItemId?: string
   /** On an automation's result note: the run and its result. */

@@ -168,6 +168,8 @@ export function useStructuredAgentSessionOptions(args: StructuredAgentSessionOpt
     fence: transportEnabled ? fence : null,
     hostChoice: optionState.accountChoice,
     sessionNeverStarted: optionState.sessionNeverStarted,
+    ...(args.turnRunning ? { turnRunning: true } : {}),
+    ...(args.stopTurn ? { stopTurn: args.stopTurn } : {}),
     reread: rereadOptions
   })
   const { demandModelCatalog } = hostCatalog

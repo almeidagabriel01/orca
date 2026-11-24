@@ -942,6 +942,7 @@ import {
   SetOptionParams,
   SleepWorkspaceParams,
   SubscribeTurnCompletionsParams,
+  SwitchAgentParams,
   ThreadGoalParams,
   ToolCallerParams,
   UnsubscribeParams
@@ -1201,6 +1202,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'agentSession.subscribeAvailability': AvailabilityParams,
   'agentSession.subscribeStatus': null,
   'agentSession.subscribeTurnCompletions': SubscribeTurnCompletionsParams,
+  'agentSession.switchAgent': SwitchAgentParams,
   'agentSession.threadGoal': ThreadGoalParams,
   'agentSession.toolCaller': ToolCallerParams,
   'agentSession.unsubscribe': UnsubscribeParams,

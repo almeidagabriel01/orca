@@ -5,6 +5,7 @@
 // Older rewind replaces unknown turn/tool/resolution states with placeholders and blocks with raw-JSON text, retaining unknown bodies.
 // History pages lack row v: extensions must also remain safe for older clients.
 
+import { AgentSessionAgentSwitchMarkSchema } from '../conversation-context/agent-session-agent-switch'
 import { BOT_JOURNAL_ITEM_BODIES } from './agent-session-journal-bot-item-schemas'
 import { BoundedPayload, ProviderFrame } from './agent-session-journal-bounded-payload-schema'
 import * as z from 'zod'
@@ -257,7 +258,8 @@ const KnownItemBody = z.discriminatedUnion('kind', [
         sourceForked: z.literal(true).optional(),
         sourceMissing: z.literal(true).optional()
       })
-      .optional()
+      .optional(),
+    agentSwitch: AgentSessionAgentSwitchMarkSchema.optional()
   }),
   z.object({
     kind: z.literal('turn'),

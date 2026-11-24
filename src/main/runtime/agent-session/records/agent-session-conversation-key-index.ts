@@ -13,7 +13,7 @@ import {
 /** What keys may depend on: a write that leaves these alone (a lease renewal) moves no key. */
 type AgentSessionConversationKeyInputs = Pick<
   AgentSessionConversationView,
-  'provider' | 'location' | 'providerHandleChain'
+  'provider' | 'location' | 'providerHandleChain' | 'retiredConversations'
 >
 
 /** The lookup keys one chat answers to. Pass a module-level function: the store keeps one index
@@ -225,6 +225,24 @@ function sameKeyInputs(
         link.linkId === next.linkId &&
         link.handle.agent === next.handle.agent &&
         link.handle.nativeId === next.handle.nativeId
+      )
+    }) &&
+    sameRetired(before.retiredConversations ?? [], after.retiredConversations ?? [])
+  )
+}
+
+function sameRetired(
+  before: NonNullable<AgentSessionConversationKeyInputs['retiredConversations']>,
+  after: NonNullable<AgentSessionConversationKeyInputs['retiredConversations']>
+): boolean {
+  return (
+    before.length === after.length &&
+    before.every(({ provider, providerSessionIds: ids }, index) => {
+      const next = after[index]!
+      return (
+        provider === next.provider &&
+        ids.length === next.providerSessionIds.length &&
+        ids.every((id, at) => id === next.providerSessionIds[at])
       )
     })
   )

@@ -1,3 +1,7 @@
+import {
+  isAgentSessionAgentSwitchTarget,
+  type AgentSessionAgentSwitchTarget
+} from '../../agent-session/conversation-context/agent-session-agent-switch'
 import { BotLinkOpenTargetSchema } from '../../bots/bot-link-open-target'
 import { AgentSessionSelectionSchema } from '../../agent-session/options/protocol/agent-session-execution-options'
 import {
@@ -254,6 +258,11 @@ export const ModelCatalogParams = z.strictObject({
   // Read saved data without starting a listing; gate on saved-only capability because older hosts refuse unknown keys.
   savedOnly: z.boolean().optional(),
   selectedModel: Identifier('Invalid selected model').optional()
+})
+
+export const SwitchAgentParams = z.strictObject({
+  envelope: MutationEnvelope,
+  target: z.custom<AgentSessionAgentSwitchTarget>(isAgentSessionAgentSwitchTarget)
 })
 
 export const ConversationCommandParams = z

@@ -1,10 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { NativeChatNoticeAuthRecovery } from '../antigravity-auth/NativeChatAntigravityAuthRecovery'
-import { Check, Clock, Gauge, Loader2, MessageSquarePlus } from 'lucide-react'
+import { Check, Gauge, Loader2, MessageSquarePlus } from 'lucide-react'
 import { toast } from 'sonner'
-import { useTranslate, type Translate } from '@/i18n/use-translate'
+import { useIntlLocale, useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
-import { useAppStore } from '@/store'
 import { validResetAt } from '@/components/status-bar/usage/usage-reset-caption'
 import type { NativeChatTextBlock } from '../../../../../shared/native-chat/native-chat-types'
 import type { AgentSessionFailureFact } from '../../../../../shared/agent-session/failures/agent-session-failure'
@@ -17,9 +16,9 @@ import { NativeChatInterruptedContinueButton } from './NativeChatInterruptedCont
 import { useNativeChatUsageLimitActions } from './NativeChatUsageLimitActions'
 import {
   openUsageLimitContinueSetting,
-  turnOnUsageLimitAutoContinue,
   type NativeChatUsageLimitAutoContinueState
 } from './native-chat-usage-limit-auto-continue-setting'
+import { AutoContinueLabeledTool, AutoContinueTool } from './NativeChatUsageLimitAutoContinueTool'
 import { useUsageLimitContinueClock } from './use-usage-limit-continue-clock'
 import { USAGE_LIMIT_COPY_CAP, usageLimitCopyText } from './native-chat-usage-limit-copy-text'
 import { usageLimitRowWords, type UsageLimitPhase } from './native-chat-usage-limit-row-words'
@@ -94,69 +93,6 @@ async function copyUsageLimitError(
   }
 }
 
-function AutoContinueTool({
-  auto,
-  autoTime
-}: {
-  auto: NativeChatUsageLimitAutoContinueState
-  autoTime: string | null
-}): React.JSX.Element {
-  const t = useTranslate()
-  const settingOn = useAppStore(
-    (state) => state.settings?.nativeChatAutoContinueAfterUsageLimit === true
-  )
-  if (auto.kind === 'scheduled') {
-    return (
-      <UsageLimitToolButton
-        label={t(
-          'components.native-chat.usageLimitActions.cancelAt',
-          "Don't continue at {{time}}",
-          { time: autoTime }
-        )}
-        pressed
-        disabled={auto.cancelDisabled}
-        onClick={auto.cancel}
-      >
-        <Clock className="size-3.5" />
-      </UsageLimitToolButton>
-    )
-  }
-  // Off with the setting off: the clock turns it on here, and the host schedules this chat. The
-  // host also says off for a chat it can't continue while the setting is on; that opens Settings.
-  if (auto.kind === 'off' && !settingOn) {
-    return (
-      <UsageLimitToolButton
-        label={t(
-          'components.native-chat.usageLimitActions.turnOnAutoContinue',
-          'Auto-continue on reset'
-        )}
-        pressed={false}
-        onClick={turnOnUsageLimitAutoContinue}
-      >
-        <Clock className="size-3.5" />
-      </UsageLimitToolButton>
-    )
-  }
-  return (
-    <UsageLimitToolButton
-      label={
-        auto.kind === 'cancelled'
-          ? t(
-              'components.native-chat.usageLimitActions.wontContinue',
-              "Won't continue automatically"
-            )
-          : t(
-              'components.native-chat.usageLimitActions.autoContinueSettings',
-              'Auto-continue settings'
-            )
-      }
-      onClick={openUsageLimitContinueSetting}
-    >
-      <Clock className="size-3.5" />
-    </UsageLimitToolButton>
-  )
-}
-
 /** A usage-limit notice as one row: what limit, when the chat can go on, and icon tools. */
 type UsageLimitRowProps = {
   block: NativeChatTextBlock
@@ -186,6 +122,7 @@ function UsageLimitCard({
   active
 }: UsageLimitRowProps): React.JSX.Element {
   const t = useTranslate()
+  const locale = useIntlLocale()
   const view = useNativeChatOrcaStopView()
   const actions = useNativeChatUsageLimitActions()
   const limit = failure.kind === 'usageLimitReached' ? failure.usageLimit : undefined
@@ -218,7 +155,9 @@ function UsageLimitCard({
       : passed
         ? 'ready'
         : 'waiting'
-  const autoTime = scheduled ? formatUsageLimitResetClock(scheduled.resetsAt) : null
+  const autoTime = scheduled
+    ? formatUsageLimitResetClock(scheduled.resetsAt, undefined, locale)
+    : null
   const sameTime = scheduled !== null && scheduled.resetsAt === manualAt
   const words = usageLimitRowWords(
     {
@@ -234,7 +173,8 @@ function UsageLimitCard({
         sayAgentSessionFailureTranslated
       ),
       auto,
-      manualTime: manualAt === undefined ? null : formatUsageLimitResetClock(manualAt),
+      manualTime:
+        manualAt === undefined ? null : formatUsageLimitResetClock(manualAt, undefined, locale),
       autoTime,
       sameTime
     },
@@ -301,82 +241,116 @@ function UsageLimitCard({
       : [])
   ]
 
+  // The in-place switch supersedes the host-account switcher and handing off to a new chat.
+  const switchAction = active ? actions?.agentSwitch : undefined
+  // The labeled clock already names the schedule; the summary still says it.
+  const subline =
+    switchAction && phase === 'waiting' && sameTime && clockAuto !== null ? null : words.subline
+  const slot =
+    slotKey === 'none' ? null : (
+      <UsageLimitFocusSlot key={slotKey} pendingFocus={pendingFocus}>
+        {slotKey === 'continue' ? (
+          <NativeChatInterruptedContinueButton
+            onContinue={view.continueUsageLimit}
+            disabled={view.usageLimitContinueDisabled}
+            explanation={t(
+              'components.native-chat.interruptedContinue.usageLimitExplanation',
+              'Asks the agent to continue where it left off. Use it once the limit resets.'
+            )}
+          />
+        ) : switchAction ? (
+          phase === 'waiting' && clockAuto ? (
+            <AutoContinueLabeledTool auto={clockAuto} autoTime={autoTime} />
+          ) : null
+        ) : (
+          <>
+            {actions?.account ? <span className="contents">{actions.account}</span> : null}
+            {actions?.handOff ? (
+              <UsageLimitToolButton
+                label={t('components.native-chat.usageLimitActions.handOff', 'Hand off to agent')}
+                disabled={actions.disabled}
+                busy={actions.preparing}
+                onClick={actions.handOff}
+              >
+                {actions.preparing ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <MessageSquarePlus className="size-3.5" />
+                )}
+              </UsageLimitToolButton>
+            ) : null}
+            {phase === 'waiting' && clockAuto ? (
+              // Locally, a host still loading or yet to publish offers the setting as "off".
+              <AutoContinueTool auto={clockAuto} autoTime={autoTime} />
+            ) : null}
+          </>
+        )}
+      </UsageLimitFocusSlot>
+    )
+  const lead = (
+    <>
+      {phase === 'ready' ? (
+        <Check
+          aria-hidden="true"
+          className="mt-px size-4 shrink-0 text-status-success @max-[260px]:hidden"
+        />
+      ) : (
+        <Gauge
+          aria-hidden="true"
+          className="mt-px size-4 shrink-0 text-chat-warning @max-[260px]:hidden"
+        />
+      )}
+      <div
+        aria-hidden="true"
+        className="min-w-0 flex-1 leading-tight @min-[400px]:flex @min-[400px]:items-baseline @min-[400px]:gap-1.5"
+      >
+        <span className="line-clamp-2 font-semibold text-chat-foreground [overflow-wrap:normal] @min-[400px]:shrink-0">
+          {words.title}
+        </span>
+        {subline ? (
+          <span className="block min-w-0 text-xs [overflow-wrap:anywhere] text-chat-foreground-faint tabular-nums">
+            {subline}
+          </span>
+        ) : null}
+      </div>
+    </>
+  )
+  const more = <UsageLimitMoreMenu triggerRef={moreRef} items={moreItems} />
   const stack = slotKey === 'continue' ? STACK.continue : STACK.tools
   return (
     <div className="@container rounded-md border border-border bg-muted/20 text-sm">
-      <div
-        className={cn('flex min-h-10 items-start gap-x-2 gap-y-1 py-1.5 pl-2.5 pr-1.5', stack.row)}
-      >
-        <div className={cn('flex min-w-0 flex-1 items-start gap-2 pt-1', stack.lead)}>
-          {phase === 'ready' ? (
-            <Check
-              aria-hidden="true"
-              className="mt-px size-4 shrink-0 text-status-success @max-[260px]:hidden"
-            />
-          ) : (
-            <Gauge
-              aria-hidden="true"
-              className="mt-px size-4 shrink-0 text-chat-warning @max-[260px]:hidden"
-            />
-          )}
+      {switchAction ? (
+        // Labeled actions take their own line under the words, indented to the title.
+        <>
+          <div className="flex min-h-10 items-start gap-2 py-1.5 pl-2.5 pr-1.5">
+            <div className="flex min-w-0 flex-1 items-start gap-2 pt-1">{lead}</div>
+            <p className="sr-only">{words.summary}</p>
+            {more}
+          </div>
           <div
-            aria-hidden="true"
-            className="min-w-0 flex-1 leading-tight @min-[400px]:flex @min-[400px]:items-baseline @min-[400px]:gap-1.5"
+            ref={slotRef}
+            className="-mt-1 flex flex-wrap items-center gap-1.5 pr-2.5 pb-2 pl-8.5 @max-[260px]:pl-2.5"
           >
-            <span className="line-clamp-2 font-semibold text-chat-foreground [overflow-wrap:normal] @min-[400px]:shrink-0">
-              {words.title}
-            </span>
-            {words.subline ? (
-              <span className="block min-w-0 text-xs [overflow-wrap:anywhere] text-chat-foreground-faint tabular-nums">
-                {words.subline}
-              </span>
-            ) : null}
+            {slotKey === 'continue' ? null : switchAction(true)}
+            {slot}
+            {slotKey === 'continue' ? switchAction(false) : null}
+          </div>
+        </>
+      ) : (
+        <div
+          className={cn(
+            'flex min-h-10 items-start gap-x-2 gap-y-1 py-1.5 pl-2.5 pr-1.5',
+            stack.row
+          )}
+        >
+          <div className={cn('flex min-w-0 flex-1 items-start gap-2 pt-1', stack.lead)}>{lead}</div>
+          <p className="sr-only">{words.summary}</p>
+          <div ref={slotRef} className={cn('flex shrink-0 items-center gap-0.5', stack.tools)}>
+            {slot}
+            {more}
           </div>
         </div>
-        <p className="sr-only">{words.summary}</p>
-        <div ref={slotRef} className={cn('flex shrink-0 items-center gap-0.5', stack.tools)}>
-          {slotKey === 'none' ? null : (
-            <UsageLimitFocusSlot key={slotKey} pendingFocus={pendingFocus}>
-              {slotKey === 'tools' ? (
-                <>
-                  {actions?.account ? <span className="contents">{actions.account}</span> : null}
-                  {actions?.handOff ? (
-                    <UsageLimitToolButton
-                      label={t(
-                        'components.native-chat.usageLimitActions.handOff',
-                        'Hand off to agent'
-                      )}
-                      disabled={actions.disabled}
-                      busy={actions.preparing}
-                      onClick={actions.handOff}
-                    >
-                      {actions.preparing ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : (
-                        <MessageSquarePlus className="size-3.5" />
-                      )}
-                    </UsageLimitToolButton>
-                  ) : null}
-                  {phase === 'waiting' && clockAuto ? (
-                    // Locally, a host still loading or yet to publish offers the setting as "off".
-                    <AutoContinueTool auto={clockAuto} autoTime={autoTime} />
-                  ) : null}
-                </>
-              ) : (
-                <NativeChatInterruptedContinueButton
-                  onContinue={view.continueUsageLimit}
-                  disabled={view.usageLimitContinueDisabled}
-                  explanation={t(
-                    'components.native-chat.interruptedContinue.usageLimitExplanation',
-                    'Asks the agent to continue where it left off. Use it once the limit resets.'
-                  )}
-                />
-              )}
-            </UsageLimitFocusSlot>
-          )}
-          <UsageLimitMoreMenu triggerRef={moreRef} items={moreItems} />
-        </div>
-      </div>
+      )}
       {hasDetails && detailsShown ? (
         <div className="px-1.5 pb-1.5">
           <ProviderFrameRow

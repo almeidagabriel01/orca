@@ -80,6 +80,7 @@ export function structuredAgentSessionStatusBlock(
           }
         }
       : {}),
+    ...(body.agentSwitch ? { agentSwitch: body.agentSwitch } : {}),
     ...(failure?.kind === 'usageLimitReached' && turnScope?.kind === 'turn'
       ? { usageLimitTurnItemId: turnScope.turnItemId }
       : {}),

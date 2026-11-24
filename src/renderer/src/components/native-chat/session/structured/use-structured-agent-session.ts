@@ -87,6 +87,8 @@ export function useStructuredAgentSession(args: StructuredAgentSessionViewArgs) 
   const legacyLaunchStop = useStructuredLegacyLaunchStop(sessionId)
   const transportState = useStructuredAgentSessionTransportState(state, transportEnabled)
   const journalItems = transportState.journalItems
+  const stopControlInput = { sessionId, target, transportState, hostStopping, mutate }
+  const stopControl = useStructuredAgentSessionStop(stopControlInput)
   const {
     conversationCommands,
     compactInstructions,
@@ -113,12 +115,16 @@ export function useStructuredAgentSession(args: StructuredAgentSessionViewArgs) 
     providerStarting,
     ...(args.providerRunning ? { providerRunning: true } : {}),
     ...(args.hostOptionStamp ? { hostOptionStamp: args.hostOptionStamp } : {}),
+    turnRunning:
+      transportState.isWorking || pendingStructuredSessionPrompts(transportState).length > 0,
     fence: state.fence,
     turnId: transportState.turnId,
     hasTurn: transportState.latestTurn != null || transportState.submissions.length > 0,
     unloadedTurnRevisions: state.unloadedTurnRevisions,
     mutate,
     capturePresentation,
+    // "Stop and switch" keeps the person's unsent drafts; the switch carries them over.
+    stopTurn: () => stopControl.stop(transportState.turnId, () => {}),
     ...(launch ? { launch } : {})
   })
   const sendOptions = useStructuredAgentSessionSendOptions(sessionId, launch, sendSource)
@@ -128,8 +134,6 @@ export function useStructuredAgentSession(args: StructuredAgentSessionViewArgs) 
     () => (transportState.queuedMessages ?? []).map((message) => message.messageId),
     [transportState.queuedMessages]
   )
-  const stopControlInput = { sessionId, target, transportState, hostStopping, mutate }
-  const stopControl = useStructuredAgentSessionStop(stopControlInput)
   const prompts = pendingStructuredSessionPrompts(transportState)
   const isWorking = transportState.isWorking || transportState.queueSendsNext
   // Resolved per send, so a send's alternate flips the setting before the queue's own rules.

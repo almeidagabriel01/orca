@@ -74,7 +74,7 @@ export class SqlAgentSessionJournal extends SqlJournalAppends {
 
   private constructor(
     private readonly database: JournalSqlDatabase,
-    readonly identity: AgentSessionJournalIdentity,
+    public identity: AgentSessionJournalIdentity,
     private target: JournalWriterTarget,
     private readonly now: () => number,
     opened: JournalWriterCommit

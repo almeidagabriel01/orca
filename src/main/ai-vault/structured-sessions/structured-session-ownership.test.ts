@@ -1,5 +1,9 @@
 import { afterEach, expect, it } from 'vitest'
 import { setStructuredAgentSessionHost } from '../../native-chat/agent-session-wire/host/structured-agent-session-registry'
+import { agentSessionConversationView } from '../../../shared/agent-session/lifecycle/leases/agent-session-conversation-view'
+import { agentSessionRecordFixture } from '../../../shared/agent-session/lifecycle/records/agent-session-record.test-fixture'
+import type { AgentSessionConversationKeys } from '../../runtime/agent-session/records/agent-session-conversation-key-index'
+import { switchedAgentSessionRecord } from '../../runtime/agent-session/records/agent-session-agent-switch-record'
 import {
   assertLegacyAiVaultResumeCommandAllowed,
   OPENS_EVERY_STRUCTURED_CHAT,
@@ -76,5 +80,46 @@ it('lists a Cursor ACP session only as its owning chat, previewed from the last 
       ]
     }),
     expect.objectContaining({ sessionId: 'bbbbbbbb-0000-4000-8000-000000000000' })
+  ])
+})
+
+it('keeps a conversation of the agent a chat switched away from as that chat', () => {
+  const claude = agentSessionRecordFixture()
+  const chat = switchedAgentSessionRecord(claude, {
+    switchId: 'switch-1',
+    kind: 'agent',
+    provider: 'codex',
+    accountHome: { variable: 'CODEX_HOME', path: '/home/user/.codex' },
+    accountChoice: null,
+    now: 5_000
+  })
+  const view = agentSessionConversationView(chat)
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the projection reads only these store members; the rest of the host is never reached.
+  setStructuredAgentSessionHost({
+    deps: {
+      store: {
+        hostId: 'local',
+        getRecord: (sessionId: string) => (sessionId === chat.sessionId ? chat : null),
+        conversationsKeyedBy: (keys: AgentSessionConversationKeys, key: string) =>
+          keys(view).includes(key) ? [view] : []
+      }
+    }
+  } as never)
+  const claudeRow = historySession({
+    id: 'local:claude:provider-session-alpha-1',
+    agent: 'claude',
+    sessionId: 'provider-session-alpha-1'
+  })
+
+  const result = projectStructuredAiVaultSessions(
+    { ...listResult(), sessions: [claudeRow] },
+    OPENS_EVERY_STRUCTURED_CHAT
+  )
+
+  expect(result.sessions).toEqual([
+    expect.objectContaining({
+      sessionId: 'provider-session-alpha-1',
+      structuredSession: { sessionId: chat.sessionId, workspaceId: 'workspace-1' }
+    })
   ])
 })

@@ -234,6 +234,10 @@ export function ensureWorktreeHasInitialTerminal(
     !hasExplicitLaunchWork &&
     opts.activateCreatedTabs !== false
   ) {
+    // Why: the user asked for an empty workspace to stay empty; explicit launch work still runs.
+    if (useAppStore.getState().settings?.emptyWorkspaceSurface === 'nothing') {
+      return null
+    }
     const defaultChat = openDefaultAgentChatInEmptyWorkspace(
       worktreeId,
       () =>

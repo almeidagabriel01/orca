@@ -1,3 +1,4 @@
+import { normalizeEmptyWorkspaceSurface } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { pickTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent-selection'
 import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
 import { acquireAgentLaunchChoices } from '../../../agent-session/launch/inventory/host-chat-program-acquisition'
@@ -31,16 +32,22 @@ type DefaultChatHost = { target: AgentDetectionTarget; preferences: AgentLaunchP
 function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost | undefined {
   // Why the owner's copy: a paired host keeps its own default agent.
   const preferences = readAgentLaunchPreferencesForWorktree(state, worktreeId)
-  const chosen = preferences.defaultTuiAgent
+  const surface = normalizeEmptyWorkspaceSurface(state.settings?.emptyWorkspaceSurface)
+  const saved = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
   // Why: only a saved agent asks for a chat here; Auto must not turn catalog order into a launch (#36594).
-  if (!chosen || chosen === 'blank' || !newAgentLaunchesMayOpenChats(state.settings)) {
+  // Choosing "agent chat" is that ask, so Auto falls back to Claude.
+  const chosen =
+    surface === 'terminal' || surface === 'nothing'
+      ? null
+      : (saved ?? (surface === 'agent-chat' ? 'claude' : null))
+  if (!chosen || !newAgentLaunchesMayOpenChats(state.settings)) {
     return undefined
   }
   // Why: an unresolved owner is an unknown host, not the local machine.
   const target = parseAgentDetectionTargetKey(
     getAgentDetectionTargetKeyForWorktree(state, worktreeId)
   )
-  return target && { target, preferences }
+  return target && { target, preferences: { ...preferences, defaultTuiAgent: chosen } }
 }
 
 export function emptyWorkspaceDefaultChatAwaitsDetection(worktreeId: string): boolean {

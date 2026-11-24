@@ -1939,7 +1939,15 @@
       "undetectedCommandHint": "Se a CLI do {{agent}} estiver instalada fora do PATH, informe o caminho completo do executável neste host.",
       "permissionMixed": "Misto",
       "choiceChipTooltip": "Adicionado por {{choice}}. Remova-o para usar o padrão.",
-      "choiceChipRemove": "Remover {{flag}}"
+      "choiceChipRemove": "Remover {{flag}}",
+      "emptyWorkspace": {
+        "title": "Ao abrir um workspace sem abas",
+        "description": "Chat do agente abre o agente padrão (Claude, se estiver em Automático) na conta padrão do projeto.",
+        "keyword": "workspace",
+        "terminal": "Terminal",
+        "agentChat": "Chat do agente",
+        "nothing": "Nada"
+      }
     },
     "followSymlinkedDirectoriesKeywords": {
       "symlink": "link simbólico",

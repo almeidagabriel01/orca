@@ -1206,7 +1206,15 @@
       "hideDetails": "Hide details",
       "defaultAutoBadge": "Default · Auto",
       "newAgentsTitle": "New agents",
-      "defaultSurfaceServerDescription": "The default for agents {{host}} starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow This computer's choice."
+      "defaultSurfaceServerDescription": "The default for agents {{host}} starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow This computer's choice.",
+      "emptyWorkspace": {
+        "title": "Opening a workspace with no tabs",
+        "description": "Agent chat opens the default agent (Claude when it is Auto) on the project's default account.",
+        "keyword": "workspace",
+        "terminal": "Terminal",
+        "agentChat": "Agent chat",
+        "nothing": "Nothing"
+      }
     },
     "followSymlinkedDirectoriesKeywords": {
       "symlink": "symlink",

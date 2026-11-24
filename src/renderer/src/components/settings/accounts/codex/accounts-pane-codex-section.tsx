@@ -1,4 +1,4 @@
-import { AlertTriangle, ExternalLink, Loader2, Plus, RefreshCw, X } from 'lucide-react'
+import { AlertTriangle, Loader2, Plus, X } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
 import { selectCodexProviderAccount } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
@@ -20,8 +20,7 @@ import {
   trackAccountAddition
 } from '../sign-in/account-add-cancel-target'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
-import { openAppHttpLinkFromAnchor } from '@/lib/browser/navigation/app-http-link-open'
-import { getAgentCatalog } from '@/lib/agent-catalog/agent-catalog'
+import { ProviderNotInstalledSection } from '../provider-not-installed'
 
 export function renderCodexAccountsSection(
   model: AccountsPaneSectionModel,
@@ -38,7 +37,7 @@ export function renderCodexAccountsSection(
     codexConfigSync,
     codexConfigSyncWarning,
     codexCliMissing,
-    refreshCodexDetection,
+    cliPresence,
     isRemoteAccountScope,
     remoteAccountScopeNotice,
     runCodexAccountAction,
@@ -50,15 +49,28 @@ export function renderCodexAccountsSection(
     visibleCodexAccounts,
     wslCapabilitiesLoading
   } = model
+  const title = (
+    <span className="flex items-center gap-2">
+      <OpenAIIcon size={16} />
+      {t('auto.components.settings.AccountsPane.ef91cfa06b', 'Codex')}
+    </span>
+  )
+  if (codexCliMissing) {
+    return (
+      <ProviderNotInstalledSection
+        key="codex-accounts"
+        id={ACCOUNTS_SECTION_IDS.codex}
+        title={title}
+        agent="codex"
+        hostLabel={accountRuntimeSentenceLabel}
+        onCheckAgain={() => void cliPresence.refresh()}
+      />
+    )
+  }
   return (
     <div key="codex-accounts" id={ACCOUNTS_SECTION_IDS.codex} className="scroll-mt-6">
       <SettingsGroup
-        title={
-          <span className="flex items-center gap-2">
-            <OpenAIIcon size={16} />
-            {t('auto.components.settings.AccountsPane.ef91cfa06b', 'Codex')}
-          </span>
-        }
+        title={title}
         description={
           <>
             <span className="block">
@@ -97,285 +109,224 @@ export function renderCodexAccountsSection(
           className="space-y-3 py-3"
         >
           {/* Keep a stable anchor for status-bar account-switcher deep links. */}
-          {codexCliMissing && visibleCodexAccounts.length === 0 ? (
-            <CodexNotInstalledNotice
+          {activeCodexAuthWarning ? (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+              <span>
+                {systemCodexMissingSignIn
+                  ? t(
+                      'auto.components.settings.AccountsPane.codexSystemDefaultNeedsSignIn',
+                      'No Codex sign-in was found for {{value0}}.',
+                      { value0: accountRuntimeSentenceLabel }
+                    )
+                  : activeCodexAccountId
+                    ? t(
+                        'auto.components.settings.AccountsPane.75ca9b718e',
+                        'Codex reported that the active account needs a fresh sign-in. Re-authenticate it before starting new Codex sessions.'
+                      )
+                    : t(
+                        'auto.components.settings.AccountsPane.e4a28e8894',
+                        'Codex reported that the {{value0}} login needs a fresh sign-in. Sign in again before starting new Codex sessions.',
+                        { value0: accountRuntimeSentenceLabel }
+                      )}
+              </span>
+            </div>
+          ) : null}
+          {codexConfigSyncWarning ? (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+              <span>
+                {codexConfigSyncWarning === 'managed-home-unavailable'
+                  ? t(
+                      'auto.components.settings.AccountsPane.codexConfigSyncManagedHomeUnavailable',
+                      'Orca could not read this account’s Codex files just now, so settings may not be syncing. This usually clears on its own — antivirus or a backup tool briefly locks them.'
+                    )
+                  : codexConfigSyncWarning === 'missing-source'
+                    ? t(
+                        'auto.components.settings.AccountsPane.codexConfigSyncMissingSource',
+                        'Codex is still using the settings it last synced because {{value0}} is missing. Restore that file to resume syncing.',
+                        { value0: codexConfigSync?.systemConfigPath ?? '' }
+                      )
+                    : codexConfigSyncWarning === 'blank-source'
+                      ? t(
+                          'auto.components.settings.AccountsPane.codexConfigSyncBlankSource',
+                          'Codex is still using the settings it last synced because {{value0}} is empty. That is expected while a synced folder finishes downloading.',
+                          { value0: codexConfigSync?.systemConfigPath ?? '' }
+                        )
+                      : t(
+                          'auto.components.settings.AccountsPane.codexConfigSyncUnreadableSource',
+                          "Codex is still using the settings it last synced because {{value0}} could not be read. Check that file's permissions.",
+                          { value0: codexConfigSync?.systemConfigPath ?? '' }
+                        )}
+              </span>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <Label>{t('auto.components.settings.AccountsPane.94d351af4a', 'Accounts')}</Label>
+              <p className="text-xs text-muted-foreground">
+                {isRemoteAccountScope
+                  ? t(
+                      'accounts.remoteScopeAccountsAddHere',
+                      'Showing accounts managed by {{value0}}. New accounts sign in there; you finish in this device’s browser.',
+                      { value0: accountRuntimeSentenceLabel }
+                    )
+                  : t(
+                      'auto.components.settings.AccountsPane.c0a52abfc5',
+                      'Showing accounts for {{value0}}. New accounts are added there.',
+                      { value0: accountRuntimeSentenceLabel }
+                    )}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="xs"
+                onClick={() =>
+                  void runCodexAccountAction('adding', () =>
+                    trackAccountAddition('codex', accountOwner, () =>
+                      // Run remote login on the account owner rather than this device.
+                      accountOwner.kind === 'environment'
+                        ? signInCodexAccountOnHost(accountOwner)
+                        : window.api.codexAccounts.add({
+                            runtime: accountRuntime.runtime,
+                            wslDistro: accountRuntime.wslDistro
+                          })
+                    )
+                  )
+                }
+                disabled={
+                  codexAction !== 'idle' || wslCapabilitiesLoading || accountRuntimeUnavailable
+                }
+                className="gap-1.5"
+              >
+                {codexAction === 'adding' ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Plus className="size-3" />
+                )}
+                {t('auto.components.settings.AccountsPane.7e9977b560', 'Add account')}
+              </Button>
+              {/* Follow the running addition; hide Cancel only when its server prompt already offers it. */}
+              {codexAction === 'adding' && !accountAdditionShownInPrompt('codex', accountOwner) ? (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  onClick={() =>
+                    void cancelAccountAddition('codex', () =>
+                      window.api.codexAccounts.cancelPendingLogin()
+                    )
+                  }
+                  className="gap-1.5"
+                >
+                  <X />
+                  {t('auto.components.settings.AccountsPane.dbb9626ed1', 'Cancel')}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          {remoteAccountScopeNotice}
+          {/* Local login links cannot describe the selected server’s sign-in. */}
+          {isRemoteAccountScope ? (
+            <HostAccountSignInPrompt
+              owner={accountOwner}
+              provider="codex"
               hostLabel={accountRuntimeSentenceLabel}
-              onCheckAgain={() => void refreshCodexDetection()}
-              t={t}
             />
           ) : (
-            <>
-              {activeCodexAuthWarning ? (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                  <span>
-                    {systemCodexMissingSignIn
+            <CodexLoginLinkNotice />
+          )}
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() =>
+                void runCodexAccountAction('select:system', () =>
+                  selectCodexProviderAccount(accountOwner, {
+                    accountId: null,
+                    runtime: accountRuntime.runtime,
+                    wslDistro: accountRuntime.wslDistro
+                  })
+                )
+              }
+              disabled={codexAction !== 'idle' || accountRuntimeUnavailable}
+              className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                systemCodexNeedsSignIn
+                  ? 'border-destructive/50 bg-destructive/5'
+                  : systemCodexActive
+                    ? 'border-foreground/20 bg-accent/15'
+                    : 'border-border/70 hover:border-border hover:bg-accent/8'
+              } disabled:cursor-default disabled:opacity-100`}
+            >
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-medium">
+                    {t('auto.components.settings.AccountsPane.f2a265f8c7', 'System default')}
+                  </span>
+                  {systemCodexActive ? (
+                    <Badge
+                      variant="outline"
+                      className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
+                    >
+                      {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
+                    </Badge>
+                  ) : null}
+                  {systemCodexNeedsSignIn ? (
+                    <Badge
+                      variant="destructive"
+                      className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
+                    >
+                      {t('auto.components.settings.AccountsPane.93c47b333a', 'Needs sign-in')}
+                    </Badge>
+                  ) : null}
+                </div>
+                <span
+                  className={`truncate text-[11px] ${
+                    systemCodexNeedsSignIn ? 'text-destructive' : 'text-muted-foreground'
+                  }`}
+                >
+                  {systemCodexNeedsSignIn
+                    ? systemCodexMissingSignIn
                       ? t(
                           'auto.components.settings.AccountsPane.codexSystemDefaultNeedsSignIn',
                           'No Codex sign-in was found for {{value0}}.',
                           { value0: accountRuntimeSentenceLabel }
                         )
-                      : activeCodexAccountId
-                        ? t(
-                            'auto.components.settings.AccountsPane.75ca9b718e',
-                            'Codex reported that the active account needs a fresh sign-in. Re-authenticate it before starting new Codex sessions.'
-                          )
-                        : t(
-                            'auto.components.settings.AccountsPane.e4a28e8894',
-                            'Codex reported that the {{value0}} login needs a fresh sign-in. Sign in again before starting new Codex sessions.',
-                            { value0: accountRuntimeSentenceLabel }
-                          )}
-                  </span>
-                </div>
-              ) : null}
-              {codexConfigSyncWarning ? (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                  <span>
-                    {codexConfigSyncWarning === 'managed-home-unavailable'
-                      ? t(
-                          'auto.components.settings.AccountsPane.codexConfigSyncManagedHomeUnavailable',
-                          'Orca could not read this account’s Codex files just now, so settings may not be syncing. This usually clears on its own — antivirus or a backup tool briefly locks them.'
-                        )
-                      : codexConfigSyncWarning === 'missing-source'
-                        ? t(
-                            'auto.components.settings.AccountsPane.codexConfigSyncMissingSource',
-                            'Codex is still using the settings it last synced because {{value0}} is missing. Restore that file to resume syncing.',
-                            { value0: codexConfigSync?.systemConfigPath ?? '' }
-                          )
-                        : codexConfigSyncWarning === 'blank-source'
-                          ? t(
-                              'auto.components.settings.AccountsPane.codexConfigSyncBlankSource',
-                              'Codex is still using the settings it last synced because {{value0}} is empty. That is expected while a synced folder finishes downloading.',
-                              { value0: codexConfigSync?.systemConfigPath ?? '' }
-                            )
-                          : t(
-                              'auto.components.settings.AccountsPane.codexConfigSyncUnreadableSource',
-                              "Codex is still using the settings it last synced because {{value0}} could not be read. Check that file's permissions.",
-                              { value0: codexConfigSync?.systemConfigPath ?? '' }
-                            )}
-                  </span>
-                </div>
-              ) : null}
-              <div className="flex items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <Label>{t('auto.components.settings.AccountsPane.94d351af4a', 'Accounts')}</Label>
-                  <p className="text-xs text-muted-foreground">
-                    {isRemoteAccountScope
-                      ? t(
-                          'accounts.remoteScopeAccountsAddHere',
-                          'Showing accounts managed by {{value0}}. New accounts sign in there; you finish in this device’s browser.',
-                          { value0: accountRuntimeSentenceLabel }
-                        )
                       : t(
-                          'auto.components.settings.AccountsPane.c0a52abfc5',
-                          'Showing accounts for {{value0}}. New accounts are added there.',
+                          'auto.components.settings.AccountsPane.fd62f37c24',
+                          'Codex reported this {{value0}} login is out of date.',
                           { value0: accountRuntimeSentenceLabel }
-                        )}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="xs"
-                    onClick={() =>
-                      void runCodexAccountAction('adding', () =>
-                        trackAccountAddition('codex', accountOwner, () =>
-                          // Run remote login on the account owner rather than this device.
-                          accountOwner.kind === 'environment'
-                            ? signInCodexAccountOnHost(accountOwner)
-                            : window.api.codexAccounts.add({
-                                runtime: accountRuntime.runtime,
-                                wslDistro: accountRuntime.wslDistro
-                              })
                         )
-                      )
-                    }
-                    disabled={
-                      codexAction !== 'idle' || wslCapabilitiesLoading || accountRuntimeUnavailable
-                    }
-                    className="gap-1.5"
-                  >
-                    {codexAction === 'adding' ? (
-                      <Loader2 className="size-3 animate-spin" />
-                    ) : (
-                      <Plus className="size-3" />
-                    )}
-                    {t('auto.components.settings.AccountsPane.7e9977b560', 'Add account')}
-                  </Button>
-                  {/* Follow the running addition; hide Cancel only when its server prompt already offers it. */}
-                  {codexAction === 'adding' &&
-                  !accountAdditionShownInPrompt('codex', accountOwner) ? (
-                    <Button
-                      variant="ghost"
-                      size="xs"
-                      onClick={() =>
-                        void cancelAccountAddition('codex', () =>
-                          window.api.codexAccounts.cancelPendingLogin()
-                        )
-                      }
-                      className="gap-1.5"
-                    >
-                      <X />
-                      {t('auto.components.settings.AccountsPane.dbb9626ed1', 'Cancel')}
-                    </Button>
-                  ) : null}
-                </div>
+                    : getCodexSystemDefaultSubtitle(
+                        systemCodexIdentity,
+                        accountRuntimeSentenceLabel,
+                        t
+                      )}
+                </span>
               </div>
-              {remoteAccountScopeNotice}
-              {/* Local login links cannot describe the selected server’s sign-in. */}
-              {isRemoteAccountScope ? (
-                <HostAccountSignInPrompt
-                  owner={accountOwner}
-                  provider="codex"
-                  hostLabel={accountRuntimeSentenceLabel}
-                />
-              ) : (
-                <CodexLoginLinkNotice />
-              )}
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    void runCodexAccountAction('select:system', () =>
-                      selectCodexProviderAccount(accountOwner, {
-                        accountId: null,
-                        runtime: accountRuntime.runtime,
-                        wslDistro: accountRuntime.wslDistro
-                      })
+            </button>
+            {visibleCodexAccounts.length === 0 ? (
+              <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
+                {isRemoteAccountScope
+                  ? t(
+                      'auto.components.settings.AccountsPane.remoteEmptyCodexAccounts',
+                      'No managed Codex accounts on {{value0}}. It uses its system default Codex login; add accounts on that server.',
+                      { value0: accountRuntimeSentenceLabel }
                     )
-                  }
-                  disabled={codexAction !== 'idle' || accountRuntimeUnavailable}
-                  className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
-                    systemCodexNeedsSignIn
-                      ? 'border-destructive/50 bg-destructive/5'
-                      : systemCodexActive
-                        ? 'border-foreground/20 bg-accent/15'
-                        : 'border-border/70 hover:border-border hover:bg-accent/8'
-                  } disabled:cursor-default disabled:opacity-100`}
-                >
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="truncate text-sm font-medium">
-                        {t('auto.components.settings.AccountsPane.f2a265f8c7', 'System default')}
-                      </span>
-                      {systemCodexActive ? (
-                        <Badge
-                          variant="outline"
-                          className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
-                        >
-                          {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
-                        </Badge>
-                      ) : null}
-                      {systemCodexNeedsSignIn ? (
-                        <Badge
-                          variant="destructive"
-                          className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
-                        >
-                          {t('auto.components.settings.AccountsPane.93c47b333a', 'Needs sign-in')}
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <span
-                      className={`truncate text-[11px] ${
-                        systemCodexNeedsSignIn ? 'text-destructive' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {systemCodexNeedsSignIn
-                        ? systemCodexMissingSignIn
-                          ? t(
-                              'auto.components.settings.AccountsPane.codexSystemDefaultNeedsSignIn',
-                              'No Codex sign-in was found for {{value0}}.',
-                              { value0: accountRuntimeSentenceLabel }
-                            )
-                          : t(
-                              'auto.components.settings.AccountsPane.fd62f37c24',
-                              'Codex reported this {{value0}} login is out of date.',
-                              { value0: accountRuntimeSentenceLabel }
-                            )
-                        : getCodexSystemDefaultSubtitle(
-                            systemCodexIdentity,
-                            accountRuntimeSentenceLabel,
-                            t
-                          )}
-                    </span>
-                  </div>
-                </button>
-                {visibleCodexAccounts.length === 0 ? (
-                  <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
-                    {isRemoteAccountScope
-                      ? t(
-                          'auto.components.settings.AccountsPane.remoteEmptyCodexAccounts',
-                          'No managed Codex accounts on {{value0}}. It uses its system default Codex login; add accounts on that server.',
-                          { value0: accountRuntimeSentenceLabel }
-                        )
-                      : t(
-                          'auto.components.settings.AccountsPane.b4c9450319',
-                          "No managed Codex accounts for {{value0}}. Orca will use that environment's system default Codex login until you add one here.",
-                          { value0: accountRuntimeSentenceLabel }
-                        )}
-                  </div>
-                ) : (
-                  visibleCodexAccounts.map((account) =>
-                    renderCodexAccountRow(account, model, t, intlLocale)
-                  )
-                )}
+                  : t(
+                      'auto.components.settings.AccountsPane.b4c9450319',
+                      "No managed Codex accounts for {{value0}}. Orca will use that environment's system default Codex login until you add one here.",
+                      { value0: accountRuntimeSentenceLabel }
+                    )}
               </div>
-            </>
-          )}
+            ) : (
+              visibleCodexAccounts.map((account) =>
+                renderCodexAccountRow(account, model, t, intlLocale)
+              )
+            )}
+          </div>
         </SearchableSetting>
       </SettingsGroup>
-    </div>
-  )
-}
-
-/** Neutral, collapsed body for a host with no Codex CLI: absence is not a sign-in error. */
-function CodexNotInstalledNotice({
-  hostLabel,
-  onCheckAgain,
-  t
-}: {
-  hostLabel: string
-  onCheckAgain: () => void
-  t: Translate
-}): React.JSX.Element {
-  const installUrl = getAgentCatalog().find((agent) => agent.id === 'codex')?.homepageUrl
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-dashed border-border/70 px-3 py-2.5">
-      <div className="min-w-0 space-y-0.5">
-        <p className="text-sm text-foreground/90">
-          {t('accounts.codexNotInstalled', 'Codex is not installed on {{value0}}.', {
-            value0: hostLabel
-          })}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {t(
-            'accounts.codexNotInstalledHint',
-            'Install the Codex CLI there to sign in and add accounts.'
-          )}
-        </p>
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5">
-        <Button variant="ghost" size="xs" onClick={onCheckAgain} className="gap-1.5">
-          <RefreshCw className="size-3" />
-          {t('accounts.codexNotInstalledCheckAgain', 'Check again')}
-        </Button>
-        {installUrl ? (
-          <Button variant="outline" size="xs" asChild>
-            <a
-              href={installUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={openAppHttpLinkFromAnchor}
-              className="gap-1.5"
-            >
-              {t('accounts.codexNotInstalledHowTo', 'How to install')}
-              <ExternalLink className="size-3" />
-            </a>
-          </Button>
-        ) : null}
-      </div>
     </div>
   )
 }

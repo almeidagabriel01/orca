@@ -6,6 +6,8 @@ import { GeminiIcon } from '../../../status-bar/accounts/provider-icons'
 import { SearchableSetting } from '../../section-layout/SearchableSetting'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import type { AccountsPaneSectionModel } from '../accounts-pane-types'
+import { ProviderNotInstalledSection } from '../provider-not-installed'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 
 export function renderGeminiAccountsSection(
   model: AccountsPaneSectionModel,
@@ -13,15 +15,30 @@ export function renderGeminiAccountsSection(
 ): React.JSX.Element {
   const { localAccountRuntimeSentenceLabel, recordFeatureInteraction, settings, updateSettings } =
     model
+  const title = (
+    <span className="flex items-center gap-2">
+      <GeminiIcon size={16} />
+      {t('auto.components.settings.AccountsPane.0c64dc2a64', 'Gemini CLI (legacy)')}
+    </span>
+  )
+  // An enabled credential toggle stays editable, so it can be turned off.
+  const installed = model.cliPresence.installed('gemini')
+  if (providerSignInState(installed, !settings.geminiCliOAuthEnabled) === 'not-installed') {
+    return (
+      <ProviderNotInstalledSection
+        key="gemini"
+        id="accounts-gemini"
+        title={title}
+        agent="gemini"
+        hostLabel={model.accountRuntimeSentenceLabel}
+        onCheckAgain={() => void model.cliPresence.refresh()}
+      />
+    )
+  }
   return (
     <div key="gemini" id="accounts-gemini" className="scroll-mt-6">
       <SettingsGroup
-        title={
-          <span className="flex items-center gap-2">
-            <GeminiIcon size={16} />
-            {t('auto.components.settings.AccountsPane.0c64dc2a64', 'Gemini CLI (legacy)')}
-          </span>
-        }
+        title={title}
         description={t(
           'auto.components.settings.AccountsPane.973741a871',
           'Keep existing Gemini CLI sessions available. Gemini credentials do not sign you into Antigravity.'

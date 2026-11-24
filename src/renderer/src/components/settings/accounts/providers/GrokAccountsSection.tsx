@@ -11,10 +11,16 @@ import { SearchableSetting } from '../../section-layout/SearchableSetting'
 import { openAppHttpLinkFromAnchor } from '@/lib/browser/navigation/app-http-link-open'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { ACCOUNTS_SECTION_IDS } from '../accounts-search'
+import { ProviderNotInstalledSection, useAgentCliPresence } from '../provider-not-installed'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 const GROK_CLI_DOCS_URL = 'https://docs.x.ai/build/overview'
 
-export function GrokAccountsSection(): React.JSX.Element {
+// A desktop reads this sign-in from its own files, so its CLI is looked up here.
+const LOCAL_OWNER = { kind: 'local' } as const
+
+export function GrokAccountsSection({ hostLabel }: { hostLabel: string }): React.JSX.Element {
   const t = useTranslate()
+  const cli = useAgentCliPresence(LOCAL_OWNER)
   const refreshGrokRateLimits = useAppStore((s) => s.refreshGrokRateLimits)
   const grokUsage = useAppStore((s) => s.rateLimits.grok)
   const [status, setStatus] = useState<GrokAccountStatus | null>(null)
@@ -65,15 +71,27 @@ export function GrokAccountsSection(): React.JSX.Element {
       ? (grokUsage.error ?? null)
       : null
 
+  const title = (
+    <span className="flex items-center gap-2">
+      <AgentIcon agent="grok" size={16} />
+      {t('auto.components.settings.GrokAccountsSection.a1b2c3d4e5', 'Grok (xAI)')}
+    </span>
+  )
+  if (!loading && providerSignInState(cli.installed('grok'), !signedIn) === 'not-installed') {
+    return (
+      <ProviderNotInstalledSection
+        id={ACCOUNTS_SECTION_IDS.grok}
+        title={title}
+        agent="grok"
+        hostLabel={hostLabel}
+        onCheckAgain={() => void cli.refresh()}
+      />
+    )
+  }
   return (
     <div id={ACCOUNTS_SECTION_IDS.grok} className="scroll-mt-6">
       <SettingsGroup
-        title={
-          <span className="flex items-center gap-2">
-            <AgentIcon agent="grok" size={16} />
-            {t('auto.components.settings.GrokAccountsSection.a1b2c3d4e5', 'Grok (xAI)')}
-          </span>
-        }
+        title={title}
         description={t(
           'auto.components.settings.GrokAccountsSection.f6e5d4c3b2',
           'Shows weekly credit usage from your Grok CLI sign-in (session file ~/.grok/auth.json).'

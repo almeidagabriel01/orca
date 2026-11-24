@@ -23182,6 +23182,13 @@
         "failed": "Falha no login. Tente novamente."
       }
     },
+    "cliNotInstalled": {
+      "title": "{{name}} não está instalado em {{host}}.",
+      "hint": "Instale a CLI do {{name}} lá para entrar e adicionar contas.",
+      "checkAgain": "Verificar de novo",
+      "howTo": "Como instalar",
+      "thisHost": "este host"
+    },
     "remoteScopeAccountsAddHere": "Mostrando contas gerenciadas por {{value0}}. Novas contas são conectadas lá; você conclui no navegador deste dispositivo."
   },
   "fileSearch": {

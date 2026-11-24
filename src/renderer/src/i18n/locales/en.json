@@ -25461,11 +25461,14 @@
         "failed": "Sign-in failed. Try again."
       }
     },
+    "cliNotInstalled": {
+      "title": "{{name}} is not installed on {{host}}.",
+      "hint": "Install the {{name}} CLI there to sign in and add accounts.",
+      "checkAgain": "Check again",
+      "howTo": "How to install",
+      "thisHost": "this host"
+    },
     "remoteScopeAccountsAddHere": "Showing accounts managed by {{value0}}. New accounts sign in there; you finish in this device’s browser.",
-    "codexNotInstalled": "Codex is not installed on {{value0}}.",
-    "codexNotInstalledHint": "Install the Codex CLI there to sign in and add accounts.",
-    "codexNotInstalledCheckAgain": "Check again",
-    "codexNotInstalledHowTo": "How to install",
     "rename": {
       "action": "Rename",
       "title": "Rename account",

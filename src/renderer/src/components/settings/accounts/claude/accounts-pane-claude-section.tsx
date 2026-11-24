@@ -24,6 +24,8 @@ import {
   trackAccountAddition
 } from '../sign-in/account-add-cancel-target'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
+import { ProviderNotInstalledSection } from '../provider-not-installed'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 import { renderClaudeAccountRow } from './accounts-pane-claude-account-row'
 
 export function renderClaudeAccountsSection(
@@ -37,6 +39,7 @@ export function renderClaudeAccountsSection(
     accountRuntimeUnavailable,
     claudeAccounts,
     claudeAction,
+    cliPresence,
     isRemoteAccountScope,
     recordFeatureInteraction,
     remoteAccountScopeNotice,
@@ -76,15 +79,30 @@ export function renderClaudeAccountsSection(
             )
       )
     )
+  const title = (
+    <span className="flex items-center gap-2">
+      <ClaudeIcon size={16} />
+      {t('auto.components.settings.AccountsPane.26ef4b55be', 'Claude')}
+    </span>
+  )
+  // Saved accounts or a working login keep the section usable even without a listed CLI.
+  const hasLogin = visibleClaudeAccounts.length > 0 || !!systemDefaultEmail
+  if (providerSignInState(cliPresence.installed('claude'), !hasLogin) === 'not-installed') {
+    return (
+      <ProviderNotInstalledSection
+        key="claude-accounts"
+        id="accounts-claude"
+        title={title}
+        agent="claude"
+        hostLabel={model.accountRuntimeSentenceLabel}
+        onCheckAgain={() => void cliPresence.refresh()}
+      />
+    )
+  }
   return (
     <div key="claude-accounts" id="accounts-claude" className="scroll-mt-6">
       <SettingsGroup
-        title={
-          <span className="flex items-center gap-2">
-            <ClaudeIcon size={16} />
-            {t('auto.components.settings.AccountsPane.26ef4b55be', 'Claude')}
-          </span>
-        }
+        title={title}
         description={t(
           'auto.components.settings.AccountsPane.72b36ea174',
           'Optional. Orca can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.'

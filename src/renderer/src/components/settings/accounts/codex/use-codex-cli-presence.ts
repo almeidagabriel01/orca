@@ -1,38 +1,31 @@
-import { useDetectedAgents } from '@/lib/agent-session/launch/inventory/useDetectedAgents'
-import {
-  agentCliInstalled,
-  providerSignInState
-} from '../../../../lib/provider-accounts/provider-cli-presence'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
+import type { RuntimeClientTarget } from '../../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
+import { useAgentCliPresence, type AgentCliPresence } from '../provider-not-installed'
 
 type CodexAuthWarning = 'missing-sign-in' | 'stale-sign-in' | null
 
-/** Gate Codex sign-in errors on the CLI being on the shown host, read from Settings > Agents' inventory. */
+/** The shown host's CLI inventory, with Codex sign-in errors gated on the Codex CLI being there. */
 export function useCodexCliPresence(
-  environmentId: string | null,
+  owner: RuntimeClientTarget,
   accountRuntime: { runtime: 'host' | 'wsl' },
-  authWarning: CodexAuthWarning
+  authWarning: CodexAuthWarning,
+  hasLogin: boolean
 ): {
+  cliPresence: AgentCliPresence
+  /** The host has no Codex CLI and no Codex login Orca can see. */
   codexCliMissing: boolean
   /** The warning to show: none where the CLI is absent. */
   activeCodexAuthWarning: CodexAuthWarning
   systemCodexMissingSignIn: boolean
-  refreshCodexDetection: () => Promise<unknown>
 } {
-  const detection = useDetectedAgents(
-    environmentId ? { kind: 'runtime', environmentId } : { kind: 'local' },
-    'all'
-  )
-  // ponytail: the host inventory cannot speak for a WSL distro, so WSL keeps the sign-in check as is.
-  const installed =
-    accountRuntime.runtime === 'wsl'
-      ? true
-      : agentCliInstalled(detection.detectedIds, detection.detectionFailed, 'codex')
+  const cliPresence = useAgentCliPresence(owner, accountRuntime.runtime)
+  const installed = cliPresence.installed('codex')
   const state = providerSignInState(installed, Boolean(authWarning))
   const shown = state === 'needs-sign-in' ? authWarning : null
   return {
-    codexCliMissing: state === 'not-installed',
+    cliPresence,
+    codexCliMissing: providerSignInState(installed, !hasLogin) === 'not-installed',
     activeCodexAuthWarning: shown,
-    systemCodexMissingSignIn: shown === 'missing-sign-in',
-    refreshCodexDetection: detection.refresh
+    systemCodexMissingSignIn: shown === 'missing-sign-in'
   }
 }

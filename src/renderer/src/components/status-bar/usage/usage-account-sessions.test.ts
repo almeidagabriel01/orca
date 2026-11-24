@@ -110,3 +110,22 @@ describe('usage account sessions', () => {
     expect(keys(sessionsInScope(sessions, { provider: 'codex' }))).toEqual(['chat:codex-chat'])
   })
 })
+
+describe('a chat whose turn ended while its background work runs', () => {
+  const state = (extra: Partial<UsageChatInput>) =>
+    collectChatSessions([chat('worker', { status: 'idle', ...extra })], NOW)[0]?.state
+
+  it('still counts as working, like the sidebar shows it', () => {
+    expect(state({ backgroundTasks: [{ id: 'ci', kind: 'command', state: 'working' }] })).toBe(
+      'working'
+    )
+    expect(state({ backgroundTasks: [{ id: 'sub', kind: 'agent' }] })).toBe('working')
+  })
+
+  it('is recent once every background task settled', () => {
+    expect(state({ backgroundTasks: [{ id: 'ci', kind: 'command', state: 'done' }] })).toBe(
+      'recent'
+    )
+    expect(state({})).toBe('recent')
+  })
+})

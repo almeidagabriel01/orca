@@ -2,6 +2,7 @@ import type { AgentSessionStatusSummary } from '../../../../../shared/agent-sess
 import { AGENT_CHAT_SYSTEM_ACCOUNT } from '../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import type { AgentRowState } from '../../../../../shared/agent-status/presentation/agent-row-decay-state'
 import type { CodexRestartNotice } from '@/store/terminals/terminal-contracts'
+import { agentChildWorkLiveness } from '../../../../../shared/agent-status/child-work/agent-status-child-work-liveness'
 
 /** The chip key a System default login carries (see getOwnerUsageAccounts). */
 export const SYSTEM_DEFAULT_USAGE_ACCOUNT_KEY = 'system-default'
@@ -76,6 +77,8 @@ export type UsageChatInput = Pick<
   | 'updatedAt'
   | 'model'
   | 'accountChoice'
+  | 'children'
+  | 'backgroundTasks'
 > & { title: string }
 
 export function collectChatSessions(
@@ -88,10 +91,13 @@ export function collectChatSessions(
     if (!provider || chat.status === null) {
       continue
     }
+    // Why child work counts: a worker that ended its turn while CI, a monitor or a subagent runs is
+    // still working, as the sidebar shows it.
+    const childWork = agentChildWorkLiveness(chat.children ?? chat.backgroundTasks)
     const state: UsageSessionState | null =
-      chat.status === 'attention' || chat.awaitsAnswer
+      chat.status === 'attention' || chat.awaitsAnswer || childWork === 'waiting'
         ? 'waiting'
-        : chat.status === 'working'
+        : chat.status === 'working' || childWork !== null
           ? 'working'
           : now - chat.updatedAt <= RECENT_SESSION_WINDOW_MS
             ? 'recent'

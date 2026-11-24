@@ -1573,6 +1573,14 @@
       },
       "remoteBrowsing": {
         "heading": "Navegação remota",
+        "openFolder": "Abrir pasta",
+        "stop": "Parar…",
+        "reasonReadOnly": "A fila deste host não pode ser alterada daqui",
+        "reasonOutsideOrder": "Iniciado pelo flock, fora da ordem da fila",
+        "reasonFirst": "Já é o primeiro da fila",
+        "reasonLast": "Já é o último da fila",
+        "reasonRemoteFolder": "A pasta está em outra máquina",
+        "reasonCantStop": "O vps-heavy ainda não para um comando rodando; pare-o no terminal dele",
         "headingDescription": "Onde as páginas de espaços de trabalho remotos são renderizadas e de onde seu tráfego de rede sai."
       },
       "userAgent": {
@@ -23832,6 +23840,9 @@
       "keep": "Manter",
       "heading": "Fila pesada",
       "waiting": "{{count}} na fila"
+    },
+    "sessionProcesses": {
+      "copy": "Copiar comando"
     },
     "tree": {
       "filter": "Filtrar workspaces",

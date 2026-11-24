@@ -5,20 +5,12 @@ import {
   ArrowUp,
   ArrowUpToLine,
   Hourglass,
-  MoreHorizontal,
   Play,
   X,
   Zap,
   type LucideIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
@@ -26,6 +18,7 @@ import type { HeavyQueueAction } from '../../../../../../shared/rpc-contract/dia
 import type { HeavyQueueRow } from './resource-heavy-queue-view'
 import { formatElapsed } from './resource-session-processes'
 import { CopyCommand } from './resource-usage-session-processes'
+import { QueueRowMenu, type QueueMove } from './resource-heavy-queue-row-menu'
 
 export type RunAction = (action: HeavyQueueAction, failure: (message: string) => string) => void
 
@@ -66,146 +59,92 @@ export function QueueAction({
   )
 }
 
-/** The moves a waiting row offers, always visible; a row the host does not order offers only removal. */
+/** Wide cards show a waiting row's moves as icons; every row, wide or narrow, keeps the ⋯ menu. */
 function RowActions({
+  hostId,
   row,
   pending,
   run,
   onConfirm
 }: {
+  hostId: string
   row: HeavyQueueRow
   pending: boolean
   run: RunAction
   onConfirm: (kind: 'start' | 'remove') => void
-}): React.JSX.Element | null {
+}): React.JSX.Element {
   const t = useTranslate()
   const { pid } = row.job
-  if (!row.can.remove && !row.can.startNow) {
-    return null
-  }
   const moveFailed = (message: string): string =>
     t('resourceManager.heavyQueue.moveFailed', "Couldn't move it. {{value0}}", { value0: message })
-  const move = (to: 'up' | 'down' | 'top' | 'bottom'): void =>
-    run({ action: 'move', pid, to }, moveFailed)
-  const labels = {
-    up: t('resourceManager.heavyQueue.moveUp', 'Move up'),
-    down: t('resourceManager.heavyQueue.moveDown', 'Move down'),
-    next: t('resourceManager.heavyQueue.runNext', 'Run next'),
-    end: t('resourceManager.heavyQueue.moveToEnd', 'Move to end'),
-    start: t('resourceManager.heavyQueue.startNow', 'Start now…'),
-    remove: t('resourceManager.heavyQueue.remove', 'Remove from queue…')
-  }
+  const move = (to: QueueMove): void => run({ action: 'move', pid, to }, moveFailed)
   const runNext = (): void => run({ action: 'run-now', pid, extra: false }, moveFailed)
   return (
-    <>
-      {/* Why two forms: a wide card shows every move on the row; a narrow one folds them into one
-          menu so the workspace and command keep the width. */}
-      <div className="hidden shrink-0 items-center @[24rem]/queue:flex">
-        {/* Why invisible, not absent: a row outside the host's order keeps its Remove in the same column. */}
+    <div className="flex shrink-0 items-center gap-0.5">
+      {/* Why invisible, not absent: rows that cannot move keep their ⋯ in the same column. */}
+      <div className="hidden items-center @[24rem]/queue:flex">
         <div className={cn('flex items-center', !row.can.startNow && 'invisible')}>
           <QueueAction
-            label={labels.up}
+            label={t('resourceManager.heavyQueue.moveUp', 'Move up')}
             icon={ArrowUp}
             disabled={pending || !row.can.moveUp}
             onClick={() => move('up')}
           />
           <QueueAction
-            label={labels.down}
+            label={t('resourceManager.heavyQueue.moveDown', 'Move down')}
             icon={ArrowDown}
             disabled={pending || !row.can.moveDown}
             onClick={() => move('down')}
           />
           <QueueAction
-            label={labels.next}
+            label={t('resourceManager.heavyQueue.runNext', 'Run next')}
             icon={ArrowUpToLine}
             disabled={pending || !row.can.runNext}
             onClick={runNext}
           />
           <QueueAction
-            label={labels.end}
+            label={t('resourceManager.heavyQueue.moveToEnd', 'Move to end')}
             icon={ArrowDownToLine}
             disabled={pending || !row.can.moveToEnd}
             onClick={() => move('bottom')}
           />
           <QueueAction
-            label={labels.start}
+            label={t('resourceManager.heavyQueue.startNow', 'Start now…')}
             icon={Zap}
             disabled={pending}
             onClick={() => onConfirm('start')}
           />
         </div>
-        <QueueAction
-          label={labels.remove}
-          icon={X}
-          disabled={pending}
-          destructive
-          onClick={() => onConfirm('remove')}
-        />
+        <div className={cn(!row.can.remove && 'invisible')}>
+          <QueueAction
+            label={t('resourceManager.heavyQueue.remove', 'Remove from queue…')}
+            icon={X}
+            disabled={pending}
+            destructive
+            onClick={() => onConfirm('remove')}
+          />
+        </div>
       </div>
-      <div className="@[24rem]/queue:hidden">
-        <DropdownMenu modal={false}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon-xs"
-                  variant="ghost-inset"
-                  disabled={pending}
-                  aria-label={t('resourceManager.heavyQueue.actions', 'Queue actions')}
-                  className="size-5 text-muted-foreground"
-                >
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={4}>
-              {t('resourceManager.heavyQueue.actions', 'Queue actions')}
-            </TooltipContent>
-          </Tooltip>
-          <DropdownMenuContent align="end" className="min-w-40">
-            {row.can.startNow && (
-              <>
-                <DropdownMenuItem disabled={!row.can.moveUp} onSelect={() => move('up')}>
-                  <ArrowUp />
-                  {labels.up}
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={!row.can.moveDown} onSelect={() => move('down')}>
-                  <ArrowDown />
-                  {labels.down}
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={!row.can.runNext} onSelect={runNext}>
-                  <ArrowUpToLine />
-                  {labels.next}
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={!row.can.moveToEnd} onSelect={() => move('bottom')}>
-                  <ArrowDownToLine />
-                  {labels.end}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => onConfirm('start')}>
-                  <Zap />
-                  {labels.start}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem variant="destructive" onSelect={() => onConfirm('remove')}>
-              <X />
-              {labels.remove}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </>
+      <QueueRowMenu
+        hostId={hostId}
+        row={row}
+        pending={pending}
+        onMove={move}
+        onRunNext={runNext}
+        onConfirm={onConfirm}
+      />
+    </div>
   )
 }
 
 export function QueueRow({
+  hostId,
   row,
   hostLabel,
   pending,
   run
 }: {
+  hostId: string
   row: HeavyQueueRow
   hostLabel: string
   pending: boolean
@@ -297,7 +236,13 @@ export function QueueRow({
           </span>
         </div>
         <div className="[grid-area:actions]">
-          <RowActions row={row} pending={pending} run={run} onConfirm={setConfirm} />
+          <RowActions
+            hostId={hostId}
+            row={row}
+            pending={pending}
+            run={run}
+            onConfirm={setConfirm}
+          />
         </div>
         <div className="flex min-w-0 items-start gap-1 pl-[1.125rem] [grid-area:cmd]">
           <Tooltip>

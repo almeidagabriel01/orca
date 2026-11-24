@@ -34,7 +34,48 @@ try {
             if (rows.length < 4) {
               out.push(`expected 4 queue rows, got ${rows.length}`)
             }
+            const rgba = (value) => {
+              const [r, g, b, a = 1] = value.match(/[\d.]+/g).map(Number)
+              return { r, g, b, a }
+            }
+            // The card's painted colour: every translucent background from the page down, stacked.
+            const backdrop = (element) => {
+              const chain = []
+              for (let node = element; node; node = node.parentElement) {
+                chain.unshift(rgba(getComputedStyle(node).backgroundColor))
+              }
+              return chain.reduce(
+                (under, over) => ({
+                  r: over.r * over.a + under.r * (1 - over.a),
+                  g: over.g * over.a + under.g * (1 - over.a),
+                  b: over.b * over.a + under.b * (1 - over.a)
+                }),
+                { r: 255, g: 255, b: 255 }
+              )
+            }
+            const luminance = ({ r, g, b }) => {
+              const lin = (c) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+              return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+            }
             rows.forEach((row, index) => {
+              const menu = row.querySelector('[data-queue-menu]')
+              const menuBox = menu?.getBoundingClientRect()
+              if (!menu || menuBox.width < 24 || menuBox.height < 24) {
+                out.push(`row ${index}: no visible actions button of at least 24px`)
+              } else {
+                const back = backdrop(menu)
+                const fg = rgba(getComputedStyle(menu).color)
+                const ink = {
+                  r: fg.r * fg.a + back.r * (1 - fg.a),
+                  g: fg.g * fg.a + back.g * (1 - fg.a),
+                  b: fg.b * fg.a + back.b * (1 - fg.a)
+                }
+                const [hi, lo] = [luminance(ink), luminance(back)].sort((a, b) => b - a)
+                const ratio = (hi + 0.05) / (lo + 0.05)
+                if (ratio < 3) {
+                  out.push(`row ${index}: actions button contrast ${ratio.toFixed(2)} < 3`)
+                }
+              }
               const place = row.querySelector('[data-queue-place]').getBoundingClientRect()
               if (place.width < 60) {
                 out.push(`row ${index}: workspace squeezed to ${place.width}px`)

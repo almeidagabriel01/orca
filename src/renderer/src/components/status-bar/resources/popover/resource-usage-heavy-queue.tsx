@@ -129,7 +129,14 @@ export function HostHeavyQueue({
       {!collapsed && rows.length > 0 && (
         <ul className="pb-1">
           {rows.map((row) => (
-            <QueueRow key={row.job.pid} row={row} hostLabel={label} pending={pending} run={run} />
+            <QueueRow
+              key={row.job.pid}
+              hostId={hostId}
+              row={row}
+              hostLabel={label}
+              pending={pending}
+              run={run}
+            />
           ))}
         </ul>
       )}

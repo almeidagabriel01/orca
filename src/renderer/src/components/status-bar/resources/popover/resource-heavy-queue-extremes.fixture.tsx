@@ -84,3 +84,21 @@ export const wide = defineFixture({ width: 512, render })
 export const wideExpanded = defineFixture({ width: 512, render, interact: expandAll })
 export const narrow = defineFixture({ width: 352, render })
 export const narrowExpanded = defineFixture({ width: 352, render, interact: expandAll })
+
+// Opens the ⋯ menu on one row: 0 is the running slot, 3 the flock job still waiting.
+const openMenu =
+  (rowIndex: number) =>
+  async (frame: HTMLElement): Promise<void> => {
+    frame
+      .querySelectorAll('[data-queue-row]')
+      [rowIndex]?.querySelector('[data-queue-menu]')
+      ?.dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' })
+      )
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
+
+export const wideRunningMenu = defineFixture({ width: 512, render, interact: openMenu(0) })
+export const wideFlockMenu = defineFixture({ width: 512, render, interact: openMenu(3) })
+export const narrowRunningMenu = defineFixture({ width: 352, render, interact: openMenu(0) })
+export const narrowFlockMenu = defineFixture({ width: 352, render, interact: openMenu(3) })

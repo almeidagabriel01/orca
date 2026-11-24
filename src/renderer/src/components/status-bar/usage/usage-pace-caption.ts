@@ -36,43 +36,33 @@ export function paceTickPercent(
   return pace ? getDisplayedUsagePercentage(pace.elapsed * 100, display) : null
 }
 
-/** Number and verdict color per severity; calm keeps the surrounding text color. */
+/** Number color per severity, in t3code's tones; calm keeps the surrounding text color. */
 export const SEVERITY_TEXT_CLASS: Record<UsageSeverity, string> = {
   calm: '',
-  watch: 'text-yellow-700 dark:text-yellow-400',
-  critical: 'text-red-600 dark:text-red-400'
+  watch: 'text-amber-700 dark:text-amber-400',
+  critical: 'text-red-700 dark:text-red-400'
 }
 
 /** Bar fill per severity; calm stays neutral so color only ever means "look here". */
 export const SEVERITY_FILL_CLASS: Record<UsageSeverity, string> = {
   calm: 'bg-muted-foreground/50',
-  // Why 600 in light: yellow-500 barely separates from the light track.
-  watch: 'bg-yellow-600 dark:bg-yellow-500',
-  critical: 'bg-red-500'
+  watch: 'bg-amber-700 dark:bg-amber-400',
+  critical: 'bg-red-700 dark:bg-red-400'
 }
 
-/** By pace, the delta alone carries color, in t3code's tones: over pace red, under it green. */
+/** The pace delta's own signal, apart from the thresholds: over pace red, under it green. */
 const PACE_VERDICT_TEXT_CLASS: Record<PaceVerdict, string> = {
   over: 'text-red-700 dark:text-red-400',
   under: 'text-emerald-700 dark:text-emerald-400',
   on: ''
 }
 
-/** Delta and verdict color: by pace, the verdict's; by used share, the limit's severity. */
-export function paceTextClass(usedPercent: number, pace: UsagePace, rule: UsageColorRule): string {
-  return rule.mode === 'pace'
-    ? PACE_VERDICT_TEXT_CLASS[getPaceVerdict(pace.deltaPoints)]
-    : SEVERITY_TEXT_CLASS[getUsageSeverity(usedPercent, pace, rule)]
-}
+export const paceTextClass = (pace: UsagePace): string =>
+  PACE_VERDICT_TEXT_CLASS[getPaceVerdict(pace.deltaPoints)]
 
-/** The one severity a window's bar, number, delta and verdict all share. */
-export function getWindowSeverity(
-  p: ProviderRateLimits,
-  window: RateLimitWindow,
-  now: number,
-  rule: UsageColorRule
-): UsageSeverity {
-  return getUsageSeverity(window.usedPercent, getReadingPace(p, window, now), rule)
+/** The severity a window's bar and number share, by used share only. */
+export function getWindowSeverity(window: RateLimitWindow, rule: UsageColorRule): UsageSeverity {
+  return getUsageSeverity(window.usedPercent, rule)
 }
 
 export function formatPaceVerdict(pace: UsagePace, t: Translate): string {

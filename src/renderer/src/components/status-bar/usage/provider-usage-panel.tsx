@@ -231,7 +231,7 @@ function ProviderRateLimitWindowSection({
         <UsageValue
           usedPercent={window.usedPercent}
           display={usagePercentageDisplay}
-          className={`shrink-0 font-semibold ${inverted ? textClass : SEVERITY_TEXT_CLASS[getWindowSeverity(p, window, now, colorRule)] || textClass}`}
+          className={`shrink-0 font-semibold ${inverted ? textClass : SEVERITY_TEXT_CLASS[getWindowSeverity(window, colorRule)] || textClass}`}
         />
       </div>
       {/* Why: fill follows the selected percentage; its color is the window's pace severity. */}
@@ -241,7 +241,7 @@ function ProviderRateLimitWindowSection({
         tone="health"
         className="h-[6px] w-full"
         trackClassName={emptyBarClass}
-        fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, window, now, colorRule)]}
+        fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(window, colorRule)]}
         paceTickPercent={paceTickPercent(pace, usagePercentageDisplay)}
       />
       {pace ? (
@@ -249,7 +249,6 @@ function ProviderRateLimitWindowSection({
           pace={pace}
           display={usagePercentageDisplay}
           now={now}
-          usedPercent={window.usedPercent}
           mutedClass={mutedClass}
           inverted={inverted}
         />

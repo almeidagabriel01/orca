@@ -370,7 +370,7 @@ function ProviderSegmentBody({
           usedPercent={clampUsedPercent(barWindow.usedPercent)}
           display={display}
           className="h-[6px] w-[48px] shrink-0"
-          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, barWindow, now, colorRule)]}
+          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(barWindow, colorRule)]}
           paceTickPercent={paceTickPercent(getReadingPace(p, barWindow, now), display)}
         />
       ) : null}

@@ -34,10 +34,10 @@ export const getUsagePercentageDisplayEntry = createLocalizedCatalog(() => ({
 }))
 
 export const getUsageColorRuleEntry = createLocalizedCatalog(() => ({
-  title: translate('components.settings.usageColor.title', 'Usage bar color'),
+  title: translate('components.settings.usageColor.title', 'Usage bar and % color'),
   description: translate(
     'components.settings.usageColor.description',
-    'Color usage bars by the share used, or by the pace it is spent at.'
+    "Each window's bar and percent turn amber and red at these limits, by the share used. The pace delta is separate: always red over pace and green under it."
   ),
   keywords: [
     ...translateSearchKeyword('auto.components.settings.appearance.search.00a028f25f', 'usage'),

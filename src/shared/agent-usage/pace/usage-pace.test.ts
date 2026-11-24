@@ -68,42 +68,27 @@ describe('formatPaceDelta', () => {
 })
 
 describe('getUsageSeverity', () => {
-  const pace = (deltaPoints: number, atResetPercent: number | null) => ({
-    elapsed: 0.5,
-    deltaPoints,
-    projection: atResetPercent === null ? null : { atResetPercent, runsOutAt: null },
-    dailyBudgetPercent: null
-  })
-  const byPace = { mode: 'pace', watchAt: 80, criticalAt: 90 } as const
-  const byUse = { mode: 'used', watchAt: 80, criticalAt: 90 } as const
-  it('by pace: the bar stays neutral whatever the pace or share; the delta carries color', () => {
-    expect(getUsageSeverity(20, pace(-22, 47), byPace)).toBe('calm')
-    expect(getUsageSeverity(64, pace(4, 107), byPace)).toBe('calm')
-    expect(getUsageSeverity(95, pace(27, 163), byPace)).toBe('calm')
-  })
-  it('by used share: pace never colors, only the thresholds do', () => {
-    expect(getUsageSeverity(58, pace(27, 163), byUse)).toBe('calm')
-    expect(getUsageSeverity(85, pace(-5, 90), byUse)).toBe('watch')
-    expect(getUsageSeverity(92, pace(-5, 95), byUse)).toBe('critical')
-    expect(getUsageSeverity(60, null, { mode: 'used', watchAt: 50, criticalAt: 70 })).toBe('watch')
-  })
-  it('by pace stays neutral even with no pace to show', () => {
-    expect(getUsageSeverity(95, null, byPace)).toBe('calm')
+  it('colors by the share used at the thresholds, whatever the pace', () => {
+    const rule = { watchAt: 70, criticalAt: 80 }
+    expect(getUsageSeverity(58, rule)).toBe('calm')
+    expect(getUsageSeverity(70, rule)).toBe('watch')
+    expect(getUsageSeverity(79, rule)).toBe('watch')
+    expect(getUsageSeverity(92, rule)).toBe('critical')
   })
 })
 
 describe('normalizeUsageColorRule', () => {
-  it('defaults to the used share at 80/90 and rejects thresholds out of order', () => {
+  it('defaults to 80/90 and rejects thresholds out of order', () => {
     expect(normalizeUsageColorRule(undefined)).toEqual(DEFAULT_USAGE_COLOR_RULE)
-    expect(normalizeUsageColorRule({ mode: 'pace', watchAt: 90, criticalAt: 90 })).toEqual({
-      mode: 'pace',
+    expect(normalizeUsageColorRule({ watchAt: 90, criticalAt: 90 })).toEqual({
       watchAt: 80,
       criticalAt: 90
     })
-    expect(normalizeUsageColorRule({ mode: 'used', watchAt: 60, criticalAt: 75 })).toEqual({
-      mode: 'used',
-      watchAt: 60,
-      criticalAt: 75
+  })
+  it('keeps the limits of a rule saved with the retired pace mode', () => {
+    expect(normalizeUsageColorRule({ mode: 'pace', watchAt: 70, criticalAt: 80 })).toEqual({
+      watchAt: 70,
+      criticalAt: 80
     })
   })
 })

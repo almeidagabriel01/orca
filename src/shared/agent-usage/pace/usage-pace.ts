@@ -77,11 +77,8 @@ export function formatPaceDelta(deltaPoints: number): string {
 
 export type UsageSeverity = 'calm' | 'watch' | 'critical'
 
-/** What carries color: the bar by used share, or only the pace delta. */
-export type UsageColorMode = 'used' | 'pace'
-
+/** Thresholds for a window's bar and number; the pace delta is colored by its sign alone. */
 export type UsageColorRule = {
-  mode: UsageColorMode
   /** Used % at which a window turns amber. */
   watchAt: number
   /** Used % at which a window turns red; always above `watchAt`. */
@@ -89,41 +86,26 @@ export type UsageColorRule = {
 }
 
 export type UsageColorSettings = {
-  /** How usage bars pick their color; absent is the used share at 80/90. */
+  /** Amber/red thresholds for usage bars; absent is 80/90. */
   usageColorRule?: UsageColorRule
 }
 
-export const DEFAULT_USAGE_COLOR_RULE: UsageColorRule = {
-  mode: 'used',
-  watchAt: 80,
-  criticalAt: 90
-}
+export const DEFAULT_USAGE_COLOR_RULE: UsageColorRule = { watchAt: 80, criticalAt: 90 }
 
 const isPercent = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 100
 
-/** A stored rule, or the default for anything missing or out of order. */
+/** A stored rule, or the default for anything missing or out of order; a retired `mode` is dropped. */
 export function normalizeUsageColorRule(value: unknown): UsageColorRule {
   const raw: Partial<UsageColorRule> = typeof value === 'object' && value !== null ? value : {}
-  const mode = raw.mode === 'pace' ? 'pace' : 'used'
   const { watchAt, criticalAt } = raw
   return isPercent(watchAt) && isPercent(criticalAt) && criticalAt > watchAt
-    ? { mode, watchAt, criticalAt }
-    : { ...DEFAULT_USAGE_COLOR_RULE, mode }
+    ? { watchAt, criticalAt }
+    : DEFAULT_USAGE_COLOR_RULE
 }
 
-/**
- * One color rule for every usage surface. By used share: neutral, amber from `watchAt`, red from
- * `criticalAt`. By pace the bar and number stay neutral; only the pace delta carries color.
- */
-export function getUsageSeverity(
-  usedPercent: number,
-  _pace: UsagePace | null,
-  rule: UsageColorRule
-): UsageSeverity {
-  if (rule.mode === 'pace') {
-    return 'calm'
-  }
+/** A window's bar and number by its used share: neutral, amber from `watchAt`, red from `criticalAt`. */
+export function getUsageSeverity(usedPercent: number, rule: UsageColorRule): UsageSeverity {
   const used = Math.min(100, Math.max(0, usedPercent))
   return used >= rule.criticalAt ? 'critical' : used >= rule.watchAt ? 'watch' : 'calm'
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { UsageColorRule, UsagePace } from '../../../../../shared/agent-usage/pace/usage-pace'
-import { paceTextClass } from './usage-pace-caption'
+import type { UsagePace } from '../../../../../shared/agent-usage/pace/usage-pace'
+import { getWindowSeverity, paceTextClass } from './usage-pace-caption'
 
 const pace = (deltaPoints: number): UsagePace => ({
   elapsed: 0.5,
@@ -8,18 +8,24 @@ const pace = (deltaPoints: number): UsagePace => ({
   projection: null,
   dailyBudgetPercent: null
 })
-const byPace: UsageColorRule = { mode: 'pace', watchAt: 80, criticalAt: 90 }
-const byUse: UsageColorRule = { mode: 'used', watchAt: 80, criticalAt: 90 }
+const window = (usedPercent: number) => ({
+  usedPercent,
+  windowMinutes: 300,
+  resetsAt: null,
+  resetDescription: null
+})
+const rule = { watchAt: 70, criticalAt: 80 }
 
-describe('paceTextClass', () => {
-  it('by pace: red over pace, green under it, neutral on pace, whatever the share', () => {
-    expect(paceTextClass(64, pace(19), byPace)).toBe('text-red-700 dark:text-red-400')
-    expect(paceTextClass(95, pace(-12), byPace)).toBe('text-emerald-700 dark:text-emerald-400')
-    expect(paceTextClass(50, pace(0), byPace)).toBe('')
+describe('usage colors: two separate signals', () => {
+  it('the pace delta is red over pace and green under it, whatever the share', () => {
+    expect(paceTextClass(pace(19))).toBe('text-red-700 dark:text-red-400')
+    expect(paceTextClass(pace(-12))).toBe('text-emerald-700 dark:text-emerald-400')
+    expect(paceTextClass(pace(0))).toBe('')
   })
 
-  it('by used share: the delta follows the limit, not the pace', () => {
-    expect(paceTextClass(64, pace(19), byUse)).toBe('')
-    expect(paceTextClass(92, pace(-12), byUse)).toBe('text-red-600 dark:text-red-400')
+  it('the bar and percent follow the limits, not the pace', () => {
+    expect(getWindowSeverity(window(40), rule)).toBe('calm')
+    expect(getWindowSeverity(window(72), rule)).toBe('watch')
+    expect(getWindowSeverity(window(85), rule)).toBe('critical')
   })
 })

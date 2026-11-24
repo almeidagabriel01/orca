@@ -28,12 +28,9 @@ export function PaceLine({
   display,
   now,
   mutedClass,
-  usedPercent,
   inverted = false
 }: {
   pace: UsagePace
-  /** The window's used share, so the verdict takes the same color as its bar. */
-  usedPercent: number
   display: UsagePercentageDisplay
   now: number
   mutedClass: string
@@ -42,14 +39,11 @@ export function PaceLine({
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
-  const rule = useUsageColorRule()
   const details = formatPaceDetails(pace, display, now, intlLocale, t)
   return (
     <div data-usage-pace={details.tone} className={`tabular-nums ${mutedClass}`}>
       {details.expected} ·{' '}
-      <span className={inverted ? undefined : paceTextClass(usedPercent, pace, rule)}>
-        {details.verdict}
-      </span>
+      <span className={inverted ? undefined : paceTextClass(pace)}>{details.verdict}</span>
       {details.extra.map((line) => ` · ${line}`).join('')}
     </div>
   )
@@ -58,18 +52,15 @@ export function PaceLine({
 /** "+27%" beside a window's number: how far spend runs ahead of (+) or behind (−) time. */
 export function PaceDelta({
   pace,
-  usedPercent,
   short = false,
   className
 }: {
   pace: UsagePace
-  usedPercent: number
   /** Narrow bar: the sign alone, the size stays in the verdict the label reads out. */
   short?: boolean
   className?: string
 }): React.JSX.Element {
   const t = useTranslate()
-  const rule = useUsageColorRule()
   const verdict = getPaceVerdict(pace.deltaPoints)
   const text = formatPaceDelta(pace.deltaPoints)
   return (
@@ -78,7 +69,7 @@ export function PaceDelta({
       aria-label={formatPaceVerdict(pace, t)}
       className={cn(
         'text-[10px] tabular-nums',
-        paceTextClass(usedPercent, pace, rule) || 'text-muted-foreground',
+        paceTextClass(pace) || 'text-muted-foreground',
         className
       )}
     >
@@ -117,7 +108,7 @@ export function ChipWindow({
   const intlLocale = useIntlLocale()
   const { window } = section
   const pace = getReadingPace(p, window, now)
-  const severity = getWindowSeverity(p, window, now, useUsageColorRule())
+  const severity = getWindowSeverity(window, useUsageColorRule())
   const name = showLabel ? <span className="text-muted-foreground">{label}</span> : null
   const reset =
     wide && section.key === 'session'
@@ -146,7 +137,7 @@ export function ChipWindow({
         />
       ) : null}
       {reset ? <span className="text-muted-foreground">{reset}</span> : null}
-      {pace ? <PaceDelta pace={pace} usedPercent={window.usedPercent} short={short} /> : null}
+      {pace ? <PaceDelta pace={pace} short={short} /> : null}
     </>
   )
 }

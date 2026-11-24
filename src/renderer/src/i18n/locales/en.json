@@ -24014,13 +24014,9 @@
         "branchPrefixHostGitUsername": "Git username on {{host}}"
       },
       "usageColor": {
-        "title": "Usage bar color",
-        "description": "Color usage bars by the share used, or by the pace it is spent at.",
+        "title": "Usage bar and % color",
+        "description": "Each window's bar and percent turn amber and red at these limits, by the share used. The pace delta is separate: always red over pace and green under it.",
         "keywordPace": "pace",
-        "usedHint": "Color only means the real limit; the pace mark and delta stay neutral.",
-        "paceHint": "The bar stays neutral; the pace delta turns red over pace and green under it.",
-        "byUse": "By actual usage",
-        "byPace": "By pace",
         "watchAt": "Amber from",
         "watchAtHint": "Percent used. Must be below red.",
         "criticalAt": "Red from",

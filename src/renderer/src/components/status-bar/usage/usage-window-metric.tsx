@@ -36,7 +36,7 @@ export function UsageWindowMetric({
   const t = useTranslate()
   const intlLocale = useIntlLocale()
   const pace = getReadingPace(p, section.window, now)
-  const severity = getWindowSeverity(p, section.window, now, useUsageColorRule())
+  const severity = getWindowSeverity(section.window, useUsageColorRule())
   const reset = showReset
     ? formatLocalizedResetDuration(section.window.resetsAt, now, intlLocale)
     : null
@@ -75,7 +75,6 @@ export function UsageWindowMetric({
           pace={pace}
           display={display}
           now={now}
-          usedPercent={section.window.usedPercent}
           mutedClass="pl-[50px] text-[10px] leading-4 text-muted-foreground"
         />
       ) : null}

@@ -19,7 +19,7 @@ const BASE = {
   visibleCodexAccounts: [],
   wslCapabilitiesLoading: false,
   codexCliMissing: false,
-  refreshCodexDetection: async () => []
+  cliPresence: { installed: () => true, refresh: async () => [] }
 }
 
 function section(model: object): () => React.JSX.Element {

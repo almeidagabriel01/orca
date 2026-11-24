@@ -51,15 +51,18 @@ export const SEVERITY_FILL_CLASS: Record<UsageSeverity, string> = {
   critical: 'bg-red-500'
 }
 
-/**
- * Delta and verdict color: the severity's; by pace, running behind it also reads soft green.
- * By used share, pace stays neutral so color only ever means the real limit.
- */
+/** By pace, the delta alone carries color, in t3code's tones: over pace red, under it green. */
+const PACE_VERDICT_TEXT_CLASS: Record<PaceVerdict, string> = {
+  over: 'text-red-700 dark:text-red-400',
+  under: 'text-emerald-700 dark:text-emerald-400',
+  on: ''
+}
+
+/** Delta and verdict color: by pace, the verdict's; by used share, the limit's severity. */
 export function paceTextClass(usedPercent: number, pace: UsagePace, rule: UsageColorRule): string {
-  const severity = getUsageSeverity(usedPercent, pace, rule)
-  return rule.mode === 'pace' && severity === 'calm' && getPaceVerdict(pace.deltaPoints) === 'under'
-    ? 'text-emerald-600 dark:text-emerald-400'
-    : SEVERITY_TEXT_CLASS[severity]
+  return rule.mode === 'pace'
+    ? PACE_VERDICT_TEXT_CLASS[getPaceVerdict(pace.deltaPoints)]
+    : SEVERITY_TEXT_CLASS[getUsageSeverity(usedPercent, pace, rule)]
 }
 
 /** The one severity a window's bar, number, delta and verdict all share. */

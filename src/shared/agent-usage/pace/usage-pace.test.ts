@@ -76,10 +76,10 @@ describe('getUsageSeverity', () => {
   })
   const byPace = { mode: 'pace', watchAt: 80, criticalAt: 90 } as const
   const byUse = { mode: 'used', watchAt: 80, criticalAt: 90 } as const
-  it('by pace: calm behind pace, yellow ahead of it, red when it runs out well before reset', () => {
+  it('by pace: the bar stays neutral whatever the pace or share; the delta carries color', () => {
     expect(getUsageSeverity(20, pace(-22, 47), byPace)).toBe('calm')
-    expect(getUsageSeverity(64, pace(4, 107), byPace)).toBe('watch')
-    expect(getUsageSeverity(58, pace(27, 163), byPace)).toBe('critical')
+    expect(getUsageSeverity(64, pace(4, 107), byPace)).toBe('calm')
+    expect(getUsageSeverity(95, pace(27, 163), byPace)).toBe('calm')
   })
   it('by used share: pace never colors, only the thresholds do', () => {
     expect(getUsageSeverity(58, pace(27, 163), byUse)).toBe('calm')
@@ -87,10 +87,8 @@ describe('getUsageSeverity', () => {
     expect(getUsageSeverity(92, pace(-5, 95), byUse)).toBe('critical')
     expect(getUsageSeverity(60, null, { mode: 'used', watchAt: 50, criticalAt: 70 })).toBe('watch')
   })
-  it('falls back to how much is used when there is no pace', () => {
-    expect(getUsageSeverity(50, null, byPace)).toBe('calm')
-    expect(getUsageSeverity(85, null, byPace)).toBe('watch')
-    expect(getUsageSeverity(95, null, byPace)).toBe('critical')
+  it('by pace stays neutral even with no pace to show', () => {
+    expect(getUsageSeverity(95, null, byPace)).toBe('calm')
   })
 })
 

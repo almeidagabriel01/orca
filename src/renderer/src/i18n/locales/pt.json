@@ -23032,7 +23032,7 @@
         "description": "Colore as barras de uso pela parcela usada ou pelo ritmo de consumo.",
         "keywordPace": "ritmo",
         "usedHint": "A cor indica só o limite real; a marca e o delta do ritmo ficam neutros.",
-        "paceHint": "Também avisa quando, no ritmo atual, o limite acabaria antes da renovação.",
+        "paceHint": "A barra fica neutra; o delta do ritmo fica vermelho acima do ritmo e verde abaixo.",
         "byUse": "Pelo uso real",
         "byPace": "Pelo ritmo",
         "watchAt": "Âmbar a partir de",

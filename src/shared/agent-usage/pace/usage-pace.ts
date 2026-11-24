@@ -77,7 +77,7 @@ export function formatPaceDelta(deltaPoints: number): string {
 
 export type UsageSeverity = 'calm' | 'watch' | 'critical'
 
-/** What colors a usage bar: the used share alone, or also the pace it is spent at. */
+/** What carries color: the bar by used share, or only the pace delta. */
 export type UsageColorMode = 'used' | 'pace'
 
 export type UsageColorRule = {
@@ -112,28 +112,18 @@ export function normalizeUsageColorRule(value: unknown): UsageColorRule {
     : { ...DEFAULT_USAGE_COLOR_RULE, mode }
 }
 
-/** Projected past this share of the limit at reset, the window runs out well before it resets. */
-const CRITICAL_PROJECTION_PERCENT = 120
-
 /**
  * One color rule for every usage surface. By used share: neutral, amber from `watchAt`, red from
- * `criticalAt`. By pace: also amber once spend runs ahead and red once it is on course to run out
- * well before the reset.
+ * `criticalAt`. By pace the bar and number stay neutral; only the pace delta carries color.
  */
 export function getUsageSeverity(
   usedPercent: number,
-  pace: UsagePace | null,
+  _pace: UsagePace | null,
   rule: UsageColorRule
 ): UsageSeverity {
-  const used = Math.min(100, Math.max(0, usedPercent))
-  const byPace = rule.mode === 'pace' && pace !== null
-  if (
-    used >= rule.criticalAt ||
-    (byPace && (pace.projection?.atResetPercent ?? 0) >= CRITICAL_PROJECTION_PERCENT)
-  ) {
-    return 'critical'
+  if (rule.mode === 'pace') {
+    return 'calm'
   }
-  return used >= rule.watchAt || (byPace && getPaceVerdict(pace.deltaPoints) === 'over')
-    ? 'watch'
-    : 'calm'
+  const used = Math.min(100, Math.max(0, usedPercent))
+  return used >= rule.criticalAt ? 'critical' : used >= rule.watchAt ? 'watch' : 'calm'
 }

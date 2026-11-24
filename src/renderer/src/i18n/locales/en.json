@@ -24018,7 +24018,7 @@
         "description": "Color usage bars by the share used, or by the pace it is spent at.",
         "keywordPace": "pace",
         "usedHint": "Color only means the real limit; the pace mark and delta stay neutral.",
-        "paceHint": "Also warns when spending at the current pace would run out before the reset.",
+        "paceHint": "The bar stays neutral; the pace delta turns red over pace and green under it.",
         "byUse": "By actual usage",
         "byPace": "By pace",
         "watchAt": "Amber from",

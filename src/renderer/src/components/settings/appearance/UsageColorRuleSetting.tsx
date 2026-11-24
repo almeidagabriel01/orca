@@ -43,7 +43,7 @@ export function UsageColorRuleSetting({
               )
             : t(
                 'components.settings.usageColor.paceHint',
-                'Also warns when spending at the current pace would run out before the reset.'
+                'The bar stays neutral; the pace delta turns red over pace and green under it.'
               )
         }
         control={
@@ -61,35 +61,40 @@ export function UsageColorRuleSetting({
           />
         }
       />
-      <NumberField
-        label={t('components.settings.usageColor.watchAt', 'Amber from')}
-        description={t(
-          'components.settings.usageColor.watchAtHint',
-          'Percent used. Must be below red.'
-        )}
-        value={rule.watchAt}
-        defaultValue={80}
-        min={1}
-        max={rule.criticalAt - 1}
-        integer
-        suffix="%"
-        onChange={(watchAt) => update({ watchAt })}
-      />
-      <NumberField
-        label={t('components.settings.usageColor.criticalAt', 'Red from')}
-        description={t(
-          'components.settings.usageColor.criticalAtHint',
-          'Percent used. Must be above amber ({{value}}%).',
-          { value: String(rule.watchAt) }
-        )}
-        value={rule.criticalAt}
-        defaultValue={90}
-        min={rule.watchAt + 1}
-        max={100}
-        integer
-        suffix="%"
-        onChange={(criticalAt) => update({ criticalAt })}
-      />
+      {/* Thresholds color only by used share. */}
+      {rule.mode === 'used' ? (
+        <>
+          <NumberField
+            label={t('components.settings.usageColor.watchAt', 'Amber from')}
+            description={t(
+              'components.settings.usageColor.watchAtHint',
+              'Percent used. Must be below red.'
+            )}
+            value={rule.watchAt}
+            defaultValue={80}
+            min={1}
+            max={rule.criticalAt - 1}
+            integer
+            suffix="%"
+            onChange={(watchAt) => update({ watchAt })}
+          />
+          <NumberField
+            label={t('components.settings.usageColor.criticalAt', 'Red from')}
+            description={t(
+              'components.settings.usageColor.criticalAtHint',
+              'Percent used. Must be above amber ({{value}}%).',
+              { value: String(rule.watchAt) }
+            )}
+            value={rule.criticalAt}
+            defaultValue={90}
+            min={rule.watchAt + 1}
+            max={100}
+            integer
+            suffix="%"
+            onChange={(criticalAt) => update({ criticalAt })}
+          />
+        </>
+      ) : null}
     </SearchableSetting>
   )
 }

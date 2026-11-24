@@ -22,18 +22,20 @@ function reading(usedPercent: number): ProviderRateLimits {
   }
 }
 
-function Bars(): React.JSX.Element {
+const DEFAULT_USED = [58, 85, 92]
+
+function Bars({ used = DEFAULT_USED }: { used?: number[] }): React.JSX.Element {
   return (
     <div className="space-y-3 bg-background p-3 text-xs">
       <div className="flex h-7 items-center gap-6 whitespace-nowrap">
-        {[58, 85, 92].map((used) => (
-          <ProviderSegment key={used} p={reading(used)} display="used" mode="verbose" />
+        {used.map((value) => (
+          <ProviderSegment key={value} p={reading(value)} display="used" mode="verbose" />
         ))}
       </div>
       <div className="grid grid-cols-3 gap-3">
-        {[58, 85, 92].map((used) => (
-          <div key={used} className="rounded-md border border-border p-3">
-            <ProviderPanel p={reading(used)} />
+        {used.map((value) => (
+          <div key={value} className="rounded-md border border-border p-3">
+            <ProviderPanel p={reading(value)} />
           </div>
         ))}
       </div>
@@ -41,17 +43,31 @@ function Bars(): React.JSX.Element {
   )
 }
 
-const withRule = (usageColorRule?: UsageColorRule) => ({
+const withRule = (usageColorRule?: UsageColorRule, used?: number[]) => ({
   store: { settings: { ...defaults, ...(usageColorRule ? { usageColorRule } : {}) } },
   width: 980,
-  render: () => <Bars />
+  render: () => <Bars used={used} />
 })
 
 /** Default: 58% stays neutral although it runs far over pace; 85% amber, 92% red. */
 export const byUsage = defineFixture(withRule())
 
-/** By pace: the same 58% turns red because it would run out before the reset. */
-export const byPace = defineFixture(withRule({ mode: 'pace', watchAt: 80, criticalAt: 90 }))
+/** By pace: bars stay neutral; 20% (−20) reads green, 58% and 92% (over pace) read red. */
+export const byPace = defineFixture(
+  withRule({ mode: 'pace', watchAt: 80, criticalAt: 90 }, [20, 58, 92])
+)
+
+export const settingByPace = defineFixture({
+  width: 720,
+  render: () => (
+    <div className="bg-background p-4">
+      <UsageColorRuleSetting
+        settings={{ ...defaults, usageColorRule: { mode: 'pace', watchAt: 80, criticalAt: 90 } }}
+        updateSettings={() => {}}
+      />
+    </div>
+  )
+})
 
 export const setting = defineFixture({
   width: 720,

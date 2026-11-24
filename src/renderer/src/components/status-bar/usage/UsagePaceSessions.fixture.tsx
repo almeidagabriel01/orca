@@ -318,7 +318,7 @@ function hostChips(gabriel: ProviderRateLimits): UsageRowChip[] {
 function HostStrip({ label, chips }: { label: string; chips: UsageRowChip[] }): React.JSX.Element {
   return (
     <div className="flex h-8 items-center gap-3 whitespace-nowrap text-xs">
-      <span className="w-40 text-muted-foreground">{label}</span>
+      <span className="w-56 text-muted-foreground">{label}</span>
       {chips.map((chip) => (
         <ProviderSegment
           key={chip.id}
@@ -328,26 +328,57 @@ function HostStrip({ label, chips }: { label: string; chips: UsageRowChip[] }): 
           display="used"
           mode="verbose"
           sessions={[]}
+          readOn={chip.readOn}
         />
       ))}
+      {chips.some((chip) => chip.readOn) ? (
+        <span className="text-[10px] text-muted-foreground">tooltip: “Read 3h ago on vps”</span>
+      ) : null}
     </div>
   )
 }
 
-export const hostSwitch = defineFixture({
-  width: 900,
-  render: () => {
-    const memory: AccountReadingMemory = new Map()
-    const vps = withRememberedAccountReadings(hostChips(AHEAD), memory)
-    return (
-      <div className="flex flex-col bg-background px-3 py-2">
-        <HostStrip label="VPS workspace" chips={vps} />
-        <HostStrip label="Local Mac, before the fix" chips={hostChips(MAC_NEVER_RAN)} />
-        <HostStrip
-          label="Local Mac, after the fix"
-          chips={withRememberedAccountReadings(hostChips(MAC_NEVER_RAN), memory)}
-        />
-      </div>
-    )
+/** What Orca remembers after the VPS read the account `agoMs` ago, as a restart restores it. */
+function restoredAfter(agoMs: number): AccountReadingMemory {
+  const read = NOW - agoMs
+  const p: ProviderRateLimits = {
+    ...AHEAD,
+    updatedAt: read,
+    // A 5h session read 3h ago with 1h left has reset by now; the week has not.
+    session: { ...AHEAD.session!, resetsAt: read + Math.min(agoMs, 4 * HOUR) - MIN }
   }
+  return new Map([['claude:gabriel@example.com', { p, host: 'vps' }]])
+}
+
+export const hostSwitch = defineFixture({
+  width: 980,
+  render: () => (
+    <div className="flex flex-col bg-background px-3 py-2">
+      <HostStrip label="VPS workspace (live)" chips={hostChips(AHEAD)} />
+      <HostStrip label="Mac cold start, before" chips={hostChips(MAC_NEVER_RAN)} />
+      <HostStrip
+        label="Mac cold start, read 20 min ago"
+        chips={withRememberedAccountReadings(
+          hostChips(MAC_NEVER_RAN),
+          new Map([
+            [
+              'claude:gabriel@example.com',
+              { p: { ...AHEAD, updatedAt: NOW - 20 * MIN }, host: 'vps' }
+            ]
+          ]),
+          'this device',
+          NOW
+        )}
+      />
+      <HostStrip
+        label="Mac cold start, read 3h ago"
+        chips={withRememberedAccountReadings(
+          hostChips(MAC_NEVER_RAN),
+          restoredAfter(3 * HOUR),
+          'this device',
+          NOW
+        )}
+      />
+    </div>
+  )
 })

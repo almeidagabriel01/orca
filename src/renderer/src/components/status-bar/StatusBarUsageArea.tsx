@@ -209,6 +209,7 @@ export function StatusBarUsageArea({
                       display={usagePercentageDisplay}
                       mode={usageMode}
                       sessions={chipSessions(chip)}
+                      readOn={chip.readOn}
                     />
                   ))}
                   {hiddenChips.length > 0 ? (

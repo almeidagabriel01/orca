@@ -7,6 +7,43 @@ import { usedSections, windowWordLabel } from './usage-headline-sections'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
 import { formatPaceSummary, getReadingPace } from './usage-pace-caption'
+import { formatTimeAgo } from './provider-usage-panel'
+import { cn } from '@/lib/class-names'
+
+/** Where and when an old reading from another host was taken. */
+export type UsageReadOn = { host: string; at: number }
+
+function useReadOnLine(readOn: UsageReadOn | undefined): string | null {
+  const t = useTranslate()
+  return readOn
+    ? t('components.status-bar.usage.accounts.readOn', 'Read {{time}} on {{host}}', {
+        time: formatTimeAgo(readOn.at, t),
+        host: readOn.host
+      })
+    : null
+}
+
+// Why dimmed: an old reading from another host is a hint, not the account's current usage.
+const READ_ON_CLASS = 'opacity-60'
+
+/** A single provider chip showing an old reading from another host. */
+export function ReadOnChip({
+  readOn,
+  children
+}: {
+  readOn: UsageReadOn
+  children: React.ReactNode
+}): React.JSX.Element {
+  return (
+    <span
+      data-usage-read-on=""
+      title={useReadOnLine(readOn) ?? undefined}
+      className={READ_ON_CLASS}
+    >
+      {children}
+    </span>
+  )
+}
 
 /** The account's short name; which one is selected lives in the chip's tooltip and the popover. */
 export function AccountChipName({ label }: { label: string }): React.JSX.Element {
@@ -31,15 +68,18 @@ export function AccountUsageChip({
   accountLabel,
   selected,
   display,
+  readOn,
   children
 }: {
   p: ProviderRateLimits
   accountLabel: string
   selected: boolean
   display: UsagePercentageDisplay
+  readOn?: UsageReadOn
   children: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
+  const readOnLine = useReadOnLine(readOn)
   const intlLocale = useIntlLocale()
   const names = { provider: getProviderDisplayName(p.provider), account: accountLabel }
   const heading = selected
@@ -68,9 +108,13 @@ export function AccountUsageChip({
   return (
     <span
       data-usage-account-chip=""
-      title={[heading, ...lines].join('\n')}
+      data-usage-read-on={readOn ? '' : undefined}
+      title={[heading, ...lines, readOnLine].filter(Boolean).join('\n')}
       onPointerEnter={() => setNow(Date.now())}
-      className="inline-flex h-5 items-center rounded border border-border px-1.5"
+      className={cn(
+        'inline-flex h-5 items-center rounded border border-border px-1.5',
+        readOn && READ_ON_CLASS
+      )}
     >
       {children}
     </span>

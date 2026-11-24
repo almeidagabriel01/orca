@@ -35,7 +35,12 @@ import { isGroupedUsagePool } from '../../../../../shared/agent-usage/display/gr
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { useNow } from '@/lib/window-activity/use-now'
 import { getAccountChipSections } from '../composition/status-bar-usage-chips'
-import { AccountChipName, AccountUsageChip } from './account-usage-chip'
+import {
+  AccountChipName,
+  AccountUsageChip,
+  ReadOnChip,
+  type UsageReadOn
+} from './account-usage-chip'
 import {
   getReadingPace,
   getWindowSeverity,
@@ -228,6 +233,8 @@ type ProviderSegmentProps = {
   selected?: boolean
   /** Agents billing this chip's account; working or waiting ones ring its icon. */
   sessions?: readonly UsageAgentSession[]
+  /** An old reading from another host: dimmed, its tooltip says where and when. */
+  readOn?: UsageReadOn
 }
 
 /** A chip in the clipping status bar row: clipped chips stop their countdown wakes. */
@@ -241,12 +248,13 @@ export function ClippedRowProviderSegment(props: ProviderSegmentProps): React.JS
 }
 
 export function ProviderSegment(props: ProviderSegmentProps): React.JSX.Element {
-  const { p, display, accountLabel, selected = false } = props
+  const { p, display, accountLabel, selected = false, readOn } = props
   const segment = <ProviderSegmentBody {...props} />
-  return accountLabel === undefined || !p ? (
-    segment
-  ) : (
-    <AccountUsageChip p={p} accountLabel={accountLabel} selected={selected} display={display}>
+  if (accountLabel === undefined || !p) {
+    return readOn ? <ReadOnChip readOn={readOn}>{segment}</ReadOnChip> : segment
+  }
+  return (
+    <AccountUsageChip {...{ p, accountLabel, selected, display, readOn }}>
       {segment}
     </AccountUsageChip>
   )

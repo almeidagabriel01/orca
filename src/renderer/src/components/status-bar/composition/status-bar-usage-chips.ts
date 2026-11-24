@@ -46,6 +46,8 @@ export type UsageRowChip = {
   accountKey?: string
   /** Provider and email: the same login on any host, whose readings stand in for each other. */
   accountIdentity?: string
+  /** Set when the shown reading is another host's, over an hour old: where and when it was read. */
+  readOn?: { host: string; at: number }
 }
 
 /** What an account can be called by, most specific first. */

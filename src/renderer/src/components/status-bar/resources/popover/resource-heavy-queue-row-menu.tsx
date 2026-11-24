@@ -17,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -33,10 +34,13 @@ function Item({
   label,
   reason,
   destructive,
+  quiet,
   onSelect
 }: {
   icon: LucideIcon
   label: string
+  /** The reason is already said once above the group; keep it in the accessible name only. */
+  quiet?: boolean
   /** Why it is off; null when offered. Shown under the label, not only on hover. */
   reason: string | null
   destructive?: boolean
@@ -53,7 +57,7 @@ function Item({
       <Icon className="mt-0.5" />
       <span className="flex min-w-0 flex-col">
         <span>{label}</span>
-        {reason && <span className="text-2xs text-muted-foreground">{reason}</span>}
+        {reason && !quiet && <span className="text-2xs text-muted-foreground">{reason}</span>}
       </span>
     </DropdownMenuItem>
   )
@@ -117,33 +121,43 @@ export function QueueRowMenu({
       <DropdownMenuContent align="end" className="w-60">
         {!running && (
           <>
+            {orderReason && (
+              <DropdownMenuLabel className="text-2xs font-normal text-muted-foreground">
+                {orderReason}
+              </DropdownMenuLabel>
+            )}
             <Item
               icon={ArrowUp}
               label={t('resourceManager.heavyQueue.moveUp', 'Move up')}
+              quiet={orderReason !== null}
               reason={moveReason(can.moveUp, first)}
               onSelect={() => onMove('up')}
             />
             <Item
               icon={ArrowDown}
               label={t('resourceManager.heavyQueue.moveDown', 'Move down')}
+              quiet={orderReason !== null}
               reason={moveReason(can.moveDown, last)}
               onSelect={() => onMove('down')}
             />
             <Item
               icon={ArrowUpToLine}
               label={t('resourceManager.heavyQueue.runNext', 'Run next')}
+              quiet={orderReason !== null}
               reason={moveReason(can.runNext, first)}
               onSelect={onRunNext}
             />
             <Item
               icon={ArrowDownToLine}
               label={t('resourceManager.heavyQueue.moveToEnd', 'Move to end')}
+              quiet={orderReason !== null}
               reason={moveReason(can.moveToEnd, last)}
               onSelect={() => onMove('bottom')}
             />
             <Item
               icon={Zap}
               label={t('resourceManager.heavyQueue.startNow', 'Start now…')}
+              quiet
               reason={orderReason}
               onSelect={() => onConfirm('start')}
             />

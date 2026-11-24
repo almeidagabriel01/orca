@@ -22764,6 +22764,8 @@
         "notNow": "Not now",
         "retry": "Retry",
         "dismiss": "Dismiss",
+        "dismissName": "Dismiss {{name}}",
+        "dismissFinished": "Dismiss finished",
         "openWorker": "Open worker",
         "remoteOwner": "Stop or clear this from the computer it runs on",
         "restore": "Show in dock again",

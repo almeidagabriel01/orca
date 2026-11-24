@@ -17,6 +17,12 @@ import { structuredSessionBackgroundTaskGroups } from './background-task-roster'
 import { useWorkerDockStructuralValue } from './dock/NativeChatWorkerDockFrame'
 import { WorkerDockRoster } from './dock/WorkerDockRoster'
 import type { WorkerDockRowView } from './dock/WorkerDockRow'
+import {
+  dismissWorkerDockRows,
+  useDismissedWorkerDockRows,
+  withoutDismissedWorkerDockRows,
+  workerDockLocallyDismissible
+} from './dock/worker-dock-dismissals'
 
 /** Use strip width in rem so narrow splits behave like narrow windows even on wide monitors. */
 const NARROW_STRIP_REM = 27.5
@@ -61,6 +67,45 @@ function workerChildren(row: AgentChildRowModel): AgentChildRowModel[] {
   return [row, ...row.owned.flatMap(workerChildren)]
 }
 
+// The key names the ending too, so work that runs and ends again shows until dismissed again.
+function withWorkerDismissKey<
+  T extends {
+    id: string
+    state: WorkerDockRowView['state']
+    settlement?: string | null
+    changedAt: number | null
+    ownerActionsAvailable?: boolean
+  }
+>(row: T): T & { dismissKey?: string } {
+  return workerDockLocallyDismissible(row)
+    ? { ...row, dismissKey: `${row.id}\0${row.settlement ?? row.changedAt ?? ''}` }
+    : row
+}
+
+function providerDismissKey(
+  sessionId: string | undefined,
+  row: AgentChildRowModel,
+  state: WorkerDockRowView['state']
+): string | undefined {
+  return workerDockLocallyDismissible({ state, finished: row.settled })
+    ? `${sessionId ?? ''}\0${row.kind}\0${row.id}\0${row.settledAt ?? ''}`
+    : undefined
+}
+
+function providerDockState(row: AgentChildRowModel): WorkerDockRowView['state'] {
+  return row.displayState === 'failed'
+    ? 'failed'
+    : row.displayState === 'interrupted'
+      ? 'unexpected'
+      : row.displayState === 'idle'
+        ? 'idle'
+        : row.displayState === 'unverifiable'
+          ? 'unavailable'
+          : row.displayState === 'waiting' || row.displayState === 'blocked'
+            ? 'coordinator'
+            : 'running'
+}
+
 export function NativeChatBackgroundTasksStatus(liveProps: {
   tasks: readonly AgentSessionBackgroundTask[]
   settledTasks: readonly AgentSessionBackgroundTask[]
@@ -102,6 +147,7 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
   loadWindow?: (anchor: string) => Promise<void>
 }): React.JSX.Element {
   const t = useTranslate()
+  const dismissed = useDismissedWorkerDockRows()
   const props = useWorkerDockStructuralValue(liveProps)
   const root = useRef<HTMLDivElement>(null)
   const { narrow, compact } = useStripLayout(root)
@@ -136,26 +182,34 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
     ]
   )
   const countIdentities = useMemo(
-    () => [
-      ...(liveProps.workerIdentities ?? []),
-      ...countGroups.flatMap((group) =>
-        group.tasks
-          .flatMap(({ row }) => workerChildren(row))
-          .map((row) => ({
-            id: `${row.kind}:${row.id}`,
-            kind: row.kind,
-            state:
-              row.displayState === 'failed'
-                ? ('failed' as const)
-                : row.displayState === 'interrupted'
-                  ? ('unexpected' as const)
-                  : row.displayState === 'unverifiable'
-                    ? ('unavailable' as const)
-                    : ('running' as const)
-          }))
-      )
-    ],
-    [liveProps.workerIdentities, countGroups]
+    () =>
+      withoutDismissedWorkerDockRows(
+        [
+          ...(liveProps.workerIdentities ?? []).map(withWorkerDismissKey),
+          ...countGroups.flatMap((group) =>
+            group.tasks
+              .flatMap(({ row }) => workerChildren(row))
+              .map((row) => {
+                const state =
+                  row.displayState === 'failed'
+                    ? ('failed' as const)
+                    : row.displayState === 'interrupted'
+                      ? ('unexpected' as const)
+                      : row.displayState === 'unverifiable'
+                        ? ('unavailable' as const)
+                        : ('running' as const)
+                return {
+                  id: `${row.kind}:${row.id}`,
+                  kind: row.kind,
+                  state,
+                  dismissKey: providerDismissKey(liveProps.sessionId, row, providerDockState(row))
+                }
+              })
+          )
+        ],
+        dismissed
+      ),
+    [liveProps.workerIdentities, liveProps.sessionId, countGroups, dismissed]
   )
   const providerRows = useMemo(() => {
     const views = new Map(props.childViews?.map((view) => [view.id, view]))
@@ -164,19 +218,10 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
         .flatMap(({ row }) => workerChildren(row))
         .map((row): WorkerDockRowView => {
           const view = views.get(row.id)
-          const state =
-            row.displayState === 'failed'
-              ? 'failed'
-              : row.displayState === 'interrupted'
-                ? 'unexpected'
-                : row.displayState === 'idle'
-                  ? 'idle'
-                  : row.displayState === 'unverifiable'
-                    ? 'unavailable'
-                    : row.displayState === 'waiting' || row.displayState === 'blocked'
-                      ? 'coordinator'
-                      : 'running'
+          const state = providerDockState(row)
+          const dismissKey = providerDismissKey(props.sessionId, row, state)
           return {
+            ...(dismissKey ? { dismissKey } : {}),
             id: JSON.stringify([
               props.sessionId ?? '',
               row.kind,
@@ -211,12 +256,21 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
   }, [groups, props.childViews, props.sessionId, props.supportsTaskStop, t])
   const rows = useMemo(
     () =>
-      new Map([...(props.workerRows ?? []), ...providerRows.map((row) => [row.id, row] as const)]),
+      new Map([
+        ...[...(props.workerRows ?? [])].map(
+          ([id, row]) => [id, withWorkerDismissKey(row)] as const
+        ),
+        ...providerRows.map((row) => [row.id, row] as const)
+      ]),
     [props.workerRows, providerRows]
   )
   const identities = useMemo(
-    () => [...(props.workerIdentities ?? []), ...providerRows].sort(compareWorkerDockEntries),
-    [props.workerIdentities, providerRows]
+    () =>
+      withoutDismissedWorkerDockRows(
+        [...(props.workerIdentities ?? []).map(withWorkerDismissKey), ...providerRows],
+        dismissed
+      ).sort(compareWorkerDockEntries),
+    [props.workerIdentities, providerRows, dismissed]
   )
   return (
     <div ref={root} className="min-h-0">
@@ -255,13 +309,18 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
           }
         }}
         onAction={(row, action) => {
-          if (row.kind === 'worker' || action === 'clear') {
+          if (action === 'dismiss') {
+            dismissWorkerDockRows(row.dismissKey ? [row.dismissKey] : [])
+          } else if (row.kind === 'worker' || action === 'clear') {
             props.onWorkerAction?.(row, action)
           } else if (action === 'stop' && row.providerId) {
             props.onStop(row.providerId)
           }
         }}
-        onClearAll={() => props.onClearAll?.()}
+        onClearAll={() => {
+          props.onClearAll?.()
+          dismissWorkerDockRows(identities.flatMap((row) => row.dismissKey ?? []))
+        }}
         loadWindow={props.loadWindow}
       />
     </div>

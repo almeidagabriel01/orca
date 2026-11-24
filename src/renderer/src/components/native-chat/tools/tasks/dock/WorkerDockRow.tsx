@@ -40,7 +40,10 @@ export type WorkerDockRowView = WorkerDockEntry & {
   providerId?: string
   /** The open question a needs-you worker asked, shown in full on the lead row. */
   question?: string
+  /** Set on ended work this window can hide on its own (see workerDockLocallyDismissible). */
+  dismissKey?: string
 }
+export type WorkerDockRowActionKind = 'stop' | 'clear' | 'dismiss'
 export const WorkerDockRow = memo(function WorkerDockRow({
   row,
   narrow,
@@ -63,7 +66,7 @@ export const WorkerDockRow = memo(function WorkerDockRow({
   visible: boolean
   pending: boolean
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
 }) {
   const t = useTranslate()
   const locale = useIntlLocale()

@@ -23,7 +23,7 @@ export function WorkerDockHeader({
   expanded: boolean
   incomplete?: boolean
   count: string
-  /** Failed rows Clear all acknowledges: settled and owned here. */
+  /** Ended rows Dismiss finished hides: failures the host acknowledges plus work this window hides. */
   clearable: number
   failed: number
   needsYou: number
@@ -97,11 +97,6 @@ export function WorkerDockHeader({
           type="button"
           variant="ghost"
           size="xs"
-          aria-label={t(
-            'components.native-chat.workerDock.clearAllLabel',
-            'Clear all {{count}} failed workers',
-            { count: clearable, defaultValue_one: 'Clear failed worker' }
-          )}
           aria-disabled={clearing}
           onClick={() => {
             if (clearing) {
@@ -111,7 +106,7 @@ export function WorkerDockHeader({
             summary.current?.focus()
           }}
         >
-          {t('components.native-chat.workerDock.clearAll', 'Clear all')}
+          {t('components.native-chat.workerDock.dismissFinished', 'Dismiss finished')}
         </Button>
       ) : null}
     </div>

@@ -2,6 +2,8 @@ import React, { createContext, useContext, useMemo, useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { AgentStateDot, type AgentDotState } from '@/components/agent/status/AgentStateDot'
+import { AgentWorkingSpinner } from '@/components/agent/status/AgentWorkingSpinner'
+import { ProviderIcon } from './provider-usage-panel'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { useNow } from '@/lib/window-activity/use-now'
@@ -31,7 +33,10 @@ type UsageRowSessions = {
 }
 
 /** The agents of the usage row being drilled into, and the host they run on. */
-const UsageRowSessionsContext = createContext<UsageRowSessions>({ sessions: [], owner: null })
+const UsageRowSessionsContext = createContext<UsageRowSessions>({
+  sessions: [],
+  owner: null
+})
 
 /** Hands a row's agents to its details menu, however deep the switcher nests the panel. */
 export function UsageRowSessionsScope({
@@ -63,28 +68,92 @@ export function formatSessionCounts(sessions: readonly UsageAgentSession[], t: T
     .join(' · ')
 }
 
-/** Spins at the chip's corner while an agent works on its account; holds still when one waits. */
-export function UsageChipActivity({
-  sessions
-}: {
-  sessions: readonly UsageAgentSession[]
-}): React.JSX.Element | null {
-  const t = useTranslate()
-  const state = sessions.some((session) => session.state === 'working')
+export type UsageActivity = 'working' | 'waiting'
+
+/** What an account's agents are doing, for the ring around its icon: working wins over waiting. */
+export function getUsageActivity(sessions: readonly UsageAgentSession[]): UsageActivity | null {
+  return sessions.some((session) => session.state === 'working')
     ? 'working'
     : sessions.some((session) => session.state === 'waiting')
       ? 'waiting'
       : null
-  if (!state) {
-    return null
+}
+
+/** Half a ring turning on a faint track, in Orca's working yellow: an agent is working. */
+function WorkingArc({ className }: { className?: string }): React.JSX.Element {
+  return (
+    <AgentWorkingSpinner
+      className={cn(
+        'border-agent-working-ring/20 border-t-agent-working-ring border-r-agent-working-ring motion-reduce:border-t-agent-working-ring',
+        className
+      )}
+    />
+  )
+}
+
+/** A session's state mark: the chip's arc while working, the usual glyphs otherwise. */
+function SessionStateMark({ state }: { state: UsageSessionState }): React.JSX.Element {
+  return state === 'working' ? (
+    <span className="inline-flex size-3 shrink-0 items-center justify-center">
+      <WorkingArc className="size-3 border-[1.5px]" />
+    </span>
+  ) : (
+    <AgentStateDot state={DOT_STATE[state]} title={null} />
+  )
+}
+
+/**
+ * Glyph size inside the 18px ring box (14px inside its 2px stroke), leaving 2px clear around the
+ * painted logo. Logos on a filled square tile reach the ring with their corners, and taller-than-
+ * wide ones with their ends, so they step down until the corners clear it too.
+ */
+const RING_ICON_SIZE: Partial<Record<string, number>> = {
+  claude: 9,
+  codex: 9,
+  minimax: 7,
+  'opencode-go': 6,
+  kimi: 7,
+  antigravity: 7,
+  grok: 7,
+  zcode: 7,
+  muse: 7,
+  cursor: 7
+}
+
+/**
+ * The provider icon in a square box with its activity ring: half a ring turning while an agent
+ * works, a still closed ring while one waits. Box, ring and glyph share one center (grid
+ * place-items), and the box is the same size idle or busy, so the bar's measured width holds.
+ */
+export function UsageActivityRing({
+  provider,
+  sessions
+}: {
+  provider: string
+  sessions: readonly UsageAgentSession[] | undefined
+}): React.JSX.Element {
+  const t = useTranslate()
+  if (!sessions) {
+    return <ProviderIcon provider={provider} />
   }
+  const activity = getUsageActivity(sessions)
   return (
     <span
-      data-usage-activity={state}
-      aria-label={formatSessionCounts(sessions, t)}
-      className="pointer-events-none absolute -left-0.5 -top-0.5 rounded-full bg-background"
+      data-usage-activity={activity ?? 'idle'}
+      role={activity ? 'img' : undefined}
+      aria-label={activity ? formatSessionCounts(sessions, t) : undefined}
+      className="relative grid size-[18px] shrink-0 place-items-center"
     >
-      <AgentStateDot state={DOT_STATE[state]} title={null} />
+      <ProviderIcon provider={provider} size={RING_ICON_SIZE[provider] ?? 9} />
+      {activity === 'working' ? (
+        <WorkingArc className="pointer-events-none absolute inset-0 border-2" />
+      ) : activity === 'waiting' ? (
+        // Why a closed ring: still and whole reads apart from the turning arc, even frozen.
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-full border-2 border-foreground/45"
+        />
+      ) : null}
     </span>
   )
 }
@@ -106,7 +175,7 @@ export function UsageRowSessionCounts({
       data-usage-sessions=""
       className="flex items-center gap-1.5 pl-[30px] text-[11px] text-muted-foreground"
     >
-      <AgentStateDot state={working ? 'working' : 'waiting'} title={null} />
+      <SessionStateMark state={working ? 'working' : 'waiting'} />
       {label}
     </span>
   )
@@ -141,7 +210,7 @@ function SessionRow({
       onSelect={() => openSession(session, owner)}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2 pl-2">
-        <AgentStateDot state={DOT_STATE[session.state]} title={null} />
+        <SessionStateMark state={session.state} />
         <span
           className={cn(
             'min-w-0 flex-1 truncate text-xs',

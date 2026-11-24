@@ -24199,7 +24199,9 @@
           "allTooltip": "One chip and row per saved account of each agent",
           "selected": "Selected",
           "chipTitle": "{{provider}} · {{account}}",
-          "chipTitleSelected": "{{provider}} · {{account}} (selected)"
+          "chipTitleSelected": "{{provider}} · {{account}} (selected)",
+          "thisDevice": "this device",
+          "readOn": "Updated {{time}} on {{host}}"
         },
         "pace": {
           "over": "{{points}}% over pace",

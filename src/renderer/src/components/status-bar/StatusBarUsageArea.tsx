@@ -35,7 +35,7 @@ import { isOwnerNotSetUpPlaceholder } from './usage/owner-usage-rate-limits'
 import { getUsageOwnerHostScope } from './usage/use-owner-usage-rate-limits'
 import { useUsageAccountSessions } from './usage/use-usage-account-sessions'
 import { sessionsInScope } from './usage/usage-account-sessions'
-import { UsageChipActivity, UsageRowSessionsScope } from './usage/usage-agent-sessions-view'
+import { UsageRowSessionsScope } from './usage/usage-agent-sessions-view'
 import type { UsageRowChip } from './composition/status-bar-usage-chips'
 
 type StatusBarController = NonNullable<ReturnType<typeof useStatusBarController>>
@@ -200,18 +200,17 @@ export function StatusBarUsageArea({
                 >
                   {showUnitLabel ? <UsageUnitLabel display={usagePercentageDisplay} /> : null}
                   {shownChips.map((chip) => (
-                    // Why absolute: the mark must not change the chip's width the layout measured.
-                    <span key={chip.id} className="relative inline-flex">
-                      <ClippedRowProviderSegment
-                        p={chip.p}
-                        accountLabel={chip.accountLabel}
-                        selected={chip.selected}
-                        compact={usageCompact}
-                        display={usagePercentageDisplay}
-                        mode={usageMode}
-                      />
-                      <UsageChipActivity sessions={chipSessions(chip)} />
-                    </span>
+                    <ClippedRowProviderSegment
+                      key={chip.id}
+                      p={chip.p}
+                      accountLabel={chip.accountLabel}
+                      selected={chip.selected}
+                      compact={usageCompact}
+                      display={usagePercentageDisplay}
+                      mode={usageMode}
+                      sessions={chipSessions(chip)}
+                      readOn={chip.readOn}
+                    />
                   ))}
                   {hiddenChips.length > 0 ? (
                     <UsageOverflowChip

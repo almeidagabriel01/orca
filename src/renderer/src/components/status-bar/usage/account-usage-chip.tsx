@@ -3,32 +3,43 @@ import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { getProviderDisplayName } from '../../../../../shared/agent-usage/display/usage-provider-windows'
-import { shortUsageLabel, usedSections } from './usage-headline-sections'
+import { usedSections, windowWordLabel } from './usage-headline-sections'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
 import { formatPaceSummary, getReadingPace } from './usage-pace-caption'
+import { formatTimeAgo } from './provider-usage-panel'
 
-/** The account's short name and, for the host's selected account, a quiet dot. */
-export function AccountChipName({
-  label,
-  selected
-}: {
-  label: string
-  selected: boolean
-}): React.JSX.Element {
+/** Where and when a reading from another host was taken. */
+export type UsageReadOn = { host: string; at: number }
+
+function useReadOnLine(readOn: UsageReadOn | undefined): string | null {
   const t = useTranslate()
+  return readOn
+    ? t('components.status-bar.usage.accounts.readOn', 'Updated {{time}} on {{host}}', {
+        time: formatTimeAgo(readOn.at, t),
+        host: readOn.host
+      })
+    : null
+}
+
+/** A single provider chip showing another host's reading: same look, the tooltip says where. */
+export function ReadOnChip({
+  readOn,
+  children
+}: {
+  readOn: UsageReadOn
+  children: React.ReactNode
+}): React.JSX.Element {
   return (
-    <span className="inline-flex min-w-0 items-center gap-1">
-      <span className="max-w-24 truncate text-foreground">{label}</span>
-      {selected ? (
-        <span
-          data-usage-selected-account=""
-          aria-label={t('components.status-bar.usage.accounts.selected', 'Selected')}
-          className="size-1.5 shrink-0 rounded-full bg-foreground/60"
-        />
-      ) : null}
+    <span data-usage-read-on="" title={useReadOnLine(readOn) ?? undefined}>
+      {children}
     </span>
   )
+}
+
+/** The account's short name; which one is selected lives in the chip's tooltip and the popover. */
+export function AccountChipName({ label }: { label: string }): React.JSX.Element {
+  return <span className="max-w-24 min-w-0 truncate text-foreground">{label}</span>
 }
 
 export function SelectedAccountBadge(): React.JSX.Element {
@@ -49,15 +60,18 @@ export function AccountUsageChip({
   accountLabel,
   selected,
   display,
+  readOn,
   children
 }: {
   p: ProviderRateLimits
   accountLabel: string
   selected: boolean
   display: UsagePercentageDisplay
+  readOn?: UsageReadOn
   children: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
+  const readOnLine = useReadOnLine(readOn)
   const intlLocale = useIntlLocale()
   const names = { provider: getProviderDisplayName(p.provider), account: accountLabel }
   const heading = selected
@@ -70,7 +84,7 @@ export function AccountUsageChip({
   // Why read on hover: resets count down live, and a ticking clock per chip would redraw the bar.
   const [now, setNow] = React.useState<number | null>(null)
   const lines = usedSections(p, t).map((section) => {
-    const usage = `${shortUsageLabel(p, section, false, t)}: ${formatUsagePercentageLabel(section.window.usedPercent, display, t)}`
+    const usage = `${windowWordLabel(p, section, t)}: ${formatUsagePercentageLabel(section.window.usedPercent, display, t)}`
     if (now === null) {
       return usage
     }
@@ -86,9 +100,10 @@ export function AccountUsageChip({
   return (
     <span
       data-usage-account-chip=""
-      title={[heading, ...lines].join('\n')}
+      data-usage-read-on={readOn ? '' : undefined}
+      title={[heading, ...lines, readOnLine].filter(Boolean).join('\n')}
       onPointerEnter={() => setNow(Date.now())}
-      className="inline-flex h-[18px] items-center rounded border border-border px-1.5"
+      className="inline-flex h-5 items-center rounded border border-border px-1.5"
     >
       {children}
     </span>

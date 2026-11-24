@@ -24,12 +24,12 @@ import {
   resolveCodexStatusAccountState
 } from '../accounts/status-bar-codex-accounts'
 import { claudeRowUsageId, getCodexStatusRuntimeKey } from '../accounts/status-bar-runtime-targets'
-import { formatWindowLabel } from '../usage/rate-limit-window-localized-label'
 import { USAGE_WARNING_PERCENT } from '../usage/usage-health-tone'
 import { clampUsedPercent } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import type { OwnerUsageRateLimits } from '../usage/use-owner-usage-rate-limits'
 import { getStatusBarUsageSections, type StatusBarUsageSection } from './status-bar-usage-sections'
 import { getUsageHeadlineSection } from '../usage/usage-headline-sections'
+import { usageAccountIdentity } from './usage-account-memory'
 
 type ProviderId = ProviderRateLimits['provider']
 
@@ -44,6 +44,10 @@ export type UsageRowChip = {
   selected?: boolean
   /** With 'all', the account's key (saved id or 'system-default'); its agents are counted here. */
   accountKey?: string
+  /** Provider and email: the same login on any host, whose readings stand in for each other. */
+  accountIdentity?: string
+  /** Set when the shown reading is another host's: where and when it was read. */
+  readOn?: { host: string; at: number }
 }
 
 /** What an account can be called by, most specific first. */
@@ -119,9 +123,11 @@ export function buildUsageRowChips(args: {
   accountsByProvider: Partial<Record<ProviderId, readonly UsageAccountEntry[]>>
 }): UsageRowChip[] {
   return args.providers.flatMap((p): UsageRowChip[] => {
-    const entries = args.accounts === 'all' ? args.accountsByProvider[p.provider] : undefined
+    const listed = args.accountsByProvider[p.provider]
+    const entries = args.accounts === 'all' ? listed : undefined
     if (!entries?.length) {
-      return [{ id: p.provider, p }]
+      const email = listed?.find((entry) => entry.selected)?.name.email
+      return [{ id: p.provider, p, accountIdentity: usageAccountIdentity(p.provider, email) }]
     }
     const labels = resolveUsageAccountLabels(entries)
     const chips = entries.map((entry, index): UsageRowChip => ({
@@ -131,7 +137,8 @@ export function buildUsageRowChips(args: {
         : (entry.reading ?? unreadReading(p.provider, entry.isFetching === true)),
       accountLabel: labels[index],
       selected: entry.selected,
-      accountKey: entry.key
+      accountKey: entry.key,
+      accountIdentity: usageAccountIdentity(p.provider, entry.name.email)
     }))
     // Why: the live reading must show even when the host's selection names no listed account.
     if (!chips.some((chip) => chip.selected)) {
@@ -178,7 +185,8 @@ export function getAccountChipSections(
     sections.push({
       key: 'session',
       window: p.session,
-      label: formatWindowLabel(p.session.windowMinutes),
+      // Why words: the wide chip reads like the popover; the narrow one hides labels anyway.
+      label: t('auto.components.status.bar.tooltip.94038ad2fa', 'Session'),
       labelFirst: true
     })
   }
@@ -186,7 +194,7 @@ export function getAccountChipSections(
     sections.push({
       key: 'weekly',
       window: p.weekly,
-      label: formatWindowLabel(p.weekly.windowMinutes),
+      label: t('auto.components.status.bar.tooltip.252c096536', 'Weekly'),
       labelFirst: true
     })
   }

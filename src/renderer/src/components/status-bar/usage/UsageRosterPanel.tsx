@@ -6,7 +6,6 @@ import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCo
 import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
-import { ProviderIcon } from './provider-usage-panel'
 import { getProviderDisplayName } from '../../../../../shared/agent-usage/display/usage-provider-windows'
 import { formatPlanLabel } from './usage-roster-formatting'
 import { getUsageRosterRowState, type UsageRosterRowState } from './usage-roster-row-state'
@@ -20,7 +19,7 @@ import {
   getUrgentScopedSection,
   getUsageHeadlineSection,
   providerPrimaryMaxUsed,
-  shortUsageLabel,
+  windowWordLabel,
   usedSections,
   type UsageSection
 } from './usage-headline-sections'
@@ -35,7 +34,7 @@ import { getUsageHealthTone } from './usage-health-tone'
 import { UsageBar, UsageDisplayToggle, UsageValue } from './usage-meter'
 import { getReadingPace, paceTickPercent } from './usage-pace-caption'
 import { UsageWindowMetric } from './usage-window-metric'
-import { UsageRowSessionCounts } from './usage-agent-sessions-view'
+import { UsageActivityRing, UsageRowSessionCounts } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
 
 type ProviderId = ProviderRateLimits['provider']
@@ -172,7 +171,7 @@ export function UsageRow({
     <div data-usage-mode={mode} className="flex min-w-0 flex-1 flex-col gap-1">
       <div className="flex items-center gap-2.5">
         <span className="flex size-5 shrink-0 items-center justify-center rounded-md border border-border bg-secondary">
-          <ProviderIcon provider={p.provider} />
+          <UsageActivityRing provider={p.provider} sessions={sessions} />
         </span>
         <span
           className={cn(
@@ -211,14 +210,14 @@ export function UsageRow({
         <span className="pl-[30px] text-[11px] text-muted-foreground">{state.detail}</span>
       ) : null}
       {showDetails ? (
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pl-[30px]">
+        <div className="flex flex-col gap-1.5 pl-[30px]">
           {sections.map((section) => {
             return (
               <UsageWindowMetric
                 key={section.label}
                 p={p}
                 section={section}
-                label={shortUsageLabel(p, section, false, t)}
+                label={windowWordLabel(p, section, t)}
                 display={display}
                 now={now}
                 showReset={isAccountRow}

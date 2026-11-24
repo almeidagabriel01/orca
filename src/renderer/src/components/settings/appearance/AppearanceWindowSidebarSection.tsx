@@ -22,9 +22,11 @@ import {
 } from './appearance-sidebar-search'
 import { getStatusBarToggles } from './appearance-status-bar-search'
 import {
+  getUsageColorRuleEntry,
   getUsagePercentageDisplayEntry,
   USAGE_PERCENTAGE_DISPLAY_SETTING_ID
 } from './appearance-usage-percentage-search'
+import { UsageColorRuleSetting } from './UsageColorRuleSetting'
 
 import { LeftSidebarAppearanceSetting } from './LeftSidebarAppearanceSetting'
 import { getStatusBarUsageFormatEntry } from './appearance-status-bar-usage-format-search'
@@ -109,6 +111,7 @@ export function AppearanceWindowSidebarSection({
   })
   const statusBarControlMatches =
     matchesSettingsSearch(searchQuery, usagePercentageDisplayEntry) ||
+    matchesSettingsSearch(searchQuery, getUsageColorRuleEntry()) ||
     matchesSettingsSearch(searchQuery, statusBarUsageFormatEntry) ||
     visibleStatusBarToggles.some((toggle) =>
       matchesSettingsSearch(searchQuery, {
@@ -193,6 +196,8 @@ export function AppearanceWindowSidebarSection({
                 }
               />
             </SearchableSetting>
+
+            <UsageColorRuleSetting settings={settings} updateSettings={updateSettings} />
 
             <SearchableSetting
               title={statusBarUsageFormatEntry.title}

@@ -22870,7 +22870,8 @@
         "from": "From {{from}}",
         "handedContext": "Context passed to the new agent",
         "savedTranscript": "Saved transcript",
-        "copyPath": "Copy path"
+        "copyPath": "Copy path",
+        "showAll": "Show all providers"
       }
     },
     "tab": {
@@ -23858,6 +23859,19 @@
       },
       "git": {
         "branchPrefixHostGitUsername": "Git username on {{host}}"
+      },
+      "usageColor": {
+        "title": "Usage bar color",
+        "description": "Color usage bars by the share used, or by the pace it is spent at.",
+        "keywordPace": "pace",
+        "usedHint": "Color only means the real limit; the pace mark and delta stay neutral.",
+        "paceHint": "Also warns when spending at the current pace would run out before the reset.",
+        "byUse": "By actual usage",
+        "byPace": "By pace",
+        "watchAt": "Amber from",
+        "watchAtHint": "Percent used. Must be below red.",
+        "criticalAt": "Red from",
+        "criticalAtHint": "Percent used. Must be above amber ({{value}}%)."
       }
     },
     "agentChildRow": {

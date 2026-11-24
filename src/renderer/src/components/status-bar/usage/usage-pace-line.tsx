@@ -20,6 +20,7 @@ import {
   SEVERITY_FILL_CLASS,
   SEVERITY_TEXT_CLASS
 } from './usage-pace-caption'
+import { useUsageColorRule } from './use-usage-color-rule'
 
 /** "Expected 40% · 8% over pace · Runs out Thu 14:05" under a window's bar. */
 export function PaceLine({
@@ -41,11 +42,12 @@ export function PaceLine({
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
+  const rule = useUsageColorRule()
   const details = formatPaceDetails(pace, display, now, intlLocale, t)
   return (
     <div data-usage-pace={details.tone} className={`tabular-nums ${mutedClass}`}>
       {details.expected} ·{' '}
-      <span className={inverted ? undefined : paceTextClass(usedPercent, pace)}>
+      <span className={inverted ? undefined : paceTextClass(usedPercent, pace, rule)}>
         {details.verdict}
       </span>
       {details.extra.map((line) => ` · ${line}`).join('')}
@@ -67,6 +69,7 @@ export function PaceDelta({
   className?: string
 }): React.JSX.Element {
   const t = useTranslate()
+  const rule = useUsageColorRule()
   const verdict = getPaceVerdict(pace.deltaPoints)
   const text = formatPaceDelta(pace.deltaPoints)
   return (
@@ -75,7 +78,7 @@ export function PaceDelta({
       aria-label={formatPaceVerdict(pace, t)}
       className={cn(
         'text-[10px] tabular-nums',
-        paceTextClass(usedPercent, pace) || 'text-muted-foreground',
+        paceTextClass(usedPercent, pace, rule) || 'text-muted-foreground',
         className
       )}
     >
@@ -114,7 +117,7 @@ export function ChipWindow({
   const intlLocale = useIntlLocale()
   const { window } = section
   const pace = getReadingPace(p, window, now)
-  const severity = getWindowSeverity(p, window, now)
+  const severity = getWindowSeverity(p, window, now, useUsageColorRule())
   const name = showLabel ? <span className="text-muted-foreground">{label}</span> : null
   const reset =
     wide && section.key === 'session'

@@ -14,6 +14,7 @@ import {
   SEVERITY_FILL_CLASS,
   SEVERITY_TEXT_CLASS
 } from './usage-pace-caption'
+import { useUsageColorRule } from './use-usage-color-rule'
 import { PaceLine } from './usage-pace-line'
 
 /** One window on a Detailed popover row: label, bar with its pace mark, value, reset, then its pace. */
@@ -35,7 +36,7 @@ export function UsageWindowMetric({
   const t = useTranslate()
   const intlLocale = useIntlLocale()
   const pace = getReadingPace(p, section.window, now)
-  const severity = getWindowSeverity(p, section.window, now)
+  const severity = getWindowSeverity(p, section.window, now, useUsageColorRule())
   const reset = showReset
     ? formatLocalizedResetDuration(section.window.resetsAt, now, intlLocale)
     : null

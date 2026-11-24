@@ -32,3 +32,15 @@ export const getUsagePercentageDisplayEntry = createLocalizedCatalog(() => ({
     ...translateSearchKeyword('auto.components.settings.appearance.search.896eb53fd4', 'status bar')
   ]
 }))
+
+export const getUsageColorRuleEntry = createLocalizedCatalog(() => ({
+  title: translate('components.settings.usageColor.title', 'Usage bar color'),
+  description: translate(
+    'components.settings.usageColor.description',
+    'Color usage bars by the share used, or by the pace it is spent at.'
+  ),
+  keywords: [
+    ...translateSearchKeyword('auto.components.settings.appearance.search.00a028f25f', 'usage'),
+    ...translateSearchKeyword('components.settings.usageColor.keywordPace', 'pace')
+  ]
+}))

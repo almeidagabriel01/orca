@@ -111,6 +111,9 @@ export type AccountsPaneSectionModel = {
   systemCodexMissingSignIn: boolean
   systemCodexIdentity: CodexRateLimitAccountsState['systemDefault']
   activeCodexAuthWarning: 'missing-sign-in' | 'stale-sign-in' | null
+  /** The selected host's agent inventory has no Codex CLI. */
+  codexCliMissing: boolean
+  refreshCodexDetection: () => Promise<unknown>
   activeCodexAccountId: string | null
   codexConfigSync: CodexConfigSyncStatus | null
   codexConfigSyncWarning:

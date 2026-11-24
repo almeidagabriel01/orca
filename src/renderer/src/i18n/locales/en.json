@@ -25462,6 +25462,10 @@
       }
     },
     "remoteScopeAccountsAddHere": "Showing accounts managed by {{value0}}. New accounts sign in there; you finish in this device’s browser.",
+    "codexNotInstalled": "Codex is not installed on {{value0}}.",
+    "codexNotInstalledHint": "Install the Codex CLI there to sign in and add accounts.",
+    "codexNotInstalledCheckAgain": "Check again",
+    "codexNotInstalledHowTo": "How to install",
     "rename": {
       "action": "Rename",
       "title": "Rename account",

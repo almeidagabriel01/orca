@@ -68,6 +68,7 @@ import { MiniMaxAccountsSection } from './usage/MiniMaxAccountsSection'
 import { useUsageHostSettings } from './usage/use-usage-host-settings'
 import { ManagedDataAccountsSection } from './providers/ManagedDataAccountsSection'
 import { renderAccountsRemovalDialogs } from './accounts-pane-removal-dialogs'
+import { useCodexCliPresence } from './codex/use-codex-cli-presence'
 
 export function AccountsPane({
   settings,
@@ -231,8 +232,8 @@ export function AccountsPane({
     // Selection changes choose a different mirrored home; refetch rather than describe the previous account.
   }, [isRemoteAccountScope, accountRuntime.runtime, activeCodexAccountId, codexAccountsLoaded])
   const codexConfigSyncWarning = getCodexConfigSyncWarning(codexConfigSync)
-  const systemCodexMissingSignIn = activeCodexAuthWarning === 'missing-sign-in'
-  const systemCodexNeedsSignIn = activeCodexAccountId === null && Boolean(activeCodexAuthWarning)
+  const codexCli = useCodexCliPresence(scopeEnvironmentId, accountRuntime, activeCodexAuthWarning)
+  const systemCodexNeedsSignIn = activeCodexAccountId === null && !!codexCli.activeCodexAuthWarning
   const accountRuntimeUnavailable =
     accountRuntime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
 
@@ -342,9 +343,8 @@ export function AccountsPane({
     visibleCodexAccounts,
     systemCodexActive,
     systemCodexNeedsSignIn,
-    systemCodexMissingSignIn,
     systemCodexIdentity,
-    activeCodexAuthWarning,
+    ...codexCli,
     activeCodexAccountId,
     codexConfigSync,
     codexConfigSyncWarning,

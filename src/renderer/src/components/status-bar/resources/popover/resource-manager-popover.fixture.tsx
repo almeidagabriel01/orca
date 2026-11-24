@@ -18,7 +18,7 @@ import {
   popoverHosts,
   popoverOwnerSplit,
   popoverRepos
-} from './resource-manager-popover.fixture-data'
+} from './resource-manager-popover-fixtures'
 
 const SURFACE =
   'flex flex-col overflow-hidden rounded-md border border-black/14 bg-floating-surface text-popover-foreground dark:border-white/14'

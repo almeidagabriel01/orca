@@ -17,7 +17,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -104,11 +103,10 @@ export function QueueRowMenu({
           <DropdownMenuTrigger asChild>
             <Button
               size="icon-xs"
-              variant="ghost-inset"
+              variant="muted-field-icon"
               disabled={pending}
               aria-label={label}
               data-queue-menu
-              className="text-muted-foreground hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
             >
               <MoreHorizontal className="size-3.5" />
             </Button>
@@ -122,9 +120,7 @@ export function QueueRowMenu({
         {!running && (
           <>
             {orderReason && (
-              <DropdownMenuLabel className="text-2xs font-normal text-muted-foreground">
-                {orderReason}
-              </DropdownMenuLabel>
+              <div className="px-2 py-1.5 text-2xs text-muted-foreground">{orderReason}</div>
             )}
             <Item
               icon={ArrowUp}

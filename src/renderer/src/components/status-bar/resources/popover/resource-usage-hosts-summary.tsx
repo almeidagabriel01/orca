@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
-import { Progress } from '@/components/ui/progress'
+import * as ProgressPrimitive from 'radix-ui/progress'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { HostMachineTotals } from '../../host-connections/runtime-host-resources'
 import { formatCpu, formatMemory } from './resource-usage-metrics'
@@ -56,12 +56,19 @@ function Meter({
           {value}
         </span>
       </div>
-      <Progress
+      <ProgressPrimitive.Root
         value={Math.min(100, percent ?? 0)}
         aria-label={detail ? `${label} ${value}, ${detail}` : `${label} ${value}`}
-        className="mt-1 h-1 bg-foreground/10"
-        indicatorClassName={TONE_BAR_CLS[tone]}
-      />
+        className="relative mt-1 h-1 w-full overflow-hidden rounded-full bg-foreground/10"
+      >
+        <ProgressPrimitive.Indicator
+          className={cn(
+            'h-full w-full transition-all motion-reduce:transition-none',
+            TONE_BAR_CLS[tone]
+          )}
+          style={{ transform: `translateX(-${100 - Math.min(100, percent ?? 0)}%)` }}
+        />
+      </ProgressPrimitive.Root>
     </div>
   )
   if (!detail) {

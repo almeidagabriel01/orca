@@ -926,17 +926,6 @@
       },
       "remoteBrowsing": {
         "heading": "Remote browsing",
-        "stopQuestion": "Stop {{value0}}? The worker that started it gets an error.",
-        "stopConfirm": "Stop",
-        "stopFailed": "Couldn't stop it. {{value0}}",
-        "openFolder": "Open folder",
-        "stop": "Stop…",
-        "reasonReadOnly": "This host's queue can't be changed from here",
-        "reasonOutsideOrder": "Started through flock, outside the queue order",
-        "reasonFirst": "Already first in line",
-        "reasonLast": "Already last in line",
-        "reasonRemoteFolder": "The folder is on another machine",
-        "reasonCantStop": "This host's vps-heavy can't stop commands; update it",
         "headingDescription": "Where remote workspace pages render, and where their network traffic leaves from."
       },
       "userAgent": {

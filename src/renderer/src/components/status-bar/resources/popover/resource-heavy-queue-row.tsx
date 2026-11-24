@@ -31,28 +31,23 @@ export function QueueAction({
   label,
   icon: Icon,
   onClick,
-  disabled,
-  destructive
+  disabled
 }: {
   label: string
   icon: LucideIcon
   onClick: () => void
   disabled: boolean
-  destructive?: boolean
 }): React.JSX.Element {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
           size="icon-xs"
-          variant="ghost-inset"
+          variant="muted-field-icon"
           disabled={disabled}
           onClick={onClick}
           aria-label={label}
-          className={cn(
-            'size-5 text-muted-foreground',
-            destructive && 'hover:bg-destructive/10 hover:text-destructive'
-          )}
+          className="size-5"
         >
           <Icon />
         </Button>
@@ -125,7 +120,6 @@ function RowActions({
             label={t('resourceManager.heavyQueue.remove', 'Remove from queue…')}
             icon={X}
             disabled={pending}
-            destructive
             onClick={() => onConfirm('remove')}
           />
         </div>
@@ -277,8 +271,8 @@ export function QueueRow({
                 {job.command}
               </button>
             </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={4} className="max-w-80 font-mono break-all">
-              {job.command}
+            <TooltipContent side="top" sideOffset={4} className="max-w-80 break-all">
+              <span className="font-mono">{job.command}</span>
             </TooltipContent>
           </Tooltip>
           <CopyCommand command={job.command} />

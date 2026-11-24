@@ -10,6 +10,7 @@ import {
 } from './worker-dock-dismissals'
 import { workerDockSummary } from './worker-dock-summary'
 
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the summary only calls t(key, fallback, { count }), which this stub implements.
 const t = ((_key: string, fallback: string, options?: { count?: number }) =>
   fallback.replace('{{count}}', String(options?.count ?? ''))) as never
 

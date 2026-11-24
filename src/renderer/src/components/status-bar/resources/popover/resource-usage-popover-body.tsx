@@ -37,13 +37,7 @@ function TreeToolbarButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button
-          size="icon-xs"
-          variant="ghost-inset"
-          onClick={onClick}
-          aria-label={label}
-          className="text-muted-foreground"
-        >
+        <Button size="icon-xs" variant="muted-field-icon" onClick={onClick} aria-label={label}>
           {children}
         </Button>
       </TooltipTrigger>
@@ -145,7 +139,9 @@ export function renderResourceUsagePopoverBody(
                       'Filter projects, workspaces, terminals'
                     )}
                     aria-label={t('resourceManager.tree.filter', 'Filter workspaces')}
-                    className="h-6 pl-6 text-xs md:text-xs"
+                    density="compact"
+                    inset="leadingIcon"
+                    className="h-6"
                   />
                 </div>
                 <TreeToolbarButton

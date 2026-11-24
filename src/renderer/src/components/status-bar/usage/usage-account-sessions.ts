@@ -3,6 +3,7 @@ import { AGENT_CHAT_SYSTEM_ACCOUNT } from '../../../../../shared/agent-launch/ac
 import type { AgentRowState } from '../../../../../shared/agent-status/presentation/agent-row-decay-state'
 import type { CodexRestartNotice } from '@/store/terminals/terminal-contracts'
 import { agentChildWorkLiveness } from '../../../../../shared/agent-status/child-work/agent-status-child-work-liveness'
+import { usageAccountIdentity } from '../composition/usage-account-memory'
 
 /** The chip key a System default login carries (see getOwnerUsageAccounts). */
 export const SYSTEM_DEFAULT_USAGE_ACCOUNT_KEY = 'system-default'
@@ -30,6 +31,34 @@ export type UsageAgentSession = {
   since: number
   model?: string
   open: UsageSessionOpenTarget
+  /** Set on another host's agents: where it runs, and the login it bills (provider and email). */
+  elsewhere?: { environmentId: string | null; label: string; identity: string }
+}
+
+/** One host's account list, as getOwnerUsageAccounts gives it. */
+export type UsageHostAccounts = Partial<
+  Record<string, readonly { key: string; selected: boolean; name: { email?: string | null } }[]>
+>
+
+/**
+ * Another host's agents, named by the login they bill. Local ids differ per host, so only the
+ * provider's email ties an agent to a chip; an agent whose login has no known email is left out.
+ */
+export function identifyHostSessions(
+  sessions: readonly UsageAgentSession[],
+  accounts: UsageHostAccounts,
+  host: { environmentId: string | null; label: string }
+): UsageAgentSession[] {
+  return sessions.flatMap((session) => {
+    const entries = accounts[session.provider] ?? []
+    const { account } = session
+    const entry =
+      account.kind === 'selected'
+        ? entries.find((candidate) => candidate.selected)
+        : entries.find((candidate) => candidate.key === account.key)
+    const identity = usageAccountIdentity(session.provider, entry?.name.email)
+    return identity ? [{ ...session, elsewhere: { ...host, identity } }] : []
+  })
 }
 
 const STATE_ORDER: Record<UsageSessionState, number> = { waiting: 0, working: 1, recent: 2 }
@@ -179,6 +208,8 @@ export type UsageSessionScope = {
   accountKey?: string
   /** The account the owning host has selected. */
   selected?: boolean
+  /** The chip's login (provider and email), which another host's agents match on. */
+  accountIdentity?: string
 }
 
 export function sessionsInScope(
@@ -189,10 +220,12 @@ export function sessionsInScope(
     .filter(
       (session) =>
         session.provider === scope.provider &&
-        (scope.accountKey === undefined ||
-          (session.account.kind === 'selected'
-            ? scope.selected === true
-            : session.account.key === scope.accountKey))
+        (session.elsewhere
+          ? session.elsewhere.identity === scope.accountIdentity
+          : scope.accountKey === undefined ||
+            (session.account.kind === 'selected'
+              ? scope.selected === true
+              : session.account.key === scope.accountKey))
     )
     .sort((a, b) => STATE_ORDER[a.state] - STATE_ORDER[b.state] || b.since - a.since)
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   collectChatSessions,
   collectTerminalSessions,
+  identifyHostSessions,
   sessionsInScope,
   type UsageChatInput,
   type UsageTerminalInput
@@ -127,5 +128,49 @@ describe('a chat whose turn ended while its background work runs', () => {
       'recent'
     )
     expect(state({})).toBe('recent')
+  })
+})
+
+describe('the same account on another host', () => {
+  const vps = { environmentId: 'env-vps', label: 'VPS' }
+  const vpsAccounts = {
+    claude: [
+      { key: 'vps-id-1', selected: true, name: { email: 'Me@Example.com' } },
+      { key: 'vps-id-2', selected: false, name: { email: 'other@example.com' } }
+    ]
+  }
+  const vpsSessions = collectChatSessions(
+    [
+      chat('follows-selection', {}),
+      chat('named-account', { accountChoice: 'vps-id-2' }),
+      chat('unknown-account', { accountChoice: 'gone' })
+    ],
+    NOW
+  )
+  const elsewhere = identifyHostSessions(vpsSessions, vpsAccounts, vps)
+
+  it('names each agent by the email of the login it bills, never by the local id', () => {
+    expect(elsewhere.map((s) => [s.title, s.elsewhere?.identity])).toEqual([
+      ['follows-selection', 'claude:me@example.com'],
+      ['named-account', 'claude:other@example.com']
+    ])
+  })
+
+  it("lists them on this host's chip of that login, beside its own agents", () => {
+    const own = collectChatSessions([chat('mac-chat', { accountChoice: 'mac-id-9' })], NOW)
+    const scope = {
+      provider: 'claude',
+      accountKey: 'mac-id-9',
+      selected: false,
+      accountIdentity: 'claude:me@example.com'
+    }
+    expect(sessionsInScope([...own, ...elsewhere], scope).map((s) => s.title)).toEqual([
+      'mac-chat',
+      'follows-selection'
+    ])
+    // A matching local key alone never pulls in another host's agent.
+    expect(
+      sessionsInScope(elsewhere, { provider: 'claude', accountKey: 'vps-id-2' }).map((s) => s.title)
+    ).toEqual([])
   })
 })

@@ -28,10 +28,14 @@ function terminalTitle(state: AppState, worktreeId: string, tabId: string): stri
   return (tab?.customTitle || tab?.generatedTitle || tab?.title)?.trim() || undefined
 }
 
-/** The owner host's terminal agents, as the inputs the pure collector reads. */
-function ownerTerminalRows(state: AppState, owner: string, now: number): UsageTerminalInput[] {
+/** Each listed host's terminal agents, as the inputs the pure collector reads. */
+function hostTerminalRows(
+  state: AppState,
+  hosts: readonly string[],
+  now: number
+): Map<string, UsageTerminalInput[]> {
   const chatPanes = getStructuredAgentSessionTabsByPaneKey(state.unifiedTabsByWorktree)
-  const rows: UsageTerminalInput[] = []
+  const byHost = new Map(hosts.map((host) => [host, [] as UsageTerminalInput[]]))
   for (const entry of state.agentStatusByPaneKey.values()) {
     // Why: chats and bots come from their host's status feed, which also lists tabless ones.
     if (entry.observation?.origin === 'structured' || chatPanes.has(entry.paneKey)) {
@@ -48,7 +52,8 @@ function ownerTerminalRows(state: AppState, owner: string, now: number): UsageTe
     }
     const hostId = getAgentPaneExecutionHost(state, entry.paneKey, entry)
     const host = hostId && hostId !== 'foreign' ? runtimeRpcTargetForAuthorityKey(hostId) : null
-    if (targetKey(host) !== owner) {
+    const rows = byHost.get(targetKey(host) ?? '')
+    if (!rows) {
       continue
     }
     const ptyId = parsed
@@ -75,16 +80,16 @@ function ownerTerminalRows(state: AppState, owner: string, now: number): UsageTe
         : {})
     })
   }
-  return rows
+  return byHost
 }
 
 type TerminalInputsMemo = { inputs: readonly unknown[]; key: string }
 let terminalMemo: TerminalInputsMemo | null = null
 
-/** The owner's terminal sessions as a comparable string; recomputed only when an input moved. */
-function ownerTerminalSessionsKey(state: AppState, owner: string, now: number): string {
+/** The hosts' terminal sessions as a comparable string; recomputed only when an input moved. */
+function hostTerminalSessionsKey(state: AppState, hostsKey: string, now: number): string {
   const inputs = [
-    owner,
+    hostsKey,
     now,
     state.agentStatusByPaneKey,
     state.tabsByWorktree,
@@ -94,43 +99,46 @@ function ownerTerminalSessionsKey(state: AppState, owner: string, now: number): 
     state.codexRestartNoticeByPtyId
   ]
   if (!terminalMemo || inputs.some((input, index) => input !== terminalMemo!.inputs[index])) {
+    const rows = hostTerminalRows(state, hostsKey.split('|'), now)
     terminalMemo = {
       inputs,
-      key: JSON.stringify(collectTerminalSessions(ownerTerminalRows(state, owner, now), now))
+      key: JSON.stringify(
+        Object.fromEntries(
+          [...rows].map(([host, hostRows]) => [host, collectTerminalSessions(hostRows, now)])
+        )
+      )
     }
   }
   return terminalMemo.key
 }
 
-/** Bumps on every change to the owner's chat statuses; the feed updates its map in place. */
-function useChatFeedRevision(target: RuntimeClientTarget | null): number {
+function feedFor(key: string) {
+  return getStructuredAgentSessionStatusFeed(
+    key === 'local' ? { kind: 'local' } : { kind: 'environment', environmentId: key }
+  )
+}
+
+/** Bumps on every change to the hosts' chat statuses; each feed updates its map in place. */
+function useChatFeedRevision(hostsKey: string): number {
   const [revision, setRevision] = useState(0)
-  const key = targetKey(target)
   useEffect(() => {
-    if (!key) {
+    if (!hostsKey) {
       return
     }
-    const feed = getStructuredAgentSessionStatusFeed(
-      key === 'local' ? { kind: 'local' } : { kind: 'environment', environmentId: key }
-    )
-    const release = feed.activate()
-    const unsubscribe = feed.subscribe(() => setRevision((value) => value + 1))
+    const stops = hostsKey.split('|').flatMap((key) => {
+      const feed = feedFor(key)
+      return [feed.activate(), feed.subscribe(() => setRevision((value) => value + 1))]
+    })
     setRevision((value) => value + 1)
-    return () => {
-      unsubscribe()
-      release()
-    }
-  }, [key])
+    return () => stops.forEach((stop) => stop())
+  }, [hostsKey])
   return revision
 }
 
-/** The owner's chats and bots; `_revision` names the feed state read, since its map updates in place. */
-function readOwnerChatSessions(key: string, now: number, _revision: number): UsageAgentSession[] {
-  const feed = getStructuredAgentSessionStatusFeed(
-    key === 'local' ? { kind: 'local' } : { kind: 'environment', environmentId: key }
-  )
+/** A host's chats and bots; `_revision` names the feed state read, since its map updates in place. */
+function readHostChatSessions(key: string, now: number, _revision: number): UsageAgentSession[] {
   return collectChatSessions(
-    [...feed.getSnapshot().values()].map((summary) => ({
+    [...feedFor(key).getSnapshot().values()].map((summary) => ({
       ...summary,
       title: summary.conversationName?.trim() || ''
     })),
@@ -139,20 +147,29 @@ function readOwnerChatSessions(key: string, now: number, _revision: number): Usa
 }
 
 /**
- * Every Claude and Codex agent on the host whose usage the bar shows: chats and bots from that
+ * Every Claude and Codex agent per host ('local' or an environment id): chats and bots from each
  * host's status feed, terminal agents (orchestration workers included) from agent status. Nothing
  * here polls; both are the feeds the sidebar already follows.
  */
-export function useUsageAccountSessions(owner: RuntimeClientTarget | null): UsageAgentSession[] {
+export function useHostUsageSessions(hosts: readonly string[]): Map<string, UsageAgentSession[]> {
   const now = useNow(SESSION_CLOCK_MS)
-  const key = targetKey(owner)
-  const chatRevision = useChatFeedRevision(owner)
+  const hostsKey = hosts.join('|')
+  const chatRevision = useChatFeedRevision(hostsKey)
   // Why a string: agent status changes on every tool call; the bar redraws only when a row moves.
   const terminalsKey = useAppStore((state) =>
-    key ? ownerTerminalSessionsKey(state, key, now) : ''
+    hostsKey ? hostTerminalSessionsKey(state, hostsKey, now) : ''
   )
   return useMemo(() => {
-    const terminals: UsageAgentSession[] = terminalsKey ? JSON.parse(terminalsKey) : []
-    return key ? [...readOwnerChatSessions(key, now, chatRevision), ...terminals] : terminals
-  }, [terminalsKey, chatRevision, key, now])
+    const terminals: Record<string, UsageAgentSession[]> = terminalsKey
+      ? JSON.parse(terminalsKey)
+      : {}
+    return new Map(
+      (hostsKey ? hostsKey.split('|') : []).map((key) => [
+        key,
+        [...readHostChatSessions(key, now, chatRevision), ...(terminals[key] ?? [])]
+      ])
+    )
+  }, [terminalsKey, chatRevision, hostsKey, now])
 }
+
+export { targetKey as usageHostKey }

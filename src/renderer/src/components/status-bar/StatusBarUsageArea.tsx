@@ -33,7 +33,7 @@ import { UsageUnitLabel, usageChipShowsPercentage } from './usage/usage-unit-lab
 import type { useStatusBarController } from './composition/use-status-bar-controller'
 import { isOwnerNotSetUpPlaceholder } from './usage/owner-usage-rate-limits'
 import { getUsageOwnerHostScope } from './usage/use-owner-usage-rate-limits'
-import { useUsageAccountSessions } from './usage/use-usage-account-sessions'
+import { useAllHostUsageSessions } from './usage/use-all-host-usage-sessions'
 import { sessionsInScope } from './usage/usage-account-sessions'
 import { UsageRowSessionsScope } from './usage/usage-agent-sessions-view'
 import type { UsageRowChip } from './composition/status-bar-usage-chips'
@@ -100,12 +100,13 @@ export function StatusBarUsageArea({
   const hiddenChips = usageChips.filter((chip) => usageLayout.collapsed.includes(chip.id))
   const showUnitLabel = shownChips.some(({ p }) => usageChipShowsPercentage(p, usageMode, t))
   const sessionOwner = getUsageOwnerHostScope(remoteOwner)
-  const sessions = useUsageAccountSessions(sessionOwner)
+  const sessions = useAllHostUsageSessions(sessionOwner)
   const chipSessions = (chip: UsageRowChip) =>
     sessionsInScope(sessions, {
       provider: chip.p.provider,
       accountKey: chip.accountKey,
-      selected: chip.selected
+      selected: chip.selected,
+      accountIdentity: chip.accountIdentity
     })
 
   const renderUsageRowMenu = (

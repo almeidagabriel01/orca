@@ -187,10 +187,16 @@ function openSession(session: UsageAgentSession, owner: RuntimeClientTarget | nu
     activateWorktreeAgentPane(target.worktreeId, target.tabId, target.paneKey)
     return
   }
+  // Why: another host's chat opens on its own host, not on the one whose usage is shown.
+  const environmentId = session.elsewhere
+    ? session.elsewhere.environmentId
+    : owner?.kind === 'environment'
+      ? owner.environmentId
+      : null
   void openResourceChat(
     target.workspaceId,
     target.sessionId,
-    owner?.kind === 'environment' ? toRuntimeExecutionHostId(owner.environmentId) : undefined
+    environmentId ? toRuntimeExecutionHostId(environmentId) : undefined
   )
 }
 
@@ -253,7 +259,9 @@ function SessionGroups({
         return (
           <div key={group.workspaceId} data-usage-session-workspace="">
             <div className="truncate px-3 pb-0.5 pt-1.5 text-[11px] text-muted-foreground">
-              {workspaceGroupLabel(group.workspaceId)}
+              {[group.sessions[0]?.elsewhere?.label, workspaceGroupLabel(group.workspaceId)]
+                .filter(Boolean)
+                .join(' · ')}
             </div>
             {group.sessions.map((session) => (
               <SessionRow key={session.key} session={session} owner={owner} now={now} />

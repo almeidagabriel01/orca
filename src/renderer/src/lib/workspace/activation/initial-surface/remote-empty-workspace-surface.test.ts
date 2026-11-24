@@ -1,15 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({
-  settings: {} as { emptyWorkspaceSurface?: string },
-  openMenu: vi.fn(),
-  opensChat: vi.fn(),
-  loadDetection: vi.fn(),
-  openChat: vi.fn(),
-  pending: new Set<string>(),
-  tabs: {} as Record<string, unknown[]>,
-  listeners: new Set<(state: unknown) => void>()
-}))
+const mocks = vi.hoisted(() => {
+  const settings: { emptyWorkspaceSurface?: string } = {}
+  const tabs: Record<string, unknown[]> = {}
+  return {
+    settings,
+    openMenu: vi.fn<(surface?: string) => boolean>(),
+    opensChat: vi.fn<() => boolean>(),
+    loadDetection: vi.fn<() => Promise<void>>(),
+    openChat:
+      vi.fn<(id: string, seedShell: () => boolean) => { primaryTabId: string | null } | null>(),
+    pending: new Set<string>(),
+    tabs,
+    listeners: new Set<(state: unknown) => void>()
+  }
+})
 
 vi.mock('@/store/index', () => ({
   useAppStore: {
@@ -22,13 +27,13 @@ vi.mock('@/store/index', () => ({
 }))
 vi.mock('./empty-workspace-menu-surface', () => ({
   openEmptyWorkspaceMenuSurface: (_id: string, surface: string | undefined) =>
-    mocks.openMenu(surface) as boolean
+    mocks.openMenu(surface)
 }))
 vi.mock('./empty-workspace-default-agent-chat', () => ({
-  emptyWorkspaceOpensDefaultChat: () => mocks.opensChat() as boolean,
-  loadEmptyWorkspaceDefaultChatDetection: () => mocks.loadDetection() as Promise<void>,
+  emptyWorkspaceOpensDefaultChat: () => mocks.opensChat(),
+  loadEmptyWorkspaceDefaultChatDetection: () => mocks.loadDetection(),
   openDefaultAgentChatInEmptyWorkspace: (id: string, seedShell: () => boolean) =>
-    mocks.openChat(id, seedShell) as { primaryTabId: string | null } | null
+    mocks.openChat(id, seedShell)
 }))
 vi.mock('./empty-workspace-default-surface-claims', () => ({
   holdEmptyWorkspaceDefaultSurfaceForLaunch: (id: string) => {

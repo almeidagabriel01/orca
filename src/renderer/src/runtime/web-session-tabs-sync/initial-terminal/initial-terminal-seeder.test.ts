@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
-  dispatch: vi.fn(),
-  userSurface: vi.fn()
+  dispatch: vi.fn<() => Promise<boolean>>(),
+  userSurface: vi.fn<(createShell: () => void) => boolean>()
 }))
 
 vi.mock('../../../store/index', () => ({
@@ -15,11 +15,11 @@ vi.mock('../../../store/index', () => ({
   }
 }))
 vi.mock('./web-runtime-initial-terminal-bootstrap-dispatch', () => ({
-  dispatchWebRuntimeInitialTerminalBootstrap: () => mocks.dispatch() as Promise<boolean>
+  dispatchWebRuntimeInitialTerminalBootstrap: () => mocks.dispatch()
 }))
 vi.mock('@/lib/workspace/activation/initial-surface/remote-empty-workspace-surface', () => ({
   openRemoteEmptyWorkspaceUserSurface: (_id: string, createShell: () => void) =>
-    mocks.userSurface(createShell) as boolean
+    mocks.userSurface(createShell)
 }))
 vi.mock(
   '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims',

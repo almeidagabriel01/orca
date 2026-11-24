@@ -131,6 +131,12 @@ export function parseHeavyQueueListing(value: unknown): ScriptListing | null {
   }
 }
 
+/** Scripts from before `stop` existed refuse it; their usage text is the only place that says so. */
+export async function scriptSupportsStop(script: string): Promise<boolean> {
+  const text = await readFile(script, 'utf8').catch(() => '')
+  return /\bvps-heavy stop </.test(text)
+}
+
 /** The script's own listing also sees direct `flock` users and drops dead jobs. */
 async function readScriptListing(script: string): Promise<ScriptListing | null> {
   const result = await runProcess({
@@ -207,6 +213,7 @@ export async function readHeavyCommandQueue({
     readAt: Date.now(),
     slots: listing?.slots ?? (await readSlots(home)),
     controls: listing?.controls ?? false,
+    canStop: Boolean(listing?.controls && script && (await scriptSupportsStop(script))),
     jobs
   }
 }

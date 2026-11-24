@@ -22,6 +22,8 @@ export type HeavyQueueRow = {
     moveToEnd: boolean
     startNow: boolean
     remove: boolean
+    /** Ends a running job; only hosts whose script has `stop`. */
+    stop: boolean
   }
 }
 
@@ -41,7 +43,8 @@ const NO_ACTIONS: HeavyQueueRow['can'] = {
   moveDown: false,
   moveToEnd: false,
   startNow: false,
-  remove: false
+  remove: false,
+  stop: false
 }
 
 function placeOf(job: HeavyCommandJob): string {
@@ -88,7 +91,7 @@ export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
       elapsedFromQueue: job.startedAt === null,
       position: null,
       place: placeOf(job),
-      can: NO_ACTIONS
+      can: { ...NO_ACTIONS, stop: queue.controls && queue.canStop === true }
     })),
     waiting: waiting.map((job, index) => {
       const ordered = orderable.includes(job)
@@ -104,7 +107,8 @@ export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
           moveDown: ordered && job !== last,
           moveToEnd: ordered && job !== last,
           startNow: ordered,
-          remove: queue.controls
+          remove: queue.controls,
+          stop: false
         }
       }
     })

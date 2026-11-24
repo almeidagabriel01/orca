@@ -71,10 +71,21 @@ describe('buildHeavyQueueView', () => {
       moveDown: false,
       moveToEnd: false,
       startNow: false,
-      remove: true
+      remove: true,
+      stop: false
     })
 
     const readOnly = buildHeavyQueueView({ readAt: 0, slots: 1, controls: false, jobs })
     expect(readOnly.waiting.every((row) => Object.values(row.can).every((v) => !v))).toBe(true)
+  })
+
+  it('offers Stop on running jobs only when the host can stop them', () => {
+    const jobs = [job(1, { status: 'running', slot: 1 }), job(2, { position: 1, ordered: true })]
+    const view = (canStop: boolean | undefined, controls = true) =>
+      buildHeavyQueueView({ readAt: 0, slots: 1, controls, canStop, jobs })
+    expect(view(true).running[0].can.stop).toBe(true)
+    expect(view(true).waiting[0].can.stop).toBe(false)
+    expect(view(undefined).running[0].can.stop).toBe(false)
+    expect(view(true, false).running[0].can.stop).toBe(false)
   })
 })

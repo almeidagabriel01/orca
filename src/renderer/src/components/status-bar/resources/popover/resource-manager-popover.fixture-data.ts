@@ -39,6 +39,7 @@ export const fullQueue: HeavyCommandQueue = {
   readAt: NOW,
   slots: 2,
   controls: true,
+  canStop: true,
   jobs: [
     job(101, {
       status: 'running',

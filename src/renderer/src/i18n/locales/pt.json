@@ -1573,6 +1573,9 @@
       },
       "remoteBrowsing": {
         "heading": "Navegação remota",
+        "stopQuestion": "Parar {{value0}}? O worker que o iniciou recebe erro.",
+        "stopConfirm": "Parar",
+        "stopFailed": "Não foi possível parar. {{value0}}",
         "openFolder": "Abrir pasta",
         "stop": "Parar…",
         "reasonReadOnly": "A fila deste host não pode ser alterada daqui",
@@ -1580,7 +1583,7 @@
         "reasonFirst": "Já é o primeiro da fila",
         "reasonLast": "Já é o último da fila",
         "reasonRemoteFolder": "A pasta está em outra máquina",
-        "reasonCantStop": "O vps-heavy ainda não para um comando rodando; pare-o no terminal dele",
+        "reasonCantStop": "O vps-heavy deste host não sabe parar comandos; atualize-o",
         "headingDescription": "Onde as páginas de espaços de trabalho remotos são renderizadas e de onde seu tráfego de rede sai."
       },
       "userAgent": {

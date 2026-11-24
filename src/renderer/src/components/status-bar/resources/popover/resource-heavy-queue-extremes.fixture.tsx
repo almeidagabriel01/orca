@@ -51,6 +51,7 @@ const host: ResourceHostSummary = {
       readAt: NOW,
       slots: 1,
       controls: true,
+      canStop: true,
       jobs: [
         job(1, {
           status: 'running',
@@ -102,3 +103,15 @@ export const wideRunningMenu = defineFixture({ width: 512, render, interact: ope
 export const wideFlockMenu = defineFixture({ width: 512, render, interact: openMenu(3) })
 export const narrowRunningMenu = defineFixture({ width: 352, render, interact: openMenu(0) })
 export const narrowFlockMenu = defineFixture({ width: 352, render, interact: openMenu(3) })
+
+export const stopConfirm = defineFixture({
+  width: 512,
+  render,
+  interact: async (frame) => {
+    await openMenu(0)(frame)
+    ;[...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+      .find((item) => item.textContent?.startsWith('Stop'))
+      ?.click()
+    await new Promise((resolve) => setTimeout(resolve, 150))
+  }
+})

@@ -18,7 +18,12 @@ import type { HeavyQueueAction } from '../../../../../../shared/rpc-contract/dia
 import type { HeavyQueueRow } from './resource-heavy-queue-view'
 import { formatElapsed } from './resource-session-processes'
 import { CopyCommand } from './resource-usage-session-processes'
-import { QueueRowMenu, type QueueMove } from './resource-heavy-queue-row-menu'
+import { QueueRowMenu, type ConfirmKind, type QueueMove } from './resource-heavy-queue-row-menu'
+
+/** A command short enough to name in a question. */
+function shortCommand(command: string): string {
+  return command.length > 60 ? `${command.slice(0, 59)}…` : command
+}
 
 export type RunAction = (action: HeavyQueueAction, failure: (message: string) => string) => void
 
@@ -71,7 +76,7 @@ function RowActions({
   row: HeavyQueueRow
   pending: boolean
   run: RunAction
-  onConfirm: (kind: 'start' | 'remove') => void
+  onConfirm: (kind: ConfirmKind) => void
 }): React.JSX.Element {
   const t = useTranslate()
   const { pid } = row.job
@@ -152,7 +157,7 @@ export function QueueRow({
 }): React.JSX.Element {
   const t = useTranslate()
   const [expanded, setExpanded] = useState(false)
-  const [confirm, setConfirm] = useState<'start' | 'remove' | null>(null)
+  const [confirm, setConfirm] = useState<ConfirmKind | null>(null)
   const { job } = row
   const running = job.status === 'running'
   const Icon = running ? Play : Hourglass
@@ -169,6 +174,12 @@ export function QueueRow({
     if (confirm === 'remove') {
       run({ action: 'cancel', pid: job.pid }, (message) =>
         t('resourceManager.heavyQueue.removeFailed', "Couldn't remove it. {{value0}}", {
+          value0: message
+        })
+      )
+    } else if (confirm === 'stop') {
+      run({ action: 'stop', pid: job.pid }, (message) =>
+        t('resourceManager.heavyQueue.stopFailed', "Couldn't stop it. {{value0}}", {
           value0: message
         })
       )
@@ -284,24 +295,32 @@ export function QueueRow({
                   'resourceManager.heavyQueue.removeQuestion',
                   'Remove from the queue? The command stops waiting and fails.'
                 )
-              : t(
-                  'resourceManager.heavyQueue.startQuestion',
-                  'Start now in an extra slot? It runs beside the busy slots, even if {{value0}} is loaded.',
-                  { value0: hostLabel }
-                )}
+              : confirm === 'stop'
+                ? t(
+                    'resourceManager.heavyQueue.stopQuestion',
+                    'Stop {{value0}}? The worker that started it gets an error.',
+                    { value0: shortCommand(job.command) }
+                  )
+                : t(
+                    'resourceManager.heavyQueue.startQuestion',
+                    'Start now in an extra slot? It runs beside the busy slots, even if {{value0}} is loaded.',
+                    { value0: hostLabel }
+                  )}
           </span>
           <Button size="xs" variant="ghost" onClick={() => setConfirm(null)}>
             {t('resourceManager.heavyQueue.keep', 'Keep')}
           </Button>
           <Button
             size="xs"
-            variant={confirm === 'remove' ? 'destructive' : 'default'}
+            variant={confirm === 'start' ? 'default' : 'destructive'}
             disabled={pending}
             onClick={confirmRun}
           >
             {confirm === 'remove'
               ? t('resourceManager.heavyQueue.removeConfirm', 'Remove')
-              : t('resourceManager.heavyQueue.startConfirm', 'Start now')}
+              : confirm === 'stop'
+                ? t('resourceManager.heavyQueue.stopConfirm', 'Stop')
+                : t('resourceManager.heavyQueue.startConfirm', 'Start now')}
           </Button>
         </div>
       )}

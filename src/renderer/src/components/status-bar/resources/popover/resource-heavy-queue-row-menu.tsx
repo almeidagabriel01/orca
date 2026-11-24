@@ -26,6 +26,7 @@ import { LOCAL_EXECUTION_HOST_ID } from '../../../../../../shared/execution-host
 import type { HeavyQueueRow } from './resource-heavy-queue-view'
 
 export type QueueMove = 'up' | 'down' | 'top' | 'bottom'
+export type ConfirmKind = 'start' | 'remove' | 'stop'
 
 function Item({
   icon: Icon,
@@ -72,7 +73,7 @@ export function QueueRowMenu({
   pending: boolean
   onMove: (to: QueueMove) => void
   onRunNext: () => void
-  onConfirm: (kind: 'start' | 'remove') => void
+  onConfirm: (kind: ConfirmKind) => void
 }): React.JSX.Element {
   const t = useTranslate()
   const { job, can } = row
@@ -173,12 +174,16 @@ export function QueueRowMenu({
           <Item
             icon={Square}
             label={t('resourceManager.heavyQueue.stop', 'Stop…')}
-            reason={t(
-              'resourceManager.heavyQueue.reasonCantStop',
-              "vps-heavy can't stop a running command yet; stop it in its terminal"
-            )}
+            reason={
+              can.stop
+                ? null
+                : t(
+                    'resourceManager.heavyQueue.reasonCantStop',
+                    "This host's vps-heavy can't stop commands; update it"
+                  )
+            }
             destructive
-            onSelect={() => {}}
+            onSelect={() => onConfirm('stop')}
           />
         ) : (
           <Item

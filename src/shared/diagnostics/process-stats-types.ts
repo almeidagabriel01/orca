@@ -95,6 +95,8 @@ export type HeavyCommandQueue = {
   slots: number
   /** True when the host can reorder, start, cancel and resize through diagnostics.heavyQueueAction. */
   controls: boolean
+  /** True when the host's script can also stop a running job; absent from older hosts. */
+  canStop?: boolean
   jobs: HeavyCommandJob[]
 }
 

@@ -242,7 +242,7 @@ export function QueueRow({
     }
   }
   return (
-    <li className="group/procrow py-1 pl-3 pr-2">
+    <li data-queue-row className="group/procrow py-1 pl-3 pr-2">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1.5 [grid-template-areas:'main_actions'_'cmd_cmd']">
         <div className="flex min-h-5 min-w-0 items-center gap-1.5 text-2xs text-muted-foreground [grid-area:main]">
           <Icon
@@ -289,6 +289,7 @@ export function QueueRow({
           )}
           {/* Why rtl: a long path loses its start (…/apps/web), never the folder that names it. */}
           <span
+            data-queue-place
             className="min-w-0 flex-1 truncate text-left font-medium text-foreground [direction:rtl]"
             title={job.cwd}
           >
@@ -303,6 +304,7 @@ export function QueueRow({
             <TooltipTrigger asChild>
               <button
                 type="button"
+                data-queue-command
                 onClick={() => setExpanded((value) => !value)}
                 aria-expanded={expanded}
                 aria-description={

@@ -291,7 +291,7 @@ export function QueueRow({
           <span
             data-queue-place
             className="min-w-0 flex-1 truncate text-left font-medium text-foreground [direction:rtl]"
-            title={job.cwd}
+            title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
           >
             <bdi dir="ltr">{row.place}</bdi>
           </span>

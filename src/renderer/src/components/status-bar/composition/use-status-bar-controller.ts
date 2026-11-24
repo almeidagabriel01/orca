@@ -6,6 +6,8 @@ import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-
 import { normalizeUsagePercentageDisplay } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { useStatusBarUsagePreferences } from './use-status-bar-usage-preferences'
 import { getOwnerUsageRowChips } from './status-bar-usage-chips'
+import { type AccountReadingMemory, withRememberedAccountReadings } from './usage-account-memory'
+
 import { useLocalUsageAccountRosters } from './use-local-usage-account-rosters'
 import { useUsageLimitAlerts } from './use-usage-limit-alerts'
 import { isStatusBarItemAvailable } from './status-bar-agent-gating'
@@ -22,6 +24,9 @@ import {
 } from '../usage/use-owner-usage-rate-limits'
 import { isOwnerNotSetUpPlaceholder } from '../usage/owner-usage-rate-limits'
 import { useTranslate } from '@/i18n/use-translate'
+
+// ponytail: app-session memory; persist it if a cold start on a host that never ran the account matters.
+const ACCOUNT_READINGS: AccountReadingMemory = new Map()
 
 export function useStatusBarController(floatingTerminalOpen: boolean) {
   const t = useTranslate()
@@ -238,7 +243,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     // Why: the usage row clips from the end, so placeholders give way first.
     .sort((a, b) => Number(isOwnerNotSetUpPlaceholder(a)) - Number(isOwnerNotSetUpPlaceholder(b)))
 
-  const { usageChips, hasSavedAccounts } = getOwnerUsageRowChips({
+  const ownerChips = getOwnerUsageRowChips({
     ownerUsage,
     settings,
     providers: rosterProviders,
@@ -246,6 +251,8 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     localRosters,
     t
   })
+  // Why: usage belongs to the account, not the host; another host's reading fills this host's gap.
+  const usageChips = withRememberedAccountReadings(ownerChips.usageChips, ACCOUNT_READINGS)
 
   // Why: the shown accounts are the owning host's; without a scope Settings opens on the default host.
   const hostScope = getUsageOwnerHostScope(remoteOwner)
@@ -309,7 +316,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     remoteOwner,
     rosterProviders,
     usageChips,
-    hasSavedAccounts,
+    hasSavedAccounts: ownerChips.hasSavedAccounts,
     ...usagePreferences,
     setMenuOpen,
     setMenuPoint,

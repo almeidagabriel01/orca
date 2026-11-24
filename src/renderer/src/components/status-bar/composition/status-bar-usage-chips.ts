@@ -29,6 +29,7 @@ import { clampUsedPercent } from '../../../../../shared/agent-usage/display/usag
 import type { OwnerUsageRateLimits } from '../usage/use-owner-usage-rate-limits'
 import { getStatusBarUsageSections, type StatusBarUsageSection } from './status-bar-usage-sections'
 import { getUsageHeadlineSection } from '../usage/usage-headline-sections'
+import { usageAccountIdentity } from './usage-account-memory'
 
 type ProviderId = ProviderRateLimits['provider']
 
@@ -43,6 +44,8 @@ export type UsageRowChip = {
   selected?: boolean
   /** With 'all', the account's key (saved id or 'system-default'); its agents are counted here. */
   accountKey?: string
+  /** Provider and email: the same login on any host, whose readings stand in for each other. */
+  accountIdentity?: string
 }
 
 /** What an account can be called by, most specific first. */
@@ -118,9 +121,11 @@ export function buildUsageRowChips(args: {
   accountsByProvider: Partial<Record<ProviderId, readonly UsageAccountEntry[]>>
 }): UsageRowChip[] {
   return args.providers.flatMap((p): UsageRowChip[] => {
-    const entries = args.accounts === 'all' ? args.accountsByProvider[p.provider] : undefined
+    const listed = args.accountsByProvider[p.provider]
+    const entries = args.accounts === 'all' ? listed : undefined
     if (!entries?.length) {
-      return [{ id: p.provider, p }]
+      const email = listed?.find((entry) => entry.selected)?.name.email
+      return [{ id: p.provider, p, accountIdentity: usageAccountIdentity(p.provider, email) }]
     }
     const labels = resolveUsageAccountLabels(entries)
     const chips = entries.map((entry, index): UsageRowChip => ({
@@ -130,7 +135,8 @@ export function buildUsageRowChips(args: {
         : (entry.reading ?? unreadReading(p.provider, entry.isFetching === true)),
       accountLabel: labels[index],
       selected: entry.selected,
-      accountKey: entry.key
+      accountKey: entry.key,
+      accountIdentity: usageAccountIdentity(p.provider, entry.name.email)
     }))
     // Why: the live reading must show even when the host's selection names no listed account.
     if (!chips.some((chip) => chip.selected)) {

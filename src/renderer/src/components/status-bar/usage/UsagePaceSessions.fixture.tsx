@@ -7,6 +7,11 @@ import type {
   RateLimitWindow
 } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { ProviderSegment } from './StatusBarProviderSegment'
+import { buildUsageRowChips, type UsageRowChip } from '../composition/status-bar-usage-chips'
+import {
+  type AccountReadingMemory,
+  withRememberedAccountReadings
+} from '../composition/usage-account-memory'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
 import { UsageRow } from './UsageRosterPanel'
 import { UsageActivityRing, UsageRowSessionsScope } from './usage-agent-sessions-view'
@@ -282,5 +287,67 @@ export const ringCentering = defineFixture({
     if (misses.size > 0) {
       throw new Error(`Ring layout: ${[...misses].join('; ')}`)
     }
+  }
+})
+
+// The account's usage read on the VPS, then the workspace moves to a Mac that never ran it.
+const MAC_NEVER_RAN = {
+  provider: 'claude',
+  session: null,
+  weekly: null,
+  updatedAt: 0,
+  error: 'stale',
+  status: 'error',
+  usageMetadata: { failureKind: 'stale-token' }
+} as ProviderRateLimits
+
+function hostChips(gabriel: ProviderRateLimits): UsageRowChip[] {
+  const gestao: ProviderRateLimits = { ...AHEAD, session: null, weekly: win(32, 10_080, 4 * DAY) }
+  return buildUsageRowChips({
+    providers: [gabriel],
+    accounts: 'all',
+    accountsByProvider: {
+      claude: [
+        { key: 'g', selected: true, reading: null, name: { email: 'gabriel@example.com' } },
+        { key: 's', selected: false, reading: gestao, name: { email: 'gestao@example.com' } }
+      ]
+    }
+  })
+}
+
+function HostStrip({ label, chips }: { label: string; chips: UsageRowChip[] }): React.JSX.Element {
+  return (
+    <div className="flex h-8 items-center gap-3 whitespace-nowrap text-xs">
+      <span className="w-40 text-muted-foreground">{label}</span>
+      {chips.map((chip) => (
+        <ProviderSegment
+          key={chip.id}
+          p={chip.p}
+          accountLabel={chip.accountLabel}
+          selected={chip.selected}
+          display="used"
+          mode="verbose"
+          sessions={[]}
+        />
+      ))}
+    </div>
+  )
+}
+
+export const hostSwitch = defineFixture({
+  width: 900,
+  render: () => {
+    const memory: AccountReadingMemory = new Map()
+    const vps = withRememberedAccountReadings(hostChips(AHEAD), memory)
+    return (
+      <div className="flex flex-col bg-background px-3 py-2">
+        <HostStrip label="VPS workspace" chips={vps} />
+        <HostStrip label="Local Mac, before the fix" chips={hostChips(MAC_NEVER_RAN)} />
+        <HostStrip
+          label="Local Mac, after the fix"
+          chips={withRememberedAccountReadings(hostChips(MAC_NEVER_RAN), memory)}
+        />
+      </div>
+    )
   }
 })

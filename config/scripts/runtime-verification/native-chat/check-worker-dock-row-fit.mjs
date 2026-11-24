@@ -49,6 +49,7 @@ try {
             const found = Object.entries(parts).flatMap(([part, selector]) =>
               [...row.querySelectorAll(selector)].map((element) => ({
                 part,
+                cut: element.scrollWidth > element.clientWidth + 1,
                 rect: element.getBoundingClientRect()
               }))
             )
@@ -69,11 +70,12 @@ try {
             if (!shown.some(({ part }) => part === 'name')) {
               out.push(`${id}: name not drawn`)
             }
-            for (const { part, rect } of shown) {
+            for (const { part, rect, cut } of shown) {
               if (rect.left < box.left - 0.5 || rect.right > box.right + 0.5) {
                 out.push(`${id}: ${part} leaves the row`)
               }
-              if (part === 'name' && rect.width < 40) {
+              // A short name like Agent is narrow on its own; squeezed means cut below 40px.
+              if (part === 'name' && cut && rect.width < 40) {
                 out.push(`${id}: name squeezed to ${rect.width}px`)
               }
             }

@@ -156,7 +156,7 @@ export const WorkerDockRow = memo(function WorkerDockRow({
               </span>
               <span
                 data-worker-dock-state=""
-                className={cn('min-w-0 flex-1 truncate text-xs', stateTone)}
+                className={cn('min-w-0 flex-1 text-xs break-words', stateTone)}
               >
                 {mixed ? `${workerDockKindLabel(t, row.kind)} · ` : ''}
                 {state}
@@ -204,19 +204,15 @@ export const WorkerDockRow = memo(function WorkerDockRow({
           <span
             className={cn(
               'min-w-0 flex-1',
-              !narrow && 'flex items-center gap-2',
+              !narrow && 'flex items-baseline gap-2',
               compact && narrow && 'flex flex-wrap items-baseline gap-x-2'
             )}
           >
-            {/* Wide, the id and status stay whole; the title, then the reason, give way first. */}
+            {/* Wide, every part is one flex row: id and status keep their width, the title gives way first, then the reason. */}
             <span
               className={cn(
                 'flex gap-x-2',
-                narrow
-                  ? compact
-                    ? 'contents'
-                    : 'min-w-0 flex-col'
-                  : 'min-w-0 flex-1 items-baseline'
+                narrow ? (compact ? 'contents' : 'min-w-0 flex-col') : 'contents'
               )}
             >
               <span
@@ -229,18 +225,13 @@ export const WorkerDockRow = memo(function WorkerDockRow({
                 data-worker-dock-title=""
                 className={cn(
                   'min-w-0 text-sm',
-                  narrow ? (compact ? 'hidden' : 'line-clamp-1') : 'truncate'
+                  narrow ? (compact ? 'hidden' : 'line-clamp-1') : 'min-w-0 flex-1 truncate'
                 )}
               >
                 {row.title}
               </span>
             </span>
-            <span
-              className={cn(
-                !narrow && 'flex min-w-0 items-baseline gap-2',
-                compact && narrow && 'contents'
-              )}
-            >
+            <span className={cn(!narrow && 'contents', compact && narrow && 'contents')}>
               {mixed || row.state !== 'running' || row.retired ? (
                 <span
                   data-worker-dock-state=""

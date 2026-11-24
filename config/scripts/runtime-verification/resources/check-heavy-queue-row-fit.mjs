@@ -4,7 +4,7 @@ import { chromium } from 'playwright-core'
 import { ensureFixtureServer } from '../../component-fixtures/fixture-server-client.mjs'
 
 const FIXTURE = 'status-bar/resources/popover/resource-heavy-queue-extremes'
-const CASES = ['wide', 'wideExpanded', 'narrow', 'narrowExpanded']
+const CASES = ['wide', 'wideExpanded', 'narrow', 'narrowExpanded', 'widePt', 'narrowPt']
 
 const { url } = await ensureFixtureServer()
 const browser = await chromium.launch({ headless: true })
@@ -104,7 +104,7 @@ try {
                 if (b.left < box.left - 0.5 || b.right > box.right + 0.5) {
                   out.push(`row ${index}: "${button.getAttribute('aria-label')}" leaves the card`)
                 }
-                if (button !== command && button.getAttribute('aria-label') !== 'Copy command') {
+                if (button !== command && !button.querySelector('.lucide-copy')) {
                   if (b.bottom > commandBox.top + 0.5) {
                     out.push(
                       `row ${index}: "${button.getAttribute('aria-label')}" is off the workspace line`

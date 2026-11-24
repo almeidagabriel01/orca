@@ -1,5 +1,6 @@
 import React from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
 import type { HeavyCommandJob } from '../../../../../../shared/diagnostics/process-stats-types'
 import type { ResourceHostSummary } from './resource-host-summary'
 import { ResourceHostCards } from './resource-usage-hosts-summary'
@@ -110,8 +111,40 @@ export const stopConfirm = defineFixture({
   interact: async (frame) => {
     await openMenu(0)(frame)
     ;[...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
-      .find((item) => item.textContent?.startsWith('Stop'))
+      .find((item) => /^(Stop|Parar)/.test(item.textContent ?? ''))
       ?.click()
     await new Promise((resolve) => setTimeout(resolve, 150))
   }
+})
+
+// The same views in Portuguese, whose longer words must not be cut either.
+const inPortuguese =
+  (then?: (frame: HTMLElement) => void | Promise<void>) =>
+  async (frame: HTMLElement): Promise<void> => {
+    await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+    await new Promise(requestAnimationFrame)
+    await then?.(frame)
+  }
+
+export const widePt = defineFixture({ width: 512, render, interact: inPortuguese() })
+export const narrowPt = defineFixture({ width: 352, render, interact: inPortuguese() })
+export const wideRunningMenuPt = defineFixture({
+  width: 512,
+  render,
+  interact: inPortuguese(openMenu(0))
+})
+export const narrowFlockMenuPt = defineFixture({
+  width: 352,
+  render,
+  interact: inPortuguese(openMenu(3))
+})
+export const stopConfirmPt = defineFixture({
+  width: 512,
+  render,
+  interact: inPortuguese(stopConfirm.interact)
+})
+export const narrowStopConfirmPt = defineFixture({
+  width: 352,
+  render,
+  interact: inPortuguese(stopConfirm.interact)
 })

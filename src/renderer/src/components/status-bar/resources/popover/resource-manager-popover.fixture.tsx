@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
 import { renderResourceUsageSummary } from './resource-usage-popover-summary'
 import { ResourceHostCards } from './resource-usage-hosts-summary'
 import {
@@ -122,3 +123,11 @@ export const filtered = defineFixture({
     await new Promise(requestAnimationFrame)
   }
 })
+
+const portuguese = async (): Promise<void> => {
+  await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+  await new Promise(requestAnimationFrame)
+}
+
+export const fullVpsPt = defineFixture({ ...fullVps, interact: portuguese })
+export const narrowPt = defineFixture({ ...narrow, interact: portuguese })

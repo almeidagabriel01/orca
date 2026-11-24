@@ -926,6 +926,14 @@
       },
       "remoteBrowsing": {
         "heading": "Remote browsing",
+        "openFolder": "Open folder",
+        "stop": "Stop…",
+        "reasonReadOnly": "This host's queue can't be changed from here",
+        "reasonOutsideOrder": "Started through flock, outside the queue order",
+        "reasonFirst": "Already first in line",
+        "reasonLast": "Already last in line",
+        "reasonRemoteFolder": "The folder is on another machine",
+        "reasonCantStop": "vps-heavy can't stop a running command yet; stop it in its terminal",
         "headingDescription": "Where remote workspace pages render, and where their network traffic leaves from."
       },
       "userAgent": {

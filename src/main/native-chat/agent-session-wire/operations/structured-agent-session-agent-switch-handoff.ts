@@ -25,8 +25,18 @@ export type AgentSwitchHandoff = {
   transcriptPath?: string
 }
 
-function accountLabel(choice: string | null): string | undefined {
-  return choice ? getClaudeProfileRouter()?.savedAccount(choice)?.email : undefined
+/** The login a Claude chat runs on: a saved account, the host's selection (null), or the
+ *  system login, which has no saved row to name it. */
+function accountLabel(provider: string, choice: string | null): string | undefined {
+  const router = provider === 'claude' ? getClaudeProfileRouter() : undefined
+  try {
+    const profile = router?.chosenProfile(choice ?? undefined)
+    return profile
+      ? router?.savedAccount(profile.accountId)?.email
+      : router?.systemDefaultLogin()?.email
+  } catch {
+    return undefined
+  }
 }
 
 /** Read outside the chat's lane: the capture opens the conversation and writes the transcript. */
@@ -80,8 +90,8 @@ export function agentSwitchMarker(
   change: AgentSessionAgentSwitch,
   handoff: AgentSwitchHandoff | null
 ): AgentJournalPlainStatusItem {
-  const toAccountLabel = accountLabel(change.accountChoice)
-  const fromAccountLabel = accountLabel(from.accountChoice ?? null)
+  const toAccountLabel = accountLabel(change.provider, change.accountChoice)
+  const fromAccountLabel = accountLabel(from.provider, from.accountChoice ?? null)
   const agentSwitch: AgentSessionAgentSwitchMark = {
     kind: change.kind,
     fromAgent: from.provider,

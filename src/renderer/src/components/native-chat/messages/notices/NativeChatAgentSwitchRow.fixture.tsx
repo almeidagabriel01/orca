@@ -1,4 +1,6 @@
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
 import { NativeChatNoticeRow } from './NativeChatNoticeRow'
 import type { NativeChatTextBlock } from '../../../../../../shared/native-chat/native-chat-types'
 import type { AgentSessionAgentSwitchMark } from '../../../../../../shared/agent-session/conversation-context/agent-session-agent-switch'
@@ -59,4 +61,32 @@ export const accountExpanded = defineFixture({
   width: 640,
   render: () => <Surface mark={accountMark} />,
   interact: expand
+})
+
+// Back to the system login, which has no saved row: the host names it by its email too.
+const backToSystemMark: AgentSessionAgentSwitchMark = {
+  kind: 'account',
+  fromAgent: 'claude',
+  toAgent: 'claude',
+  fromAccountLabel: 'personal@example.com',
+  toAccountLabel: 'system-login@example.com'
+}
+
+export const accountRoundTripPtBr = defineFixture({
+  width: 640,
+  render: () => (
+    <>
+      <Surface mark={accountMark} />
+      <Surface mark={backToSystemMark} />
+    </>
+  ),
+  setup: () => {
+    useAppStore.setState((app) => ({
+      settings: app.settings && { ...app.settings, uiLanguage: 'pt' }
+    }))
+  },
+  interact: async () => {
+    await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
 })

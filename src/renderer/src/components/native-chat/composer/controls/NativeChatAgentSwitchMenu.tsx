@@ -12,6 +12,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -32,6 +33,7 @@ import { formatUsageLimitResetClock } from '../../../../../../shared/agent-sessi
 import type { RateLimitState } from '../../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { AccountOwner } from '@/runtime/provider-accounts/ownership/wsl-host-account-owner'
 import type { ProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
+import { useAgentCliPresence } from '@/components/settings/accounts/provider-not-installed'
 import { useHostProviderAccounts } from './host-claude-chat-accounts'
 import { agentSwitchMenuModel, type SwitchRow } from './native-chat-agent-switch-rows'
 import type {
@@ -61,9 +63,11 @@ export function NativeChatAgentSwitchMenu(props: AgentSwitchMenuProps): React.JS
   // Set only where a usage-limit row provides it; the composer has no schedule to name.
   const stop = useNativeChatOrcaStopView()
   const auto = stop.usageLimitTurnItemId === null ? null : stop.usageLimitAutoContinue
+  const presence = useAgentCliPresence(target)
   return (
     <NativeChatAgentSwitchMenuView
       {...props}
+      installed={(agent) => (isTuiAgent(agent) ? presence.installed(agent) : null)}
       accounts={ownerUsage.accounts ?? hostAccounts}
       usage={ownerUsage.rateLimits}
       autoContinueAt={auto?.kind === 'scheduled' ? auto.resetsAt : null}
@@ -82,13 +86,16 @@ export function NativeChatAgentSwitchMenuView({
   accounts,
   usage,
   autoContinueAt,
-  onOpen
+  onOpen,
+  installed
 }: AgentSwitchMenuProps & {
   accounts: ProviderAccountsSnapshot | null
   usage: RateLimitState | null
   /** When Orca continues this usage-limited chat by itself; a switch cancels it. */
   autoContinueAt: number | null
   onOpen?: () => void
+  /** The host's CLI inventory; agents it lacks stay behind "Show all providers". */
+  installed?: (agent: string) => boolean | null
 }): React.JSX.Element {
   const t = useTranslate()
   const locale = useIntlLocale()
@@ -99,8 +106,9 @@ export function NativeChatAgentSwitchMenuView({
   const [switching, setSwitching] = useState(false)
   // Read when the menu opens, so readings whose window has since reset stop counting.
   const [now, setNow] = useState(Date.now)
+  const [showAll, setShowAll] = useState(false)
   const { agent, busy } = agentSwitch
-  const { rows, value, currentLabel } = agentSwitchMenuModel({
+  const { rows, hiddenCount, value, currentLabel } = agentSwitchMenuModel({
     agent,
     agents: agentSwitch.agents,
     choice: control.choice,
@@ -109,7 +117,9 @@ export function NativeChatAgentSwitchMenuView({
     display,
     now,
     locale,
-    t
+    t,
+    installed,
+    showAll
   })
   const title = t('components.native-chat.agentSwitch.title', 'Continue with')
   const actionLabel = t(
@@ -188,6 +198,7 @@ export function NativeChatAgentSwitchMenuView({
         onOpenChange={(open) => {
           if (open) {
             setNow(Date.now())
+            setShowAll(false)
             onOpen?.()
           }
         }}
@@ -263,6 +274,18 @@ export function NativeChatAgentSwitchMenuView({
               )
             })}
           </DropdownMenuRadioGroup>
+          {hiddenCount > 0 ? (
+            <DropdownMenuItem
+              className="text-xs text-muted-foreground"
+              onSelect={(event) => {
+                // Why: keep the menu open so the added providers show in place.
+                event.preventDefault()
+                setShowAll(true)
+              }}
+            >
+              {t('components.native-chat.agentSwitch.showAll', 'Show all providers')}
+            </DropdownMenuItem>
+          ) : null}
           {autoContinueAt !== null ? (
             <>
               <DropdownMenuSeparator />

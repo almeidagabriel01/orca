@@ -21,6 +21,7 @@ import {
 } from '../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import type { AgentSessionAgentSwitchTarget } from '../../../../../../shared/agent-session/conversation-context/agent-session-agent-switch'
 import { claudeChatAccountRows, codexHostAccountLabel } from './host-claude-chat-accounts'
+import { offeredSwitchAgents, type SwitchFilter } from './native-chat-agent-switch-offered'
 
 export type SwitchRowUsage = {
   text: string
@@ -44,13 +45,15 @@ export type SwitchRow = {
 
 export type AgentSwitchMenuModel = {
   rows: SwitchRow[]
+  /** Agents left out as not installed or signed out; "Show all providers" brings them back. */
+  hiddenCount: number
   /** The row of the chat's saved choice. */
   value: string
   /** What the composer pill shows. */
   currentLabel: string
 }
 
-type ModelInput = {
+type ModelInput = SwitchFilter & {
   agent: string
   agents: readonly string[]
   choice: string | undefined
@@ -169,7 +172,8 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
       ? input.accounts.claude
       : null
   const concrete = claude ? claudeChatAccountRows(claude) : []
-  const offersClaude = input.agents.includes('claude')
+  const shown = offeredSwitchAgents(input, concrete.length > 0)
+  const offersClaude = input.agents.includes('claude') && !shown.claudeHidden
   const saved = choice ?? AGENT_CHAT_HOST_ACCOUNT
   const hostId = claude?.activeAccountId ?? null
   const hostUsageId = hostId ?? CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID
@@ -230,9 +234,8 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
           }
         })
 
-  const otherAgents = [...new Set([...input.agents, agent])].filter((other) => other !== 'claude')
   const codexAccount = codexHostAccountLabel(input.accounts)
-  const agentRows: SwitchRow[] = otherAgents.map((other): SwitchRow => {
+  const agentRows: SwitchRow[] = shown.otherAgents.map((other): SwitchRow => {
     const hostOnly = !agentSupportsChatAccountChoice(other)
     const account = other === 'codex' ? codexAccount : null
     const label = account ?? hostAccount
@@ -323,5 +326,5 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
             : saved === AGENT_CHAT_HOST_ACCOUNT
               ? (hostNow ?? claudeName)
               : claudeName
-  return { rows, value, currentLabel }
+  return { rows, hiddenCount: shown.hiddenCount, value, currentLabel }
 }

@@ -113,7 +113,12 @@ try {
                 if (b.left < box.left - 0.5 || b.right > box.right + 0.5) {
                   out.push(`row ${index}: "${button.getAttribute('aria-label')}" leaves the card`)
                 }
-                if (button !== command && !button.querySelector('.lucide-copy')) {
+                // Why skip the confirmation: its Keep/Stop buttons sit under the command on purpose.
+                if (
+                  button !== command &&
+                  !button.querySelector('.lucide-copy') &&
+                  !button.closest('[role="group"]')
+                ) {
                   if (b.bottom > commandBox.top + 0.5) {
                     out.push(
                       `row ${index}: "${button.getAttribute('aria-label')}" is off the workspace line`

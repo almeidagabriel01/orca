@@ -145,7 +145,8 @@ export function activateAndRevealFolderWorkspaceWithOutcome(
     ensureWebRuntimeWorktreeTerminalAfterWake(workspaceKey, {
       runtimeEnvironmentId,
       startup: opts?.startup,
-      agent: opts?.agent
+      agent: opts?.agent,
+      ...(seedUserDefaultSurface ? { seedUserDefaultSurface: true } : {})
     })
   }
   recordShownTabFocus(useAppStore.getState(), workspaceKey)
@@ -289,7 +290,8 @@ export function activateAndRevealWorktreeWithOutcome(
         ? { runtimeEnvironmentId: ownerRuntimeEnvironmentId }
         : {}),
       startup: opts?.startup,
-      agent: opts?.agent
+      agent: opts?.agent,
+      ...(seedUserDefaultSurface ? { seedUserDefaultSurface: true } : {})
     })
   recordShownTabFocus(useAppStore.getState(), worktreeId)
 

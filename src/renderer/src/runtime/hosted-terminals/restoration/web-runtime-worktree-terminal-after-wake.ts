@@ -15,6 +15,7 @@ import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-ag
 import { toast } from 'sonner'
 import { shouldSeedDefaultSurface } from '@/lib/workspace/activation/initial-surface/automatic-default-surface'
 import { runtimeEnvironmentSupportsCapability } from '@/runtime/rpc/compatibility/runtime-capability-proof'
+import { openRemoteEmptyWorkspaceUserSurface } from '@/lib/workspace/activation/initial-surface/remote-empty-workspace-surface'
 import { SESSION_TABS_EMPTY_WORKTREE_ANSWER_RUNTIME_CAPABILITY } from '../../../../../shared/remote-runtime/protocol/session-tabs-runtime-capabilities'
 
 export function ensureWebRuntimeWorktreeTerminalAfterWake(
@@ -26,6 +27,8 @@ export function ensureWebRuntimeWorktreeTerminalAfterWake(
     activate?: boolean
     /** The caller knows an unlisted workspace is empty: it just created it, or the host never answers. */
     unknownHostCountIsEmpty?: boolean
+    /** A user opened the workspace: an empty one shows the surface Settings chose. */
+    seedUserDefaultSurface?: boolean
   }
 ): boolean {
   const state = useAppStore.getState()
@@ -108,6 +111,23 @@ export function ensureWebRuntimeWorktreeTerminalAfterWake(
     } else if (renderableTabCount === 0) {
       return false
     }
+  }
+
+  // Why: a user opening an empty workspace gets what Settings chose; the shell is the fallback.
+  if (
+    opts?.seedUserDefaultSurface === true &&
+    !launchAgent &&
+    !opts.startup &&
+    openRemoteEmptyWorkspaceUserSurface(worktreeId, () => {
+      ensureWebRuntimeWorktreeTerminalAfterWake(worktreeId, {
+        ...opts,
+        runtimeEnvironmentId,
+        seedUserDefaultSurface: false,
+        unknownHostCountIsEmpty: true
+      })
+    })
+  ) {
+    return true
   }
 
   if (!beginWebRuntimeWakeTerminalRespawn(worktreeId)) {

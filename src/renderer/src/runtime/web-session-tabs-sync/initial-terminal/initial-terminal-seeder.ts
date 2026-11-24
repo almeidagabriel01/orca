@@ -12,6 +12,7 @@ import { hasRecordIndependentRenderableTab } from '../../../store/slices/tabs/ta
 import { findPendingWorktreeCreationId } from '@/lib/workspace/creation/pending-worktree-creation'
 import { hasStructuredAgentLaunchInWorktree } from '@/lib/agent-session/launch/structured-agent-session-launch-status'
 import { isEmptyWorkspaceDefaultSurfacePending } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims'
+import { openRemoteEmptyWorkspaceUserSurface } from '@/lib/workspace/activation/initial-surface/remote-empty-workspace-surface'
 
 type SessionTabsFrame = RuntimeMobileSessionTabsResult & { type: 'snapshot' | 'updated' }
 
@@ -78,9 +79,24 @@ export function createInitialTerminalSeeder(
     if (state.reconcileWorktreeTabModel(worktreeId).renderableTabCount !== 0) {
       return
     }
-    if (await dispatchWebRuntimeInitialTerminalBootstrap(environmentId, worktreeId)) {
+    const createShell = (): Promise<void> =>
+      dispatchWebRuntimeInitialTerminalBootstrap(environmentId, worktreeId).then((created) => {
+        if (created) {
+          requestedInitialTerminal = true
+        }
+      })
+    // Why: an empty workspace on this host shows what Settings chose, not always a shell.
+    if (
+      openRemoteEmptyWorkspaceUserSurface(worktreeId, () => {
+        void createShell().catch((error) => {
+          console.warn('[web-session-tabs-sync] initial terminal fallback failed:', error)
+        })
+      })
+    ) {
       requestedInitialTerminal = true
+      return
     }
+    await createShell()
   }
 
   return {

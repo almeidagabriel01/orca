@@ -68,6 +68,11 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
   )
 }
 
+/** Whether an empty workspace would open an agent (chosen in Settings or the saved default). */
+export function emptyWorkspaceOpensDefaultChat(worktreeId: string): boolean {
+  return defaultChatHost(useAppStore.getState(), worktreeId) !== undefined
+}
+
 export function emptyWorkspaceDefaultChatAwaitsDetection(worktreeId: string): boolean {
   const state = useAppStore.getState()
   const host = defaultChatHost(state, worktreeId)

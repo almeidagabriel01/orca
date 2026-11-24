@@ -3,7 +3,10 @@ import { getDefaultSettings } from '../../../../../../shared/orca-profiles/const
 import type { AgentPickerEntry } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
 import type { NewTabAgentMenuRow } from '../../../../../../shared/agent-launch/picker/agent-launch-picker-rows'
 import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
-import type { EmptyWorkspaceSurface } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
+import type {
+  EmptyWorkspaceAgentSurface,
+  EmptyWorkspaceSurface
+} from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { EmptyWorkspaceSurfaceView } from './EmptyWorkspaceSurfaceSection'
 
 function entry(agent: TuiAgent, label: string, rows: NewTabAgentMenuRow[]): AgentPickerEntry {
@@ -32,11 +35,21 @@ const ENTRIES: AgentPickerEntry[] = [
   ])
 ]
 
-function Section({ surface }: { surface?: EmptyWorkspaceSurface }): React.JSX.Element {
+function Section({
+  surface,
+  agentSurface
+}: {
+  surface?: EmptyWorkspaceSurface
+  agentSurface?: EmptyWorkspaceAgentSurface
+}): React.JSX.Element {
   const settings = getDefaultSettings('/home/fixture')
   return (
     <EmptyWorkspaceSurfaceView
-      settings={surface ? { ...settings, emptyWorkspaceSurface: surface } : settings}
+      settings={{
+        ...settings,
+        ...(surface ? { emptyWorkspaceSurface: surface } : {}),
+        ...(agentSurface ? { emptyWorkspaceAgentSurface: agentSurface } : {})
+      }}
       updateSettings={() => {}}
       agentEntries={ENTRIES}
       simulatorAvailable
@@ -102,6 +115,35 @@ export const agentMissing = defineFixture({
   render: () => (
     <div className="bg-background p-4">
       <Section surface="agent:gemini" />
+    </div>
+  )
+})
+
+/** A chosen agent shows Open as right under it, saved with the choice. */
+export const agentOpensAsChat = defineFixture({
+  width: 760,
+  render: () => (
+    <div className="bg-background p-4">
+      <Section surface="agent:claude" agentSurface="chat" />
+    </div>
+  )
+})
+
+export const agentOpensAsTerminal = defineFixture({
+  width: 760,
+  render: () => (
+    <div className="bg-background p-4">
+      <Section surface="agent:claude" agentSurface="terminal" />
+    </div>
+  )
+})
+
+/** A + menu item has no Open as row. */
+export const menuItemHasNoOpenAs = defineFixture({
+  width: 760,
+  render: () => (
+    <div className="bg-background p-4">
+      <Section surface="new-browser" />
     </div>
   )
 })

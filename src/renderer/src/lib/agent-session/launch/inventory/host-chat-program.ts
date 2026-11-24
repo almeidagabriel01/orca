@@ -170,9 +170,14 @@ export function chosenAgentChatUnlearned(
   store: AgentLaunchRouteStore,
   chosen: TuiAgent | 'blank' | null | undefined,
   detected: readonly TuiAgent[] | null,
-  workspace: ProspectiveWorkspace
+  workspace: ProspectiveWorkspace,
+  preferredSurface?: 'chat'
 ): boolean {
-  return !!chosen && chosen !== 'blank' && agentChoicePending(store, chosen, workspace, detected)
+  return (
+    !!chosen &&
+    chosen !== 'blank' &&
+    agentChoicePending(store, chosen, workspace, detected, preferredSurface)
+  )
 }
 
 /** Offers may include setup-capable chats; automatic candidates remain the original inventory. */

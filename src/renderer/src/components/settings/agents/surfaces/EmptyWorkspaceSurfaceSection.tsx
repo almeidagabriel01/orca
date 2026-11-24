@@ -25,13 +25,16 @@ import {
 import type { GlobalSettings } from '../../../../../../shared/settings/global-settings-types'
 import {
   emptyWorkspaceSurfaceAgent,
+  normalizeEmptyWorkspaceAgentSurface,
   normalizeEmptyWorkspaceSurface,
+  type EmptyWorkspaceAgentSurface,
   type EmptyWorkspaceMenuSurface,
   type EmptyWorkspaceSurface
 } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
+import { nativeChatPreferenceFor } from '../../../../../../shared/agent-launch/choices/structured-native-chat-launch-route'
 import type { AgentPickerEntry } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
 import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
-import { SettingsRow } from '../../form-controls/SettingsFormControls'
+import { SettingsRow, SettingsSegmentedControl } from '../../form-controls/SettingsFormControls'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { EMPTY_WORKSPACE_SURFACE_SECTION_ID } from '../agents-search'
 import {
@@ -102,8 +105,19 @@ export function EmptyWorkspaceSurfaceView({
   const missingAgent = emptyWorkspaceAgentMissing(value, options, agentEntries !== null)
     ? valueAgent
     : null
-  const pick = (surface: EmptyWorkspaceSurface): void =>
-    updateSettings({ emptyWorkspaceSurface: surface })
+  // Unset follows Open agents as for this agent, so show what that opens today.
+  const agentSurfaceFor = (agent: TuiAgent): EmptyWorkspaceAgentSurface =>
+    normalizeEmptyWorkspaceAgentSurface(settings.emptyWorkspaceAgentSurface) ??
+    (nativeChatPreferenceFor(settings, agent) ? 'chat' : 'terminal')
+  const pick = (surface: EmptyWorkspaceSurface): void => {
+    const agent = emptyWorkspaceSurfaceAgent(surface)
+    // Saved with the agent, so the choice stays as shown.
+    updateSettings(
+      agent
+        ? { emptyWorkspaceSurface: surface, emptyWorkspaceAgentSurface: agentSurfaceFor(agent) }
+        : { emptyWorkspaceSurface: surface }
+    )
+  }
   const menuItems = options.flatMap((option) =>
     option.kind === 'menu'
       ? [
@@ -147,7 +161,7 @@ export function EmptyWorkspaceSurfaceView({
             ) : (
               t(
                 'settings.agents.emptyWorkspace.description',
-                'Any item of the + menu. Agents open as chat or terminal, as Open agents as says.'
+                'Any item of the + menu, an agent, or nothing.'
               )
             )
           }
@@ -213,6 +227,35 @@ export function EmptyWorkspaceSurfaceView({
             </DropdownMenu>
           }
         />
+        {valueAgent ? (
+          <SettingsRow
+            label={t('settings.agents.emptyWorkspace.openAs', 'Open as')}
+            description={t(
+              'settings.agents.emptyWorkspace.openAsDescription',
+              'Chat opens the chat UI; Terminal opens the agent in a terminal.'
+            )}
+            control={
+              <SettingsSegmentedControl
+                size="sm"
+                ariaLabel={t('settings.agents.emptyWorkspace.openAs', 'Open as')}
+                value={agentSurfaceFor(valueAgent)}
+                onChange={(surface) =>
+                  updateSettings({
+                    emptyWorkspaceSurface: value,
+                    emptyWorkspaceAgentSurface: surface
+                  })
+                }
+                options={[
+                  { value: 'chat', label: t('settings.agents.emptyWorkspace.openAsChat', 'Chat') },
+                  {
+                    value: 'terminal',
+                    label: t('settings.agents.emptyWorkspace.openAsTerminal', 'Terminal')
+                  }
+                ]}
+              />
+            }
+          />
+        ) : null}
       </SettingsGroup>
     </div>
   )

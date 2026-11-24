@@ -1987,11 +1987,15 @@
       "choiceChipRemove": "Remover {{flag}}",
       "emptyWorkspace": {
         "title": "Ao abrir um workspace sem abas",
-        "description": "Qualquer item do menu +. Agentes abrem como chat ou terminal, conforme 'Abrir agentes como'.",
+        "description": "Qualquer item do menu +, um agente ou nada.",
         "keyword": "workspace",
         "nothing": "Nada",
         "agentMissing": "{{agent}} não está instalado aqui; abre um terminal no lugar.",
-        "agentMissingToast": "{{agent}} não está instalado; abriu um terminal no lugar."
+        "agentMissingToast": "{{agent}} não está instalado; abriu um terminal no lugar.",
+        "openAs": "Abrir como",
+        "openAsDescription": "Chat abre a interface de chat; Terminal abre o agente num terminal.",
+        "openAsChat": "Chat",
+        "openAsTerminal": "Terminal"
       }
     },
     "followSymlinkedDirectoriesKeywords": {

@@ -1254,11 +1254,15 @@
       "defaultSurfaceServerDescription": "The default for agents {{host}} starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow This computer's choice.",
       "emptyWorkspace": {
         "title": "Opening a workspace with no tabs",
-        "description": "Any item of the + menu. Agents open as chat or terminal, as Open agents as says.",
+        "description": "Any item of the + menu, an agent, or nothing.",
         "keyword": "workspace",
         "nothing": "Nothing",
         "agentMissing": "{{agent}} isn't installed here, so a terminal opens instead.",
-        "agentMissingToast": "{{agent}} isn't installed, so a terminal opened instead."
+        "agentMissingToast": "{{agent}} isn't installed, so a terminal opened instead.",
+        "openAs": "Open as",
+        "openAsDescription": "Chat opens the chat UI; Terminal opens the agent in a terminal.",
+        "openAsChat": "Chat",
+        "openAsTerminal": "Terminal"
       }
     },
     "followSymlinkedDirectoriesKeywords": {

@@ -208,7 +208,7 @@ export const WorkerDockRow = memo(function WorkerDockRow({
               compact && narrow && 'flex flex-wrap items-baseline gap-x-2'
             )}
           >
-            {/* Wide, the name truncates down to min-w-12 rather than spill over the status beside it. */}
+            {/* Wide, the id and status stay whole; the title, then the reason, give way first. */}
             <span
               className={cn(
                 'flex gap-x-2',
@@ -216,15 +216,12 @@ export const WorkerDockRow = memo(function WorkerDockRow({
                   ? compact
                     ? 'contents'
                     : 'min-w-0 flex-col'
-                  : 'min-w-12 flex-1 items-baseline'
+                  : 'min-w-0 flex-1 items-baseline'
               )}
             >
               <span
                 data-worker-dock-name=""
-                className={cn(
-                  'max-w-30 truncate text-sm font-medium',
-                  narrow ? 'shrink-0' : 'min-w-12'
-                )}
+                className="max-w-30 shrink-0 truncate text-sm font-medium"
               >
                 {row.name}
               </span>
@@ -250,7 +247,7 @@ export const WorkerDockRow = memo(function WorkerDockRow({
                   className={cn(
                     'text-xs',
                     stateTone,
-                    narrow ? (compact ? 'shrink-0' : 'block') : 'max-w-40 truncate'
+                    narrow ? (compact ? 'shrink-0' : 'block') : 'shrink-0 whitespace-nowrap'
                   )}
                 >
                   {mixed ? `${workerDockKindLabel(t, row.kind)} · ` : ''}

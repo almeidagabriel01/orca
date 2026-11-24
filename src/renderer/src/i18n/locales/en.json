@@ -22782,7 +22782,7 @@
         "unavailable": "Worker status unavailable",
         "empty": "0 workers",
         "attention": "Needs attention",
-        "openWork": "Open work",
+        "openWork": "No action needed",
         "orderHeld": "Order held",
         "statusChanged": "Status changed",
         "loadingWorker": "Loading worker…",

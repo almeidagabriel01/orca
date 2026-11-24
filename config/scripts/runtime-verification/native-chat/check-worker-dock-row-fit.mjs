@@ -8,6 +8,8 @@ const FIXTURE = 'native-chat/tools/tasks/dock/NativeChatWorkerDock'
 const CASES = [
   'endedWorkOpen',
   'endedWorkNarrowOpen',
+  'endedWorkOpenPt',
+  'endedWorkNarrowOpenPt',
   'botHomeChatOpen',
   'botHomeChatNarrowOpen',
   'botHomeChatSmallOpen'
@@ -50,6 +52,12 @@ try {
                 rect: element.getBoundingClientRect()
               }))
             )
+            // The status is the point of a row: it may wrap, never end in an ellipsis.
+            for (const status of row.querySelectorAll(parts.status)) {
+              if (status.scrollWidth > status.clientWidth + 1) {
+                out.push(`${id}: status cut ("${status.textContent}")`)
+              }
+            }
             // The lead row's Show is its own button; a plain row's open target is the whole row.
             if (row.hasAttribute('data-worker-dock-lead')) {
               const show = row.querySelector('[data-worker-dock-open]')

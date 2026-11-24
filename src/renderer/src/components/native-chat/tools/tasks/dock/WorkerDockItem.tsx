@@ -63,7 +63,7 @@ export function WorkerDockItem({
           <h3 className="font-medium">
             {workerDockNeedsAttention(identity.state)
               ? t('components.native-chat.workerDock.attention', 'Needs attention')
-              : t('components.native-chat.workerDock.openWork', 'Open work')}
+              : t('components.native-chat.workerDock.openWork', 'No action needed')}
             {orderHeld
               ? ` · ${t('components.native-chat.workerDock.orderHeld', 'Order held')}`
               : ''}

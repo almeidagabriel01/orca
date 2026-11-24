@@ -10,6 +10,8 @@ import {
 import type { SortOption } from './resource-usage-resource-tree'
 import { getResourceMemoryMetricCopy } from './resource-memory-metric-copy'
 import type { ResourceHostSummary } from './resource-host-summary'
+import { useTranslate } from '@/i18n/use-translate'
+import { getRuntimeHostResourceNotice } from '../../host-connections/runtime-host-resources'
 import {
   localHost,
   offlineHost,
@@ -23,11 +25,23 @@ const SURFACE =
 
 function Popover({
   height,
-  hosts = popoverHosts
+  hosts: rawHosts = popoverHosts
 }: {
   height: number
   hosts?: ResourceHostSummary[]
 }): React.JSX.Element {
+  const t = useTranslate()
+  // Why here: the app words these through t(), so the Portuguese views must too.
+  const hosts = rawHosts.map((host) =>
+    host.isLocal
+      ? { ...host, label: t('resourceManager.hosts.local', 'This computer') }
+      : host.notice
+        ? {
+            ...host,
+            notice: getRuntimeHostResourceNotice({ status: 'unreachable' }, host.label, t)
+          }
+        : host
+  )
   const [sortOption, setSortOption] = useState<SortOption>('memory')
   const [appCollapsed, setAppCollapsed] = useState(true)
   const [filter, setFilter] = useState('')

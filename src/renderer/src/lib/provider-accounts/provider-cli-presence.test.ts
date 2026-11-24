@@ -10,7 +10,7 @@ it('treats a missing sign-in as an error only where the CLI is installed', () =>
   expect(providerSignInState(withCodex, false)).toBe('ready')
   expect(providerSignInState(withCodex, true)).toBe('needs-sign-in')
   expect(providerSignInState(withoutCodex, true)).toBe('not-installed')
-  expect(providerSignInState(withoutCodex, false)).toBe('not-installed')
+  expect(providerSignInState(withoutCodex, false)).toBe('ready')
   expect(providerSignInState(loading, true)).toBe('ready')
   expect(providerSignInState(probeFailed, true)).toBe('needs-sign-in')
 })

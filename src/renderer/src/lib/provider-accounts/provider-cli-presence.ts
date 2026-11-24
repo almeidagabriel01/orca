@@ -17,14 +17,18 @@ export function agentCliInstalled(
 
 export type ProviderSignInState = 'not-installed' | 'needs-sign-in' | 'ready'
 
-/** A missing sign-in is only an error where the CLI exists; an absent CLI is neutral. */
+/** A missing sign-in is only an error where the CLI exists; with no CLI and no login it is neutral. */
 export function providerSignInState(
   installed: boolean | null,
   needsSignIn: boolean
 ): ProviderSignInState {
+  if (!needsSignIn) {
+    // Why: a working login (custom command, leftover home) stays usable even when no CLI is listed.
+    return 'ready'
+  }
   if (installed === false) {
     return 'not-installed'
   }
   // Why: while the inventory loads, stay quiet instead of flashing an error that may vanish.
-  return installed === true && needsSignIn ? 'needs-sign-in' : 'ready'
+  return installed === true ? 'needs-sign-in' : 'ready'
 }

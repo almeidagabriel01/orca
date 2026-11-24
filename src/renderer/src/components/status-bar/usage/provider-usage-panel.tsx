@@ -238,7 +238,6 @@ function ProviderRateLimitWindowSection({
       <UsageBar
         usedPercent={window.usedPercent}
         display={usagePercentageDisplay}
-        tone="health"
         className="h-[6px] w-full"
         trackClassName={emptyBarClass}
         fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(window, colorRule)]}

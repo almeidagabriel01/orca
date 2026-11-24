@@ -1,4 +1,9 @@
 import { clampUsedPercent } from '../../../../../shared/agent-usage/display/usage-percentage-display'
+import {
+  getUsageSeverity,
+  type UsageColorRule
+} from '../../../../../shared/agent-usage/pace/usage-pace'
+import { SEVERITY_FILL_CLASS } from './usage-pace-caption'
 
 /** Used % at which usage turns yellow (20% or less left). */
 export const USAGE_WARNING_PERCENT = 80
@@ -19,22 +24,7 @@ export function getUsageHealthTone(usedPercent: number): UsageHealthTone {
   return 'healthy'
 }
 
-const BAR_CLASS: Record<UsageHealthTone, string> = {
-  healthy: 'bg-emerald-600 dark:bg-emerald-500',
-  // Why 600 in light: yellow-500 barely separates from the light track.
-  warning: 'bg-yellow-600 dark:bg-yellow-500',
-  urgent: 'bg-red-500'
-}
-
-/** Grey fill for bars outside a provider's details card, where usage stays uncolored. */
-export const PLAIN_USAGE_BAR_CLASS = 'bg-muted-foreground/40'
-
-/**
- * 'health' colors the fill green/yellow/red by consumption (provider details card only);
- * 'plain' keeps it grey everywhere else.
- */
-export type UsageBarTone = 'health' | 'plain'
-
-export function usageBarClass(usedPercent: number, tone: UsageBarTone = 'health'): string {
-  return tone === 'plain' ? PLAIN_USAGE_BAR_CLASS : BAR_CLASS[getUsageHealthTone(usedPercent)]
+/** A bar's fill under the user's limits: the same tokens as its number (see usage-pace-caption). */
+export function usageBarClass(usedPercent: number, rule: UsageColorRule): string {
+  return SEVERITY_FILL_CLASS[getUsageSeverity(usedPercent, rule)]
 }

@@ -11,16 +11,18 @@ import {
   type UsagePercentageDisplay
 } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { formatBareUsagePercentage } from './usage-percentage-label'
-import { usageBarClass, type UsageBarTone } from './usage-health-tone'
+import { usageBarClass } from './usage-health-tone'
+import { SEVERITY_TEXT_CLASS } from './usage-pace-caption'
+import { useUsageColorRule } from './use-usage-color-rule'
+import { getUsageSeverity } from '../../../../../shared/agent-usage/pace/usage-pace'
 
 /**
- * Track stays neutral; the fill is the displayed %. Only a provider's details card passes
- * tone="health" to color the fill by consumption; everywhere else it stays grey.
+ * Track stays neutral; the fill is the displayed %, colored by the user's limits on real use with
+ * the same token as its number, wherever it shows.
  */
 export function UsageBar({
   usedPercent,
   display,
-  tone = 'plain',
   className,
   trackClassName = 'bg-muted',
   fillClassName,
@@ -28,7 +30,6 @@ export function UsageBar({
 }: {
   usedPercent: number
   display: UsagePercentageDisplay
-  tone?: UsageBarTone
   className?: string
   trackClassName?: string
   /** Overrides the tone's fill, for surfaces colored by pace severity. */
@@ -36,11 +37,12 @@ export function UsageBar({
   /** Where even spending would be by now, on the bar's own scale; null hides the tick. */
   paceTickPercent?: number | null
 }): React.JSX.Element {
+  const rule = useUsageColorRule()
   return (
     <span data-usage-bar className={cn('relative block rounded-full', trackClassName, className)}>
       <span className="absolute inset-0 overflow-hidden rounded-full">
         <span
-          className={`block h-full rounded-full transition-[width] duration-200 ease-out ${fillClassName ?? usageBarClass(usedPercent, tone)}`}
+          className={`block h-full rounded-full transition-[width] duration-200 ease-out ${fillClassName ?? usageBarClass(usedPercent, rule)}`}
           style={{
             width: `${getDisplayedUsagePercentage(usedPercent, display)}%`
           }}
@@ -59,7 +61,7 @@ export function UsageBar({
   )
 }
 
-/** Bare "86%" in the surrounding text color; the Used/Left column header names what it counts. */
+/** Bare "86%", amber or red past the user's limits; the Used/Left header names what it counts. */
 export function UsageValue({
   usedPercent,
   display,
@@ -70,8 +72,9 @@ export function UsageValue({
   className?: string
 }): React.JSX.Element {
   const t = useTranslate()
+  const severity = getUsageSeverity(usedPercent, useUsageColorRule())
   return (
-    <span className={cn('tabular-nums', className)}>
+    <span className={cn('tabular-nums', className, SEVERITY_TEXT_CLASS[severity])}>
       {formatBareUsagePercentage(usedPercent, display, t)}
     </span>
   )

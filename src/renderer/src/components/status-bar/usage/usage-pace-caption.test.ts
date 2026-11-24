@@ -6,6 +6,7 @@ import {
   SEVERITY_FILL_CLASS,
   SEVERITY_TEXT_CLASS
 } from './usage-pace-caption'
+import { usageBarClass } from './usage-health-tone'
 
 const pace = (deltaPoints: number): UsagePace => ({
   elapsed: 0.5,
@@ -42,5 +43,14 @@ describe('a colored window', () => {
       expect(SEVERITY_FILL_CLASS[severity]).toBe(`bg-current ${tone}`)
     }
     expect(paceTextClass(pace(19))).toBe(SEVERITY_TEXT_CLASS.critical)
+  })
+})
+
+describe('every usage bar', () => {
+  it("follows the user's limits with the number's token: an account row at 72% with amber from 70", () => {
+    const rule = { watchAt: 70, criticalAt: 90 }
+    expect(usageBarClass(72, rule)).toBe(SEVERITY_FILL_CLASS.watch)
+    expect(usageBarClass(95, rule)).toBe(SEVERITY_FILL_CLASS.critical)
+    expect(usageBarClass(40, rule)).toBe(SEVERITY_FILL_CLASS.calm)
   })
 })

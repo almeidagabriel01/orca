@@ -11,6 +11,9 @@ import {
 } from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { usageBarClass } from './usage-health-tone'
+import { SEVERITY_TEXT_CLASS } from './usage-pace-caption'
+import { useUsageColorRule } from './use-usage-color-rule'
+import { getUsageSeverity } from '../../../../../shared/agent-usage/pace/usage-pace'
 import { formatWindowLabel } from '../../../../../shared/agent-usage/rate-limits/rate-limit-window-label'
 import { formatResetDuration } from '../../../../../shared/agent-usage/rate-limits/rate-limit-reset-format'
 import { formatBareUsagePercentage, formatUsagePercentageLabel } from './usage-percentage-label'
@@ -36,6 +39,7 @@ export function InlineUsageBars({
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
+  const rule = useUsageColorRule()
   const display = normalizeUsagePercentageDisplay(
     useAppStore((state) => state.usagePercentageDisplay)
   )
@@ -122,11 +126,13 @@ export function InlineUsageBars({
             <span className="w-8 shrink-0 truncate">{window.label}</span>
             <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
               <div
-                className={`h-full rounded-full ${usageBarClass(window.used)}`}
+                className={`h-full rounded-full ${usageBarClass(window.used, rule)}`}
                 style={{ width: `${getDisplayedUsagePercentage(window.used, display)}%` }}
               />
             </div>
-            <span className="w-8 shrink-0 text-right tabular-nums">
+            <span
+              className={`w-8 shrink-0 text-right tabular-nums ${SEVERITY_TEXT_CLASS[getUsageSeverity(window.used, rule)]}`}
+            >
               {formatBareUsagePercentage(window.used, display, t)}
             </span>
             <span className="w-11 shrink-0 break-all text-right tabular-nums">{resetDuration}</span>

@@ -34,9 +34,16 @@ try {
             if (rows.length < 4) {
               out.push(`expected 4 queue rows, got ${rows.length}`)
             }
+            // Why a canvas: computed colours come back as oklch() or color(), not only rgb().
+            const paint = document.createElement('canvas').getContext('2d', {
+              willReadFrequently: true
+            })
             const rgba = (value) => {
-              const [r, g, b, a = 1] = value.match(/[\d.]+/g).map(Number)
-              return { r, g, b, a }
+              paint.clearRect(0, 0, 1, 1)
+              paint.fillStyle = value
+              paint.fillRect(0, 0, 1, 1)
+              const [r, g, b, a] = paint.getImageData(0, 0, 1, 1).data
+              return { r, g, b, a: a / 255 }
             }
             // The card's painted colour: every translucent background from the page down, stacked.
             const backdrop = (element) => {

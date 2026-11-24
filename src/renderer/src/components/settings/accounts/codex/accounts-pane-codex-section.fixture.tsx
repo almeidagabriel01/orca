@@ -40,7 +40,13 @@ export const signedIn = defineFixture({
     activeCodexAuthWarning: null,
     systemCodexMissingSignIn: false,
     systemCodexNeedsSignIn: false,
-    systemCodexIdentity: { email: 'dev@example.com', authKind: 'oauth' }
+    systemCodexIdentity: {
+      hasAuth: true,
+      authKind: 'oauth',
+      email: 'dev@example.com',
+      providerAccountId: null,
+      workspaceLabel: null
+    }
   })
 })
 

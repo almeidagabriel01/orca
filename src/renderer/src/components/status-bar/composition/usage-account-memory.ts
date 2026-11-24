@@ -12,8 +12,6 @@ export type AccountReadingMemory = Map<string, AccountReading>
 
 const STORAGE_KEY = 'orca.usage-account-readings.v1'
 const MAX_ACCOUNTS = 32
-/** A remembered reading older than this says when and where it was read. */
-export const STALE_READING_MS = 60 * 60_000
 
 /** "claude:me@x.com": a login's limits are the account's, the same on every host. */
 export function usageAccountIdentity(
@@ -80,8 +78,7 @@ function withoutResetWindows(p: ProviderRateLimits, now: number): ProviderRateLi
  * Each chip shows its account's newest reading from any host. A host that has never run the
  * account (Claude's "Updates when Claude runs") or is still fetching shows what another host last
  * read instead, so switching to a workspace on another host never blanks or flickers the chip.
- * A remembered reading loses the windows that reset since, and one older than an hour carries
- * where and when it was read. Calls `save` when a newer reading lands in `memory`.
+ * A remembered reading loses the windows that reset since, and carries where and when it was read. Calls `save` when a newer reading lands in `memory`.
  */
 export function withRememberedAccountReadings(
   chips: readonly UsageRowChip[],
@@ -111,8 +108,7 @@ export function withRememberedAccountReadings(
     if (!hasUsageWindows(p)) {
       return chip
     }
-    const stale = now - p.updatedAt > STALE_READING_MS
-    return { ...chip, p, ...(stale ? { readOn: { host: known.host, at: p.updatedAt } } : {}) }
+    return { ...chip, p, readOn: { host: known.host, at: p.updatedAt } }
   })
   if (changed) {
     save?.(memory)

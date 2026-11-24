@@ -13,6 +13,7 @@ import {
   withRememberedAccountReadings
 } from '../composition/usage-account-memory'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
+import { formatTimeAgo } from './provider-usage-panel'
 import { UsageRow } from './UsageRosterPanel'
 import { UsageActivityRing, UsageRowSessionsScope } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
@@ -318,7 +319,7 @@ function hostChips(gabriel: ProviderRateLimits): UsageRowChip[] {
 function HostStrip({ label, chips }: { label: string; chips: UsageRowChip[] }): React.JSX.Element {
   return (
     <div className="flex h-8 items-center gap-3 whitespace-nowrap text-xs">
-      <span className="w-56 text-muted-foreground">{label}</span>
+      <span className="w-64 shrink-0 text-muted-foreground">{label}</span>
       {chips.map((chip) => (
         <ProviderSegment
           key={chip.id}
@@ -331,9 +332,13 @@ function HostStrip({ label, chips }: { label: string; chips: UsageRowChip[] }): 
           readOn={chip.readOn}
         />
       ))}
-      {chips.some((chip) => chip.readOn) ? (
-        <span className="text-[10px] text-muted-foreground">tooltip: “Read 3h ago on vps”</span>
-      ) : null}
+      {chips.map((chip) =>
+        chip.readOn ? (
+          <span key={`${chip.id}-tip`} className="text-[10px] text-muted-foreground">
+            tooltip: “Updated {formatTimeAgo(chip.readOn.at)} on {chip.readOn.host}”
+          </span>
+        ) : null
+      )}
     </div>
   )
 }
@@ -351,7 +356,7 @@ function restoredAfter(agoMs: number): AccountReadingMemory {
 }
 
 export const hostSwitch = defineFixture({
-  width: 980,
+  width: 1180,
   render: () => (
     <div className="flex flex-col bg-background px-3 py-2">
       <HostStrip label="VPS workspace (live)" chips={hostChips(AHEAD)} />

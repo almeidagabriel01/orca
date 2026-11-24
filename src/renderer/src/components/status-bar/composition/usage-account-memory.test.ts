@@ -99,7 +99,7 @@ describe('usage readings follow the account across hosts', () => {
     expect(loadAccountReadings({ getItem: () => '{broken' }).size).toBe(0)
   })
 
-  it('drops windows that reset since the reading and says when and where an old one was read', () => {
+  it('drops windows that reset since the reading and says when and where it was read', () => {
     const memory: AccountReadingMemory = new Map()
     const old = reading(84, 100)
     old.session = { ...old.session!, usedPercent: 97, resetsAt: NOW - 1 }
@@ -108,10 +108,10 @@ describe('usage readings follow the account across hosts', () => {
     expect(mac!.p.session).toBeNull()
     expect(mac!.p.weekly?.usedPercent).toBe(84)
     expect(mac!.readOn).toEqual({ host: 'vps', at: 100 })
-    // A recent reading needs no note, and one whose every window reset shows nothing old.
-    const fresh: AccountReadingMemory = new Map()
-    remember(hostChips(reading(84, NOW - 60_000), neverRan), fresh)
-    expect(remember(hostChips(neverRan, neverRan), fresh, 'Mac')[0]!.readOn).toBeUndefined()
+    // The host's own newer reading wins with no note; a reading whose every window reset shows nothing old.
+    expect(
+      remember(hostChips(reading(85, NOW), neverRan), memory, 'Mac')[0]!.readOn
+    ).toBeUndefined()
     const allReset = { ...old, weekly: { ...old.weekly!, resetsAt: NOW } }
     const reset: AccountReadingMemory = new Map([
       ['claude:gabriel@example.com', { p: allReset, host: 'vps' }]

@@ -233,7 +233,7 @@ type ProviderSegmentProps = {
   selected?: boolean
   /** Agents billing this chip's account; working or waiting ones ring its icon. */
   sessions?: readonly UsageAgentSession[]
-  /** An old reading from another host: dimmed, its tooltip says where and when. */
+  /** A reading from another host: its tooltip says where and when. */
   readOn?: UsageReadOn
 }
 

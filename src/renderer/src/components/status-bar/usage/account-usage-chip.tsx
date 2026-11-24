@@ -8,25 +8,21 @@ import { formatResetsInCaption } from './usage-reset-caption'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
 import { formatPaceSummary, getReadingPace } from './usage-pace-caption'
 import { formatTimeAgo } from './provider-usage-panel'
-import { cn } from '@/lib/class-names'
 
-/** Where and when an old reading from another host was taken. */
+/** Where and when a reading from another host was taken. */
 export type UsageReadOn = { host: string; at: number }
 
 function useReadOnLine(readOn: UsageReadOn | undefined): string | null {
   const t = useTranslate()
   return readOn
-    ? t('components.status-bar.usage.accounts.readOn', 'Read {{time}} on {{host}}', {
+    ? t('components.status-bar.usage.accounts.readOn', 'Updated {{time}} on {{host}}', {
         time: formatTimeAgo(readOn.at, t),
         host: readOn.host
       })
     : null
 }
 
-// Why dimmed: an old reading from another host is a hint, not the account's current usage.
-const READ_ON_CLASS = 'opacity-60'
-
-/** A single provider chip showing an old reading from another host. */
+/** A single provider chip showing another host's reading: same look, the tooltip says where. */
 export function ReadOnChip({
   readOn,
   children
@@ -35,11 +31,7 @@ export function ReadOnChip({
   children: React.ReactNode
 }): React.JSX.Element {
   return (
-    <span
-      data-usage-read-on=""
-      title={useReadOnLine(readOn) ?? undefined}
-      className={READ_ON_CLASS}
-    >
+    <span data-usage-read-on="" title={useReadOnLine(readOn) ?? undefined}>
       {children}
     </span>
   )
@@ -111,10 +103,7 @@ export function AccountUsageChip({
       data-usage-read-on={readOn ? '' : undefined}
       title={[heading, ...lines, readOnLine].filter(Boolean).join('\n')}
       onPointerEnter={() => setNow(Date.now())}
-      className={cn(
-        'inline-flex h-5 items-center rounded border border-border px-1.5',
-        readOn && READ_ON_CLASS
-      )}
+      className="inline-flex h-5 items-center rounded border border-border px-1.5"
     >
       {children}
     </span>

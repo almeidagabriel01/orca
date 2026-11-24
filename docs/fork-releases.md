@@ -73,6 +73,11 @@ for updates, or by hand.
 
 Each sync first re-enables `fork-release.yml` if anything disabled it, and says so in the run summary.
 
+Before merging, a sync checks that `release/fork-next` (where fork work may wait before it reaches
+`fork-main`) is already in `fork-main`. If it is not, nothing is merged, pushed or released, and the
+`upstream-sync` issue says so: merge `release/fork-next` into `fork-main`, then run the sync again.
+On 2026-11-24 a sync released `1.4.273-fork.1` from a `fork-main` that lacked that branch's work.
+
 ## GitHub secrets
 
 Add these under Settings → Secrets and variables → Actions, with `gh secret set NAME` or the web

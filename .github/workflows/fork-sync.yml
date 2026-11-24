@@ -80,9 +80,22 @@ jobs:
           echo "commit=$(git rev-parse upstream/main)" >> "$GITHUB_OUTPUT"
           echo "Upstream $tag is newer than fork base $base."
 
+      # The fork's own work may wait on release/fork-next before it reaches fork-main; a sync that
+      # released without it would replace installed builds with ones missing those features.
+      - name: Require fork work to be in fork-main
+        id: forkwork
+        if: steps.upstream.outputs.newer == 'true'
+        run: |
+          set -euo pipefail
+          if git fetch --no-tags origin release/fork-next 2>/dev/null &&
+            ! git merge-base --is-ancestor FETCH_HEAD HEAD; then
+            echo "::error::release/fork-next has commits fork-main lacks. Merge it into fork-main, then run the sync again."
+            exit 1
+          fi
+
       - name: Merge upstream main
         id: merge
-        if: steps.upstream.outputs.newer == 'true'
+        if: steps.forkwork.outcome == 'success'
         env:
           UPSTREAM: ${{ steps.upstream.outputs.upstream }}
         run: |
@@ -183,6 +196,7 @@ jobs:
           UPSTREAM: ${{ steps.upstream.outputs.upstream }}
           COMMIT: ${{ steps.upstream.outputs.commit }}
           CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+          FORKWORK: ${{ steps.forkwork.outcome }}
           MERGE: ${{ steps.merge.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           TYPECHECK: ${{ steps.typecheck.outcome }}
@@ -197,7 +211,7 @@ jobs:
             details="$(printf -- '- `%s`\n' $CONFLICTS)"
           else
             failed=""
-            for step in "merge:$MERGE" "install:$INSTALL" "typecheck (pnpm tc):$TYPECHECK" "fork feature tests:$TESTS" "push to $FORK_BRANCH:$PUSH" "release dispatch:$RELEASE"; do
+            for step in "release/fork-next in fork-main:$FORKWORK" "merge:$MERGE" "install:$INSTALL" "typecheck (pnpm tc):$TYPECHECK" "fork feature tests:$TESTS" "push to $FORK_BRANCH:$PUSH" "release dispatch:$RELEASE"; do
               [[ "${step##*:}" == failure ]] && failed="${step%:*}"
             done
             reason="Verificação falhou: ${failed:-veja a run}."

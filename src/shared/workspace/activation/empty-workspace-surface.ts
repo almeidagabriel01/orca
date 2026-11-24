@@ -62,3 +62,9 @@ export function emptyWorkspaceAgentLaunchSurface(
       ? { requestedSurface: 'terminal' }
       : {}
 }
+
+/** Whether a host's choice opens something other than its usual first shell, so it seeds none. */
+export function emptyWorkspaceSkipsHostShell(settings: EmptyWorkspaceSurfaceSettings): boolean {
+  const surface = normalizeEmptyWorkspaceSurface(settings.emptyWorkspaceSurface)
+  return surface !== undefined && surface !== 'new-terminal'
+}

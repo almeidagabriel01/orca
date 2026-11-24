@@ -41,12 +41,12 @@ export function renderAgentsSettingsSection(
               hostScope={model.settingsHostScope}
             />
           ) : null}
-          {model.settingsHostScope.target.kind === 'local' ? (
-            <EmptyWorkspaceSurfaceSection
-              settings={model.settings}
-              updateSettings={model.updateSettings}
-            />
-          ) : null}
+          <EmptyWorkspaceSurfaceSection
+            key={runtimeTargetEnvironmentId(model.settingsHostScope.target) ?? 'local'}
+            settings={model.settings}
+            updateSettings={model.updateSettings}
+            hostScope={model.settingsHostScope}
+          />
           <AgentsPane
             settings={model.settings}
             updateSettings={model.updateSettings}

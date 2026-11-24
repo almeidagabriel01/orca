@@ -72,6 +72,8 @@ export async function startRuntimeLocalWorktreeTerminals(args: {
   startupLaunchRuntime?: AgentLaunchRuntime | Error
   createdWithAgent?: TuiAgent
   promisedAgentChat?: boolean
+  /** The host's empty-workspace choice is not a shell; the client that opens the workspace shows it. */
+  emptySurfaceSkipsShell?: boolean
   draftPaste?: WorktreeStartupDraftPaste
   warning?: string
   ports: RuntimeLocalWorktreeTerminalPorts
@@ -286,6 +288,7 @@ function callerProvidesInitialSurface(
   // Background agent creates already leave their initial surface to the caller.
   return (
     args.promisedAgentChat === true ||
+    args.emptySurfaceSkipsShell === true ||
     (args.createdWithAgent !== undefined &&
       args.request.activate !== true &&
       args.request.runHooks !== true)

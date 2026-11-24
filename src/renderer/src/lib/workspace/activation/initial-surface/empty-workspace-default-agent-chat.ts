@@ -12,6 +12,7 @@ import { pickTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-
 import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
 import { acquireAgentLaunchChoices } from '../../../agent-session/launch/inventory/host-chat-program-acquisition'
 import { useAppStore } from '@/store/index'
+import { emptyWorkspaceSettingsFor } from './host-empty-workspace-settings'
 import type { AppState } from '@/store/types'
 import {
   getAgentDetectionTargetKeyForWorktree,
@@ -44,8 +45,13 @@ type DefaultChatHost = {
   surface?: EmptyWorkspaceAgentSurface
 }
 
-function agentSurface(state: AppState): { surface?: EmptyWorkspaceAgentSurface } {
-  const surface = normalizeEmptyWorkspaceAgentSurface(state.settings?.emptyWorkspaceAgentSurface)
+function agentSurface(
+  state: AppState,
+  worktreeId: string
+): { surface?: EmptyWorkspaceAgentSurface } {
+  const surface = normalizeEmptyWorkspaceAgentSurface(
+    emptyWorkspaceSettingsFor(state, worktreeId).emptyWorkspaceAgentSurface
+  )
   return surface ? { surface } : {}
 }
 
@@ -57,7 +63,9 @@ const preferredChat = (host: DefaultChatHost | undefined): 'chat' | undefined =>
 function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost | undefined {
   // Why the owner's copy: a paired host keeps its own default agent.
   const preferences = readAgentLaunchPreferencesForWorktree(state, worktreeId)
-  const surface = normalizeEmptyWorkspaceSurface(state.settings?.emptyWorkspaceSurface)
+  const surface = normalizeEmptyWorkspaceSurface(
+    emptyWorkspaceSettingsFor(state, worktreeId).emptyWorkspaceSurface
+  )
   const explicit = emptyWorkspaceSurfaceAgent(surface)
   // A + menu item or "nothing" opens no agent.
   if (surface !== undefined && !explicit) {
@@ -78,7 +86,7 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
       target,
       preferences: { ...preferences, defaultTuiAgent: chosen },
       explicit: explicit !== null,
-      ...(explicit ? agentSurface(state) : {})
+      ...(explicit ? agentSurface(state, worktreeId) : {})
     }
   )
 }

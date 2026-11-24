@@ -25,6 +25,7 @@ import {
 } from '@/lib/workspace/activation/initial-surface/worktree-setup-issue-command-queue'
 import { applyDefaultTerminalTabs } from '@/lib/workspace/activation/initial-surface/worktree-default-terminal-tabs'
 import { openDefaultAgentChatInEmptyWorkspace } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-agent-chat'
+import { emptyWorkspaceSettingsFor } from './host-empty-workspace-settings'
 import { openEmptyWorkspaceMenuSurface } from './empty-workspace-menu-surface'
 import { normalizeEmptyWorkspaceSurface } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { isEmptyWorkspaceDefaultSurfacePending } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims'
@@ -247,7 +248,7 @@ export function ensureWorktreeHasInitialTerminal(
         { ...opts, seedUserDefaultSurface: false }
       ) !== null
     const surface = normalizeEmptyWorkspaceSurface(
-      useAppStore.getState().settings?.emptyWorkspaceSurface
+      emptyWorkspaceSettingsFor(useAppStore.getState(), worktreeId).emptyWorkspaceSurface
     )
     // Why: the user chose what an empty workspace shows; explicit launch work above still runs.
     if (surface === 'nothing' || openEmptyWorkspaceMenuSurface(worktreeId, surface, seedShell)) {

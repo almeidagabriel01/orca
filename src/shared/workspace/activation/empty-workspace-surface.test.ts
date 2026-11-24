@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   emptyWorkspaceAgentLaunchSurface,
+  emptyWorkspaceSkipsHostShell,
   emptyWorkspaceSurfaceAgent,
   normalizeEmptyWorkspaceAgentSurface,
   normalizeEmptyWorkspaceSurface
@@ -35,5 +36,15 @@ describe('empty workspace agent surface', () => {
     expect(emptyWorkspaceAgentLaunchSurface('chat')).toEqual({ preferredSurface: 'chat' })
     expect(emptyWorkspaceAgentLaunchSurface('terminal')).toEqual({ requestedSurface: 'terminal' })
     expect(emptyWorkspaceAgentLaunchSurface(undefined)).toEqual({})
+  })
+})
+
+describe('emptyWorkspaceSkipsHostShell', () => {
+  it('skips the host shell only for a choice that is not a shell', () => {
+    expect(emptyWorkspaceSkipsHostShell({})).toBe(false)
+    expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'new-terminal' })).toBe(false)
+    expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'agent:claude' })).toBe(true)
+    expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'nothing' })).toBe(true)
+    expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'new-browser' })).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from 'react'
+import { useMemo, type JSX, type ReactNode } from 'react'
 import { Ban, Check, ChevronDown, FilePlus, Globe, Smartphone, TerminalSquare } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { getAgentCatalog } from '@/lib/agent-catalog/agent-catalog'
@@ -37,6 +37,17 @@ import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui
 import { SettingsRow, SettingsSegmentedControl } from '../../form-controls/SettingsFormControls'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { EMPTY_WORKSPACE_SURFACE_SECTION_ID } from '../agents-search'
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { readHostOwnedSetting } from '../../../../../../shared/settings/host-owned-settings'
+import type { SettingsHostScope } from '../../host-scope/settings-host-scope'
+import {
+  getHostSettingUnsupportedNote,
+  getHostSettingUpdateFailedMessage,
+  useServerSettingValue,
+  useSettingsHostLabel,
+  type HostSettingsReply
+} from '../../host-scope/use-host-setting'
+import { rememberHostEmptyWorkspaceSettings } from '@/lib/workspace/activation/initial-surface/host-empty-workspace-settings'
 import {
   emptyWorkspaceAgentMissing,
   emptyWorkspaceSurfaceOptions
@@ -57,18 +68,92 @@ type SectionProps = {
   updateSettings: (updates: Partial<GlobalSettings>) => void
 }
 
-/** What clicking a workspace with no tabs opens: any + menu item, an installed agent, or nothing. */
-export function EmptyWorkspaceSurfaceSection(props: SectionProps): JSX.Element {
-  // The + menu's own agent inventory for this computer.
-  const { model } = useAgentMenuObservation(null, true, LOCAL_AGENTS)
+type HostChoice = Pick<
+  GlobalSettings,
+  'emptyWorkspaceSurface' | 'emptyWorkspaceAgentSurface' | 'agentDefaultSurface'
+>
+
+/** The host's own choice; undefined for an older host that has none. */
+function readHostChoice(settings: HostSettingsReply): HostChoice | undefined {
+  const surface = readHostOwnedSetting(settings, 'emptyWorkspaceSurface')
+  if (surface === undefined) {
+    return undefined
+  }
+  return {
+    emptyWorkspaceSurface: surface,
+    // A host reports a default how even with no agent chosen; then Open agents as decides.
+    ...(emptyWorkspaceSurfaceAgent(surface)
+      ? { emptyWorkspaceAgentSurface: readHostOwnedSetting(settings, 'emptyWorkspaceAgentSurface') }
+      : {}),
+    agentDefaultSurface: readHostOwnedSetting(settings, 'agentDefaultSurface')
+  }
+}
+
+/**
+ * What clicking a workspace with no tabs opens: any + menu item, an installed agent, or nothing.
+ * Per host, like Open agents as: the picked host's workspaces follow its own choice.
+ */
+export function EmptyWorkspaceSurfaceSection({
+  hostScope,
+  ...props
+}: SectionProps & { hostScope: SettingsHostScope }): JSX.Element {
+  const t = useTranslate()
+  const host = useSettingsHostLabel(hostScope.target)
+  const environmentId =
+    hostScope.target.kind === 'environment' ? hostScope.target.environmentId : null
+  const remote = useServerSettingValue({
+    environmentId,
+    read: readHostChoice,
+    updateFailedMessage: getHostSettingUpdateFailedMessage(host, t)
+  })
+  const agentsTarget = useMemo(
+    () => (environmentId ? ({ kind: 'runtime', environmentId } as const) : LOCAL_AGENTS),
+    [environmentId]
+  )
+  // The + menu's own agent inventory for the picked host.
+  const { model } = useAgentMenuObservation(null, true, agentsTarget)
   const entries = useAgentPickerInventoryEntries(
     useAgentLaunchPickerInventorySource(undefined, model, true)
   )
+  const agentEntries = model.state === 'settled' ? entries : null
+  const simulatorAvailable = isMacOs && props.settings.mobileEmulatorEnabled !== false
+  if (!environmentId) {
+    return (
+      <EmptyWorkspaceSurfaceView
+        {...props}
+        agentEntries={agentEntries}
+        simulatorAvailable={simulatorAvailable}
+      />
+    )
+  }
+  if (remote.setting.state !== 'ready') {
+    return (
+      <div id={EMPTY_WORKSPACE_SURFACE_SECTION_ID} className="scroll-mt-8">
+        <SettingsGroup>
+          <SettingsRow
+            label={t('settings.agents.emptyWorkspace.title', 'Opening a workspace with no tabs')}
+            description={
+              remote.setting.state === 'unsupported' ? getHostSettingUnsupportedNote(host, t) : null
+            }
+            control={remote.setting.state === 'loading' ? <LoadingSpinner /> : null}
+          />
+        </SettingsGroup>
+      </div>
+    )
+  }
+  const choice = remote.setting.value
+  const write = (updates: Partial<GlobalSettings>): void => {
+    const next = { ...choice, ...updates }
+    rememberHostEmptyWorkspaceSettings(environmentId, next)
+    void remote.update(updates, next)
+  }
   return (
     <EmptyWorkspaceSurfaceView
-      {...props}
-      agentEntries={model.state === 'settled' ? entries : null}
-      simulatorAvailable={isMacOs && props.settings.mobileEmulatorEnabled !== false}
+      // Only the host's own values decide; this computer's per-agent choices do not apply there.
+      settings={{ ...props.settings, nativeChatProviders: undefined, ...choice }}
+      updateSettings={write}
+      agentEntries={agentEntries}
+      simulatorAvailable={simulatorAvailable}
     />
   )
 }

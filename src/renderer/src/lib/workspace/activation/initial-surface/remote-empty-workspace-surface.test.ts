@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => {
   return {
     settings,
     openMenu: vi.fn<(surface?: string) => boolean>(),
+    refresh: vi.fn<() => Promise<void>>(),
     opensChat: vi.fn<() => boolean>(),
     loadDetection: vi.fn<() => Promise<void>>(),
     openChat:
@@ -24,6 +25,11 @@ vi.mock('@/store/index', () => ({
       return () => mocks.listeners.delete(listener)
     }
   }
+}))
+vi.mock('./host-empty-workspace-settings', () => ({
+  // The owning host's choice (the VPS's own Settings), read before deciding.
+  emptyWorkspaceSettingsFor: () => mocks.settings,
+  refreshHostEmptyWorkspaceSettings: () => mocks.refresh()
 }))
 vi.mock('./empty-workspace-menu-surface', () => ({
   openEmptyWorkspaceMenuSurface: (_id: string, surface: string | undefined) =>
@@ -58,24 +64,32 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
         (surface?: string) =>
           surface === 'new-browser' || surface === 'new-markdown' || surface === 'new-simulator'
       )
+    mocks.refresh.mockReset().mockResolvedValue(undefined)
     mocks.opensChat.mockReset().mockReturnValue(false)
     mocks.loadDetection.mockReset().mockResolvedValue(undefined)
     mocks.openChat.mockReset().mockReturnValue({ primaryTabId: null })
   })
 
-  it('opens nothing when Settings chose nothing', () => {
+  it('opens nothing when the host chose nothing', async () => {
     mocks.settings = { emptyWorkspaceSurface: 'nothing' }
     const shell = vi.fn()
     expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
+    await vi.waitFor(() => expect(mocks.pending.has(WT)).toBe(false))
     expect(shell).not.toHaveBeenCalled()
     expect(mocks.openMenu).not.toHaveBeenCalled()
   })
 
-  it('opens the chosen + menu item instead of a shell', () => {
-    mocks.settings = { emptyWorkspaceSurface: 'new-browser' }
+  it('reads the host choice before opening its + menu item, holding other seeders', async () => {
+    mocks.settings = {}
+    let answer!: () => void
+    mocks.refresh.mockReturnValue(new Promise<void>((r) => (answer = r)))
     const shell = vi.fn()
     expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
-    expect(mocks.openMenu).toHaveBeenCalledWith('new-browser')
+    expect(mocks.pending.has(WT)).toBe(true)
+    mocks.settings = { emptyWorkspaceSurface: 'new-browser' }
+    answer()
+    await vi.waitFor(() => expect(mocks.openMenu).toHaveBeenCalledWith('new-browser'))
+    expect(mocks.pending.has(WT)).toBe(false)
     expect(shell).not.toHaveBeenCalled()
   })
 
@@ -87,6 +101,7 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
     const shell = vi.fn()
     expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
     expect(mocks.pending.has(WT)).toBe(true)
+    await vi.waitFor(() => expect(mocks.loadDetection).toHaveBeenCalled())
     expect(mocks.openChat).not.toHaveBeenCalled()
     // A second seeder while the first waits opens nothing more.
     expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
@@ -113,12 +128,14 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
     await vi.waitFor(() => expect(shell).toHaveBeenCalledTimes(1))
   })
 
-  it('leaves the shell to the caller for New Terminal or no agent to open', () => {
+  it('opens the shell for New Terminal, no agent to open, or an unreadable host', async () => {
     const shell = vi.fn()
     mocks.settings = { emptyWorkspaceSurface: 'new-terminal' }
-    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/other', shell)).toBe(false)
+    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/a', shell)).toBe(true)
+    await vi.waitFor(() => expect(shell).toHaveBeenCalledTimes(1))
     mocks.settings = {}
-    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/other', shell)).toBe(false)
-    expect(shell).not.toHaveBeenCalled()
+    mocks.refresh.mockRejectedValue(new Error('offline'))
+    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/b', shell)).toBe(true)
+    await vi.waitFor(() => expect(shell).toHaveBeenCalledTimes(2))
   })
 })

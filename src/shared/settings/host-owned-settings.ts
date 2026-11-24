@@ -1,6 +1,10 @@
 import * as z from 'zod'
 import type { GlobalSettings } from './global-settings-types'
 import { DEFAULT_NATIVE_CHAT_IDLE_STOP_MINUTES } from '../native-chat/settings/native-chat-idle-stop'
+import {
+  normalizeEmptyWorkspaceSurface,
+  type EmptyWorkspaceSurface
+} from '../workspace/activation/empty-workspace-surface'
 
 /** Settings a host reads for its own work, so Settings edits them on the host its picker names. */
 const HostOwnedSettingsSchema = z.object({
@@ -18,6 +22,11 @@ const HostOwnedSettingsSchema = z.object({
   nativeChatShellEnvironmentVariables: z.array(z.string()),
   // Launches the host starts itself (CLI, orchestration workers); desktop launches send their own.
   agentDefaultSurface: z.enum(['chat', 'terminal']),
+  // What a workspace on this host opens with no tabs, from any client, and how its agent opens.
+  emptyWorkspaceSurface: z.custom<EmptyWorkspaceSurface>(
+    (value) => normalizeEmptyWorkspaceSurface(value) === value
+  ),
+  emptyWorkspaceAgentSurface: z.enum(['chat', 'terminal']),
   // Whose sign-in chats on the Google account method use: 'auto' follows what the host has (see
   // antigravityChatRoute), 'agy' is agy's own login, 'orca' Orca's built-in sign-in on its server.
   antigravityGoogleSignIn: z.enum(['auto', 'agy', 'orca']),
@@ -42,6 +51,8 @@ const HOST_OWNED_SETTING_FALLBACKS: HostOwnedSettings = {
   nativeChatInheritShellEnvironment: true,
   nativeChatShellEnvironmentVariables: [],
   agentDefaultSurface: 'terminal',
+  emptyWorkspaceSurface: 'new-terminal',
+  emptyWorkspaceAgentSurface: 'terminal',
   antigravityGoogleSignIn: 'auto',
   antigravityServerAutoUpdateEnabled: true
 }

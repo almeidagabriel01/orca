@@ -35,6 +35,7 @@ import { getRepoExecutionHostId } from '../../../../shared/execution-host/execut
 import { applyWorkspaceCreatePluginHook } from '../../../plugins/hooks/workspace-create-plugin-hook'
 import { withProjectWorktreeCreate } from '../../../workspaces/creation/worktree-create-in-flight'
 import { createdWorktreeLifecycleIdentity } from '../lifecycle/worktree-lifecycle-event'
+import { emptyWorkspaceSkipsHostShell } from '../../../../shared/workspace/activation/empty-workspace-surface'
 
 export abstract class OrcaRuntimeWithCreateManagedWorktree extends OrcaRuntimeWithGroupFolderSetup {
   abstract resolveLineageForWorktreeCreate(
@@ -226,6 +227,7 @@ export abstract class OrcaRuntimeWithCreateManagedWorktree extends OrcaRuntimeWi
       startupLaunchRuntime,
       createdWithAgent: effectiveCreatedWithAgent,
       promisedAgentChat: args.promisedAgentChat,
+      emptySurfaceSkipsShell: emptyWorkspaceSkipsHostShell(createSettings),
       draftPaste: effectiveDraftPaste,
       warning,
       ports: this.localWorktreeTerminalPorts(args, activationCallbacks.local, worktree)

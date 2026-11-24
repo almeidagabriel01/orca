@@ -132,8 +132,9 @@ function DropdownMenuItem({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
   inset?: boolean
   /** `launch`: rows in the shared agent menu; at least 36px tall in either density.
-   *  `sortable`: compact drag-handle rows that lift while `data-dragging` is set. */
-  variant?: 'default' | 'destructive' | 'launch' | 'sortable' | 'create'
+   *  `sortable`: compact drag-handle rows that lift while `data-dragging` is set.
+   *  `icon-row`: a row of icon buttons; the active icon, not the row, carries the highlight. */
+  variant?: 'default' | 'destructive' | 'launch' | 'sortable' | 'create' | 'icon-row'
   density?: MenuDensity
 }) {
   const rowDensity = useMenuDensity(density)
@@ -145,6 +146,7 @@ function DropdownMenuItem({
       className={cn(
         menuItemVariants({ density: rowDensity, menu: 'dropdown' }),
         'data-[variant=create]:rounded-[7px] data-[variant=create]:px-2 data-[variant=create]:py-1.5 data-[variant=create]:text-[12px] data-[variant=create]:leading-5 data-[variant=create]:font-medium',
+        'data-[variant=icon-row]:gap-0.5 data-[variant=icon-row]:rounded-[9px] data-[variant=icon-row]:p-0 data-[variant=icon-row]:focus:bg-transparent',
         className
       )}
       onPointerMove={keepFocusWhileMenuCloses(onPointerMove)}

@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { terminalPendingLabel } from './launch-menu/new-tab-agent-menu-model'
 import { memo, useId } from 'react'
 import { Button } from '@/components/ui/button'
@@ -56,7 +57,8 @@ export const AgentPickerMenuRow = memo(function AgentPickerMenuRow({
   shortcut,
   onSelectAgent,
   isDefault = false,
-  onSetDefault
+  onSetDefault,
+  checked = false
 }: {
   entry: AgentPickerEntry
   draftScope?: object
@@ -87,6 +89,8 @@ export const AgentPickerMenuRow = memo(function AgentPickerMenuRow({
   isDefault?: boolean
   /** Base agent rows only; setup rows are presets, not default-agent choices. */
   onSetDefault?: (agent: AgentPickerEntry['agent']) => void
+  /** Marks the chosen agent where the menu picks one instead of launching it. */
+  checked?: boolean
 }) {
   const t = useTranslate()
   useUiLanguageRevision()
@@ -116,6 +120,7 @@ export const AgentPickerMenuRow = memo(function AgentPickerMenuRow({
           className="min-h-9"
           disabled={disabled || launchBlocked || !entry.surfaces.length}
           data-search-default={searchDefault || undefined}
+          aria-current={checked || undefined}
           aria-description={launchBlocked ? terminalPendingLabel(t) : undefined}
           onSelect={(event) => {
             onSelectAgent?.(entry.agent)
@@ -137,6 +142,7 @@ export const AgentPickerMenuRow = memo(function AgentPickerMenuRow({
             <span className="text-xs text-muted-foreground">{entrySetupLabel(entry)}</span>
           ) : null}
           {shortcut ? <DropdownMenuShortcut>{shortcut}</DropdownMenuShortcut> : null}
+          {checked ? <Check className="size-3.5" aria-hidden="true" /> : null}
         </DropdownMenuItem>
       </AgentDefaultContextMenu>
     )

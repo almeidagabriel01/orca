@@ -1,9 +1,7 @@
 import type { TabCreateMenuOption } from '@/components/tab-bar/create-menu/tab-create-menu-options'
 import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
-import {
-  agentMenuRowReady,
-  type NewTabAgentMenuRow
-} from '../../../../../../shared/agent-launch/picker/agent-launch-picker-rows'
+import type { AgentPickerEntry } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
+import { agentPickerEntryReady } from '../../../../../../shared/agent-launch/picker/agent-launch-picker-ready'
 import {
   EMPTY_WORKSPACE_MENU_SURFACES,
   type EmptyWorkspaceMenuSurface,
@@ -12,26 +10,29 @@ import {
 
 export type EmptyWorkspaceSurfaceOption =
   | { value: EmptyWorkspaceMenuSurface; kind: 'menu'; label: string }
-  | { value: `agent:${TuiAgent}`; kind: 'agent'; agent: TuiAgent; label: string }
+  | {
+      value: `agent:${TuiAgent}`
+      kind: 'agent'
+      agent: TuiAgent
+      label: string
+    }
 
 /** The + menu's own items an empty workspace can open, then each agent the host runs now. */
 export function emptyWorkspaceSurfaceOptions(
   menuOptions: readonly TabCreateMenuOption[],
-  agentRows: readonly NewTabAgentMenuRow[],
-  agentLabel: (agent: TuiAgent) => string
+  agentEntries: readonly AgentPickerEntry[]
 ): EmptyWorkspaceSurfaceOption[] {
   const menu = menuOptions.flatMap((option): EmptyWorkspaceSurfaceOption[] => {
     const value = EMPTY_WORKSPACE_MENU_SURFACES.find((surface) => surface === option.id)
     return value ? [{ value, kind: 'menu', label: option.label }] : []
   })
-  const agents = [...new Set(agentRows.filter(agentMenuRowReady).map((row) => row.agent))]
   return [
     ...menu,
-    ...agents.map((agent): EmptyWorkspaceSurfaceOption => ({
-      value: `agent:${agent}`,
+    ...agentEntries.filter(agentPickerEntryReady).map((entry): EmptyWorkspaceSurfaceOption => ({
+      value: `agent:${entry.agent}`,
       kind: 'agent',
-      agent,
-      label: agentLabel(agent)
+      agent: entry.agent,
+      label: entry.label
     }))
   ]
 }

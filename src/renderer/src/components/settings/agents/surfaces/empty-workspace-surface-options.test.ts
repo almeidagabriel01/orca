@@ -4,6 +4,9 @@ import {
   emptyWorkspaceAgentMissing,
   emptyWorkspaceSurfaceOptions
 } from './empty-workspace-surface-options'
+import type { AgentPickerEntry } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
+import type { NewTabAgentMenuRow } from '../../../../../../shared/agent-launch/picker/agent-launch-picker-rows'
+import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
 
 describe('emptyWorkspaceSurfaceOptions', () => {
   const menu = buildTabCreateMenuOptions({
@@ -14,17 +17,17 @@ describe('emptyWorkspaceSurfaceOptions', () => {
     simulatorIsGoTo: false,
     terminalOnly: false
   })
-  const options = emptyWorkspaceSurfaceOptions(
-    menu,
-    [
+  const entry = (agent: TuiAgent, rows: NewTabAgentMenuRow[]) =>
+    ({ agent, label: agent, rows }) as unknown as AgentPickerEntry
+  const options = emptyWorkspaceSurfaceOptions(menu, [
+    entry('claude', [
       { kind: 'chat', agent: 'claude' },
-      { kind: 'cli', agent: 'claude' },
-      { kind: 'cli', agent: 'codex' },
-      { kind: 'chat', agent: 'grok', setup: true },
-      { kind: 'chat-unavailable', agent: 'pi', reason: 'not-installed' }
-    ],
-    (agent) => agent
-  )
+      { kind: 'cli', agent: 'claude' }
+    ]),
+    entry('codex', [{ kind: 'cli', agent: 'codex' }]),
+    entry('grok', [{ kind: 'chat', agent: 'grok', setup: true }]),
+    entry('pi', [{ kind: 'chat-unavailable', agent: 'pi', reason: 'not-installed' }])
+  ])
 
   it("offers the + menu's items, then each agent the host runs once", () => {
     expect(options.map((option) => option.value)).toEqual([

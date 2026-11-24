@@ -2,7 +2,7 @@ import {
   selectWorktreesByRepo,
   selectFolderWorkspaces
 } from '@/store/workspaces/catalog/workspace-record-fields'
-import { useEffect, useRef, useState, type ComponentProps, type Ref } from 'react'
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode, type Ref } from 'react'
 import { useAppStore } from '@/store/index'
 import { parseExecutionHostId } from '../../../../shared/execution-host/execution-host'
 import { Input } from '@/components/ui/input'
@@ -92,7 +92,10 @@ export function AgentLaunchPickerMenu({
   onSetDefault,
   onSelectBlankTerminal,
   choices,
-  collapseUnready = false
+  collapseUnready = false,
+  checkedAgent,
+  header,
+  footer
 }: {
   model?: NewTabAgentMenuModel
   draftScope?: object
@@ -117,6 +120,11 @@ export function AgentLaunchPickerMenu({
   choices?: readonly AgentPickerChoice[]
   /** Agents the host can't run yet wait behind "Show all agents" until a search names them. */
   collapseUnready?: boolean
+  /** Picking a default instead of launching: the chosen agent carries a check. */
+  checkedAgent?: AgentPickerEntry['agent'] | null
+  /** Rows between the search and the agents, e.g. the create icons a search narrows. */
+  header?: (query: string) => ReactNode
+  footer?: ReactNode
 }) {
   const t = useTranslate()
   useRetiredAgentPickerDrafts(entries, draftScope, mode, setupDisabled)
@@ -226,6 +234,7 @@ export function AgentLaunchPickerMenu({
           />
         </div>
       ) : null}
+      {header?.(query)}
       <AgentPickerResultsScroller>
         <div data-agent-picker-agent-results>
           {showBlankTerminal ? (
@@ -264,6 +273,7 @@ export function AgentLaunchPickerMenu({
                 onSelectAgent={onSelectAgent}
                 isDefault={defaultAgent === entry.agent}
                 onSetDefault={onSetDefault}
+                checked={checkedAgent === entry.agent}
                 shortcut={mode !== 'select' ? shortcutLabels?.get(entry.agent) : undefined}
               />
             )
@@ -323,6 +333,7 @@ export function AgentLaunchPickerMenu({
           ) : null}
         </div>
       </AgentPickerResultsScroller>
+      {footer}
     </div>
   )
 }

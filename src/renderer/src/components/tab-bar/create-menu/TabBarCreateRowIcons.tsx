@@ -1,4 +1,5 @@
 import React from 'react'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/class-names'
 import { ShortcutKeyCombo } from '@/components/ui/ShortcutKeyCombo'
 import { formatShortcutKeyComboDetails } from '@/lib/keyboard/useShortcutLabel'
@@ -25,7 +26,8 @@ export function TabBarCreateRowIcons({
   onEscape,
   onHover,
   onPress,
-  onRun
+  onRun,
+  checkedIndex = null
 }: {
   items: readonly TabBarCreateRowItem[]
   highlightedIndex: number | null
@@ -38,6 +40,8 @@ export function TabBarCreateRowIcons({
   onHover: (index: number | null, pressed?: boolean) => void
   onPress: () => void
   onRun: (item: TabBarCreateRowItem) => void
+  /** Where the row picks a default: the chosen icon stays lit and carries a check. */
+  checkedIndex?: number | null
 }): React.JSX.Element {
   const keybindings = useAppStore((state) => state.keybindings)
   return (
@@ -60,6 +64,7 @@ export function TabBarCreateRowIcons({
       >
         {items.map((item, index) => {
           const highlighted = index === highlightedIndex
+          const checked = index === checkedIndex
           const [shortcut] = item.actionId
             ? formatShortcutKeyComboDetails(item.actionId, keybindings)
             : []
@@ -70,10 +75,11 @@ export function TabBarCreateRowIcons({
                   type="button"
                   tabIndex={-1}
                   aria-label={item.label}
+                  aria-pressed={checkedIndex === null ? undefined : checked}
                   data-create-row-item={item.id}
                   className={cn(
-                    'flex h-7 w-9 shrink-0 items-center justify-center rounded-[7px] text-muted-foreground outline-hidden',
-                    highlighted && CREATE_ROW_HIGHLIGHT_CLASS
+                    'relative flex h-7 w-9 shrink-0 items-center justify-center rounded-[7px] text-muted-foreground outline-hidden',
+                    (highlighted || checked) && CREATE_ROW_HIGHLIGHT_CLASS
                   )}
                   // Why move, not enter: scrolling slides icons under a resting cursor without a real hover.
                   onPointerMove={(event) => onHover(index, isPressedPointer(event))}
@@ -82,6 +88,12 @@ export function TabBarCreateRowIcons({
                   onClick={() => onRun(item)}
                 >
                   {item.icon}
+                  {checked ? (
+                    <Check
+                      aria-hidden="true"
+                      className="absolute right-0.5 bottom-0.5 size-2.5 text-foreground"
+                    />
+                  ) : null}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={6} onEscapeKeyDown={onEscape}>

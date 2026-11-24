@@ -7,7 +7,10 @@ import type { Translate } from '@/i18n/use-translate'
 import { translateSearchKeyword } from '../search/settings-search-keywords'
 import { SHOW_UI_LANGUAGE_SETTING } from '@/i18n/supported-languages'
 import { getStatusBarToggles } from './appearance-status-bar-search'
-import { getUsagePercentageDisplayEntry } from './appearance-usage-percentage-search'
+import {
+  getUsageColorRuleEntry,
+  getUsagePercentageDisplayEntry
+} from './appearance-usage-percentage-search'
 import { getStatusBarUsageFormatEntry } from './appearance-status-bar-usage-format-search'
 import { getMenuBarIconEntries, getSystemTrayEntries } from './appearance-system-presence-search'
 import { getReduceVisualEffectsEntries } from './appearance-reduce-visual-effects-search'
@@ -255,6 +258,7 @@ export function getTilingWindowModeEntry(t: Translate = translate): SettingsSear
 /** Search entries for every Status Bar control, including the per-provider toggles. */
 export const getStatusBarEntries = createLocalizedCatalog((): SettingsSearchEntry[] => [
   getUsagePercentageDisplayEntry(),
+  getUsageColorRuleEntry(),
   getStatusBarUsageFormatEntry(),
   ...getStatusBarToggles().map(({ title, description, keywords }) => ({
     title,

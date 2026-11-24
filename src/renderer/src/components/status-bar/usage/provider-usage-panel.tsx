@@ -40,6 +40,7 @@ import {
   SEVERITY_FILL_CLASS,
   SEVERITY_TEXT_CLASS
 } from './usage-pace-caption'
+import { useUsageColorRule } from './use-usage-color-rule'
 import { PaceLine } from './usage-pace-line'
 
 export function formatTimeAgo(ts: number, t: Translate = translate): string {
@@ -213,6 +214,7 @@ function ProviderRateLimitWindowSection({
 }): React.JSX.Element | null {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
+  const colorRule = useUsageColorRule()
   if (!window) {
     return null
   }
@@ -229,7 +231,7 @@ function ProviderRateLimitWindowSection({
         <UsageValue
           usedPercent={window.usedPercent}
           display={usagePercentageDisplay}
-          className={`shrink-0 font-semibold ${inverted ? textClass : SEVERITY_TEXT_CLASS[getWindowSeverity(p, window, now)] || textClass}`}
+          className={`shrink-0 font-semibold ${inverted ? textClass : SEVERITY_TEXT_CLASS[getWindowSeverity(p, window, now, colorRule)] || textClass}`}
         />
       </div>
       {/* Why: fill follows the selected percentage; its color is the window's pace severity. */}
@@ -239,7 +241,7 @@ function ProviderRateLimitWindowSection({
         tone="health"
         className="h-[6px] w-full"
         trackClassName={emptyBarClass}
-        fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, window, now)]}
+        fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, window, now, colorRule)]}
         paceTickPercent={paceTickPercent(pace, usagePercentageDisplay)}
       />
       {pace ? (

@@ -2,7 +2,7 @@ import {
   selectWorktreesByRepo,
   selectFolderWorkspaces
 } from '@/store/workspaces/catalog/workspace-record-fields'
-import { useEffect, useRef, useState, type ComponentProps, type Ref } from 'react'
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode, type Ref } from 'react'
 import { useAppStore } from '@/store/index'
 import { parseExecutionHostId } from '../../../../shared/execution-host/execution-host'
 import { Input } from '@/components/ui/input'
@@ -12,6 +12,7 @@ import { AgentDefaultContextMenu } from './agent-combobox-items'
 import { AgentPickerResultsScroller } from './AgentPickerResultsScroller'
 import { AgentPickerMenuRow, type AgentPickerMenuLaunch } from './AgentLaunchPickerMenuRow'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { collapseUnreadyAgentPickerEntries } from '../../../../shared/agent-launch/picker/agent-launch-picker-ready'
 import { choiceMatches, type AgentPickerChoice } from './agent-picker-search-rows'
 import { useTranslate } from '@/i18n/use-translate'
 import { retireAgentPickerDrafts, type AgentPickerSetupIdentity } from './AgentLaunchSetupButton'
@@ -90,7 +91,11 @@ export function AgentLaunchPickerMenu({
   defaultAgent,
   onSetDefault,
   onSelectBlankTerminal,
-  choices
+  choices,
+  collapseUnready = false,
+  checkedAgent,
+  header,
+  footer
 }: {
   model?: NewTabAgentMenuModel
   draftScope?: object
@@ -113,6 +118,13 @@ export function AgentLaunchPickerMenu({
   onSelectBlankTerminal?: () => void
   /** Non-agent rows; a search lists the ones it matches and Enter can pick them. */
   choices?: readonly AgentPickerChoice[]
+  /** Agents the host can't run yet wait behind "Show all agents" until a search names them. */
+  collapseUnready?: boolean
+  /** Picking a default instead of launching: the chosen agent carries a check. */
+  checkedAgent?: AgentPickerEntry['agent'] | null
+  /** Rows between the search and the agents, e.g. the create icons a search narrows. */
+  header?: (query: string) => ReactNode
+  footer?: ReactNode
 }) {
   const t = useTranslate()
   useRetiredAgentPickerDrafts(entries, draftScope, mode, setupDisabled)
@@ -128,7 +140,13 @@ export function AgentLaunchPickerMenu({
   const openSetup = activeSetup?.id ?? null
   const root = useRef<HTMLDivElement>(null)
   const setups = setupDisabled ? [] : searchAgentPickerSetups(entries, query)
-  const visible = filterAgentPickerEntries(entries, query)
+  const [showAll, setShowAll] = useState(false)
+  const collapsed = collapseUnreadyAgentPickerEntries(
+    filterAgentPickerEntries(entries, query),
+    query,
+    showAll || !collapseUnready
+  )
+  const visible = collapsed.shown
   // Filtering changes presentation; an active owner survives its result row disappearing.
   if (activeSetup) {
     const entry = entries.find((entry) => entry.agent === activeSetup.agent)
@@ -216,6 +234,7 @@ export function AgentLaunchPickerMenu({
           />
         </div>
       ) : null}
+      {header?.(query)}
       <AgentPickerResultsScroller>
         <div data-agent-picker-agent-results>
           {showBlankTerminal ? (
@@ -254,6 +273,7 @@ export function AgentLaunchPickerMenu({
                 onSelectAgent={onSelectAgent}
                 isDefault={defaultAgent === entry.agent}
                 onSetDefault={onSetDefault}
+                checked={checkedAgent === entry.agent}
                 shortcut={mode !== 'select' ? shortcutLabels?.get(entry.agent) : undefined}
               />
             )
@@ -289,13 +309,31 @@ export function AgentLaunchPickerMenu({
               {choice.label}
             </DropdownMenuItem>
           ))}
-          {!showBlankTerminal && !visible.length && !setups.length && !shownChoices.length ? (
+          {collapsed.hiddenCount > 0 ? (
+            <DropdownMenuItem
+              onSelect={(event) => {
+                // Why: keep the menu open so the added agents show in place.
+                event.preventDefault()
+                setShowAll(true)
+              }}
+            >
+              <span className="text-xs text-muted-foreground">
+                {t('agentPicker.showAllAgents', 'Show all agents')}
+              </span>
+            </DropdownMenuItem>
+          ) : null}
+          {!showBlankTerminal &&
+          !visible.length &&
+          !collapsed.hiddenCount &&
+          !setups.length &&
+          !shownChoices.length ? (
             <DropdownMenuItem disabled>
               {t('auto.components.agent.AgentCombobox.579c768bde', 'No agents match your search.')}
             </DropdownMenuItem>
           ) : null}
         </div>
       </AgentPickerResultsScroller>
+      {footer}
     </div>
   )
 }

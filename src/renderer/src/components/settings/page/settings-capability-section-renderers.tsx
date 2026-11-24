@@ -3,6 +3,7 @@ import { AccountsPane } from '../accounts/AccountsPane'
 import { getProviderAccountsOwnerKey } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
 import { AgentsPane } from '../agents/AgentsPane'
 import { AgentDefaultSurfaceSection } from '../agents/surfaces/AgentDefaultSurfaceSection'
+import { EmptyWorkspaceSurfaceSection } from '../agents/surfaces/EmptyWorkspaceSurfaceSection'
 import { ComputerUsePane } from '../computer-use/ComputerUsePane'
 import { LinearAgentSkillPane } from '../skills/linear/LinearAgentSkillPane'
 import { OrchestrationPane } from '../orchestration/OrchestrationPane'
@@ -38,6 +39,12 @@ export function renderAgentsSettingsSection(
               key={runtimeTargetEnvironmentId(model.settingsHostScope.target) ?? 'local'}
               settings={model.settings}
               hostScope={model.settingsHostScope}
+            />
+          ) : null}
+          {model.settingsHostScope.target.kind === 'local' ? (
+            <EmptyWorkspaceSurfaceSection
+              settings={model.settings}
+              updateSettings={model.updateSettings}
             />
           ) : null}
           <AgentsPane

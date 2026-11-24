@@ -14,6 +14,7 @@ import {
   getUsagePace,
   getUsageSeverity,
   type PaceVerdict,
+  type UsageColorRule,
   type UsageSeverity,
   type UsagePace
 } from '../../../../../shared/agent-usage/pace/usage-pace'
@@ -50,10 +51,13 @@ export const SEVERITY_FILL_CLASS: Record<UsageSeverity, string> = {
   critical: 'bg-red-500'
 }
 
-/** Delta and verdict color: running behind pace reads soft green, otherwise the severity's. */
-export function paceTextClass(usedPercent: number, pace: UsagePace): string {
-  const severity = getUsageSeverity(usedPercent, pace)
-  return severity === 'calm' && getPaceVerdict(pace.deltaPoints) === 'under'
+/**
+ * Delta and verdict color: the severity's; by pace, running behind it also reads soft green.
+ * By used share, pace stays neutral so color only ever means the real limit.
+ */
+export function paceTextClass(usedPercent: number, pace: UsagePace, rule: UsageColorRule): string {
+  const severity = getUsageSeverity(usedPercent, pace, rule)
+  return rule.mode === 'pace' && severity === 'calm' && getPaceVerdict(pace.deltaPoints) === 'under'
     ? 'text-emerald-600 dark:text-emerald-400'
     : SEVERITY_TEXT_CLASS[severity]
 }
@@ -62,9 +66,10 @@ export function paceTextClass(usedPercent: number, pace: UsagePace): string {
 export function getWindowSeverity(
   p: ProviderRateLimits,
   window: RateLimitWindow,
-  now: number
+  now: number,
+  rule: UsageColorRule
 ): UsageSeverity {
-  return getUsageSeverity(window.usedPercent, getReadingPace(p, window, now))
+  return getUsageSeverity(window.usedPercent, getReadingPace(p, window, now), rule)
 }
 
 export function formatPaceVerdict(pace: UsagePace, t: Translate): string {

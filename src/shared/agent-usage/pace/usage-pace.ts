@@ -77,19 +77,63 @@ export function formatPaceDelta(deltaPoints: number): string {
 
 export type UsageSeverity = 'calm' | 'watch' | 'critical'
 
+/** What colors a usage bar: the used share alone, or also the pace it is spent at. */
+export type UsageColorMode = 'used' | 'pace'
+
+export type UsageColorRule = {
+  mode: UsageColorMode
+  /** Used % at which a window turns amber. */
+  watchAt: number
+  /** Used % at which a window turns red; always above `watchAt`. */
+  criticalAt: number
+}
+
+export type UsageColorSettings = {
+  /** How usage bars pick their color; absent is the used share at 80/90. */
+  usageColorRule?: UsageColorRule
+}
+
+export const DEFAULT_USAGE_COLOR_RULE: UsageColorRule = {
+  mode: 'used',
+  watchAt: 80,
+  criticalAt: 90
+}
+
+const isPercent = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 100
+
+/** A stored rule, or the default for anything missing or out of order. */
+export function normalizeUsageColorRule(value: unknown): UsageColorRule {
+  const raw: Partial<UsageColorRule> = typeof value === 'object' && value !== null ? value : {}
+  const mode = raw.mode === 'pace' ? 'pace' : 'used'
+  const { watchAt, criticalAt } = raw
+  return isPercent(watchAt) && isPercent(criticalAt) && criticalAt > watchAt
+    ? { mode, watchAt, criticalAt }
+    : { ...DEFAULT_USAGE_COLOR_RULE, mode }
+}
+
 /** Projected past this share of the limit at reset, the window runs out well before it resets. */
 const CRITICAL_PROJECTION_PERCENT = 120
 
 /**
- * One color rule for every usage surface: neutral while spend keeps pace, yellow once it runs
- * ahead (or 80% is used), red once it is on course to run out well before the reset (or 90%).
+ * One color rule for every usage surface. By used share: neutral, amber from `watchAt`, red from
+ * `criticalAt`. By pace: also amber once spend runs ahead and red once it is on course to run out
+ * well before the reset.
  */
-export function getUsageSeverity(usedPercent: number, pace: UsagePace | null): UsageSeverity {
+export function getUsageSeverity(
+  usedPercent: number,
+  pace: UsagePace | null,
+  rule: UsageColorRule
+): UsageSeverity {
   const used = Math.min(100, Math.max(0, usedPercent))
-  if (used >= 90 || (pace?.projection?.atResetPercent ?? 0) >= CRITICAL_PROJECTION_PERCENT) {
+  const byPace = rule.mode === 'pace' && pace !== null
+  if (
+    used >= rule.criticalAt ||
+    (byPace && (pace.projection?.atResetPercent ?? 0) >= CRITICAL_PROJECTION_PERCENT)
+  ) {
     return 'critical'
   }
-  return used >= 80 || (pace !== null && getPaceVerdict(pace.deltaPoints) === 'over')
+  return used >= rule.watchAt || (byPace && getPaceVerdict(pace.deltaPoints) === 'over')
     ? 'watch'
     : 'calm'
 }

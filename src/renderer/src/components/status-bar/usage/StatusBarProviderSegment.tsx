@@ -47,6 +47,7 @@ import {
   paceTickPercent,
   SEVERITY_FILL_CLASS
 } from './usage-pace-caption'
+import { useUsageColorRule } from './use-usage-color-rule'
 import { ChipWindow } from './usage-pace-line'
 import { UsageActivityRing } from './usage-agent-sessions-view'
 import type { UsageAgentSession } from './usage-account-sessions'
@@ -279,6 +280,7 @@ function ProviderSegmentBody({
     </>
   )
   const usageFormat = useAppStore((state) => state.statusBarUsageFormat)
+  const colorRule = useUsageColorRule()
   const template = resolveStatusBarUsageTemplate(usageFormat, provider)
   const statusLabel = p ? getProviderUsageStatusLabel(p, t) : ''
   // Why: not a problem; Claude updates its own login the next time it runs.
@@ -368,7 +370,7 @@ function ProviderSegmentBody({
           usedPercent={clampUsedPercent(barWindow.usedPercent)}
           display={display}
           className="h-[6px] w-[48px] shrink-0"
-          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, barWindow, now)]}
+          fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, barWindow, now, colorRule)]}
           paceTickPercent={paceTickPercent(getReadingPace(p, barWindow, now), display)}
         />
       ) : null}

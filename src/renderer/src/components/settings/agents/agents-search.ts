@@ -106,6 +106,7 @@ export const AGENTS_INSTALLED_SECTION_ID = 'agents-installed'
 
 /** The top Chat or Terminal tiles that set this computer's default. */
 export const AGENT_DEFAULT_SURFACE_SECTION_ID = 'agents-default-surface'
+export const EMPTY_WORKSPACE_SURFACE_SECTION_ID = 'agents-empty-workspace-surface'
 export const AGENT_PERMISSIONS_SECTION_ID = 'agents-permissions'
 const AGENT_WORKSPACE_TRUST_SEARCH_ENTRY_ID = 'agent-workspace-trust'
 const AGENT_RUNTIME_SEARCH_ENTRY_ID = 'agent-runtime'
@@ -164,6 +165,18 @@ const getAllAgentsPaneSearchEntries = createLocalizedCatalog(() => [
       ...translateSearchKeyword('settings.appearance.chat.title', 'Chat UI'),
       ...translateSearchKeyword('settings.chat.providers.searchTerminal', 'terminal'),
       ...translateSearchKeyword('settings.chat.providers.searchCli', 'CLI')
+    ]
+  },
+  {
+    targetSectionId: EMPTY_WORKSPACE_SURFACE_SECTION_ID,
+    title: translate('settings.agents.emptyWorkspace.title', 'Opening a workspace with no tabs'),
+    description: translate(
+      'settings.agents.emptyWorkspace.description',
+      'Any item of the + menu. Agents open as chat or terminal, as Open agents as says.'
+    ),
+    keywords: [
+      ...translateSearchKeyword('settings.chat.providers.searchTerminal', 'terminal'),
+      ...translateSearchKeyword('settings.agents.emptyWorkspace.keyword', 'workspace')
     ]
   },
   {

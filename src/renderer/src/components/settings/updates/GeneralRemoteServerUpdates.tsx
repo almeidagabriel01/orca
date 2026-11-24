@@ -91,45 +91,51 @@ export function GeneralRemoteServerUpdates(): React.JSX.Element | null {
       keywords={['remote server', 'update all', 'paired', 'version']}
       className="space-y-3 py-3"
     >
-      <div className="space-y-0.5">
-        <div className="text-sm font-medium">
-          {t(
-            'auto.components.settings.GeneralRemoteServerUpdates.fdd271abf0',
-            'Remote Orca servers'
-          )}
+      {/* Title left, action right, as the About row above; the button wraps under on narrow widths. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-0.5">
+          <div className="text-sm font-medium">
+            {t(
+              'auto.components.settings.GeneralRemoteServerUpdates.fdd271abf0',
+              'Remote Orca servers'
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t(
+              'auto.components.settings.GeneralRemoteServerUpdates.description',
+              'Check and update paired Orca servers from this client.'
+            )}
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          {t(
-            'auto.components.settings.GeneralRemoteServerUpdates.description',
-            'Check and update paired Orca servers from this client.'
-          )}
-        </p>
-      </div>
-      <div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          title={updateCheckHint}
-          disabled={checking || running}
-          onClick={(event) => {
-            setDialogOpen(true)
-            void refresh(getUpdateCheckClickOptions(event))
-          }}
-        >
-          {checking || running ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="size-3.5" />
-          )}
-          {running
-            ? t('auto.components.settings.GeneralRemoteServerUpdates.updating', 'Updating servers…')
-            : t(
-                'auto.components.settings.GeneralRemoteServerUpdates.e4e5937469',
-                'Check for updates'
-              )}
-        </Button>
+        <div className="ms-auto">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            title={updateCheckHint}
+            disabled={checking || running}
+            onClick={(event) => {
+              setDialogOpen(true)
+              void refresh(getUpdateCheckClickOptions(event))
+            }}
+          >
+            {checking || running ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="size-3.5" />
+            )}
+            {running
+              ? t(
+                  'auto.components.settings.GeneralRemoteServerUpdates.updating',
+                  'Updating servers…'
+                )
+              : t(
+                  'auto.components.settings.GeneralRemoteServerUpdates.e4e5937469',
+                  'Check for updates'
+                )}
+          </Button>
+        </div>
       </div>
       <p className="text-xs text-muted-foreground">{summary}</p>
     </SearchableSetting>

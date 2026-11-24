@@ -1984,7 +1984,15 @@
       "newAgentsTitle": "Novos agentes",
       "permissionMixed": "Misto",
       "choiceChipTooltip": "Adicionado por {{choice}}. Remova-o para usar o padrão.",
-      "choiceChipRemove": "Remover {{flag}}"
+      "choiceChipRemove": "Remover {{flag}}",
+      "emptyWorkspace": {
+        "title": "Ao abrir um workspace sem abas",
+        "description": "Qualquer item do menu +. Agentes abrem como chat ou terminal, conforme 'Abrir agentes como'.",
+        "keyword": "workspace",
+        "nothing": "Nada",
+        "agentMissing": "{{agent}} não está instalado aqui; abre um terminal no lugar.",
+        "agentMissingToast": "{{agent}} não está instalado; abriu um terminal no lugar."
+      }
     },
     "followSymlinkedDirectoriesKeywords": {
       "symlink": "link simbólico",
@@ -22208,7 +22216,8 @@
         "from": "Veio de {{from}}",
         "handedContext": "Contexto passado ao novo agente",
         "savedTranscript": "Transcript salvo",
-        "copyPath": "Copiar caminho"
+        "copyPath": "Copiar caminho",
+        "showAll": "Mostrar todos os provedores"
       },
       "account": {
         "systemDefault": "Padrão do sistema",
@@ -23013,6 +23022,19 @@
         "confirmCheckHomeFolder": "Nenhuma outra máquina que compartilha esta pasta pessoal está executando o Orca",
         "details": "Detalhes",
         "clearing": "Removendo…"
+      },
+      "usageColor": {
+        "title": "Cor da barra de uso",
+        "description": "Colore as barras de uso pela parcela usada ou pelo ritmo de consumo.",
+        "keywordPace": "ritmo",
+        "usedHint": "A cor indica só o limite real; a marca e o delta do ritmo ficam neutros.",
+        "paceHint": "Também avisa quando, no ritmo atual, o limite acabaria antes da renovação.",
+        "byUse": "Pelo uso real",
+        "byPace": "Pelo ritmo",
+        "watchAt": "Âmbar a partir de",
+        "watchAtHint": "Porcentagem usada. Precisa ficar abaixo do vermelho.",
+        "criticalAt": "Vermelho a partir de",
+        "criticalAtHint": "Porcentagem usada. Precisa ficar acima do âmbar ({{value}}%)."
       }
     },
     "jiraIssueAssigneeField": {
@@ -24970,7 +24992,8 @@
     "sameAsTextDefault": "Igual ao padrão · {{value0}}",
     "effortDefault": "Padrão",
     "chatChoicesNote": "As escolhas de modelo ou esforço de {{agent}} sem uma flag de CLI se aplicam aos chats.",
-    "composedChoicesNote": "As escolhas de esforço e velocidade de {{agent}} estão incluídas no argumento do modelo."
+    "composedChoicesNote": "As escolhas de esforço e velocidade de {{agent}} estão incluídas no argumento do modelo.",
+    "showAllAgents": "Mostrar todos os agentes"
   },
   "wslMove": {
     "entry": {

@@ -305,7 +305,13 @@ export const dropdownBlankTerminalCurrent = defineFixture({
 })
 
 /** The + menu: hovering an agent row opens the same card, without tabs, over the prompt and Launch. */
-function NewTabMenu({ entries = ENTRIES }: { entries?: AgentPickerEntry[] }): React.JSX.Element {
+function NewTabMenu({
+  entries = ENTRIES,
+  collapseUnready = false
+}: {
+  entries?: AgentPickerEntry[]
+  collapseUnready?: boolean
+}): React.JSX.Element {
   return (
     <div className="min-h-[520px] bg-background p-4">
       <DropdownMenu open modal={false}>
@@ -315,6 +321,7 @@ function NewTabMenu({ entries = ENTRIES }: { entries?: AgentPickerEntry[] }): Re
             model={entries === ENTRIES ? MODEL : menuModel(entries)}
             entries={entries}
             hideSearch
+            collapseUnready={collapseUnready}
             runLaunch={() => true}
           />
           <div className="flex items-center gap-2 px-2 py-1.5 text-sm">
@@ -402,5 +409,31 @@ export const dropdownSettingsRecipeCodex = defineFixture({
   ),
   interact: async () => {
     await openDropdown()
+  }
+})
+
+const WITH_SETUP: AgentPickerEntry[] = [
+  ...ENTRIES,
+  {
+    ...entry('antigravity', 'Antigravity', ['chat']),
+    rows: [{ kind: 'chat', agent: 'antigravity', setup: true }],
+    defaultSurface: 'chat'
+  }
+]
+
+/** The + menu lists the agents that run here; installing ones wait behind "Show all agents". */
+export const newTabInstalledOnly = defineFixture({
+  width: 320,
+  render: () => <NewTabMenu entries={WITH_SETUP} collapseUnready />
+})
+
+export const newTabShowAllAgents = defineFixture({
+  width: 320,
+  render: () => <NewTabMenu entries={WITH_SETUP} collapseUnready />,
+  interact: async () => {
+    ;[...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+      .find((item) => item.textContent?.includes('Show all agents'))
+      ?.click()
+    await settle()
   }
 })

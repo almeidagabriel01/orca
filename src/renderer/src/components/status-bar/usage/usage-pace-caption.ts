@@ -36,24 +36,37 @@ export function paceTickPercent(
   return pace ? getDisplayedUsagePercentage(pace.elapsed * 100, display) : null
 }
 
-/** Number color per severity, in t3code's tones; calm keeps the surrounding text color. */
+/** One token per signal, in t3code's tones; the number and its bar both read it. */
+const TONE = {
+  amber: 'text-amber-700 dark:text-amber-400',
+  red: 'text-red-700 dark:text-red-400',
+  green: 'text-emerald-700 dark:text-emerald-400'
+} as const
+
+// Why semibold: thin glyphs blend into the background and read lighter than the solid bar.
+const toneText = (tone: string): string => `${tone} font-semibold`
+
+/** Number color per severity; calm keeps the surrounding text color. */
 export const SEVERITY_TEXT_CLASS: Record<UsageSeverity, string> = {
   calm: '',
-  watch: 'text-amber-700 dark:text-amber-400',
-  critical: 'text-red-700 dark:text-red-400'
+  watch: toneText(TONE.amber),
+  critical: toneText(TONE.red)
 }
 
-/** Bar fill per severity; calm stays neutral so color only ever means "look here". */
+/**
+ * Bar fill per severity: the number's own token through currentColor, so both are one color in
+ * light and dark. Calm stays neutral so color only ever means "look here".
+ */
 export const SEVERITY_FILL_CLASS: Record<UsageSeverity, string> = {
   calm: 'bg-muted-foreground/50',
-  watch: 'bg-amber-700 dark:bg-amber-400',
-  critical: 'bg-red-700 dark:bg-red-400'
+  watch: `bg-current ${TONE.amber}`,
+  critical: `bg-current ${TONE.red}`
 }
 
 /** The pace delta's own signal, apart from the thresholds: over pace red, under it green. */
 const PACE_VERDICT_TEXT_CLASS: Record<PaceVerdict, string> = {
-  over: 'text-red-700 dark:text-red-400',
-  under: 'text-emerald-700 dark:text-emerald-400',
+  over: toneText(TONE.red),
+  under: toneText(TONE.green),
   on: ''
 }
 

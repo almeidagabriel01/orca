@@ -35,7 +35,7 @@ function hostTerminalRows(
   now: number
 ): Map<string, UsageTerminalInput[]> {
   const chatPanes = getStructuredAgentSessionTabsByPaneKey(state.unifiedTabsByWorktree)
-  const byHost = new Map(hosts.map((host) => [host, [] as UsageTerminalInput[]]))
+  const byHost = new Map<string, UsageTerminalInput[]>(hosts.map((host) => [host, []]))
   for (const entry of state.agentStatusByPaneKey.values()) {
     // Why: chats and bots come from their host's status feed, which also lists tabless ones.
     if (entry.observation?.origin === 'structured' || chatPanes.has(entry.paneKey)) {
@@ -118,6 +118,17 @@ function feedFor(key: string) {
   )
 }
 
+/** Opens each host's chat feed and calls back on its changes; returns the cleanup. */
+function followChatFeeds(hostsKey: string, onChange: () => void): () => void {
+  const feeds = hostsKey.split('|').map(feedFor)
+  const releases = feeds.map((feed) => feed.activate())
+  const unsubscribes = feeds.map((feed) => feed.subscribe(onChange))
+  return () => {
+    unsubscribes.forEach((unsubscribe) => unsubscribe())
+    releases.forEach((release) => release())
+  }
+}
+
 /** Bumps on every change to the hosts' chat statuses; each feed updates its map in place. */
 function useChatFeedRevision(hostsKey: string): number {
   const [revision, setRevision] = useState(0)
@@ -125,12 +136,10 @@ function useChatFeedRevision(hostsKey: string): number {
     if (!hostsKey) {
       return
     }
-    const stops = hostsKey.split('|').flatMap((key) => {
-      const feed = feedFor(key)
-      return [feed.activate(), feed.subscribe(() => setRevision((value) => value + 1))]
-    })
-    setRevision((value) => value + 1)
-    return () => stops.forEach((stop) => stop())
+    const bump = (): void => setRevision((value) => value + 1)
+    const stop = followChatFeeds(hostsKey, bump)
+    bump()
+    return stop
   }, [hostsKey])
   return revision
 }

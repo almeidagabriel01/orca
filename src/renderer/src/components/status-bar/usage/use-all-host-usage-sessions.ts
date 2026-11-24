@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import type { ProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
 import { useAppStore } from '@/store/index'
 import {
   readOwnerAccounts,
@@ -18,20 +19,30 @@ import {
 import { identifyHostSessions, type UsageAgentSession } from './usage-account-sessions'
 import { useHostUsageSessions, usageHostKey } from './use-usage-account-sessions'
 
-/** Bumps when any listed host's accounts snapshot changes; keeps their streams open meanwhile. */
-function useOwnerAccountsRevision(environmentIds: readonly string[]): number {
-  const [revision, setRevision] = useState(0)
+/** Each listed host's accounts snapshot, kept current while its stream stays open. */
+function useOwnerAccountSnapshots(
+  environmentIds: readonly string[]
+): ReadonlyMap<string, ProviderAccountsSnapshot> {
+  const [snapshots, setSnapshots] = useState<ReadonlyMap<string, ProviderAccountsSnapshot>>(
+    () => new Map()
+  )
   const idsKey = environmentIds.join('|')
   useEffect(() => {
-    if (!idsKey) {
-      return
-    }
-    const stops = idsKey
-      .split('|')
-      .map((id) => subscribeOwnerAccounts(id, () => setRevision((value) => value + 1)))
-    return () => stops.forEach((stop) => stop())
+    const ids = idsKey ? idsKey.split('|') : []
+    const read = (): void =>
+      setSnapshots(
+        new Map(
+          ids.flatMap((id) => {
+            const snapshot = readOwnerAccounts(id)?.snapshot
+            return snapshot ? [[id, snapshot] as const] : []
+          })
+        )
+      )
+    const unsubscribes = ids.map((id) => subscribeOwnerAccounts(id, read))
+    read()
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe())
   }, [idsKey])
-  return revision
+  return snapshots
 }
 
 /**
@@ -53,7 +64,7 @@ export function useAllHostUsageSessions(
   const hosts = useMemo(() => (ownerKey ? [ownerKey, ...others] : others), [ownerKey, others])
   const byHost = useHostUsageSessions(hosts)
   const remoteOthers = useMemo(() => others.filter((key) => key !== 'local'), [others])
-  const accountsRevision = useOwnerAccountsRevision(remoteOthers)
+  const snapshots = useOwnerAccountSnapshots(remoteOthers)
   const settings = useAppStore((s) => s.settings)
   const localRateLimits = useAppStore((s) => s.rateLimits)
   const labels = useAppStore(
@@ -74,7 +85,7 @@ export function useAllHostUsageSessions(
       if (sessions.length === 0) {
         return []
       }
-      const snapshot = key === 'local' ? null : (readOwnerAccounts(key)?.snapshot ?? null)
+      const snapshot = key === 'local' ? null : (snapshots.get(key) ?? null)
       if (key !== 'local' && !snapshot) {
         return []
       }
@@ -96,6 +107,5 @@ export function useAllHostUsageSessions(
       })
     })
     return [...own, ...elsewhere]
-    // oxlint-disable-next-line react-hooks/exhaustive-deps -- accountsRevision names the snapshots read.
-  }, [byHost, others, ownerKey, labels, settings, localRateLimits, localRosters, accountsRevision])
+  }, [byHost, others, ownerKey, labels, settings, localRateLimits, localRosters, snapshots])
 }

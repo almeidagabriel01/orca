@@ -20,19 +20,25 @@ type MenuState = {
   choice?: string
   /** Minutes until Orca's automatic continue, when one is scheduled. */
   autoIn?: number
+  agents?: string[]
+  installed?: (agent: string) => boolean | null
 }
+
+const BUILT_IN_AGENTS = ['claude', 'codex']
 
 function Menu({
   loading = false,
   agent,
   busy = false,
   choice,
-  autoIn
+  autoIn,
+  agents = BUILT_IN_AGENTS,
+  installed
 }: MenuState): React.JSX.Element {
   const [now] = useState(Date.now)
   const agentSwitch: NativeChatAgentSwitch = {
     agent,
-    agents: ['claude', 'codex'],
+    agents,
     busy,
     switchTo: async () => {}
   }
@@ -46,6 +52,7 @@ function Menu({
         accounts={loading ? null : fixtureProviderAccounts}
         usage={loading ? null : fixtureAccountUsage(now)}
         autoContinueAt={autoIn === undefined ? null : now + autoIn * 60_000}
+        installed={installed}
       />
     </div>
   )
@@ -123,5 +130,42 @@ export const autoContinueScheduledPtBr = defineFixture({
     await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
     await wait(50)
     await openMenu(frame)
+  }
+})
+
+// A host that registered every chat agent but has only Claude and Codex installed.
+const MANY_AGENTS = [
+  'claude',
+  'codex',
+  'pi',
+  'grok',
+  'opencode',
+  'opencode2',
+  'omp',
+  'antigravity',
+  'copilot',
+  'kimi',
+  'cursor'
+]
+const manyProviders = (
+  <Menu agent="claude" agents={MANY_AGENTS} installed={(id) => id === 'claude' || id === 'codex'} />
+)
+
+/** Only installed, signed-in providers, then a quiet way to list the rest. */
+export const installedOnly = defineFixture({
+  width: 420,
+  render: () => manyProviders,
+  interact: openMenu
+})
+
+export const showAllProviders = defineFixture({
+  width: 420,
+  render: () => manyProviders,
+  interact: async (frame) => {
+    await openMenu(frame)
+    ;[...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+      .find((item) => item.textContent?.includes('Show all providers'))
+      ?.click()
+    await wait(50)
   }
 })

@@ -35,7 +35,7 @@ const neverRan: ProviderRateLimits = {
   error: 'stale',
   status: 'error',
   usageMetadata: { failureKind: 'stale-token' }
-} as ProviderRateLimits
+}
 
 function hostChips(gabriel: ProviderRateLimits, gestao: ProviderRateLimits) {
   const entries: UsageAccountEntry[] = [

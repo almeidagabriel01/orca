@@ -26,20 +26,31 @@ function hasUsageWindows(p: ProviderRateLimits): boolean {
   return Boolean(p.session || p.weekly || p.fableWeekly || p.monthly || p.buckets?.length)
 }
 
+function isAccountReading(value: unknown): value is AccountReading {
+  if (typeof value !== 'object' || value === null || !('host' in value) || !('p' in value)) {
+    return false
+  }
+  const { host, p } = value
+  return (
+    typeof host === 'string' &&
+    typeof p === 'object' &&
+    p !== null &&
+    'provider' in p &&
+    typeof p.provider === 'string' &&
+    'updatedAt' in p &&
+    typeof p.updatedAt === 'number'
+  )
+}
+
 /** Restored from storage, so a cold start on a host that never ran the account still shows it. */
 export function loadAccountReadings(storage: Pick<Storage, 'getItem'>): AccountReadingMemory {
   const memory: AccountReadingMemory = new Map()
   try {
     const saved: unknown = JSON.parse(storage.getItem(STORAGE_KEY) ?? '[]')
     for (const entry of Array.isArray(saved) ? saved.slice(-MAX_ACCOUNTS) : []) {
-      const reading = Array.isArray(entry) ? (entry[1] as Partial<AccountReading>) : null
-      if (
-        typeof entry[0] === 'string' &&
-        typeof reading?.host === 'string' &&
-        typeof reading.p?.provider === 'string' &&
-        typeof reading.p.updatedAt === 'number'
-      ) {
-        memory.set(entry[0], reading as AccountReading)
+      const [key, reading]: unknown[] = Array.isArray(entry) ? entry : []
+      if (typeof key === 'string' && isAccountReading(reading)) {
+        memory.set(key, reading)
       }
     }
   } catch {

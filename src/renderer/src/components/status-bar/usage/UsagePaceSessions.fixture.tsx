@@ -292,7 +292,7 @@ export const ringCentering = defineFixture({
 })
 
 // The account's usage read on the VPS, then the workspace moves to a Mac that never ran it.
-const MAC_NEVER_RAN = {
+const MAC_NEVER_RAN: ProviderRateLimits = {
   provider: 'claude',
   session: null,
   weekly: null,
@@ -300,7 +300,7 @@ const MAC_NEVER_RAN = {
   error: 'stale',
   status: 'error',
   usageMetadata: { failureKind: 'stale-token' }
-} as ProviderRateLimits
+}
 
 function hostChips(gabriel: ProviderRateLimits): UsageRowChip[] {
   const gestao: ProviderRateLimits = { ...AHEAD, session: null, weekly: win(32, 10_080, 4 * DAY) }

@@ -147,16 +147,24 @@ export const WorkerDockRow = memo(function WorkerDockRow({
         >
           {icon}
           <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-            <div className="flex w-full min-w-0 items-baseline gap-2">
+            {/* Narrow, the status takes its own line under the id rather than break mid-word. */}
+            <div className={cn('flex w-full min-w-0 items-baseline gap-2', narrow && 'flex-wrap')}>
               <span
                 data-worker-dock-name=""
-                className="max-w-30 shrink-0 truncate text-sm font-medium"
+                className={cn(
+                  'max-w-30 shrink-0 truncate text-sm font-medium',
+                  narrow && 'mr-auto'
+                )}
               >
                 {row.name}
               </span>
               <span
                 data-worker-dock-state=""
-                className={cn('min-w-0 flex-1 truncate text-xs', stateTone)}
+                className={cn(
+                  'text-xs',
+                  narrow ? 'order-last basis-full' : 'min-w-0 flex-1',
+                  stateTone
+                )}
               >
                 {mixed ? `${workerDockKindLabel(t, row.kind)} · ` : ''}
                 {state}
@@ -204,27 +212,20 @@ export const WorkerDockRow = memo(function WorkerDockRow({
           <span
             className={cn(
               'min-w-0 flex-1',
-              !narrow && 'flex items-center gap-2',
+              !narrow && 'flex items-baseline gap-2',
               compact && narrow && 'flex flex-wrap items-baseline gap-x-2'
             )}
           >
-            {/* Wide, the name truncates down to min-w-12 rather than spill over the status beside it. */}
+            {/* Wide, every part is one flex row: id and status keep their width, the title gives way first, then the reason. */}
             <span
               className={cn(
                 'flex gap-x-2',
-                narrow
-                  ? compact
-                    ? 'contents'
-                    : 'min-w-0 flex-col'
-                  : 'min-w-12 flex-1 items-baseline'
+                narrow ? (compact ? 'contents' : 'min-w-0 flex-col') : 'contents'
               )}
             >
               <span
                 data-worker-dock-name=""
-                className={cn(
-                  'max-w-30 truncate text-sm font-medium',
-                  narrow ? 'shrink-0' : 'min-w-12'
-                )}
+                className="max-w-30 shrink-0 truncate text-sm font-medium"
               >
                 {row.name}
               </span>
@@ -232,25 +233,20 @@ export const WorkerDockRow = memo(function WorkerDockRow({
                 data-worker-dock-title=""
                 className={cn(
                   'min-w-0 text-sm',
-                  narrow ? (compact ? 'hidden' : 'line-clamp-1') : 'truncate'
+                  narrow ? (compact ? 'hidden' : 'line-clamp-1') : 'min-w-0 flex-1 truncate'
                 )}
               >
                 {row.title}
               </span>
             </span>
-            <span
-              className={cn(
-                !narrow && 'flex min-w-0 items-baseline gap-2',
-                compact && narrow && 'contents'
-              )}
-            >
+            <span className={cn(!narrow && 'contents', compact && narrow && 'contents')}>
               {mixed || row.state !== 'running' || row.retired ? (
                 <span
                   data-worker-dock-state=""
                   className={cn(
                     'text-xs',
                     stateTone,
-                    narrow ? (compact ? 'shrink-0' : 'block') : 'max-w-40 truncate'
+                    narrow ? (compact ? 'shrink-0' : 'block') : 'shrink-0 whitespace-nowrap'
                   )}
                 >
                   {mixed ? `${workerDockKindLabel(t, row.kind)} · ` : ''}

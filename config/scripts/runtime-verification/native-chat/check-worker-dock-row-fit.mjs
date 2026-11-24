@@ -8,6 +8,8 @@ const FIXTURE = 'native-chat/tools/tasks/dock/NativeChatWorkerDock'
 const CASES = [
   'endedWorkOpen',
   'endedWorkNarrowOpen',
+  'endedWorkOpenPt',
+  'endedWorkNarrowOpenPt',
   'botHomeChatOpen',
   'botHomeChatNarrowOpen',
   'botHomeChatSmallOpen'
@@ -47,9 +49,16 @@ try {
             const found = Object.entries(parts).flatMap(([part, selector]) =>
               [...row.querySelectorAll(selector)].map((element) => ({
                 part,
+                cut: element.scrollWidth > element.clientWidth + 1,
                 rect: element.getBoundingClientRect()
               }))
             )
+            // The status is the point of a row: it may wrap, never end in an ellipsis.
+            for (const status of row.querySelectorAll(parts.status)) {
+              if (status.scrollWidth > status.clientWidth + 1) {
+                out.push(`${id}: status cut ("${status.textContent}")`)
+              }
+            }
             // The lead row's Show is its own button; a plain row's open target is the whole row.
             if (row.hasAttribute('data-worker-dock-lead')) {
               const show = row.querySelector('[data-worker-dock-open]')
@@ -61,11 +70,12 @@ try {
             if (!shown.some(({ part }) => part === 'name')) {
               out.push(`${id}: name not drawn`)
             }
-            for (const { part, rect } of shown) {
+            for (const { part, rect, cut } of shown) {
               if (rect.left < box.left - 0.5 || rect.right > box.right + 0.5) {
                 out.push(`${id}: ${part} leaves the row`)
               }
-              if (part === 'name' && rect.width < 40) {
+              // A short name like Agent is narrow on its own; squeezed means cut below 40px.
+              if (part === 'name' && cut && rect.width < 40) {
                 out.push(`${id}: name squeezed to ${rect.width}px`)
               }
             }

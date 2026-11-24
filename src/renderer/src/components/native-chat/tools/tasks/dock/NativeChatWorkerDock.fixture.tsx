@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { defineFixture } from '../../../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
 import { workerDockClearable } from '../../../../../../../shared/orchestration/dock/worker-dock'
 import type { AgentSessionBackgroundTask } from '../../../../../../../shared/agent-session/background-tasks/agent-session-background-task-wire'
 import { nativeChatAppearanceStyle } from '../../../appearance/native-chat-appearance-style'
@@ -364,9 +365,11 @@ export const endedWorkDismissed = defineFixture({
   interact: async (frame) => {
     const button = [
       ...frame.querySelectorAll<HTMLButtonElement>('[data-worker-dock-header] button')
-    ].find((candidate) => candidate.textContent === 'Dismiss finished')
+    ].find(
+      (candidate) => candidate.textContent === 'Dismiss' || candidate.textContent === 'Dispensar'
+    )
     if (!button) {
-      throw new Error('Dismiss finished not found')
+      throw new Error('Dismiss not found')
     }
     button.click()
     await new Promise((resolve) => setTimeout(resolve, 100))
@@ -395,4 +398,30 @@ export const endedWorkOpenBottom = defineFixture({
     viewport.dispatchEvent(new Event('scroll'))
     await new Promise((resolve) => setTimeout(resolve, 400))
   }
+})
+
+// The same views in Portuguese, whose longer labels must not overlap the names either.
+const inPortuguese =
+  (then?: (frame: HTMLElement) => void | Promise<void>) =>
+  async (frame: HTMLElement): Promise<void> => {
+    await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    await then?.(frame)
+  }
+
+export const endedWorkOpenPt = defineFixture({
+  ...endedWorkOpen,
+  interact: inPortuguese()
+})
+export const endedWorkNarrowOpenPt = defineFixture({
+  ...endedWorkNarrowOpen,
+  interact: inPortuguese()
+})
+export const endedWorkOpenBottomPt = defineFixture({
+  ...endedWorkOpenBottom,
+  interact: inPortuguese(endedWorkOpenBottom.interact)
+})
+export const endedWorkDismissedPt = defineFixture({
+  ...endedWorkDismissed,
+  interact: inPortuguese(endedWorkDismissed.interact)
 })

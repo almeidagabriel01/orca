@@ -58,32 +58,24 @@ export function WorkerDockRowAction({
               data-worker-dock-action={row.id}
               className={cn(narrow ? (action === 'stop' ? 'size-11' : 'h-6 w-11') : 'size-6.5')}
               aria-label={
-                action === 'clear'
-                  ? t('components.native-chat.workerDock.clearName', 'Clear {{name}}', {
+                action !== 'stop'
+                  ? t('components.native-chat.workerDock.dismissName', 'Dismiss {{name}}', {
                       name: row.name
                     })
-                  : action === 'dismiss'
-                    ? t('components.native-chat.workerDock.dismissName', 'Dismiss {{name}}', {
-                        name: row.name
+                  : pending
+                    ? t(
+                        'components.native-chat.workerDock.stopUnavailable',
+                        'Stop {{name}} · {{title}} unavailable · {{reason}}',
+                        {
+                          name: row.name,
+                          title: row.title,
+                          reason: workerDockStateLabel(t, 'stopping')
+                        }
+                      )
+                    : t('components.native-chat.workerDock.stopName', 'Stop {{name}} · {{title}}', {
+                        name: row.name,
+                        title: row.title
                       })
-                    : pending
-                      ? t(
-                          'components.native-chat.workerDock.stopUnavailable',
-                          'Stop {{name}} · {{title}} unavailable · {{reason}}',
-                          {
-                            name: row.name,
-                            title: row.title,
-                            reason: workerDockStateLabel(t, 'stopping')
-                          }
-                        )
-                      : t(
-                          'components.native-chat.workerDock.stopName',
-                          'Stop {{name}} · {{title}}',
-                          {
-                            name: row.name,
-                            title: row.title
-                          }
-                        )
               }
               aria-disabled={action === 'stop' ? unavailable : pending}
               onPointerDown={(event) => {
@@ -184,11 +176,9 @@ export function WorkerDockRowAction({
           <TooltipContent side="top" sideOffset={4}>
             {pending
               ? t('components.native-chat.workerDock.stopping', 'Stopping…')
-              : action === 'clear'
-                ? t('components.native-chat.workerDock.clear', 'Clear')
-                : action === 'dismiss'
-                  ? t('components.native-chat.workerDock.dismiss', 'Dismiss')
-                  : t('components.native-chat.workerDock.stop', 'Stop')}
+              : action !== 'stop'
+                ? t('components.native-chat.workerDock.dismiss', 'Dismiss')
+                : t('components.native-chat.workerDock.stop', 'Stop')}
           </TooltipContent>
         </Tooltip>
       ) : null}

@@ -19,7 +19,10 @@ import { WorkerDockRoster } from './dock/WorkerDockRoster'
 import type { WorkerDockRowView } from './dock/WorkerDockRow'
 import {
   dismissWorkerDockRows,
+  restoreWorkerDockRows,
+  toastWorkerDockDismissed,
   useDismissedWorkerDockRows,
+  type WorkerDockLocalDismissal,
   withoutDismissedWorkerDockRows,
   workerDockLocallyDismissible
 } from './dock/worker-dock-dismissals'
@@ -92,12 +95,13 @@ function providerDismissKey(
     : undefined
 }
 
+// Ended work reads as idle, not running: its row draws it finished (retired) and the header never counts it.
 function providerDockState(row: AgentChildRowModel): WorkerDockRowView['state'] {
   return row.displayState === 'failed'
     ? 'failed'
     : row.displayState === 'interrupted'
       ? 'unexpected'
-      : row.displayState === 'idle'
+      : row.displayState === 'idle' || row.displayState === 'done'
         ? 'idle'
         : row.displayState === 'unverifiable'
           ? 'unavailable'
@@ -143,7 +147,7 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
   sessionId?: string
   onOpenWorker?: (row: WorkerDockRowView, opener: HTMLElement) => void
   onWorkerAction?: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
-  onClearAll?: () => void
+  onClearAll?: (local?: WorkerDockLocalDismissal) => void
   loadWindow?: (anchor: string) => Promise<void>
 }): React.JSX.Element {
   const t = useTranslate()
@@ -197,7 +201,9 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
                       ? ('unexpected' as const)
                       : row.displayState === 'unverifiable'
                         ? ('unavailable' as const)
-                        : ('running' as const)
+                        : row.displayState === 'done'
+                          ? ('idle' as const)
+                          : ('running' as const)
                 return {
                   id: `${row.kind}:${row.id}`,
                   kind: row.kind,
@@ -222,6 +228,7 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
           const dismissKey = providerDismissKey(props.sessionId, row, state)
           return {
             ...(dismissKey ? { dismissKey } : {}),
+            ...(row.displayState === 'done' ? { retired: true } : {}),
             id: JSON.stringify([
               props.sessionId ?? '',
               row.kind,
@@ -310,7 +317,11 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
         }}
         onAction={(row, action) => {
           if (action === 'dismiss') {
-            dismissWorkerDockRows(row.dismissKey ? [row.dismissKey] : [])
+            const keys = row.dismissKey ? [row.dismissKey] : []
+            if (keys.length) {
+              dismissWorkerDockRows(keys)
+              toastWorkerDockDismissed(t, 1, () => restoreWorkerDockRows(keys))
+            }
           } else if (row.kind === 'worker' || action === 'clear') {
             props.onWorkerAction?.(row, action)
           } else if (action === 'stop' && row.providerId) {
@@ -318,8 +329,16 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
           }
         }}
         onClearAll={() => {
-          props.onClearAll?.()
-          dismissWorkerDockRows(identities.flatMap((row) => row.dismissKey ?? []))
+          const keys = identities.flatMap((row) => row.dismissKey ?? [])
+          dismissWorkerDockRows(keys)
+          const local = keys.length
+            ? { count: keys.length, undo: () => restoreWorkerDockRows(keys) }
+            : undefined
+          if (props.onClearAll) {
+            props.onClearAll(local)
+          } else if (local) {
+            toastWorkerDockDismissed(t, local.count, local.undo)
+          }
         }}
         loadWindow={props.loadWindow}
       />

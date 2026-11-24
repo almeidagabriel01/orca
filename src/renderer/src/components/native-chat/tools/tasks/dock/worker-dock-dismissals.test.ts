@@ -1,5 +1,10 @@
+// @vitest-environment happy-dom
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import {
+  dismissWorkerDockRows,
+  restoreWorkerDockRows,
+  useDismissedWorkerDockRows,
   withoutDismissedWorkerDockRows,
   workerDockLocallyDismissible
 } from './worker-dock-dismissals'
@@ -48,4 +53,14 @@ describe('withoutDismissedWorkerDockRows', () => {
     expect(shown.map((row) => row.id)).toEqual(['a', 'c', 'd'])
     expect(workerDockSummary(shown, new Map(), t).count).toBe('3 workers · 1 failed')
   })
+})
+
+it('Undo brings dismissed rows back, in storage too, and keeps the others hidden', () => {
+  const { result } = renderHook(() => useDismissedWorkerDockRows())
+  act(() => dismissWorkerDockRows(['a', 'b', 'c']))
+  act(() => restoreWorkerDockRows(['a', 'b']))
+  expect([...result.current]).toEqual(['c'])
+  expect(JSON.parse(localStorage.getItem('orca.nativeChat.workerDock.dismissed') ?? '[]')).toEqual([
+    'c'
+  ])
 })

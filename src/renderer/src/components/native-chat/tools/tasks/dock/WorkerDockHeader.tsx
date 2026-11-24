@@ -106,7 +106,7 @@ export function WorkerDockHeader({
             summary.current?.focus()
           }}
         >
-          {t('components.native-chat.workerDock.dismissFinished', 'Dismiss finished')}
+          {t('components.native-chat.workerDock.dismiss', 'Dismiss')}
         </Button>
       ) : null}
     </div>

@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from 'react'
+import { toast } from 'sonner'
+import type { Translate } from '@/i18n/use-translate'
 import { workerDockClearable } from '../../../../../../../shared/orchestration/dock/worker-dock'
 import type { WorkerDockRowView } from './WorkerDockRow'
 
@@ -50,15 +52,36 @@ function read(): ReadonlySet<string> {
 }
 
 export function dismissWorkerDockRows(keys: readonly string[]): void {
-  if (!keys.length) {
-    return
+  if (keys.length) {
+    const next = [...read(), ...keys]
+    write(new Set(next.slice(Math.max(0, next.length - LIMIT))))
   }
-  const next = [...read(), ...keys]
-  dismissed = new Set(next.slice(Math.max(0, next.length - LIMIT)))
+}
+
+export function restoreWorkerDockRows(keys: readonly string[]): void {
+  const gone = new Set(keys)
+  write(new Set([...read()].filter((key) => !gone.has(key))))
+}
+
+/** Rows hidden here, and how to show them again; Dismiss folds them into one Undo with the host's. */
+export type WorkerDockLocalDismissal = { count: number; undo: () => void }
+
+export function toastWorkerDockDismissed(t: Translate, count: number, undo: () => void): void {
+  toast.message(
+    t('components.native-chat.workerDock.dismissed', 'Dismissed {{count}} workers', {
+      count,
+      defaultValue_one: 'Dismissed 1 worker'
+    }),
+    { action: { label: t('components.native-chat.workerDock.undo', 'Undo'), onClick: undo } }
+  )
+}
+
+function write(next: ReadonlySet<string>): void {
+  dismissed = next
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...dismissed]))
   } catch {
-    // Storage full or blocked: the rows stay hidden for this session.
+    // Storage full or blocked: the change holds for this session.
   }
   for (const listener of listeners) {
     listener()

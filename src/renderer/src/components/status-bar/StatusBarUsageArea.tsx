@@ -62,6 +62,7 @@ export function StatusBarUsageArea({
     isEmptyUsageState,
     isRefreshing,
     ownerUsage,
+    localRosters,
     remoteOwner,
     rosterProviders,
     usageChips,
@@ -100,7 +101,7 @@ export function StatusBarUsageArea({
   const hiddenChips = usageChips.filter((chip) => usageLayout.collapsed.includes(chip.id))
   const showUnitLabel = shownChips.some(({ p }) => usageChipShowsPercentage(p, usageMode, t))
   const sessionOwner = getUsageOwnerHostScope(remoteOwner)
-  const sessions = useAllHostUsageSessions(sessionOwner)
+  const sessions = useAllHostUsageSessions(sessionOwner, localRosters)
   const chipSessions = (chip: UsageRowChip) =>
     sessionsInScope(sessions, {
       provider: chip.p.provider,

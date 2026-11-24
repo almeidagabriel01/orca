@@ -44,10 +44,9 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
   const usageMenuFocusHandoff = useStatusBarMenuFocusHandoff()
   const statusBarVisible = useAppStore((s) => s.statusBarVisible)
   const usagePreferences = useStatusBarUsagePreferences()
-  // Why only for 'all': the rosters name each account's chip, which 'active' never shows.
-  const localRosters = useLocalUsageAccountRosters(
-    !remoteOwned && usagePreferences.statusBarUsageAccounts === 'all'
-  )
+  // Why always: the rosters carry this device's logins (System default's email included), which
+  // name each chip and tie this device's agents to another host's chip of the same login.
+  const localRosters = useLocalUsageAccountRosters(true)
   useUsageLimitAlerts(ownerUsage, localRosters)
   const statusBarItems = useAppStore((s) => s.statusBarItems)
   const recordFeatureInteraction = useAppStore((s) => s.recordFeatureInteraction)
@@ -308,6 +307,7 @@ export function useStatusBarController(floatingTerminalOpen: boolean) {
     menuOpen,
     menuPoint,
     ownerUsage,
+    localRosters,
     petEnabled,
     recordFeatureInteraction,
     remoteOwner,

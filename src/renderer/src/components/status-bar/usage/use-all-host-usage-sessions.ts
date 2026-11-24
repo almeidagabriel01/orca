@@ -6,7 +6,10 @@ import {
   subscribeOwnerAccounts
 } from '@/runtime/provider-accounts/observations/owner-accounts-stream'
 import { selectExecutionHostDisplayLabel } from '@/runtime/hosts/display/execution-host-display-label'
-import { getOwnerUsageAccounts } from '../composition/status-bar-usage-chips'
+import {
+  getOwnerUsageAccounts,
+  type LocalUsageAccountRosters
+} from '../composition/status-bar-usage-chips'
 import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import {
   LOCAL_EXECUTION_HOST_ID,
@@ -35,7 +38,10 @@ function useOwnerAccountsRevision(environmentIds: readonly string[]): number {
  * The shown owner's agents, plus every other host's agents tagged with the login they bill, so a
  * chip lists the same account's agents on the Mac and the VPS together.
  */
-export function useAllHostUsageSessions(owner: RuntimeClientTarget | null): UsageAgentSession[] {
+export function useAllHostUsageSessions(
+  owner: RuntimeClientTarget | null,
+  localRosters: LocalUsageAccountRosters
+): UsageAgentSession[] {
   const ownerKey = usageHostKey(owner)
   const environmentIds = useAppStore(
     useShallow((s) => s.runtimeEnvironments.map((environment) => environment.id))
@@ -80,7 +86,9 @@ export function useAllHostUsageSessions(owner: RuntimeClientTarget | null): Usag
           remoteOwner: snapshot ? { environmentId: key, label: labels[index] ?? key } : null,
           refreshRemote: null
         },
-        settings
+        settings,
+        undefined,
+        localRosters
       )
       return identifyHostSessions(sessions, accounts, {
         environmentId: key === 'local' ? null : key,
@@ -89,5 +97,5 @@ export function useAllHostUsageSessions(owner: RuntimeClientTarget | null): Usag
     })
     return [...own, ...elsewhere]
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- accountsRevision names the snapshots read.
-  }, [byHost, others, ownerKey, labels, settings, localRateLimits, accountsRevision])
+  }, [byHost, others, ownerKey, labels, settings, localRateLimits, localRosters, accountsRevision])
 }

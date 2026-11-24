@@ -17,6 +17,7 @@ import type { AccountOwner } from '@/runtime/provider-accounts/ownership/wsl-hos
 import type { RateLimitState } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import { useAppStore } from '../../../store/index'
+import { useDetectedAgents } from '@/lib/agent-session/launch/inventory/useDetectedAgents'
 import {
   isOwnerReturnToLocal,
   resolveOwnerUsageRateLimits,
@@ -107,6 +108,11 @@ export function useAccountOwnerUsage(
   )
   const read = useCallback(() => (ownerId ? readOwnerAccounts(ownerId) : null), [ownerId])
   const owned = useSyncExternalStore(subscribe, read, read)
+  // Same inventory as Settings > Agents, so a chip appears only where its CLI is installed.
+  const { detectedIds: ownerAgents } = useDetectedAgents(
+    ownerId ? { kind: 'runtime', environmentId: ownerId } : undefined,
+    'all'
+  )
 
   const refreshRemote = useCallback(async () => {
     if (!ownerId) {
@@ -173,9 +179,14 @@ export function useAccountOwnerUsage(
       }
     }
     return owned.snapshot?.rateLimits
-      ? { kind: 'remote', ownerLabel: remoteOwner.label, rateLimits: owned.snapshot.rateLimits }
+      ? {
+          kind: 'remote',
+          ownerLabel: remoteOwner.label,
+          rateLimits: owned.snapshot.rateLimits,
+          installedAgents: ownerAgents
+        }
       : { kind: 'remote-pending' }
-  }, [remoteOwner, owned, unavailable])
+  }, [remoteOwner, owned, unavailable, ownerAgents])
 
   const rateLimits = useMemo(
     () => resolveOwnerUsageRateLimits(local, ownerState, t),

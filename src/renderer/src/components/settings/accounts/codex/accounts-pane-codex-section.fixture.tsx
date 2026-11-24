@@ -22,7 +22,7 @@ const BASE = {
   cliPresence: { installed: () => true, refresh: async () => [] }
 }
 
-function section(model: object): () => React.JSX.Element {
+function section(model: Partial<AccountsPaneSectionModel>): () => React.JSX.Element {
   return () => (
     <div className="bg-background p-5">
       {renderCodexAccountsSection(
@@ -40,7 +40,7 @@ export const signedIn = defineFixture({
     activeCodexAuthWarning: null,
     systemCodexMissingSignIn: false,
     systemCodexNeedsSignIn: false,
-    systemCodexIdentity: { email: 'dev@example.com', authKind: 'chatgpt' }
+    systemCodexIdentity: { email: 'dev@example.com', authKind: 'oauth' }
   })
 })
 

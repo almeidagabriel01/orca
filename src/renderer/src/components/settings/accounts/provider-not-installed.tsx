@@ -68,7 +68,7 @@ export function ProviderNotInstalledNotice({
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
-        <Button variant="ghost" size="xs" onClick={onCheckAgain} className="gap-1.5">
+        <Button variant="ghost" size="xs" onClick={onCheckAgain}>
           <RefreshCw className="size-3" />
           {t('accounts.cliNotInstalled.checkAgain', 'Check again')}
         </Button>
@@ -79,7 +79,6 @@ export function ProviderNotInstalledNotice({
               target="_blank"
               rel="noopener noreferrer"
               onClick={openAppHttpLinkFromAnchor}
-              className="gap-1.5"
             >
               {t('accounts.cliNotInstalled.howTo', 'How to install')}
               <ExternalLink className="size-3" />

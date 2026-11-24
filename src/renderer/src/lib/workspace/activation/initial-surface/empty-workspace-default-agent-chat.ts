@@ -1,4 +1,10 @@
-import { normalizeEmptyWorkspaceSurface } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
+import { toast } from 'sonner'
+import { translate } from '@/i18n/i18n'
+import { structuredAgentLabel } from '@/lib/agent-session/launch/structured-agent-session-launch-label'
+import {
+  emptyWorkspaceSurfaceAgent,
+  normalizeEmptyWorkspaceSurface
+} from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { pickTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent-selection'
 import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
 import { acquireAgentLaunchChoices } from '../../../agent-session/launch/inventory/host-chat-program-acquisition'
@@ -26,28 +32,40 @@ import { launchAgentInNewTabWithOutcome } from '@/lib/agent-session/launch/new-t
 import { readAgentLaunchPreferencesForWorktree } from '@/runtime/agent-launch-settings/use-host-agent-launch-preferences'
 import type { AgentLaunchPreferences } from '@/runtime/agent-launch-settings/host-agent-launch-preferences-resource'
 
-type DefaultChatHost = { target: AgentDetectionTarget; preferences: AgentLaunchPreferences }
+type DefaultChatHost = {
+  target: AgentDetectionTarget
+  preferences: AgentLaunchPreferences
+  /** Named in Settings, so it opens as Open agents as says, terminal included. */
+  explicit: boolean
+}
 
 /** Share the host between wait/open; undefined means the workspace opens a shell regardless of agent inventory. */
 function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost | undefined {
   // Why the owner's copy: a paired host keeps its own default agent.
   const preferences = readAgentLaunchPreferencesForWorktree(state, worktreeId)
   const surface = normalizeEmptyWorkspaceSurface(state.settings?.emptyWorkspaceSurface)
-  const saved = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
+  const explicit = emptyWorkspaceSurfaceAgent(surface)
+  // A + menu item or "nothing" opens no agent.
+  if (surface !== undefined && !explicit) {
+    return undefined
+  }
   // Why: only a saved agent asks for a chat here; Auto must not turn catalog order into a launch (#36594).
-  // Choosing "agent chat" is that ask, so Auto falls back to Claude.
-  const chosen =
-    surface === 'terminal' || surface === 'nothing'
-      ? null
-      : (saved ?? (surface === 'agent-chat' ? 'claude' : null))
-  if (!chosen || !newAgentLaunchesMayOpenChats(state.settings)) {
+  const saved = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
+  const chosen = explicit ?? saved
+  if (!chosen || (!explicit && !newAgentLaunchesMayOpenChats(state.settings))) {
     return undefined
   }
   // Why: an unresolved owner is an unknown host, not the local machine.
   const target = parseAgentDetectionTargetKey(
     getAgentDetectionTargetKeyForWorktree(state, worktreeId)
   )
-  return target && { target, preferences: { ...preferences, defaultTuiAgent: chosen } }
+  return (
+    target && {
+      target,
+      preferences: { ...preferences, defaultTuiAgent: chosen },
+      explicit: explicit !== null
+    }
+  )
 }
 
 export function emptyWorkspaceDefaultChatAwaitsDetection(worktreeId: string): boolean {
@@ -94,7 +112,17 @@ export function openDefaultAgentChatInEmptyWorkspace(
     host.preferences.disabledTuiAgents,
     (chosen) => agentChoiceOpensAsChat(state, chosen, worktreeLaunchWorkspace(worktreeId), detected)
   )
-  if (!agent) {
+  // Why: a chosen agent that is gone opens the shell, never another agent nobody picked.
+  if (!agent || (host.explicit && agent !== host.preferences.defaultTuiAgent)) {
+    if (host.explicit) {
+      toast.message(
+        translate(
+          'settings.agents.emptyWorkspace.agentMissingToast',
+          "{{agent}} isn't installed, so a terminal opened instead.",
+          { agent: structuredAgentLabel(host.preferences.defaultTuiAgent ?? 'claude') }
+        )
+      )
+    }
     return null
   }
   // No user gesture: opening this empty workspace is the one action this chat serves.
@@ -105,7 +133,7 @@ export function openDefaultAgentChatInEmptyWorkspace(
     tuiCustomization: { cwd: initialCwd }
   })
   // Why: an agent that can only open as a TUI here would replace the shell with a process nobody asked for.
-  if (agentSessionLaunchPlan.route === 'terminal-tui') {
+  if (agentSessionLaunchPlan.route === 'terminal-tui' && !host.explicit) {
     return null
   }
   const result = launchAgentInNewTabWithOutcome({

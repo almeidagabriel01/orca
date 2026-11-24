@@ -25,6 +25,8 @@ import {
 } from '@/lib/workspace/activation/initial-surface/worktree-setup-issue-command-queue'
 import { applyDefaultTerminalTabs } from '@/lib/workspace/activation/initial-surface/worktree-default-terminal-tabs'
 import { openDefaultAgentChatInEmptyWorkspace } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-agent-chat'
+import { openEmptyWorkspaceMenuSurface } from './empty-workspace-menu-surface'
+import { normalizeEmptyWorkspaceSurface } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { isEmptyWorkspaceDefaultSurfacePending } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims'
 import { findPendingWorktreeCreationId } from '../../creation/pending-worktree-creation'
 
@@ -234,24 +236,24 @@ export function ensureWorktreeHasInitialTerminal(
     !hasExplicitLaunchWork &&
     opts.activateCreatedTabs !== false
   ) {
-    // Why: the user asked for an empty workspace to stay empty; explicit launch work still runs.
-    if (useAppStore.getState().settings?.emptyWorkspaceSurface === 'nothing') {
+    const seedShell = (): boolean =>
+      ensureWorktreeHasInitialTerminal(
+        store,
+        worktreeId,
+        startup,
+        setup,
+        issueCommand,
+        defaultTabs,
+        { ...opts, seedUserDefaultSurface: false }
+      ) !== null
+    const surface = normalizeEmptyWorkspaceSurface(
+      useAppStore.getState().settings?.emptyWorkspaceSurface
+    )
+    // Why: the user chose what an empty workspace shows; explicit launch work above still runs.
+    if (surface === 'nothing' || openEmptyWorkspaceMenuSurface(worktreeId, surface, seedShell)) {
       return null
     }
-    const defaultChat = openDefaultAgentChatInEmptyWorkspace(
-      worktreeId,
-      () =>
-        ensureWorktreeHasInitialTerminal(
-          store,
-          worktreeId,
-          startup,
-          setup,
-          issueCommand,
-          defaultTabs,
-          { ...opts, seedUserDefaultSurface: false }
-        ) !== null,
-      opts.initialCwd
-    )
+    const defaultChat = openDefaultAgentChatInEmptyWorkspace(worktreeId, seedShell, opts.initialCwd)
     if (defaultChat) {
       return defaultChat.primaryTabId
     }

@@ -172,7 +172,7 @@ const getAllAgentsPaneSearchEntries = createLocalizedCatalog(() => [
     title: translate('settings.agents.emptyWorkspace.title', 'Opening a workspace with no tabs'),
     description: translate(
       'settings.agents.emptyWorkspace.description',
-      "Agent chat opens the default agent (Claude when it is Auto) on the project's default account."
+      'Any item of the + menu. Agents open as chat or terminal, as Open agents as says.'
     ),
     keywords: [
       ...translateSearchKeyword('settings.chat.providers.searchTerminal', 'terminal'),

@@ -7,7 +7,9 @@ import {
 
 function create(emptySurfaceSkipsShell?: boolean) {
   const createTerminal = vi.fn<RuntimeLocalWorktreeTerminalPorts['createTerminal']>(async () => ({
-    handle: 'term_1'
+    handle: 'term_1',
+    worktreeId: 'repo::/w',
+    title: null
   }))
   const ports: RuntimeLocalWorktreeTerminalPorts = {
     canSpawn: true,
@@ -17,15 +19,14 @@ function create(emptySurfaceSkipsShell?: boolean) {
     provision: vi.fn(async () => ({ setupSpawned: false, setupTerminalHandle: null })),
     activate: vi.fn()
   }
-  const worktree = { id: 'repo::/w', path: '/w' } as Pick<Worktree, 'id' | 'path'>
   return {
     createTerminal,
     run: () =>
       startRuntimeLocalWorktreeTerminals({
         request: {},
         repo: { id: 'repo' },
-        // oxlint-disable-next-line typescript/consistent-type-assertions -- only id and path are read on this path.
-        worktree: worktree as Worktree,
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a plain create with no setup or startup reads only id and path.
+        worktree: { id: 'repo::/w', path: '/w' } as Worktree,
         ...(emptySurfaceSkipsShell ? { emptySurfaceSkipsShell } : {}),
         ports
       })

@@ -53,8 +53,17 @@ export function openRemoteEmptyWorkspaceUserSurface(
     release()
   }
   const decide = (): void => {
+    const state = useAppStore.getState()
+    // The host read can take seconds: a tab that arrived or a switch away meanwhile wins.
+    if (
+      state.activeWorktreeId !== worktreeId ||
+      state.tabsByWorktree[worktreeId]?.length ||
+      state.reconcileWorktreeTabModel(worktreeId).renderableTabCount !== 0
+    ) {
+      return settle()
+    }
     const surface = normalizeEmptyWorkspaceSurface(
-      emptyWorkspaceSettingsFor(useAppStore.getState(), worktreeId).emptyWorkspaceSurface
+      emptyWorkspaceSettingsFor(state, worktreeId).emptyWorkspaceSurface
     )
     if (surface === 'nothing' || openEmptyWorkspaceMenuSurface(worktreeId, surface, createShell)) {
       return settle()
@@ -75,6 +84,12 @@ export function openRemoteEmptyWorkspaceUserSurface(
     }
     void loadEmptyWorkspaceDefaultChatDetection(worktreeId).then(open, open)
   }
-  void refreshHostEmptyWorkspaceSettings(useAppStore.getState(), worktreeId).then(decide, decide)
+  void refreshHostEmptyWorkspaceSettings(useAppStore.getState(), worktreeId)
+    .then(decide, decide)
+    .catch((error: unknown) => {
+      // Why: a stuck `opening` entry would leave this workspace empty until restart.
+      console.warn('[empty-workspace] opening the chosen surface failed:', error)
+      settle()
+    })
   return true
 }

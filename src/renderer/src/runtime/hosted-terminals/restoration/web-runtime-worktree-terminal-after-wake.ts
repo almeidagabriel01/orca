@@ -29,6 +29,8 @@ export function ensureWebRuntimeWorktreeTerminalAfterWake(
     unknownHostCountIsEmpty?: boolean
     /** A user opened the workspace: an empty one shows the surface Settings chose. */
     seedUserDefaultSurface?: boolean
+    /** A user open's shell fallback: still overrides a remembered last-tab close. */
+    reseedEmptiedWorkspace?: boolean
   }
 ): boolean {
   const state = useAppStore.getState()
@@ -103,7 +105,10 @@ export function ensureWebRuntimeWorktreeTerminalAfterWake(
         !shouldSeedDefaultSurface(
           worktreeId,
           renderableTabCount,
-          Object.hasOwn(state.tabsByWorktree, worktreeId)
+          // A user open overrides a remembered last-tab close, as local activation does.
+          Object.hasOwn(state.tabsByWorktree, worktreeId) &&
+            opts?.seedUserDefaultSurface !== true &&
+            opts?.reseedEmptiedWorkspace !== true
         )
       ) {
         return false
@@ -123,6 +128,7 @@ export function ensureWebRuntimeWorktreeTerminalAfterWake(
         ...opts,
         runtimeEnvironmentId,
         seedUserDefaultSurface: false,
+        reseedEmptiedWorkspace: true,
         unknownHostCountIsEmpty: true
       })
     })

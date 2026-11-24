@@ -55,6 +55,13 @@ export function takeWorkspaceSwitchWake(
   return true
 }
 
+/** Whether the user switched to the workspace within the mount window, without consuming the switch. */
+// ponytail: fixed window; a host answer slower than it falls back to passive seeding rules.
+export function userOpenedWorkspaceRecently(workspaceKey: string): boolean {
+  const switchedAt = lastSwitchAt.get(workspaceKey)
+  return switchedAt !== undefined && Date.now() - switchedAt <= WORKSPACE_SWITCH_MOUNT_WINDOW_MS
+}
+
 /** `takeWorkspaceSwitchWake` for a consumer the switch itself mounts or runs. */
 export function takeRecentWorkspaceSwitchWake(workspaceKey: string, consumer: string): boolean {
   return takeWorkspaceSwitchWake(workspaceKey, consumer, {

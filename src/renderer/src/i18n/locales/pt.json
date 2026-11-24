@@ -1962,6 +1962,8 @@
       "chatChoiceDescription": "Escolha se cada agente abre como chat ou na sua CLI.",
       "defaultSurfaceTitle": "Abrir agentes como",
       "defaultSurfaceDescription": "O padrão para os agentes neste computador.",
+      "defaultSurfaceServerTitle": "Abrir agentes como em {{host}}",
+      "defaultSurfaceServerDescription": "O padrão próprio de {{host}}, para os agentes que ele mesmo inicia, como pela CLI ou por workers de orquestração. Os agentes que você abre neste computador seguem a escolha deste computador.",
       "defaultSurfaceChatDescription": "Mensagens formatadas, recursos visuais e imagens.",
       "defaultSurfaceTerminal": "Terminal",
       "defaultSurfaceTerminalDescription": "A CLI própria de cada agente.",

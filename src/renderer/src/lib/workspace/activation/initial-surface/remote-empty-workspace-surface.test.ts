@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
     openChat:
       vi.fn<(id: string, seedShell: () => boolean) => { primaryTabId: string | null } | null>(),
     pending: new Set<string>(),
+    active: '',
     tabs,
     listeners: new Set<(state: unknown) => void>()
   }
@@ -19,7 +20,14 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('@/store/index', () => ({
   useAppStore: {
-    getState: () => ({ settings: mocks.settings, tabsByWorktree: mocks.tabs }),
+    getState: () => ({
+      settings: mocks.settings,
+      tabsByWorktree: mocks.tabs,
+      activeWorktreeId: mocks.active,
+      reconcileWorktreeTabModel: (id: string) => ({
+        renderableTabCount: mocks.tabs[id]?.length ?? 0
+      })
+    }),
     subscribe: (listener: (state: unknown) => void) => {
       mocks.listeners.add(listener)
       return () => mocks.listeners.delete(listener)
@@ -57,6 +65,7 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
     mocks.settings = {}
     mocks.pending.clear()
     mocks.tabs = {}
+    mocks.active = WT
     mocks.listeners.clear()
     mocks.openMenu
       .mockReset()
@@ -131,11 +140,36 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
   it('opens the shell for New Terminal, no agent to open, or an unreadable host', async () => {
     const shell = vi.fn()
     mocks.settings = { emptyWorkspaceSurface: 'new-terminal' }
+    mocks.active = 'repo::/home/me/a'
     expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/a', shell)).toBe(true)
     await vi.waitFor(() => expect(shell).toHaveBeenCalledTimes(1))
+    // A reopened folder workspace whose host settings never loaded still gets a surface.
+    mocks.active = 'folder:vps-home'
     mocks.settings = {}
     mocks.refresh.mockRejectedValue(new Error('offline'))
-    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/b', shell)).toBe(true)
+    expect(openRemoteEmptyWorkspaceUserSurface('folder:vps-home', shell)).toBe(true)
     await vi.waitFor(() => expect(shell).toHaveBeenCalledTimes(2))
+  })
+
+  it('opens nothing more when a tab arrives or the user leaves during the host read', async () => {
+    const WT = 'repo::/home/me/c'
+    mocks.active = WT
+    mocks.settings = { emptyWorkspaceSurface: 'agent:claude' }
+    mocks.opensChat.mockReturnValue(true)
+    const shell = vi.fn()
+    let answer!: () => void
+    mocks.refresh.mockReturnValue(new Promise<void>((r) => (answer = r)))
+    openRemoteEmptyWorkspaceUserSurface(WT, shell)
+    mocks.tabs = { [WT]: [{ id: 'tab-1' }] }
+    answer()
+    await vi.waitFor(() => expect(mocks.pending.has(WT)).toBe(false))
+    mocks.tabs = {}
+    mocks.refresh.mockReturnValue(new Promise<void>((r) => (answer = r)))
+    openRemoteEmptyWorkspaceUserSurface(WT, shell)
+    mocks.active = 'repo::/home/me/other'
+    answer()
+    await vi.waitFor(() => expect(mocks.pending.has(WT)).toBe(false))
+    expect(mocks.openChat).not.toHaveBeenCalled()
+    expect(shell).not.toHaveBeenCalled()
   })
 })

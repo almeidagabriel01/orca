@@ -94,9 +94,10 @@ export function activateAndRevealFolderWorkspaceWithOutcome(
   }
 
   const previousActive = readPreviousActive(state)
+  const workspaceKey = folderWorkspaceKey(folderWorkspaceId)
+  noteUserWorkspaceOpen(workspaceKey, opts?.navigationIntent)
   state.setActiveFolderWorkspace(folderWorkspaceId, opts?.executionHostId)
 
-  const workspaceKey = folderWorkspaceKey(folderWorkspaceId)
   const providesInitialSurface = activationProvidesInitialSurface(opts)
   const seedUserDefaultSurface = activationSeedsUserDefaultSurface(opts)
   markVisited(state, workspaceKey, previousActive, opts?.executionHostId, opts?.navigationIntent)

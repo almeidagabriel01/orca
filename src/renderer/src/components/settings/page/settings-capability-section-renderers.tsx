@@ -35,14 +35,15 @@ export function renderAgentsSettingsSection(
         <div className="space-y-8">
           {/* A web page's server is set from a desktop; its caption names "this computer". */}
           {model.showDesktopOnlySettings || model.settingsHostScope.target.kind === 'local' ? (
+            // Why distinct keys: siblings sharing a key keep the previous host's card on a host switch.
             <AgentDefaultSurfaceSection
-              key={runtimeTargetEnvironmentId(model.settingsHostScope.target) ?? 'local'}
+              key={`agent-surface:${runtimeTargetEnvironmentId(model.settingsHostScope.target) ?? 'local'}`}
               settings={model.settings}
               hostScope={model.settingsHostScope}
             />
           ) : null}
           <EmptyWorkspaceSurfaceSection
-            key={runtimeTargetEnvironmentId(model.settingsHostScope.target) ?? 'local'}
+            key={`empty-surface:${runtimeTargetEnvironmentId(model.settingsHostScope.target) ?? 'local'}`}
             settings={model.settings}
             updateSettings={model.updateSettings}
             hostScope={model.settingsHostScope}

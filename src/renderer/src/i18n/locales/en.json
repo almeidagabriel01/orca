@@ -1251,7 +1251,8 @@
       "hideAgentDetails": "Hide {{agent}} details",
       "defaultAutoBadge": "Default · Auto",
       "newAgentsTitle": "New agents",
-      "defaultSurfaceServerDescription": "The default for agents {{host}} starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow This computer's choice.",
+      "defaultSurfaceServerTitle": "Open agents as on {{host}}",
+      "defaultSurfaceServerDescription": "{{host}}'s own default, for agents it starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow this computer's choice.",
       "emptyWorkspace": {
         "title": "Opening a workspace with no tabs",
         "description": "Any item of the + menu, an agent, or nothing.",

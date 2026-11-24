@@ -64,7 +64,7 @@ export function decideWebSessionTabsSnapshot(
     return WEB_SESSION_TABS_FRAME_OUTRANKED
   }
   const key = sessionTabsFreshnessKey(environmentId, snapshot.worktree)
-  if ((snapshot as { removed?: unknown }).removed === true) {
+  if ('removed' in snapshot && snapshot.removed === true) {
     // Why: removed worktrees can stop publishing, so clean up their tracking now instead of waiting for a replacement snapshot that may never arrive.
     // Retraction does not retire the live publisher; its same-epoch republication must return. receivedFrame fences delayed predecessors instead.
     clearWebSessionTabsTrackingForWorktree(environmentId, snapshot.worktree)
@@ -148,6 +148,8 @@ export function shouldBootstrapInitialWebRuntimeTerminal(args: {
   hasPersistedTerminalState: boolean
   /** No earlier frame in this subscription affirmed the worktree's contents. */
   firstHostAnswer: boolean
+  /** The user just opened the worktree: like local activation, that overrides a remembered last-tab close. */
+  userOpenedWorktree: boolean
 }): boolean {
   return (
     args.snapshotIsFresh &&
@@ -158,7 +160,10 @@ export function shouldBootstrapInitialWebRuntimeTerminal(args: {
     !args.event.initialSurfaceLaunch &&
     args.event.tabs.length === 0 &&
     // Use local seeder semantics remotely too: missing means never initialized, explicit empty means user-closed-last-terminal (STA-6173).
-    shouldAutoCreateInitialTerminal(args.localTerminalCount, args.hasPersistedTerminalState) &&
+    shouldAutoCreateInitialTerminal(
+      args.localTerminalCount,
+      args.hasPersistedTerminalState && !args.userOpenedWorktree
+    ) &&
     !args.requestedInitialTerminal &&
     args.activeWorktreeId === args.event.worktree
   )

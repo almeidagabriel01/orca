@@ -30,6 +30,7 @@ import { openEmptyWorkspaceMenuSurface } from './empty-workspace-menu-surface'
 import { normalizeEmptyWorkspaceSurface } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { isEmptyWorkspaceDefaultSurfacePending } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims'
 import { findPendingWorktreeCreationId } from '../../creation/pending-worktree-creation'
+import { ensureWebRuntimeWorktreeTerminalAfterWake } from '@/runtime/hosted-terminals/restoration/web-runtime-worktree-terminal-after-wake'
 
 function getSetupRunnerCommandPlatformForLaunch(setup: WorktreeSetupLaunch): 'windows' | 'posix' {
   return getSetupRunnerCommandPlatformForPath(
@@ -57,6 +58,13 @@ export function reseedGatedEmptyWorkspace(
     isEmptyWorkspaceDefaultSurfacePending(workspaceKey) ||
     state.activeWorktreeId !== workspaceKey ||
     (executionHostId !== undefined && state.activeWorkspaceExecutionHostId !== executionHostId)
+  ) {
+    return
+  }
+  // A paired host owns its workspace's terminals, so the local seeder below defers to it; route there.
+  if (
+    seedUserDefaultSurface &&
+    ensureWebRuntimeWorktreeTerminalAfterWake(workspaceKey, { seedUserDefaultSurface: true })
   ) {
     return
   }

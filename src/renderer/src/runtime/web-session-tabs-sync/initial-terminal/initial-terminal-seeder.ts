@@ -13,6 +13,7 @@ import { findPendingWorktreeCreationId } from '@/lib/workspace/creation/pending-
 import { hasStructuredAgentLaunchInWorktree } from '@/lib/agent-session/launch/structured-agent-session-launch-status'
 import { isEmptyWorkspaceDefaultSurfacePending } from '@/lib/workspace/activation/initial-surface/empty-workspace-default-surface-claims'
 import { openRemoteEmptyWorkspaceUserSurface } from '@/lib/workspace/activation/initial-surface/remote-empty-workspace-surface'
+import { userOpenedWorkspaceRecently } from '@/lib/workspace/activation/workspace-switch-user-act'
 
 type SessionTabsFrame = RuntimeMobileSessionTabsResult & { type: 'snapshot' | 'updated' }
 
@@ -59,7 +60,8 @@ export function createInitialTerminalSeeder(
       snapshotIsFresh: true,
       localTerminalCount: (state.tabsByWorktree[worktreeId] ?? []).length,
       hasPersistedTerminalState: Object.hasOwn(state.tabsByWorktree, worktreeId),
-      firstHostAnswer
+      firstHostAnswer,
+      userOpenedWorktree: userOpenedWorkspaceRecently(worktreeId)
     })
   }
 

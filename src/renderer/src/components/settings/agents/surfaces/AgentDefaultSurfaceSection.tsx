@@ -150,7 +150,11 @@ export function AgentDefaultSurfaceSection({
       ? hostSurface.setting.value
       : null
     : normalizeAgentDefaultSurface(settings.agentDefaultSurface)
-  const title = t('settings.agents.defaultSurfaceTitle', 'Open agents as')
+  const title = onServer
+    ? t('settings.agents.defaultSurfaceServerTitle', 'Open agents as on {{host}}', {
+        host: hostLabel
+      })
+    : t('settings.agents.defaultSurfaceTitle', 'Open agents as')
   const choose = (next: AgentDefaultSurface): void => {
     if (onServer) {
       void hostSurface.update(next)
@@ -221,7 +225,7 @@ export function AgentDefaultSurfaceSection({
               ? getHostSettingUnsupportedNote(hostLabel, t)
               : t(
                   'settings.agents.defaultSurfaceServerDescription',
-                  "The default for agents {{host}} starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow This computer's choice.",
+                  "{{host}}'s own default, for agents it starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow this computer's choice.",
                   { host: hostLabel }
                 )
         }

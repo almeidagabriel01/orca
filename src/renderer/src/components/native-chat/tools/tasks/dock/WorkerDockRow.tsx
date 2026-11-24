@@ -1,7 +1,15 @@
 import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import { workerDockKindLabel, workerDockStateLabel } from './worker-dock-labels'
 import { memo } from 'react'
-import { Circle, CircleAlert, CircleDashed, CircleHelp, CirclePause, Loader2 } from 'lucide-react'
+import {
+  Circle,
+  CircleAlert,
+  CircleCheck,
+  CircleDashed,
+  CircleHelp,
+  CirclePause,
+  Loader2
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { WorkerDockRowAction } from './WorkerDockRowAction'
 import { useNowSnapshot } from '@/lib/window-activity/use-now'
@@ -21,6 +29,7 @@ function Age({ at, visible, fit }: { at: number | null; visible: boolean; fit?: 
   )
   return (
     <span
+      data-worker-dock-age=""
       className={cn(
         'shrink-0 text-right text-xs tabular-nums text-muted-foreground',
         !fit && 'w-11'
@@ -40,7 +49,10 @@ export type WorkerDockRowView = WorkerDockEntry & {
   providerId?: string
   /** The open question a needs-you worker asked, shown in full on the lead row. */
   question?: string
+  /** Set on ended work this window can hide on its own (see workerDockLocallyDismissible). */
+  dismissKey?: string
 }
+export type WorkerDockRowActionKind = 'stop' | 'clear' | 'dismiss'
 export const WorkerDockRow = memo(function WorkerDockRow({
   row,
   narrow,
@@ -63,7 +75,7 @@ export const WorkerDockRow = memo(function WorkerDockRow({
   visible: boolean
   pending: boolean
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
 }) {
   const t = useTranslate()
   const locale = useIntlLocale()
@@ -73,8 +85,11 @@ export const WorkerDockRow = memo(function WorkerDockRow({
     visible && row.startedAt !== null && row.state === 'running'
   )
   const failed = row.state === 'failed' || row.state === 'unexpected'
+  // A retired worker has a saved result to open; other retired work (a subagent, a command) just ended.
   const state = row.retired
-    ? t('components.native-chat.workerDock.doneResult', 'Done · open result')
+    ? row.kind === 'worker'
+      ? t('components.native-chat.workerDock.doneResult', 'Done · open result')
+      : t('components.native-chat.workerDock.finished', 'Finished')
     : workerDockStateLabel(t, row.state)
   const stateTone = failed
     ? 'text-destructive'
@@ -83,18 +98,20 @@ export const WorkerDockRow = memo(function WorkerDockRow({
       : 'text-muted-foreground'
   const Icon = failed
     ? CircleAlert
-    : row.state === 'needs-you'
-      ? CircleHelp
-      : row.state === 'idle'
-        ? CirclePause
-        : row.state === 'running' ||
-            row.state === 'starting' ||
-            row.state === 'stopping' ||
-            row.state === 'saving'
-          ? Loader2
-          : row.state === 'unavailable'
-            ? CircleDashed
-            : Circle
+    : row.retired
+      ? CircleCheck
+      : row.state === 'needs-you'
+        ? CircleHelp
+        : row.state === 'idle'
+          ? CirclePause
+          : row.state === 'running' ||
+              row.state === 'starting' ||
+              row.state === 'stopping' ||
+              row.state === 'saving'
+            ? Loader2
+            : row.state === 'unavailable'
+              ? CircleDashed
+              : Circle
   // A remote chat's worker is shown, not driven, here: its row says where to act instead.
   const remote = row.kind === 'worker' && row.ownerActionsAvailable === false
   const tooltip = `${row.name} · ${row.title}${row.model ? ` · ${row.model}` : ''}${row.startedAt ? t('components.native-chat.workerDock.startedAt', ' · Started {{time}} · {{elapsed}} elapsed', { time: new Date(row.startedAt).toLocaleString(locale), elapsed }) : ''}${t('components.native-chat.workerDock.contactUnavailable', ' · Last confirmed contact unavailable')}${remote ? ` · ${t('components.native-chat.workerDock.remoteOwner', 'Stop or clear this from the computer it runs on')}` : ''}`
@@ -131,7 +148,12 @@ export const WorkerDockRow = memo(function WorkerDockRow({
           {icon}
           <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
             <div className="flex w-full min-w-0 items-baseline gap-2">
-              <span className="max-w-30 shrink-0 truncate text-sm font-medium">{row.name}</span>
+              <span
+                data-worker-dock-name=""
+                className="max-w-30 shrink-0 truncate text-sm font-medium"
+              >
+                {row.name}
+              </span>
               <span
                 data-worker-dock-state=""
                 className={cn('min-w-0 flex-1 truncate text-xs', stateTone)}
@@ -186,14 +208,28 @@ export const WorkerDockRow = memo(function WorkerDockRow({
               compact && narrow && 'flex flex-wrap items-baseline gap-x-2'
             )}
           >
+            {/* Wide, the name truncates down to min-w-12 rather than spill over the status beside it. */}
             <span
               className={cn(
-                'flex min-w-0 gap-x-2',
-                narrow ? (compact ? 'contents' : 'flex-col') : 'flex-1 items-baseline'
+                'flex gap-x-2',
+                narrow
+                  ? compact
+                    ? 'contents'
+                    : 'min-w-0 flex-col'
+                  : 'min-w-12 flex-1 items-baseline'
               )}
             >
-              <span className="max-w-30 shrink-0 truncate text-sm font-medium">{row.name}</span>
               <span
+                data-worker-dock-name=""
+                className={cn(
+                  'max-w-30 truncate text-sm font-medium',
+                  narrow ? 'shrink-0' : 'min-w-12'
+                )}
+              >
+                {row.name}
+              </span>
+              <span
+                data-worker-dock-title=""
                 className={cn(
                   'min-w-0 text-sm',
                   narrow ? (compact ? 'hidden' : 'line-clamp-1') : 'truncate'
@@ -239,7 +275,10 @@ export const WorkerDockRow = memo(function WorkerDockRow({
             </span>
           </span>
           {modelColumn && !narrow ? (
-            <span className="max-w-25 truncate text-xs text-muted-foreground">
+            <span
+              data-worker-dock-model=""
+              className="max-w-25 truncate text-xs text-muted-foreground"
+            >
               {row.model ? subagentModelLabel(row.model) : '—'}
             </span>
           ) : null}

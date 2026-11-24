@@ -1,6 +1,10 @@
 import { useTranslate } from '@/i18n/use-translate'
 import { workerDockNeedsAttention } from '../../../../../../../shared/orchestration/dock/worker-dock'
-import { WorkerDockRow, type WorkerDockRowView } from './WorkerDockRow'
+import {
+  WorkerDockRow,
+  type WorkerDockRowActionKind,
+  type WorkerDockRowView
+} from './WorkerDockRow'
 import { cn } from '@/lib/class-names'
 
 export function WorkerDockItem({
@@ -34,7 +38,7 @@ export function WorkerDockItem({
   pending: boolean
   orderHeld: boolean
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
 }) {
   const t = useTranslate()
   return (

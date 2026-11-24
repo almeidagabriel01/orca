@@ -1,187 +1,266 @@
 import React from 'react'
-import { Laptop, Server } from 'lucide-react'
-import { cn } from '@/lib/class-names'
-import { translate } from '@/i18n/i18n'
-import type { Translate } from '@/i18n/use-translate'
-import { Progress } from '@/components/ui/progress'
-import type { HostMachineTotals, UsedOfTotal } from '../../host-connections/runtime-host-resources'
 import {
-  CPU_COLUMN_CLS,
-  MEM_COLUMN_CLS,
-  METRIC_COLUMNS_CLS,
-  ROW_TRAILING_GUTTER_CLS,
-  formatCpu,
-  formatMemory
-} from './resource-usage-metrics'
-import type { ResourceHostCounts, ResourceHostSummary } from './resource-host-summary'
-import type { HeavyCommandQueue } from '../../../../../../shared/diagnostics/process-stats-types'
+  AlertTriangle,
+  Bot,
+  Laptop,
+  Play,
+  Server,
+  SquareTerminal,
+  type LucideIcon
+} from 'lucide-react'
+import { cn } from '@/lib/class-names'
+import { useTranslate } from '@/i18n/use-translate'
+import { Progress } from '@/components/ui/progress'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import type { HostMachineTotals } from '../../host-connections/runtime-host-resources'
+import { formatCpu, formatMemory } from './resource-usage-metrics'
+import type { ResourceHostSummary } from './resource-host-summary'
+import {
+  formatUsedOfTotal,
+  loadPercent,
+  percentTone,
+  usedPercent,
+  type MeterTone
+} from './resource-host-meters'
+import { HostHeavyQueue } from './resource-usage-heavy-queue'
 
-function formatHostCounts(counts: ResourceHostCounts, t: Translate): string {
-  return [
-    t('resourceManager.hosts.terminals', '{{count}} terminals', {
-      count: counts.terminals,
-      defaultValue_one: '{{count}} terminal'
-    }),
-    t('resourceManager.hosts.agents', '{{count}} agents', {
-      count: counts.agents,
-      defaultValue_one: '{{count}} agent'
-    }),
-    t('resourceManager.hosts.commands', '{{count}} commands', {
-      count: counts.commands,
-      defaultValue_one: '{{count}} command'
-    })
-  ].join(' · ')
+const TONE_TEXT_CLS: Record<MeterTone, string> = {
+  normal: 'text-foreground',
+  warning: 'text-status-warning-text',
+  critical: 'text-destructive'
 }
 
-function formatHeavyQueue(queue: HeavyCommandQueue, t: Translate): string {
-  const running = queue.jobs.filter((job) => job.status === 'running' && !job.extra).length
-  const waiting = queue.jobs.length - queue.jobs.filter((job) => job.status === 'running').length
-  return [
-    t('resourceManager.hosts.heavyQueue', 'Heavy queue {{value0}}/{{value1}} busy', {
-      value0: running,
-      value1: queue.slots
-    }),
-    t('resourceManager.hosts.heavyQueueWaiting', '{{count}} waiting', { count: waiting })
-  ].join(' · ')
+const TONE_BAR_CLS: Record<MeterTone, string> = {
+  normal: 'bg-foreground/50',
+  warning: 'bg-status-warning',
+  critical: 'bg-destructive'
 }
 
-const GIB = 1024 ** 3
-
-function formatUsedOfTotal({ used, total }: UsedOfTotal): string {
-  const [unit, label] =
-    total >= 1024 * GIB ? [1024 * GIB, 'TB'] : total >= GIB ? [GIB, 'GB'] : [1024 ** 2, 'MB']
-  const digits = total / unit >= 100 ? 0 : 1
-  return `${(used / unit).toFixed(digits)}/${(total / unit).toFixed(digits)} ${label}`
-}
-
-function usedPercent(pair: UsedOfTotal | null): number | null {
-  return pair && pair.total > 0 ? (pair.used / pair.total) * 100 : null
-}
-
-function MachineMeter({
+function Meter({
   label,
   value,
-  percent
+  percent,
+  detail
 }: {
   label: string
   value: string
   percent: number | null
+  detail?: string
+}): React.JSX.Element {
+  const tone = percentTone(percent)
+  const body = (
+    <div className="min-w-0">
+      <div className="flex items-baseline justify-between gap-2 text-2xs leading-4">
+        <span className="shrink-0 text-muted-foreground">{label}</span>
+        <span className={cn('truncate font-medium tabular-nums', TONE_TEXT_CLS[tone])}>
+          {value}
+        </span>
+      </div>
+      <Progress
+        value={Math.min(100, percent ?? 0)}
+        aria-label={detail ? `${label} ${value}, ${detail}` : `${label} ${value}`}
+        className="mt-1 h-1 bg-foreground/10"
+        indicatorClassName={TONE_BAR_CLS[tone]}
+      />
+    </div>
+  )
+  if (!detail) {
+    return body
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{body}</TooltipTrigger>
+      <TooltipContent side="top" sideOffset={4} className="max-w-64">
+        {detail}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function MachineMeters({ machine }: { machine: HostMachineTotals }): React.JSX.Element {
+  const t = useTranslate()
+  const cores =
+    machine.cpuCores === null
+      ? undefined
+      : t('resourceManager.hosts.cores', '{{count}} cores', {
+          count: machine.cpuCores,
+          defaultValue_one: '{{count}} core'
+        })
+  const load = machine.loadAverage
+  return (
+    // Why auto-fill: three meters a row at the popover's width, two when it is squeezed.
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] gap-x-4 gap-y-2.5">
+      <Meter
+        label={t('auto.components.status.bar.ResourceUsageStatusSegment.298f4be7f2', 'CPU')}
+        value={machine.cpuPercent === null ? '—' : `${Math.round(machine.cpuPercent)}%`}
+        percent={machine.cpuPercent}
+        detail={cores}
+      />
+      <Meter
+        label={t('resourceManager.hosts.ram', 'RAM')}
+        value={machine.memory ? formatUsedOfTotal(machine.memory) : '—'}
+        percent={usedPercent(machine.memory)}
+      />
+      <Meter
+        label={t('resourceManager.hosts.disk', 'Disk')}
+        value={machine.disk ? formatUsedOfTotal(machine.disk) : '—'}
+        percent={usedPercent(machine.disk)}
+      />
+      <Meter
+        label={t('resourceManager.hosts.loadLabel', 'Load')}
+        value={load ? load[0].toFixed(2) : '—'}
+        percent={loadPercent(load, machine.cpuCores)}
+        detail={
+          load
+            ? t('resourceManager.hosts.loadDetail', '1, 5 and 15 min: {{value0}}', {
+                value0: load.map((n) => n.toFixed(2)).join(' · ')
+              }) + (cores ? ` · ${cores}` : '')
+            : undefined
+        }
+      />
+      <Meter
+        label={t('resourceManager.hosts.swapLabel', 'Swap')}
+        value={
+          machine.swap === null
+            ? '—'
+            : machine.swap.total === 0
+              ? t('resourceManager.hosts.noSwap', 'No swap')
+              : formatUsedOfTotal(machine.swap)
+        }
+        percent={usedPercent(machine.swap)}
+      />
+    </div>
+  )
+}
+
+function CountChip({
+  icon: Icon,
+  count,
+  label
+}: {
+  icon: LucideIcon
+  count: number
+  label: string
 }): React.JSX.Element {
   return (
-    <div className="min-w-0">
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="shrink-0">{label}</span>
-        <span className="truncate text-foreground">{value}</span>
-      </div>
-      <Progress value={percent ?? 0} aria-label={`${label} ${value}`} className="h-1" />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          role="img"
+          aria-label={label}
+          className={cn(
+            'inline-flex h-5 cursor-default items-center gap-1 rounded-md border border-border/70 px-1.5 text-2xs tabular-nums',
+            count > 0 ? 'text-foreground' : 'text-muted-foreground/70'
+          )}
+        >
+          <Icon className="size-3 text-muted-foreground" aria-hidden />
+          {count}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top" sideOffset={4}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
-function renderMachineTotals(machine: HostMachineTotals, t: Translate): React.JSX.Element {
-  const swap =
-    machine.swap === null
-      ? '—'
-      : machine.swap.total === 0
-        ? t('resourceManager.hosts.noSwap', 'none')
-        : formatUsedOfTotal(machine.swap)
-  const details = [
-    t('resourceManager.hosts.machine', 'Machine'),
-    ...(machine.cpuCores === null
-      ? []
-      : [
-          t('resourceManager.hosts.cores', '{{count}} cores', {
-            count: machine.cpuCores,
-            defaultValue_one: '{{count}} core'
-          })
-        ]),
-    t('resourceManager.hosts.load', 'Load {{value0}}', {
-      value0: machine.loadAverage?.map((n) => n.toFixed(2)).join(' ') ?? '—'
-    }),
-    t('resourceManager.hosts.swap', 'Swap {{value0}}', { value0: swap })
-  ].join(' · ')
+function HostCard({ host }: { host: ResourceHostSummary }): React.JSX.Element {
+  const t = useTranslate()
+  const Icon = host.isLocal ? Laptop : Server
+  const sampled = host.counts !== null
   return (
-    <div className="pl-[18px] pt-0.5 text-2xs text-muted-foreground">
-      <div className="truncate">{details}</div>
-      <div className="grid grid-cols-3 gap-x-3 pt-0.5">
-        <MachineMeter
-          label={t('auto.components.status.bar.ResourceUsageStatusSegment.298f4be7f2', 'CPU')}
-          value={machine.cpuPercent === null ? '—' : `${Math.round(machine.cpuPercent)}%`}
-          percent={machine.cpuPercent}
-        />
-        <MachineMeter
-          label={t('resourceManager.hosts.ram', 'RAM')}
-          value={machine.memory ? formatUsedOfTotal(machine.memory) : '—'}
-          percent={usedPercent(machine.memory)}
-        />
-        <MachineMeter
-          label={t('resourceManager.hosts.disk', 'Disk')}
-          value={machine.disk ? formatUsedOfTotal(machine.disk) : '—'}
-          percent={usedPercent(machine.disk)}
-        />
+    <li data-host-card className="overflow-hidden rounded-lg border border-border bg-card/40">
+      {/* Why wrap: on a narrow card Orca's usage drops to its own line before the name is cut. */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 pt-2.5">
+        <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+        <span className="min-w-0 break-words text-xs font-semibold text-foreground">
+          {host.label}
+        </span>
+        <span className="shrink-0 text-3xs uppercase tracking-wider text-muted-foreground">
+          {host.isLocal
+            ? t('resourceManager.hosts.localBadge', 'Local')
+            : t('resourceManager.hosts.remoteBadge', 'Remote')}
+        </span>
+        {host.orca && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="ml-auto shrink-0 cursor-default text-2xs tabular-nums text-muted-foreground">
+                {t('auto.components.status.bar.ResourceUsageStatusSegment.288a4dd177', 'Orca')}{' '}
+                <span className="text-foreground">{formatCpu(host.orca.cpu)}</span>
+                {' · '}
+                <span className="text-foreground">{formatMemory(host.orca.memory)}</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}>
+              {t('resourceManager.hosts.orcaUsage', "Orca's own CPU and memory on this machine")}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
-    </div>
-  )
-}
-
-export function renderResourceHostsSummary(
-  hosts: readonly ResourceHostSummary[],
-  t: Translate = translate
-): React.JSX.Element {
-  return (
-    <div className="shrink-0 border-b border-border px-3 py-1.5 text-xs tabular-nums">
-      <div className="flex items-center justify-between pb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground/80">
-        <span>{t('resourceManager.hosts.title', 'Hosts · Orca usage')}</span>
-        <div className="flex shrink-0 items-center gap-2">
-          <div className={cn(METRIC_COLUMNS_CLS, 'text-[10px]')}>
-            <span className={CPU_COLUMN_CLS}>
-              {t('auto.components.status.bar.ResourceUsageStatusSegment.298f4be7f2', 'CPU')}
-            </span>
-            <span className={MEM_COLUMN_CLS}>{t('resourceManager.hosts.memory', 'Memory')}</span>
+      {host.notice && (
+        <p
+          className={cn(
+            'flex items-start gap-1.5 px-3 pt-1.5 text-2xs',
+            sampled ? 'text-muted-foreground' : 'text-foreground'
+          )}
+        >
+          <AlertTriangle className="mt-px size-3 shrink-0 text-status-warning" aria-hidden />
+          <span>{host.notice}</span>
+        </p>
+      )}
+      <div className="space-y-2.5 px-3 pt-2 pb-2.5">
+        {host.machine && <MachineMeters machine={host.machine} />}
+        {host.counts && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <CountChip
+              icon={SquareTerminal}
+              count={host.counts.terminals}
+              label={t('resourceManager.hosts.terminals', '{{count}} terminals', {
+                count: host.counts.terminals,
+                defaultValue_one: '{{count}} terminal'
+              })}
+            />
+            <CountChip
+              icon={Bot}
+              count={host.counts.agents}
+              label={t('resourceManager.hosts.agents', '{{count}} agents', {
+                count: host.counts.agents,
+                defaultValue_one: '{{count}} agent'
+              })}
+            />
+            <CountChip
+              icon={Play}
+              count={host.counts.commands}
+              label={t('resourceManager.hosts.commands', '{{count}} commands', {
+                count: host.counts.commands,
+                defaultValue_one: '{{count}} command'
+              })}
+            />
           </div>
-          <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
-        </div>
+        )}
       </div>
-      <ul className="flex flex-col gap-2">
-        {hosts.map((host) => {
-          const Icon = host.isLocal ? Laptop : Server
-          return (
-            <li key={host.id} className="min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <Icon className="size-3 shrink-0 text-muted-foreground" aria-hidden />
-                  <span className="truncate font-medium text-foreground">{host.label}</span>
-                </span>
-                <div className="flex shrink-0 items-center gap-2">
-                  <div className={METRIC_COLUMNS_CLS}>
-                    <span className={CPU_COLUMN_CLS}>
-                      {host.orca ? formatCpu(host.orca.cpu) : '—'}
-                    </span>
-                    <span className={MEM_COLUMN_CLS}>
-                      {host.orca ? formatMemory(host.orca.memory) : '—'}
-                    </span>
-                  </div>
-                  <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
-                </div>
-              </div>
-              <div className="truncate pl-[18px] text-2xs text-muted-foreground">
-                {host.counts ? formatHostCounts(host.counts, t) : host.notice}
-              </div>
-              {host.counts && host.notice ? (
-                <div className="truncate pl-[18px] text-2xs text-muted-foreground/70">
-                  {host.notice}
-                </div>
-              ) : null}
-              {host.machine?.heavyQueue ? (
-                <div className="truncate pl-[18px] text-2xs text-muted-foreground">
-                  {formatHeavyQueue(host.machine.heavyQueue, t)}
-                </div>
-              ) : null}
-              {host.machine ? renderMachineTotals(host.machine, t) : null}
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+      {host.machine?.heavyQueue && (
+        <HostHeavyQueue hostId={host.id} label={host.label} queue={host.machine.heavyQueue} />
+      )}
+    </li>
+  )
+}
+
+/** One card per machine: its state, meters and counts, and its heavy queue when it has one. */
+export function ResourceHostCards({
+  hosts
+}: {
+  hosts: readonly ResourceHostSummary[]
+}): React.JSX.Element {
+  const t = useTranslate()
+  return (
+    <ul
+      className="flex flex-col gap-2 px-3 pt-1 pb-3"
+      aria-label={t('resourceManager.hosts.machines', 'Machines')}
+    >
+      {hosts.map((host) => (
+        <HostCard key={host.id} host={host} />
+      ))}
+    </ul>
   )
 }

@@ -9,8 +9,7 @@ import { ResourceHostSection } from './resource-host-section'
 
 const DEFAULT_VISIBLE_GROUPS = 8
 
-// Like the project sections' collapse state, kept while Orca runs, across popover opens.
-const collapsedHosts = new Set<string>()
+const COLLAPSED_STORAGE_KEY = 'orca.resourceManager.outsideOrcaCollapsed'
 
 const KIND_ICON = {
   app: AppWindow,
@@ -51,7 +50,7 @@ function OutsideOrcaSection({
   return (
     <ResourceHostSection
       hostId={hostId}
-      collapsedHosts={collapsedHosts}
+      storageKey={COLLAPSED_STORAGE_KEY}
       title={t('resourceManager.outsideOrca.title', 'Outside Orca · {{value0}}', { value0: label })}
       tooltip={t(
         'resourceManager.outsideOrca.tooltip',
@@ -81,7 +80,7 @@ function OutsideOrcaSection({
               )}
             </span>
             <div className="flex shrink-0 items-center gap-2">
-              <MetricPair cpu={group.cpu} memory={group.memory} size="small" />
+              <MetricPair cpu={group.cpu} memory={group.memory} size="small" flagHeavy />
               <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
             </div>
           </div>

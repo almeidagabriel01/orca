@@ -2,10 +2,38 @@ import React, { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
-/** A host's collapsible section under the project list; collapse state lives in the caller's set, so it survives popover opens. */
+function readCollapsed(storageKey: string): string[] {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '[]')
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+/** Whether a host's section is folded, remembered per host across popover opens and restarts. */
+export function useHostSectionCollapsed(
+  storageKey: string,
+  hostId: string
+): [collapsed: boolean, toggle: () => void] {
+  const [collapsed, setCollapsed] = useState(() => readCollapsed(storageKey).includes(hostId))
+  const toggle = (): void => {
+    const next = !collapsed
+    const others = readCollapsed(storageKey).filter((id) => id !== hostId)
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(next ? [...others, hostId] : others))
+    } catch {
+      // Storage can be full or blocked; the fold still works for this session.
+    }
+    setCollapsed(next)
+  }
+  return [collapsed, toggle]
+}
+
+/** A host's collapsible section under the project list; the fold is remembered per host. */
 export function ResourceHostSection({
   hostId,
-  collapsedHosts,
+  storageKey,
   title,
   tooltip,
   expandLabel,
@@ -14,7 +42,7 @@ export function ResourceHostSection({
   children
 }: {
   hostId: string
-  collapsedHosts: Set<string>
+  storageKey: string
   title: string
   tooltip: string
   expandLabel: string
@@ -22,13 +50,7 @@ export function ResourceHostSection({
   trailing?: React.ReactNode
   children: React.ReactNode
 }): React.JSX.Element {
-  const [collapsed, setCollapsed] = useState(() => collapsedHosts.has(hostId))
-  const toggleCollapsed = (): void => {
-    if (!collapsedHosts.delete(hostId)) {
-      collapsedHosts.add(hostId)
-    }
-    setCollapsed(collapsedHosts.has(hostId))
-  }
+  const [collapsed, toggleCollapsed] = useHostSectionCollapsed(storageKey, hostId)
   return (
     <div className="border-t border-border/50">
       <div className="flex items-center">
@@ -48,7 +70,7 @@ export function ResourceHostSection({
         <div className="flex min-w-0 flex-1 items-center justify-between gap-2 py-2 pr-3">
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="min-w-0 cursor-default truncate text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="min-w-0 cursor-default truncate text-2xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {title}
               </span>
             </TooltipTrigger>

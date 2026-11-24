@@ -85,6 +85,7 @@ export function parseHeavyCommandQueue(value: unknown): HeavyCommandQueue | null
     readAt,
     slots,
     controls: value.controls === true,
+    canStop: value.canStop === true,
     jobs: value.jobs.slice(0, MAX_JOBS).flatMap((job) => parseJob(job) ?? [])
   }
 }

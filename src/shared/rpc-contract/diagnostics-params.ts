@@ -16,6 +16,7 @@ export const DiagnosticsHeavyQueueActionParams = z.discriminatedUnion('action', 
   }),
   z.object({ action: z.literal('run-now'), pid: HeavyQueuePid, extra: z.boolean() }),
   z.object({ action: z.literal('cancel'), pid: HeavyQueuePid }),
+  z.object({ action: z.literal('stop'), pid: HeavyQueuePid }),
   z.object({ action: z.literal('slots'), slots: z.number().int().min(1).max(9) })
 ])
 export type HeavyQueueAction = z.infer<typeof DiagnosticsHeavyQueueActionParams>

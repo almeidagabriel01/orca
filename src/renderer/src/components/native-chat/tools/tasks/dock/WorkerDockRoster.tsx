@@ -7,7 +7,7 @@ import {
   workerDockClearable,
   workerDockNeedsAttention
 } from '../../../../../../../shared/orchestration/dock/worker-dock'
-import type { WorkerDockRowView } from './WorkerDockRow'
+import type { WorkerDockRowActionKind, WorkerDockRowView } from './WorkerDockRow'
 import { WorkerDockItem } from './WorkerDockItem'
 import { useLatestHandler } from '@/lib/use-latest-handler'
 import { workerDockSummary } from './worker-dock-summary'
@@ -23,6 +23,7 @@ export function WorkerDockRoster(props: {
     ownerActionsAvailable?: boolean
     settlement?: string | null
     hasModel?: boolean
+    dismissKey?: string
   }[]
   countIdentities?: readonly { id: string; state: WorkerDockRowView['state']; kind?: string }[]
   rows: ReadonlyMap<string, WorkerDockRowView>
@@ -35,7 +36,7 @@ export function WorkerDockRoster(props: {
   onExpandedChange: (value: boolean) => void
   pending: ReadonlySet<string>
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
   onClearAll: () => void
   loadWindow?: (anchor: string) => Promise<void>
 }) {
@@ -84,7 +85,9 @@ export function WorkerDockRoster(props: {
   const clearing = props.identities.some(
     (row) => (row.state === 'failed' || row.state === 'unexpected') && props.pending.has(row.id)
   )
-  const clearable = props.identities.filter(workerDockClearable).length
+  const clearable = props.identities.filter(
+    (row) => workerDockClearable(row) || Boolean(row.dismissKey)
+  ).length
   const {
     mixed,
     total,

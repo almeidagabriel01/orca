@@ -4,6 +4,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { Repo } from '../../shared/repository/repo-types'
 import {
+  scriptSupportsStop,
   attributeHeavyQueueWorkspaces,
   parseHeavyQueueListing,
   readHeavyCommandQueue
@@ -122,6 +123,17 @@ describe('readHeavyCommandQueue', () => {
       ])
     }
   )
+})
+
+describe('scriptSupportsStop', () => {
+  it('reads it from the script, so an older vps-heavy keeps Stop off', async () => {
+    const script = path.join(home, 'vps-heavy')
+    await writeFile(script, '#!/bin/sh\n# vps-heavy cancel <pid>\n')
+    await expect(scriptSupportsStop(script)).resolves.toBe(false)
+    await writeFile(script, '#!/bin/sh\n# vps-heavy stop <pid>   para um job\n')
+    await expect(scriptSupportsStop(script)).resolves.toBe(true)
+    await expect(scriptSupportsStop(path.join(home, 'missing'))).resolves.toBe(false)
+  })
 })
 
 describe('parseHeavyQueueListing', () => {

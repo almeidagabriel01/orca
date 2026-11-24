@@ -1,4 +1,8 @@
+import { useState } from 'react'
 import { defineFixture } from '../../../../../component-fixtures/component-fixture'
+import { i18n, loadRendererUiLanguage } from '@/i18n/i18n'
+import { workerDockClearable } from '../../../../../../../shared/orchestration/dock/worker-dock'
+import type { AgentSessionBackgroundTask } from '../../../../../../../shared/agent-session/background-tasks/agent-session-background-task-wire'
 import { nativeChatAppearanceStyle } from '../../../appearance/native-chat-appearance-style'
 import { NativeChatBackgroundTasksStatus } from '../NativeChatBackgroundTasksStatus'
 import { NativeChatWorkerDockFrame } from './NativeChatWorkerDockFrame'
@@ -80,7 +84,16 @@ const longRows = [
   ].map((title, index) => worker(10 + index, `ORCA-${30 + index}`, title, 'running', 4 + index))
 ]
 
-function dock(expanded: boolean, list: readonly WorkerDockRowView[]) {
+function dock(
+  expanded: boolean,
+  list: readonly WorkerDockRowView[],
+  extra: {
+    settledTasks?: AgentSessionBackgroundTask[]
+    onClearAll?: () => void
+    onWorkerAction?: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+    sessionId?: string
+  } = {}
+) {
   const workerRows = new Map(list.map((row) => [row.id, row]))
   const workerIdentities = list.map(
     ({ id, state, changedAt, settlement, ownerActionsAvailable }) => ({
@@ -94,9 +107,9 @@ function dock(expanded: boolean, list: readonly WorkerDockRowView[]) {
   return (
     <NativeChatWorkerDockFrame>
       <NativeChatBackgroundTasksStatus
-        sessionId={SOURCE}
+        sessionId={extra.sessionId ?? SOURCE}
         tasks={[]}
-        settledTasks={[]}
+        settledTasks={extra.settledTasks ?? []}
         supportsTaskStop
         offersStopAll={false}
         stoppingTaskIds={new Set()}
@@ -108,6 +121,8 @@ function dock(expanded: boolean, list: readonly WorkerDockRowView[]) {
         onStop={() => {}}
         workerRows={workerRows}
         workerIdentities={workerIdentities}
+        onClearAll={extra.onClearAll}
+        onWorkerAction={extra.onWorkerAction}
       />
     </NativeChatWorkerDockFrame>
   )
@@ -276,4 +291,137 @@ export const composerOverSend320 = defineFixture({
   width: 320,
   setup: savePositionOverSend,
   render: () => composerChat(false)
+})
+
+// Ended work next to live work: a failure this Orca acknowledges (Clear), a failure run from another
+// computer and a finished subagent (Dismiss, hidden here only). Live rows never offer either.
+const DISMISSED_STORAGE_KEY = 'orca.nativeChat.workerDock.dismissed'
+const endedRows = [
+  worker(1, 'ORCA-18', 'Fix streaming journal amplification', 'running', 12),
+  failed,
+  worker(5, 'ORCA-22', 'Trim the startup font preload', 'unexpected', 20, {
+    changedAt: minutes(5),
+    reason: 'The worker exited before it reported',
+    settlement: 'settled:ctx_bot_5',
+    ownerActionsAvailable: false
+  })
+]
+const settledAgents: AgentSessionBackgroundTask[] = [
+  {
+    id: 'agent-review',
+    kind: 'agent',
+    description: 'Review dock read model',
+    state: 'done',
+    startedAt: minutes(7)
+  }
+]
+
+// Each fixture gets its own ids: the shots share one page, and a dismissal is kept per row.
+function EndedWorkChat({ scope }: { scope: string }) {
+  const [list, setList] = useState(() =>
+    endedRows.map((row) => ({ ...row, id: `${row.id}:${scope}` }))
+  )
+  const drop = (keep: (row: WorkerDockRowView) => boolean) => setList((rows) => rows.filter(keep))
+  return (
+    <div
+      className="native-chat-appearance flex flex-col gap-2 bg-chat-canvas p-3"
+      style={nativeChatAppearanceStyle({})}
+    >
+      <p className="text-xs text-muted-foreground">Perf Issue · Home Chat</p>
+      <p className="text-sm text-chat-foreground">
+        Two workers and a subagent ended; one worker is still running.
+      </p>
+      <div className="rounded-xl border border-chat-composer-border bg-chat-composer-surface p-1.5 shadow-xs">
+        {dock(true, list, {
+          sessionId: `${SOURCE}:${scope}`,
+          settledTasks: settledAgents,
+          // Stands in for the host acknowledging the failure.
+          onClearAll: () => drop((row) => !workerDockClearable(row)),
+          onWorkerAction: (row, action) => {
+            if (action === 'clear') {
+              drop((other) => other.id !== row.id)
+            }
+          }
+        })}
+      </div>
+    </div>
+  )
+}
+
+function forgetDismissed() {
+  localStorage.removeItem(DISMISSED_STORAGE_KEY)
+}
+
+export const endedWorkOpen = defineFixture({
+  width: 720,
+  setup: forgetDismissed,
+  render: () => <EndedWorkChat scope="endedWorkOpen" />
+})
+
+export const endedWorkDismissed = defineFixture({
+  width: 720,
+  setup: forgetDismissed,
+  render: () => <EndedWorkChat scope="endedWorkDismissed" />,
+  interact: async (frame) => {
+    const button = [
+      ...frame.querySelectorAll<HTMLButtonElement>('[data-worker-dock-header] button')
+    ].find(
+      (candidate) => candidate.textContent === 'Dismiss' || candidate.textContent === 'Dispensar'
+    )
+    if (!button) {
+      throw new Error('Dismiss not found')
+    }
+    button.click()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  }
+})
+
+export const endedWorkNarrowOpen = defineFixture({
+  width: 390,
+  setup: forgetDismissed,
+  render: () => <EndedWorkChat scope="endedWorkNarrowOpen" />
+})
+
+// The finished subagent sits below the fold; scroll to it to show its Dismiss.
+export const endedWorkOpenBottom = defineFixture({
+  width: 720,
+  setup: forgetDismissed,
+  render: () => <EndedWorkChat scope="endedWorkOpenBottom" />,
+  interact: async (frame) => {
+    const viewport = frame.querySelector<HTMLElement>(
+      '[data-native-chat-background-tasks] [role="region"]'
+    )
+    if (!viewport) {
+      throw new Error('Worker roster viewport not found')
+    }
+    viewport.scrollTop = viewport.scrollHeight
+    viewport.dispatchEvent(new Event('scroll'))
+    await new Promise((resolve) => setTimeout(resolve, 400))
+  }
+})
+
+// The same views in Portuguese, whose longer labels must not overlap the names either.
+const inPortuguese =
+  (then?: (frame: HTMLElement) => void | Promise<void>) =>
+  async (frame: HTMLElement): Promise<void> => {
+    await i18n.changeLanguage(await loadRendererUiLanguage('pt'))
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    await then?.(frame)
+  }
+
+export const endedWorkOpenPt = defineFixture({
+  ...endedWorkOpen,
+  interact: inPortuguese()
+})
+export const endedWorkNarrowOpenPt = defineFixture({
+  ...endedWorkNarrowOpen,
+  interact: inPortuguese()
+})
+export const endedWorkOpenBottomPt = defineFixture({
+  ...endedWorkOpenBottom,
+  interact: inPortuguese(endedWorkOpenBottom.interact)
+})
+export const endedWorkDismissedPt = defineFixture({
+  ...endedWorkDismissed,
+  interact: inPortuguese(endedWorkDismissed.interact)
 })

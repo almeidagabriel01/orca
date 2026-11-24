@@ -926,6 +926,17 @@
       },
       "remoteBrowsing": {
         "heading": "Remote browsing",
+        "stopQuestion": "Stop {{value0}}? The worker that started it gets an error.",
+        "stopConfirm": "Stop",
+        "stopFailed": "Couldn't stop it. {{value0}}",
+        "openFolder": "Open folder",
+        "stop": "Stop…",
+        "reasonReadOnly": "This host's queue can't be changed from here",
+        "reasonOutsideOrder": "Started through flock, outside the queue order",
+        "reasonFirst": "Already first in line",
+        "reasonLast": "Already last in line",
+        "reasonRemoteFolder": "The folder is on another machine",
+        "reasonCantStop": "This host's vps-heavy can't stop commands; update it",
         "headingDescription": "Where remote workspace pages render, and where their network traffic leaves from."
       },
       "userAgent": {
@@ -22766,14 +22777,12 @@
         "notNow": "Not now",
         "retry": "Retry",
         "dismiss": "Dismiss",
+        "dismissName": "Dismiss {{name}}",
         "openWorker": "Open worker",
         "remoteOwner": "Stop or clear this from the computer it runs on",
         "restore": "Show in dock again",
         "unavailable": "Worker status unavailable",
         "empty": "0 workers",
-        "clearAllLabel_one": "Clear failed worker",
-        "clearAllLabel_other": "Clear all {{count}} failed workers",
-        "clearAll": "Clear all",
         "attention": "Needs attention",
         "openWork": "Open work",
         "orderHeld": "Order held",
@@ -22784,11 +22793,9 @@
         "workersRegion": "Workers",
         "timeUnavailable": "Status time unavailable",
         "doneResult": "Done · open result",
-        "clearName": "Clear {{name}}",
         "stopUnavailable": "Stop {{name}} · {{title}} unavailable · {{reason}}",
         "stopName": "Stop {{name}} · {{title}}",
         "stopping": "Stopping…",
-        "clear": "Clear",
         "stop": "Stop",
         "coordinator": "Waiting on coordinator",
         "starting": "Starting",
@@ -22833,8 +22840,9 @@
         "startedAt": " · Started {{time}} · {{elapsed}} elapsed",
         "contactUnavailable": " · Last confirmed contact unavailable",
         "runningCount": "{{count}} running",
-        "cleared_one": "Cleared 1 worker",
-        "cleared_other": "Cleared {{count}} workers"
+        "dismissed_one": "Dismissed 1 worker",
+        "dismissed_other": "Dismissed {{count}} workers",
+        "undo": "Undo"
       },
       "webhookSetup": {
         "heading": "Set up a webhook",
@@ -26349,18 +26357,18 @@
       "agents_other": "{{count}} agents",
       "commands_one": "{{count}} command",
       "commands_other": "{{count}} commands",
-      "title": "Hosts · Orca usage",
-      "memory": "Memory",
-      "machine": "Machine",
       "cores_one": "{{count}} core",
       "cores_other": "{{count}} cores",
-      "load": "Load {{value0}}",
-      "swap": "Swap {{value0}}",
-      "noSwap": "none",
+      "noSwap": "No swap",
       "ram": "RAM",
       "disk": "Disk",
-      "heavyQueue": "Heavy queue {{value0}}/{{value1}} busy",
-      "heavyQueueWaiting": "{{count}} waiting"
+      "localBadge": "Local",
+      "remoteBadge": "Remote",
+      "orcaUsage": "Orca's own CPU and memory on this machine",
+      "machines": "Machines",
+      "loadLabel": "Load",
+      "loadDetail": "1, 5 and 15 min: {{value0}}",
+      "swapLabel": "Swap"
     },
     "outsideOrca": {
       "title": "Outside Orca · {{value0}}",
@@ -26391,6 +26399,7 @@
       "position": "#{{value0}}",
       "directElapsed": "Started through flock directly, so this counts from when it asked for the slot.",
       "direct": "flock",
+      "directTooltip": "Started through flock directly, outside the queue order: it cannot be moved, only removed while it waits.",
       "expandCommand": "Show the whole command",
       "collapseCommand": "Show less of the command",
       "actions": "Queue actions",
@@ -26407,13 +26416,33 @@
       "removeQuestion": "Remove from the queue? The command stops waiting and fails.",
       "removeConfirm": "Remove",
       "removeFailed": "Couldn't remove it. {{value0}}",
-      "keep": "Keep"
+      "keep": "Keep",
+      "heading": "Heavy queue",
+      "waiting": "{{count}} waiting",
+      "openFolder": "Open folder",
+      "stop": "Stop…",
+      "stopQuestion": "Stop {{value0}}? The worker that started it gets an error.",
+      "stopConfirm": "Stop",
+      "stopFailed": "Couldn't stop it. {{value0}}",
+      "reasonReadOnly": "This host's queue can't be changed from here",
+      "reasonOutsideOrder": "Started through flock, outside the queue order",
+      "reasonFirst": "Already first in line",
+      "reasonLast": "Already last in line",
+      "reasonRemoteFolder": "The folder is on another machine",
+      "reasonCantStop": "This host's vps-heavy can't stop commands; update it"
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"
     },
     "sharedAgentProcesses": "Shared agent processes",
-    "hostChatsUpdateRequired": "Update {{value0}} to see its chats."
+    "hostChatsUpdateRequired": "Update {{value0}} to see its chats.",
+    "tree": {
+      "filter": "Filter workspaces",
+      "filterPlaceholder": "Filter projects, workspaces, terminals",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "noMatches": "Nothing matches “{{value0}}”"
+    }
   },
   "browserExtensions": {
     "permission": {

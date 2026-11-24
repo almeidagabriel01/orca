@@ -6,11 +6,19 @@ const mocks = vi.hoisted(() => ({
   opensChat: vi.fn(),
   loadDetection: vi.fn(),
   openChat: vi.fn(),
-  pending: new Set<string>()
+  pending: new Set<string>(),
+  tabs: {} as Record<string, unknown[]>,
+  listeners: new Set<(state: unknown) => void>()
 }))
 
 vi.mock('@/store/index', () => ({
-  useAppStore: { getState: () => ({ settings: mocks.settings }) }
+  useAppStore: {
+    getState: () => ({ settings: mocks.settings, tabsByWorktree: mocks.tabs }),
+    subscribe: (listener: (state: unknown) => void) => {
+      mocks.listeners.add(listener)
+      return () => mocks.listeners.delete(listener)
+    }
+  }
 }))
 vi.mock('./empty-workspace-menu-surface', () => ({
   openEmptyWorkspaceMenuSurface: (_id: string, surface: string | undefined) =>
@@ -37,6 +45,8 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
   beforeEach(() => {
     mocks.settings = {}
     mocks.pending.clear()
+    mocks.tabs = {}
+    mocks.listeners.clear()
     mocks.openMenu
       .mockReset()
       .mockImplementation(
@@ -73,9 +83,19 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
     expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
     expect(mocks.pending.has(WT)).toBe(true)
     expect(mocks.openChat).not.toHaveBeenCalled()
+    // A second seeder while the first waits opens nothing more.
+    expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
     finishDetection()
-    await vi.waitFor(() => expect(mocks.openChat).toHaveBeenCalled())
+    await vi.waitFor(() => expect(mocks.openChat).toHaveBeenCalledTimes(1))
+    // Still held until the host publishes the agent's tab.
+    expect(mocks.pending.has(WT)).toBe(true)
+    expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(true)
+    mocks.tabs = { [WT]: [{ id: 'tab-1' }] }
+    for (const listener of mocks.listeners) {
+      listener({ tabsByWorktree: mocks.tabs })
+    }
     expect(mocks.pending.has(WT)).toBe(false)
+    expect(mocks.openChat).toHaveBeenCalledTimes(1)
     expect(shell).not.toHaveBeenCalled()
   })
 
@@ -91,9 +111,9 @@ describe('openRemoteEmptyWorkspaceUserSurface', () => {
   it('leaves the shell to the caller for New Terminal or no agent to open', () => {
     const shell = vi.fn()
     mocks.settings = { emptyWorkspaceSurface: 'new-terminal' }
-    expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(false)
+    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/other', shell)).toBe(false)
     mocks.settings = {}
-    expect(openRemoteEmptyWorkspaceUserSurface(WT, shell)).toBe(false)
+    expect(openRemoteEmptyWorkspaceUserSurface('repo::/home/me/other', shell)).toBe(false)
     expect(shell).not.toHaveBeenCalled()
   })
 })

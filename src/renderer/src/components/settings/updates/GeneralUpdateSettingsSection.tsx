@@ -117,87 +117,90 @@ export function GeneralUpdateSettingsSection({
               version: appVersion ?? '…'
             })}
           </span>
-          <Button
-            variant="outline"
-            size="sm"
-            // Modifier clicks are one-off update actions, not saved toggles.
-            onClick={(event) => window.api.updater.check(getUpdateCheckClickOptions(event))}
-            title={updateCheckHint}
-            disabled={
-              updateStatus.state === 'checking' ||
-              updateStatus.state === 'downloading' ||
-              (updateStatus.state === 'error' &&
-                updateStatus.messageCode === 'macStagingTimeout') ||
-              (updateStatus.state === 'downloaded' && updateStatus.installing)
-            }
-            className="gap-2"
-          >
-            {updateStatus.state === 'checking' ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="size-3.5" />
-            )}
-            {t(
-              'auto.components.settings.GeneralUpdateSettingsSection.6d27bd46e3',
-              'Check for updates'
-            )}
-          </Button>
-
-          {updateStatus.state === 'available' && !updateStatus.externallyManaged ? (
+          {/* Both actions stay together on the right and wrap as one group. */}
+          <div className="ms-auto flex flex-wrap items-center justify-end gap-2">
             <Button
-              variant="default"
+              variant="outline"
               size="sm"
-              onClick={() => {
-                void window.api.updater.download().catch((error) => {
-                  toast.error(
-                    t(
-                      'auto.components.settings.GeneralUpdateSettingsSection.02dc082e70',
-                      'Could not start the update download.'
-                    ),
-                    {
-                      description: String((error as Error)?.message ?? error)
-                    }
-                  )
-                })
-              }}
+              // Modifier clicks are one-off update actions, not saved toggles.
+              onClick={(event) => window.api.updater.check(getUpdateCheckClickOptions(event))}
+              title={updateCheckHint}
+              disabled={
+                updateStatus.state === 'checking' ||
+                updateStatus.state === 'downloading' ||
+                (updateStatus.state === 'error' &&
+                  updateStatus.messageCode === 'macStagingTimeout') ||
+                (updateStatus.state === 'downloaded' && updateStatus.installing)
+              }
               className="gap-2"
             >
-              <Download className="size-3.5" />
-              {updateStatus.manualDownload
-                ? t(
-                    'auto.components.settings.GeneralUpdateSettingsSection.downloadForkBuild',
-                    'Download fork build'
-                  )
-                : t(
-                    'auto.components.settings.GeneralUpdateSettingsSection.downloadUpdate',
-                    'Download update'
-                  )}
-            </Button>
-          ) : !showManualRestart &&
-            updateStatus.state === 'error' &&
-            updateStatus.retryAction === 'install' &&
-            updateStatus.retryable !== false ? (
-            <Button variant="default" size="sm" onClick={handleRestartToUpdate} className="gap-2">
-              <RefreshCw className="size-3.5" />
-              {t('auto.components.UpdateCard.b3b02a9d84', 'Try again')}
-            </Button>
-          ) : !showManualRestart &&
-            updateStatus.state === 'downloaded' &&
-            !(updateStatus.automaticDownload && updateStatus.installing) ? (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleRestartToUpdate}
-              disabled={updateStatus.installing}
-              className="gap-2"
-            >
-              <Download className="size-3.5" />
+              {updateStatus.state === 'checking' ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
               {t(
-                'auto.components.settings.GeneralUpdateSettingsSection.restartToUpdate',
-                'Restart to update'
+                'auto.components.settings.GeneralUpdateSettingsSection.6d27bd46e3',
+                'Check for updates'
               )}
             </Button>
-          ) : null}
+
+            {updateStatus.state === 'available' && !updateStatus.externallyManaged ? (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  void window.api.updater.download().catch((error) => {
+                    toast.error(
+                      t(
+                        'auto.components.settings.GeneralUpdateSettingsSection.02dc082e70',
+                        'Could not start the update download.'
+                      ),
+                      {
+                        description: String((error as Error)?.message ?? error)
+                      }
+                    )
+                  })
+                }}
+                className="gap-2"
+              >
+                <Download className="size-3.5" />
+                {updateStatus.manualDownload
+                  ? t(
+                      'auto.components.settings.GeneralUpdateSettingsSection.downloadForkBuild',
+                      'Download fork build'
+                    )
+                  : t(
+                      'auto.components.settings.GeneralUpdateSettingsSection.downloadUpdate',
+                      'Download update'
+                    )}
+              </Button>
+            ) : !showManualRestart &&
+              updateStatus.state === 'error' &&
+              updateStatus.retryAction === 'install' &&
+              updateStatus.retryable !== false ? (
+              <Button variant="default" size="sm" onClick={handleRestartToUpdate} className="gap-2">
+                <RefreshCw className="size-3.5" />
+                {t('auto.components.UpdateCard.b3b02a9d84', 'Try again')}
+              </Button>
+            ) : !showManualRestart &&
+              updateStatus.state === 'downloaded' &&
+              !(updateStatus.automaticDownload && updateStatus.installing) ? (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleRestartToUpdate}
+                disabled={updateStatus.installing}
+                className="gap-2"
+              >
+                <Download className="size-3.5" />
+                {t(
+                  'auto.components.settings.GeneralUpdateSettingsSection.restartToUpdate',
+                  'Restart to update'
+                )}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         <p className="text-xs text-muted-foreground">

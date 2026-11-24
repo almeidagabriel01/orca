@@ -26379,7 +26379,18 @@
       "removeFailed": "Couldn't remove it. {{value0}}",
       "keep": "Keep",
       "heading": "Heavy queue",
-      "waiting": "{{count}} waiting"
+      "waiting": "{{count}} waiting",
+      "openFolder": "Open folder",
+      "stop": "Stop…",
+      "stopQuestion": "Stop {{value0}}? The worker that started it gets an error.",
+      "stopConfirm": "Stop",
+      "stopFailed": "Couldn't stop it. {{value0}}",
+      "reasonReadOnly": "This host's queue can't be changed from here",
+      "reasonOutsideOrder": "Started through flock, outside the queue order",
+      "reasonFirst": "Already first in line",
+      "reasonLast": "Already last in line",
+      "reasonRemoteFolder": "The folder is on another machine",
+      "reasonCantStop": "This host's vps-heavy can't stop commands; update it"
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"

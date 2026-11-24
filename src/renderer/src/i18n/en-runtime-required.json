@@ -3616,6 +3616,21 @@
         "count_other": "{{count}} skills"
       }
     },
+    "browser": {
+      "remoteBrowsing": {
+        "openFolder": "Open folder",
+        "reasonCantStop": "This host's vps-heavy can't stop commands; update it",
+        "reasonFirst": "Already first in line",
+        "reasonLast": "Already last in line",
+        "reasonOutsideOrder": "Started through flock, outside the queue order",
+        "reasonReadOnly": "This host's queue can't be changed from here",
+        "reasonRemoteFolder": "The folder is on another machine",
+        "stop": "Stop…",
+        "stopConfirm": "Stop",
+        "stopFailed": "Couldn't stop it. {{value0}}",
+        "stopQuestion": "Stop {{value0}}? The worker that started it gets an error."
+      }
+    },
     "diagnostics": {
       "errors": {
         "creatingDisabled": "creating review files is disabled",

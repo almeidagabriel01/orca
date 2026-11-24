@@ -287,9 +287,10 @@ export function QueueRow({
       {confirm && (
         <div
           role="group"
-          className="mt-1 ml-[1.125rem] flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1"
+          className="mt-1 ml-[1.125rem] flex flex-wrap items-center justify-end gap-1.5 rounded-md bg-muted/60 px-2 py-1"
         >
-          <span className="mr-auto text-2xs text-foreground">
+          {/* Why wrap: on a narrow card the buttons drop below the question instead of leaving the card. */}
+          <span className="min-w-[12rem] flex-1 text-2xs text-foreground">
             {confirm === 'remove'
               ? t(
                   'resourceManager.heavyQueue.removeQuestion',

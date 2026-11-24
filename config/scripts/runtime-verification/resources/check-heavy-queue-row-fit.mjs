@@ -4,7 +4,16 @@ import { chromium } from 'playwright-core'
 import { ensureFixtureServer } from '../../component-fixtures/fixture-server-client.mjs'
 
 const FIXTURE = 'status-bar/resources/popover/resource-heavy-queue-extremes'
-const CASES = ['wide', 'wideExpanded', 'narrow', 'narrowExpanded', 'widePt', 'narrowPt']
+const CASES = [
+  'wide',
+  'wideExpanded',
+  'narrow',
+  'narrowExpanded',
+  'widePt',
+  'narrowPt',
+  'stopConfirmPt',
+  'narrowStopConfirmPt'
+]
 
 const { url } = await ensureFixtureServer()
 const browser = await chromium.launch({ headless: true })

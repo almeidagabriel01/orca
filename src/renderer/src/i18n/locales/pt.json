@@ -9684,7 +9684,7 @@
         "sshBulkRemove": {
           "removedCount": "{{count}} removidos",
           "skippedCount": "{{count}} ignorados",
-          "failedCount": "{{count}} falharam",
+          "failedCount": "{{count}} falhas",
           "skippedManaged": "{{label}} tem um servidor Orca.",
           "skippedWorkspaces": "{{label}} tem espaços de trabalho.",
           "skippedHint": "Remova os hosts ignorados um de cada vez para escolher o que acontece com eles."
@@ -21957,7 +21957,7 @@
         "agentCount_other": "{{count}} agentes",
         "stoppedByYou": "Parado por você",
         "finished": "Concluído",
-        "failedCount": "{{count}} falharam",
+        "failedCount": "{{count}} falhas",
         "needsYouCount": "{{count}} precisam de você",
         "newQuestions_one": "{{count}} nova pergunta de worker aguardando você",
         "newQuestions_other": "{{count}} novas perguntas de workers aguardando você",
@@ -23914,10 +23914,29 @@
       "removeFailed": "Não foi possível remover. {{value0}}",
       "keep": "Manter",
       "heading": "Fila pesada",
-      "waiting": "{{count}} na fila"
+      "waiting": "{{count}} na fila",
+      "openFolder": "Abrir pasta",
+      "stop": "Parar…",
+      "stopQuestion": "Parar {{value0}}? O worker que o iniciou recebe erro.",
+      "stopConfirm": "Parar",
+      "stopFailed": "Não foi possível parar. {{value0}}",
+      "reasonReadOnly": "A fila deste host não pode ser alterada daqui",
+      "reasonOutsideOrder": "Iniciado pelo flock, fora da ordem da fila",
+      "reasonFirst": "Já é o primeiro da fila",
+      "reasonLast": "Já é o último da fila",
+      "reasonRemoteFolder": "A pasta está em outra máquina",
+      "reasonCantStop": "O vps-heavy deste host não sabe parar comandos; atualize-o"
     },
     "sessionProcesses": {
-      "copy": "Copiar comando"
+      "copy": "Copiar comando",
+      "count": "×{{value0}}",
+      "failed": "Não foi possível ler os processos.",
+      "gone": "Nenhum processo rodando.",
+      "hide": "Ocultar processos",
+      "loading": "Lendo processos…",
+      "pid": "PID {{value0}}",
+      "show": "Mostrar processos",
+      "updateRequired": "Atualize o Orca neste host para ver os processos."
     },
     "tree": {
       "filter": "Filtrar workspaces",
@@ -23925,7 +23944,27 @@
       "expandAll": "Expandir tudo",
       "collapseAll": "Recolher tudo",
       "noMatches": "Nada corresponde a “{{value0}}”"
-    }
+    },
+    "chatRow": {
+      "tooltip": "Chat do {{agent}}, incluindo os processos que rodam sob ele"
+    },
+    "outsideOrca": {
+      "collapse": "Recolher Fora do Orca",
+      "expand": "Expandir Fora do Orca",
+      "kernel": "Kernel",
+      "processCount": "×{{value0}}",
+      "showLess": "Mostrar menos",
+      "showMore": "Mostrar mais {{count}}",
+      "title": "Fora do Orca · {{value0}}",
+      "tooltip": "Apps, containers e comandos que o Orca não iniciou, agrupados. A CPU é a fatia de um núcleo, então pode passar de 100% em máquinas com vários núcleos."
+    },
+    "owner": {
+      "agents": "Agentes",
+      "orca": "Orca",
+      "otherTerminals": "Outros terminais",
+      "privateBytes": "Comprometido pelo Orca, agentes e terminais"
+    },
+    "sharedAgentProcesses": "Processos de agente compartilhados"
   },
   "browserTab": {
     "agentDriving": "Um agente está usando esta página",

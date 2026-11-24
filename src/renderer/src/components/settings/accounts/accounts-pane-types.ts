@@ -1,3 +1,4 @@
+import type { AgentCliPresence } from './provider-not-installed'
 import type { ObservedAccountPlans } from '@/lib/provider-accounts/observed-account-plans'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import type { GlobalSettings } from '../../../../../shared/settings/global-settings-types'
@@ -111,6 +112,10 @@ export type AccountsPaneSectionModel = {
   systemCodexMissingSignIn: boolean
   systemCodexIdentity: CodexRateLimitAccountsState['systemDefault']
   activeCodexAuthWarning: 'missing-sign-in' | 'stale-sign-in' | null
+  /** The selected host's agent inventory has no Codex CLI and no usable Codex login. */
+  codexCliMissing: boolean
+  /** Which CLIs the selected host has, per Settings > Agents. */
+  cliPresence: AgentCliPresence
   activeCodexAccountId: string | null
   codexConfigSync: CodexConfigSyncStatus | null
   codexConfigSyncWarning:

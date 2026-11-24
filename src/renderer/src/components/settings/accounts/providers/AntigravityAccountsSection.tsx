@@ -36,6 +36,8 @@ import { useAntigravityAccountRun } from './use-antigravity-account-run'
 import { AntigravityGoogleSignInChoice } from '../../../provider-accounts/AntigravityGoogleSignInChoice'
 import { AntigravityAgySignInButton } from '../../../provider-accounts/AntigravityAgySignInButton'
 import { ACCOUNTS_SECTION_IDS } from '../accounts-search'
+import { ProviderNotInstalledSection, useAgentCliPresence } from '../provider-not-installed'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 import {
   AntigravityTerminalAccountRows,
   type AntigravityAccountAction
@@ -85,6 +87,10 @@ export function AntigravityAccountsSection({
   const wslDistro = target.wslDistro ?? null
   // Chats run on the host itself, never in a WSL distro.
   const chats = runtime !== 'wsl'
+  const cli = useAgentCliPresence(owner, runtime)
+  const hasAgyLogin = Boolean(state?.accounts.length || state?.currentAccount)
+  const agyMissing =
+    providerSignInState(cli.installed('antigravity'), !hasAgyLogin) === 'not-installed'
   const chatRuntime = useManagedRuntimeInstall(owner, 'antigravity', chats)
   const managedVersion =
     chatRuntime.kind === 'active' &&
@@ -346,61 +352,70 @@ export function AntigravityAccountsSection({
           {chatRows}
         </SettingsGroup>
       ) : null}
-      <SettingsGroup
-        title={logoTitle(t('accounts.antigravity.terminalTitle', 'agy in the terminal'))}
-        description={
-          windowsHost
-            ? t(
-                'accounts.antigravity.terminalDescriptionWindows',
-                "Uses agy's own saved accounts. Switching applies to the host default agy credential."
-              )
-            : state?.chatUsesAgy === undefined && state?.chatAgySignedOut === undefined
-              ? t(
-                  'accounts.antigravity.terminalDescription',
-                  "Uses agy's own saved accounts. Switching applies to new agy sessions."
-                )
-              : state?.chatUsesAgy || state?.chatAgySignedOut
-                ? t(
-                    'accounts.antigravity.terminalDescriptionChats',
-                    "Uses agy's own saved accounts. Switching applies to new agy sessions and to Antigravity chats."
-                  )
-                : t(
-                    'accounts.antigravity.terminalDescriptionNoChats',
-                    "Uses agy's own saved accounts. Switching applies to new agy sessions, not to Antigravity chats."
-                  )
-        }
-        action={
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label={t('accounts.antigravity.refresh', 'Refresh accounts')}
-                disabled={busy}
-                onClick={() => void run('List')}
-              >
-                {busy ? (
-                  <Loader2 className="animate-spin text-muted-foreground" />
-                ) : (
-                  <RefreshCw className="text-muted-foreground" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={4}>
-              {t('accounts.antigravity.refresh', 'Refresh accounts')}
-            </TooltipContent>
-          </Tooltip>
-        }
-      >
-        <AntigravityTerminalAccountRows
-          state={state}
-          usage={usage}
-          error={error}
-          busy={busy}
-          windowsHost={windowsHost}
-          run={(action, accountId) => void run(action, accountId)}
+      {agyMissing ? (
+        <ProviderNotInstalledSection
+          title={logoTitle(t('accounts.antigravity.terminalTitle', 'agy in the terminal'))}
+          agent="antigravity"
+          hostLabel={label}
+          onCheckAgain={() => void cli.refresh()}
         />
-      </SettingsGroup>
+      ) : (
+        <SettingsGroup
+          title={logoTitle(t('accounts.antigravity.terminalTitle', 'agy in the terminal'))}
+          description={
+            windowsHost
+              ? t(
+                  'accounts.antigravity.terminalDescriptionWindows',
+                  "Uses agy's own saved accounts. Switching applies to the host default agy credential."
+                )
+              : state?.chatUsesAgy === undefined && state?.chatAgySignedOut === undefined
+                ? t(
+                    'accounts.antigravity.terminalDescription',
+                    "Uses agy's own saved accounts. Switching applies to new agy sessions."
+                  )
+                : state?.chatUsesAgy || state?.chatAgySignedOut
+                  ? t(
+                      'accounts.antigravity.terminalDescriptionChats',
+                      "Uses agy's own saved accounts. Switching applies to new agy sessions and to Antigravity chats."
+                    )
+                  : t(
+                      'accounts.antigravity.terminalDescriptionNoChats',
+                      "Uses agy's own saved accounts. Switching applies to new agy sessions, not to Antigravity chats."
+                    )
+          }
+          action={
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t('accounts.antigravity.refresh', 'Refresh accounts')}
+                  disabled={busy}
+                  onClick={() => void run('List')}
+                >
+                  {busy ? (
+                    <Loader2 className="animate-spin text-muted-foreground" />
+                  ) : (
+                    <RefreshCw className="text-muted-foreground" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={4}>
+                {t('accounts.antigravity.refresh', 'Refresh accounts')}
+              </TooltipContent>
+            </Tooltip>
+          }
+        >
+          <AntigravityTerminalAccountRows
+            state={state}
+            usage={usage}
+            error={error}
+            busy={busy}
+            windowsHost={windowsHost}
+            run={(action, accountId) => void run(action, accountId)}
+          />
+        </SettingsGroup>
+      )}
       {chats &&
       chatRuntime.kind !== 'active' &&
       structuredChatUnavailableOnPlatform('antigravity', ownerPlatform) ? (

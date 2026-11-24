@@ -238,6 +238,22 @@ export function openAgentSessionTab(
   ) {
     return applied(model)
   }
+  // The chat switched agents: its own tab, opened again by id, takes the new agent.
+  const workspace = model.workspaces[command.workspace]
+  const held = workspace?.tabs.find((tab) => tab.id === command.tabId)
+  if (
+    workspace &&
+    held?.kind === 'agent-session' &&
+    held.entityId === command.sessionId &&
+    held.agentSessionAgent !== command.agent
+  ) {
+    const tabs = workspace.tabs.map((tab) =>
+      tab === held ? { ...held, agentSessionAgent: command.agent } : tab
+    )
+    return applied(withWorkspace(model, command.workspace, { ...workspace, tabs }), {
+      tabId: held.id
+    })
+  }
   const drawn = drawnTabOpen(
     model,
     command.workspace,

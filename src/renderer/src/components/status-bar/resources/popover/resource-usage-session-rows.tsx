@@ -124,7 +124,7 @@ export function SessionRow({
             session.label
           )}
         </span>
-        <MetricPair cpu={session.cpu} memory={session.memory} size="small" />
+        <MetricPair cpu={session.cpu} memory={session.memory} size="small" flagHeavy />
         {/* Reserve the kill gutter for alignment; paired samples are read-only, while bound local rows reveal actions on hover/focus. */}
         <span className={ROW_TRAILING_GUTTER_CLS}>
           {session.readOnly ? null : (

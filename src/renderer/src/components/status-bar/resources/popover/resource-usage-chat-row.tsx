@@ -102,7 +102,7 @@ const ChatRow = React.memo(function ChatRow({
             <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
               {chat.name?.trim() || agentLabel}
             </span>
-            <MetricPair cpu={chat.cpu} memory={chat.memory} size="small" />
+            <MetricPair cpu={chat.cpu} memory={chat.memory} size="small" flagHeavy />
             <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
           </div>
         </TooltipTrigger>

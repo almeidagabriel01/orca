@@ -1,6 +1,7 @@
 import {
   admitStructuredSessionTabPublication,
   projectStructuredSessionTab,
+  projectChatRowAgent,
   type StructuredSessionRawPublicationInput,
   type StructuredSessionTabPublicationInput
 } from './structured-session-tab-publication'
@@ -9,6 +10,8 @@ import { OrcaRuntimeWithGetStructuredAgentSessionCreateSupport } from './structu
 import { getStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/host/structured-agent-session-registry'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host/execution-host'
 import { restoredChatTabChanges } from './restored-chat-tab-changes'
+import { chatTabId } from './agent-session-tab-layout'
+import type { AgentSessionStatusSummary } from '../../../../shared/agent-session/agent-session-wire'
 import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../shared/workspace-layout/layout-owner-switch'
 import type { RuntimeRepoSearchRefs } from '../../../../shared/worktree/catalog/runtime-worktree-contracts'
 import type { RepoSearchRefSelectorForm } from '../../../git/refs/resolution/legacy-ref-selectors'
@@ -32,6 +35,8 @@ import { parseAppSshPtyId } from '../../../../shared/remote-runtime/ssh/ssh-pty-
 import type { TerminalProcessInspection as PtyProcessInspection } from '../../../../shared/terminal/pty/lifecycle/terminal-process-inspection'
 import type { MainSessionTabRows } from '../layout/main-session-tab-rows'
 import { isReopenedChatTabId } from '../../../../shared/agent-session/view/structured-agent-session-host-tab-id'
+
+type StructuredChatTabAgent = Pick<AgentSessionStatusSummary, 'sessionId' | 'workspaceId' | 'agent'>
 
 export type AgentLaunchScope = Parameters<
   OrcaRuntimeWithRestoreStructuredAgentSessionTabsOnce['getAgentLaunchPlatformForWorkspace']
@@ -110,8 +115,11 @@ export abstract class OrcaRuntimeWithRestoreStructuredAgentSessionTabsOnce exten
   }
 
   async publishStructuredAgentSessionTab(
-    input: StructuredSessionTabPublicationInput
+    opened: StructuredSessionTabPublicationInput
   ): Promise<void> {
+    // A chat switched to another agent shows on that agent, whatever its opener last knew.
+    const saved = getStructuredAgentSessionHost()?.deps?.store?.getConversation?.(opened.sessionId)
+    const input = { ...opened, agent: saved?.provider ?? opened.agent }
     input.workspaceAuthority?.check()
     const { tabId, current, eligible } = await admitStructuredSessionTabPublication(input, () =>
       input.workspaceAuthority
@@ -179,6 +187,27 @@ export abstract class OrcaRuntimeWithRestoreStructuredAgentSessionTabsOnce exten
     projectStructuredSessionTab(this, { ...input, savedOrder }, (snapshot) =>
       this.emitMobileSessionTabsSnapshot(snapshot)
     )
+  }
+
+  // ponytail: one entry per chat seen this run; drop on close if it ever matters.
+  private readonly chatTabAgents = new Map<string, string>()
+
+  /** A chat switched agents: its saved tab and its snapshot row follow, as a window's own tab does. */
+  followStructuredChatTabAgent(chat: StructuredChatTabAgent): void {
+    const { sessionId, workspaceId, agent } = chat
+    const prior = this.chatTabAgents.get(sessionId)
+    this.chatTabAgents.set(sessionId, agent)
+    if (prior === undefined || prior === agent) {
+      return
+    }
+    void this.changeWindowlessChatTabs(
+      workspaceId,
+      [{ open: { sessionId, agent, tabId: chatTabId(sessionId) } }],
+      (change) => this.passiveStructuredSessionTabChangeEligible(change)
+    )
+    if (this.workspaceSessions.tryGetHostId(workspaceId) === LOCAL_EXECUTION_HOST_ID) {
+      projectChatRowAgent(this, chat, (snapshot) => this.emitMobileSessionTabsSnapshot(snapshot))
+    }
   }
 
   async inspectTerminalProcess(

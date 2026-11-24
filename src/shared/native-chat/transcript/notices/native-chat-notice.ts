@@ -9,6 +9,11 @@ import {
 import { AGENT_SESSION_ORCA_STOP_PRESENTATION } from '../../../agent-session/lifecycle/stopping/agent-session-orca-stop'
 import { NATIVE_CHAT_STOPPED_BEFORE_START_PRESENTATION } from '../pending-sends/native-chat-stopped-before-start'
 import { AGENT_SESSION_FORKED_FROM_PRESENTATION } from '../../../agent-session/lifecycle/records/agent-session-fork'
+import {
+  AGENT_SESSION_AGENT_SWITCH_PRESENTATION,
+  isAgentSessionAgentSwitchMark,
+  type AgentSessionAgentSwitchMark
+} from '../../../agent-session/conversation-context/agent-session-agent-switch'
 import type { NativeChatBlock, NativeChatTextBlock } from '../../native-chat-types'
 import {
   readCodexAutoReviewDenialFrame,
@@ -38,6 +43,8 @@ export type NativeChatNoticeLook =
       /** The host has no readable record of the source: nothing to open, no name to show. */
       sourceMissing: boolean
     }
+  /** The rule where the chat moved to another agent or account, with what the new one was handed. */
+  | { kind: 'agent-switch'; mark: AgentSessionAgentSwitchMark }
   /** Laid out in columns, so drawn in monospace. */
   | { kind: 'command-output' }
   /** The host's line in the reader's words, drawn faint. */
@@ -83,6 +90,12 @@ export function nativeChatNoticeLook(block: NativeChatTextBlock): NativeChatNoti
       sourceForked: block.forkedFrom.sourceForked === true,
       sourceMissing: block.forkedFrom.sourceMissing === true
     }
+  }
+  if (
+    presentation === AGENT_SESSION_AGENT_SWITCH_PRESENTATION &&
+    isAgentSessionAgentSwitchMark(block.agentSwitch)
+  ) {
+    return { kind: 'agent-switch', mark: block.agentSwitch }
   }
   if (presentation === 'command-output') {
     return { kind: 'command-output' }

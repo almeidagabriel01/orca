@@ -1,6 +1,8 @@
 // What rides ahead of a person's words, once: the host's turn context, then unread automation results.
 // Ahead of all that, what this message alone needs said, on every send of a person's message.
+// First of all, once, the chat so far when the chat just moved to another agent.
 
+import { readFile } from 'node:fs/promises'
 import {
   AGENT_JOURNAL_THREAD_SCOPE,
   type AgentJournalMessageItem,
@@ -65,17 +67,23 @@ export function structuredAgentSessionRideAlong(
   /** The provider context the plan was read against; its receipt lands only in that one. */
   let context: string | null = null
   let held: string | null | undefined
+  let handoff: { switchId: string; text: string } | null = null
   return {
     claim: async (fence, scope) => {
       const record = ctx.record?.()
       context = record ? agentSessionInstructionsContext(record) : null
       held = record ? (record.instructionsKey ?? null) : undefined
-      const [read, named] = await Promise.all([
+      const pending =
+        scope.kind === 'thread' && !isPromptCommand(body) ? record?.pendingHandoff : undefined
+      const [read, named, handedOff] = await Promise.all([
         readPlan(scope),
         agentSessionSendDeliversStoppedHistory(submission, body)
           ? ctx.turnContext?.mentions?.(ctx.sessionId, body).catch(() => null)
-          : null
+          : null,
+        // A swept snapshot leaves the agent without the earlier chat; the send still goes.
+        pending ? readFile(pending.promptPath, 'utf8').catch(() => null) : null
       ])
+      handoff = pending && handedOff ? { switchId: pending.operationId, text: handedOff } : null
       plan = read
       mentions = named ?? null
       results = await carriedAutomationResults(ctx.journal, scope, submission, body)
@@ -88,14 +96,20 @@ export function structuredAgentSessionRideAlong(
         carried || !text
           ? withRideAlong(sent, [...(text ? [text] : []), ...automationResultsRideAlong(results)])
           : { ...sent, blocks: [{ type: 'text' as const, text }, ...sent.blocks] }
-      if (!mentions) {
-        return own
-      }
-      return agentSessionSendCarriesStoppedHistory(own)
-        ? withRideAlong(own, [mentions])
-        : { ...own, blocks: [{ type: 'text' as const, text: mentions }, ...own.blocks] }
+      return [mentions, handoff?.text].reduce<AgentJournalMessageItem>(
+        (item, part) =>
+          !part
+            ? item
+            : agentSessionSendCarriesStoppedHistory(item)
+              ? withRideAlong(item, [part])
+              : { ...item, blocks: [{ type: 'text' as const, text: part }, ...item.blocks] },
+        own
+      )
     },
     taken: async (fence) => {
+      if (handoff) {
+        await ctx.recordRanOptions?.handoffGiven?.(handoff.switchId)
+      }
       const writeReceipt = ctx.recordRanOptions?.instructions
       if (!plan) {
         return

@@ -15,7 +15,10 @@ export type WorkerDockRowView = WorkerDockEntry & {
   providerId?: string
   /** The open question a needs-you worker asked: the row's title while it waits. */
   question?: string
+  /** Set on ended work this window can hide on its own (see workerDockLocallyDismissible). */
+  dismissKey?: string
 }
+export type WorkerDockRowActionKind = 'stop' | 'clear' | 'dismiss'
 
 /** What a row and the pill call the worker: its question while it waits on you, else its title
  *  once (the ticket name stays in the tooltip, so it is never repeated in front of the title). */
@@ -59,7 +62,7 @@ export const WorkerDockRow = memo(function WorkerDockRow({
   visible: boolean
   pending: boolean
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
 }) {
   const t = useTranslate()
   const rowId = row?.id ?? id ?? ''
@@ -69,7 +72,10 @@ export const WorkerDockRow = memo(function WorkerDockRow({
   const state = !row
     ? ''
     : row.retired
-      ? t('components.native-chat.workerDock.doneResult', 'Done · open result')
+      ? // A retired worker has a saved result to open; other retired work (a subagent, a command) just ended.
+        row.kind === 'worker'
+        ? t('components.native-chat.workerDock.doneResult', 'Done · open result')
+        : t('components.native-chat.workerDock.finished', 'Finished')
       : row.state === 'unavailable'
         ? ''
         : workerDockStateLabel(t, row.state)

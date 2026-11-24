@@ -20,7 +20,7 @@ import {
   renderResourceUsagePopoverFooter
 } from './popover/resource-usage-popover-body'
 import { renderResourceUsageKillDialog } from './popover/resource-usage-kill-dialog'
-import { renderResourceHostsSummary } from './popover/resource-usage-hosts-summary'
+import { ResourceHostCards } from './popover/resource-usage-hosts-summary'
 import { WorkspaceSpaceCompactPanel } from '../workspace-storage/WorkspaceSpaceCompactPanel'
 
 export function ResourceUsageStatusSegment(): React.JSX.Element {
@@ -100,7 +100,7 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
         align="end"
         sideOffset={8}
         {...STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS}
-        className="flex h-[min(40rem,var(--radix-popover-content-available-height))] w-[26rem] max-w-[calc(100vw-2rem)] flex-col"
+        className="flex h-[min(46rem,var(--radix-popover-content-available-height))] w-[30rem] max-w-[calc(100vw-2rem)] flex-col"
         onOpenAutoFocus={(event) => event.preventDefault()}
         onCloseAutoFocus={(event) => {
           if (takeChatOpenedClose()) {
@@ -158,24 +158,22 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
             )}
             {daemonUnreachable && renderDaemonUnreachableBanner({ daemonActions }, t)}
             {!daemonUnreachable && sessionsOnlyError && renderSessionsOnlyErrorBanner(t)}
-            {(ownerSplit || hostSummaries.length > 0) && (
-              <div className="min-h-0 max-h-[40%] overflow-y-auto scrollbar-sleek">
-                {ownerSplit &&
-                  renderResourceUsageSummary(
-                    {
-                      ownerSplit,
-                      commitBadgeLabel,
-                      commitToneClass,
-                      orphanCount
-                    },
-                    t
-                  )}
-                {hostSummaries.length > 0 && renderResourceHostsSummary(hostSummaries, t)}
-              </div>
-            )}
             {renderResourceUsagePopoverBody(
               {
                 setPopoverBodyNode,
+                overview: (
+                  <>
+                    {ownerSplit &&
+                      renderResourceUsageSummary(
+                        { ownerSplit, commitBadgeLabel, commitToneClass, orphanCount },
+                        t
+                      )}
+                    {hostSummaries.length > 0 && <ResourceHostCards hosts={hostSummaries} />}
+                  </>
+                ),
+                workspaceFilter: controller.workspaceFilter,
+                setWorkspaceFilter: controller.setWorkspaceFilter,
+                setAllCollapsed: controller.setAllCollapsed,
                 unifiedRepos,
                 resourceSnapshot,
                 sortOption,

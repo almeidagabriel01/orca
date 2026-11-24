@@ -80,6 +80,10 @@ export const WORK_METHODS = [
     params: { envelope: envelope(), itemId: 'chosen', expectedEpoch: 'epoch' }
   },
   {
+    method: 'agentSession.switchAgent',
+    params: { envelope: envelope(), target: { agent: 'codex' } }
+  },
+  {
     method: 'agentSession.respondToApproval',
     params: { envelope: envelope(), itemId: 'item-1', expectedRevision: 1, optionId: 'allow' }
   },

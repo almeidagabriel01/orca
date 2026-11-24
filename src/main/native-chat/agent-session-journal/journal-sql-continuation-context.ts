@@ -94,10 +94,12 @@ function readJournalDomainContinuationContext(
   const continued: JournalContinuedPayload[] = []
   // One snapshot: the head and clear boundary hold for every page.
   const cursor = journalDomainContextHead(db, target)
+  // A switch's divider starts the new agent fresh, but the chat it hands on spans every agent.
   const clear = Number(
     db
       .prepare(`SELECT MAX(sequence) AS sequence FROM journal_items INDEXED BY journal_items_context_clear
-      WHERE session_id=? AND epoch=? AND hidden=0 AND context_clear=1`)
+      WHERE session_id=? AND epoch=? AND hidden=0 AND context_clear=1
+        AND json_extract(payload_json,'$.body.agentSwitch') IS NULL`)
       .get(target.sessionId, target.epoch)?.sequence ?? 0
   )
   const read = (from?: JournalContinuationFrom) =>

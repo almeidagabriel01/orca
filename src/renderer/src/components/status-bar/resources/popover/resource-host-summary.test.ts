@@ -186,6 +186,7 @@ describe('parseHostMachineTotals', () => {
         readAt: 9_000,
         slots: 2,
         controls: true,
+        canStop: false,
         jobs: [
           {
             pid: 7,

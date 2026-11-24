@@ -6,7 +6,7 @@ import { NativeChatUsageLimitRow } from '../../usage/NativeChatUsageLimitRow'
 import { agentSessionGoalControlWords } from '../../session/goals/agent-session-goal-control-words'
 import { AlertCircle, AlertTriangle, Info, Notebook } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { NativeChatForkedFromRow } from './NativeChatForkedFromRow'
+import { NativeChatLineageRule } from './NativeChatLineageRule'
 import { NativeChatAutoReviewDenialRow } from './NativeChatAutoReviewDenialRow'
 import { NativeChatPullRequestEventLine } from './NativeChatPullRequestEventLine'
 import { NativeChatEventRow } from '../events/NativeChatEventRow'
@@ -121,8 +121,8 @@ export function NativeChatNoticeRow({
     )
   }
   const look = nativeChatNoticeLook(block)
-  if (look.kind === 'forked-from') {
-    return <NativeChatForkedFromRow look={look} />
+  if (look.kind === 'forked-from' || look.kind === 'agent-switch') {
+    return <NativeChatLineageRule look={look} />
   }
   if (look.kind === 'divider') {
     const label =

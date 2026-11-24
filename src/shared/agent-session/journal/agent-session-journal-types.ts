@@ -1,3 +1,4 @@
+import type { AgentSessionContextDividerFields } from '../conversation-context/agent-session-agent-switch'
 import type { AgentJournalBotMessageFields } from './agent-journal-bot-message-fields'
 import type { AgentJournalTypedBy } from './agent-journal-typed-by'
 import type { AgentSessionForkedFromMark } from '../conversation-naming/agent-session-fork-name'
@@ -7,7 +8,6 @@ import type {
 } from './agent-session-journal-approval-subject'
 import type { AgentJournalCursor, AgentJournalItemIdentity } from './agent-session-journal-identity'
 import type { AgentJournalTurnScope } from './agent-session-journal-turn-scope'
-import type { AgentSessionProviderContextBoundary } from '../conversation-context/agent-session-provider-context'
 // Persist/republish plain JSON only. Append-only rows are upcast on read, never rewritten;
 // unreadable versions/kinds must refuse writes rather than be skipped or compacted away.
 
@@ -283,11 +283,10 @@ export type AgentJournalThreadGoalState =
   | { state: 'set'; goal: AgentJournalThreadGoal }
   | { state: 'cleared' }
 
-type AgentJournalStatusItemFields = {
+type AgentJournalStatusItemFields = AgentSessionContextDividerFields & {
   kind: 'status'
   /** Optional display hints; unknown values retain the ordinary text fallback. */
   presentation?: string
-  contextClear?: AgentSessionProviderContextBoundary
   tone?: string
   /** Legacy carrier of a turn record: written by hosts before v3, and published
    *  to clients that predate the `turn` item. New code reads turns through

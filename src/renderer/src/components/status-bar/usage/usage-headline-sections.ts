@@ -137,3 +137,18 @@ export function getTopScopedSection(
 export function getUrgentScopedSection(p: ProviderRateLimits, t?: Translate): UsageSection | null {
   return getTopScopedSection(p, t, USAGE_URGENT_PERCENT)
 }
+
+/** "Session" / "Weekly" for the two main windows, as every usage surface names them. */
+export function windowWordLabel(
+  p: ProviderRateLimits,
+  section: UsageSection,
+  t: Translate
+): string {
+  if (section.window === p.session) {
+    return t('auto.components.status.bar.tooltip.94038ad2fa', 'Session')
+  }
+  if (section.window === p.weekly) {
+    return t('auto.components.status.bar.tooltip.252c096536', 'Weekly')
+  }
+  return shortUsageLabel(p, section, false, t)
+}

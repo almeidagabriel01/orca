@@ -256,3 +256,24 @@ export function projectStructuredSessionTab(
     emit(stored)
   }
 }
+
+/** The chat's row on its new agent; a label still the old agent's default names the new one. */
+export function projectChatRowAgent(
+  runtime: Pick<OrcaRuntimeService, 'mobileSessionTabsByWorktree' | 'storeMobileSessionSnapshot'>,
+  { sessionId, workspaceId, agent }: { sessionId: string; workspaceId: string; agent: string },
+  emit: (snapshot: RuntimeMobileSessionTabsSnapshot) => void
+): void {
+  const snapshot = runtime.mobileSessionTabsByWorktree.get(workspaceId)
+  const row = snapshot?.tabs.find(
+    (tab): tab is RuntimeMobileSessionAgentTab =>
+      tab.type === 'agent-session' && tab.sessionId === sessionId && tab.agent !== agent
+  )
+  if (!snapshot || !row) {
+    return
+  }
+  const title =
+    row.title === defaultAgentChatLabel(row.agent) ? defaultAgentChatLabel(agent) : row.title
+  const tabs = snapshot.tabs.map((tab) => (tab === row ? { ...row, agent, title } : tab))
+  const next = { ...snapshot, snapshotVersion: snapshot.snapshotVersion + 1, tabs }
+  emit(runtime.storeMobileSessionSnapshot(workspaceId, next))
+}

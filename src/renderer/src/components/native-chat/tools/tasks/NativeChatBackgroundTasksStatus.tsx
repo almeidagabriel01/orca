@@ -17,9 +17,58 @@ import { structuredSessionBackgroundTaskGroups } from './background-task-roster'
 import { useWorkerDockStructuralValue } from './dock/NativeChatWorkerDockFrame'
 import { WorkerDockRoster } from './dock/WorkerDockRoster'
 import type { WorkerDockRowView } from './dock/WorkerDockRow'
+import {
+  dismissWorkerDockRows,
+  restoreWorkerDockRows,
+  toastWorkerDockDismissed,
+  useDismissedWorkerDockRows,
+  type WorkerDockLocalDismissal,
+  withoutDismissedWorkerDockRows,
+  workerDockLocallyDismissible
+} from './dock/worker-dock-dismissals'
 
 function workerChildren(row: AgentChildRowModel): AgentChildRowModel[] {
   return [row, ...row.owned.flatMap(workerChildren)]
+}
+
+// The key names the ending too, so work that runs and ends again shows until dismissed again.
+function withWorkerDismissKey<
+  T extends {
+    id: string
+    state: WorkerDockRowView['state']
+    settlement?: string | null
+    changedAt: number | null
+    ownerActionsAvailable?: boolean
+  }
+>(row: T): T & { dismissKey?: string } {
+  return workerDockLocallyDismissible(row)
+    ? { ...row, dismissKey: `${row.id}\0${row.settlement ?? row.changedAt ?? ''}` }
+    : row
+}
+
+function providerDismissKey(
+  sessionId: string | undefined,
+  row: AgentChildRowModel,
+  state: WorkerDockRowView['state']
+): string | undefined {
+  return workerDockLocallyDismissible({ state, finished: row.settled })
+    ? `${sessionId ?? ''}\0${row.kind}\0${row.id}\0${row.settledAt ?? ''}`
+    : undefined
+}
+
+// Ended work reads as idle, not running: its row draws it finished (retired) and the count never includes it.
+function providerDockState(row: AgentChildRowModel): WorkerDockRowView['state'] {
+  return row.displayState === 'failed'
+    ? 'failed'
+    : row.displayState === 'interrupted'
+      ? 'unexpected'
+      : row.displayState === 'idle' || row.displayState === 'done'
+        ? 'idle'
+        : row.displayState === 'unverifiable'
+          ? 'unavailable'
+          : row.displayState === 'waiting' || row.displayState === 'blocked'
+            ? 'coordinator'
+            : 'running'
 }
 
 export function NativeChatBackgroundTasksStatus(liveProps: {
@@ -61,10 +110,11 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
   sessionId?: string
   onOpenWorker?: (row: WorkerDockRowView, opener: HTMLElement) => void
   onWorkerAction?: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
-  onClearAll?: () => void
+  onClearAll?: (local?: WorkerDockLocalDismissal) => void
   loadWindow?: (anchor: string) => Promise<void>
 }): React.JSX.Element {
   const t = useTranslate()
+  const dismissed = useDismissedWorkerDockRows()
   const props = useWorkerDockStructuralValue(liveProps)
   const groups = useMemo(
     () =>
@@ -97,26 +147,36 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
     ]
   )
   const countIdentities = useMemo(
-    () => [
-      ...(liveProps.workerIdentities ?? []),
-      ...countGroups.flatMap((group) =>
-        group.tasks
-          .flatMap(({ row }) => workerChildren(row))
-          .map((row) => ({
-            id: `${row.kind}:${row.id}`,
-            kind: row.kind,
-            state:
-              row.displayState === 'failed'
-                ? ('failed' as const)
-                : row.displayState === 'interrupted'
-                  ? ('unexpected' as const)
-                  : row.displayState === 'unverifiable'
-                    ? ('unavailable' as const)
-                    : ('running' as const)
-          }))
-      )
-    ],
-    [liveProps.workerIdentities, countGroups]
+    () =>
+      withoutDismissedWorkerDockRows(
+        [
+          ...(liveProps.workerIdentities ?? []).map(withWorkerDismissKey),
+          ...countGroups.flatMap((group) =>
+            group.tasks
+              .flatMap(({ row }) => workerChildren(row))
+              .map((row) => {
+                const state =
+                  row.displayState === 'failed'
+                    ? ('failed' as const)
+                    : row.displayState === 'interrupted'
+                      ? ('unexpected' as const)
+                      : row.displayState === 'unverifiable'
+                        ? ('unavailable' as const)
+                        : row.displayState === 'done'
+                          ? ('idle' as const)
+                          : ('running' as const)
+                return {
+                  id: `${row.kind}:${row.id}`,
+                  kind: row.kind,
+                  state,
+                  dismissKey: providerDismissKey(liveProps.sessionId, row, providerDockState(row))
+                }
+              })
+          )
+        ],
+        dismissed
+      ),
+    [liveProps.workerIdentities, liveProps.sessionId, countGroups, dismissed]
   )
   const providerRows = useMemo(() => {
     const views = new Map(props.childViews?.map((view) => [view.id, view]))
@@ -125,19 +185,11 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
         .flatMap(({ row }) => workerChildren(row))
         .map((row): WorkerDockRowView => {
           const view = views.get(row.id)
-          const state =
-            row.displayState === 'failed'
-              ? 'failed'
-              : row.displayState === 'interrupted'
-                ? 'unexpected'
-                : row.displayState === 'idle'
-                  ? 'idle'
-                  : row.displayState === 'unverifiable'
-                    ? 'unavailable'
-                    : row.displayState === 'waiting' || row.displayState === 'blocked'
-                      ? 'coordinator'
-                      : 'running'
+          const state = providerDockState(row)
+          const dismissKey = providerDismissKey(props.sessionId, row, state)
           return {
+            ...(dismissKey ? { dismissKey } : {}),
+            ...(row.displayState === 'done' ? { retired: true } : {}),
             id: JSON.stringify([
               props.sessionId ?? '',
               row.kind,
@@ -172,12 +224,21 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
   }, [groups, props.childViews, props.sessionId, props.supportsTaskStop, t])
   const rows = useMemo(
     () =>
-      new Map([...(props.workerRows ?? []), ...providerRows.map((row) => [row.id, row] as const)]),
+      new Map([
+        ...[...(props.workerRows ?? [])].map(
+          ([id, row]) => [id, withWorkerDismissKey(row)] as const
+        ),
+        ...providerRows.map((row) => [row.id, row] as const)
+      ]),
     [props.workerRows, providerRows]
   )
   const identities = useMemo(
-    () => [...(props.workerIdentities ?? []), ...providerRows].sort(compareWorkerDockEntries),
-    [props.workerIdentities, providerRows]
+    () =>
+      withoutDismissedWorkerDockRows(
+        [...(props.workerIdentities ?? []).map(withWorkerDismissKey), ...providerRows],
+        dismissed
+      ).sort(compareWorkerDockEntries),
+    [props.workerIdentities, providerRows, dismissed]
   )
   return (
     <WorkerDockRoster
@@ -214,13 +275,30 @@ export function NativeChatBackgroundTasksStatus(liveProps: {
         }
       }}
       onAction={(row, action) => {
-        if (row.kind === 'worker' || action === 'clear') {
+        if (action === 'dismiss') {
+          const keys = row.dismissKey ? [row.dismissKey] : []
+          if (keys.length) {
+            dismissWorkerDockRows(keys)
+            toastWorkerDockDismissed(t, 1, () => restoreWorkerDockRows(keys))
+          }
+        } else if (row.kind === 'worker' || action === 'clear') {
           props.onWorkerAction?.(row, action)
         } else if (action === 'stop' && row.providerId) {
           props.onStop(row.providerId)
         }
       }}
-      onClearAll={() => props.onClearAll?.()}
+      onClearAll={() => {
+        const keys = identities.flatMap((row) => row.dismissKey ?? [])
+        dismissWorkerDockRows(keys)
+        const local = keys.length
+          ? { count: keys.length, undo: () => restoreWorkerDockRows(keys) }
+          : undefined
+        if (props.onClearAll) {
+          props.onClearAll(local)
+        } else if (local) {
+          toastWorkerDockDismissed(t, local.count, local.undo)
+        }
+      }}
       loadWindow={props.loadWindow}
     />
   )

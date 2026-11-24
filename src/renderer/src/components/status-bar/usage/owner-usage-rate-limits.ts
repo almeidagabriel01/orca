@@ -17,13 +17,20 @@ import { hasUsageData } from '../../../../../shared/agent-usage/display/usage-pr
 import { describeOwnerNotSetUp } from '../../../../../shared/agent-usage/status-copy/owner-not-set-up-copy'
 import type { OwnerAccountsFailure } from '@/runtime/provider-accounts/observations/owner-accounts-stream'
 import type { AccountOwner } from '@/runtime/provider-accounts/ownership/wsl-host-account-owner'
+import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
 
 /** Whose usage the status bar shows: this device, or the remote host that owns the accounts. */
 export type OwnerUsageState =
   | { kind: 'local' }
   /** A remote host owns usage and has not answered yet. */
   | { kind: 'remote-pending' }
-  | { kind: 'remote'; ownerLabel: string; rateLimits: RateLimitState }
+  | {
+      kind: 'remote'
+      ownerLabel: string
+      rateLimits: RateLimitState
+      /** The host's agent inventory (Settings > Agents); null until it loads. */
+      installedAgents: readonly TuiAgent[] | null
+    }
   /** The owning host's usage cannot be verified; no bar may claim numbers. */
   | {
       kind: 'remote-unverifiable'
@@ -51,6 +58,21 @@ const USAGE_PROVIDER_IDS: Record<UsageProviderKey, ProviderRateLimits['provider'
   grok: 'grok',
   cursor: 'cursor',
   zcode: 'zcode',
+  muse: 'muse'
+}
+
+// The CLI whose presence on a host makes a missing sign-in worth a chip; null for key-only providers.
+const USAGE_PROVIDER_AGENTS: Record<UsageProviderKey, TuiAgent | null> = {
+  claude: 'claude',
+  codex: 'codex',
+  gemini: 'gemini',
+  opencodeGo: null,
+  kimi: 'kimi',
+  antigravity: 'antigravity',
+  minimax: null,
+  grok: 'grok',
+  cursor: 'cursor',
+  zcode: null,
   muse: 'muse'
 }
 
@@ -183,13 +205,19 @@ function describePlaceholder(
   local: RateLimitState,
   remote: RateLimitState,
   key: UsageProviderKey,
-  ownerLabel: string
+  ownerLabel: string,
+  installedAgents: readonly TuiAgent[] | null
 ): OwnerNotSetUpPlaceholder | null {
   if (!isSetUpHere(local, key)) {
     return null
   }
   if (key === 'claude') {
     return isClaudeUnknownOnHost(remote) ? { kind: 'claude-unknown', ownerLabel } : null
+  }
+  // Why: a provider the host never installed is not a setup gap there; show it only where it exists.
+  const agent = USAGE_PROVIDER_AGENTS[key]
+  if (!agent || !installedAgents?.includes(agent)) {
+    return null
   }
   return isMissingOnHost(remote, key)
     ? {
@@ -217,12 +245,13 @@ function ownerPlaceholderSnapshot(
 function addNotSetUpPlaceholders(
   local: RateLimitState,
   remote: RateLimitState,
-  ownerLabel: string
+  ownerLabel: string,
+  installedAgents: readonly TuiAgent[] | null
 ): RateLimitState {
   return {
     ...remote,
     ...mapProviders((key) => {
-      const ownerNotSetUp = describePlaceholder(local, remote, key, ownerLabel)
+      const ownerNotSetUp = describePlaceholder(local, remote, key, ownerLabel, installedAgents)
       if (!ownerNotSetUp) {
         return remote[key]
       }
@@ -245,7 +274,12 @@ export function resolveOwnerUsageRateLimits(
     return local
   }
   if (owner.kind === 'remote') {
-    return addNotSetUpPlaceholders(local, adoptRemoteRateLimits(owner.rateLimits), owner.ownerLabel)
+    return addNotSetUpPlaceholders(
+      local,
+      adoptRemoteRateLimits(owner.rateLimits),
+      owner.ownerLabel,
+      owner.installedAgents
+    )
   }
   // Why: nothing of the viewer's (numbers or setup flags) may stand in for the remote host.
   if (owner.kind === 'remote-pending') {

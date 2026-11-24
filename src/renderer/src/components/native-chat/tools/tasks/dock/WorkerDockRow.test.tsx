@@ -7,7 +7,11 @@ import {
   NativeChatWorkerDockFrame,
   useWorkerDockStructuralValue
 } from './NativeChatWorkerDockFrame'
-import { WorkerDockRow, type WorkerDockRowView } from './WorkerDockRow'
+import {
+  WorkerDockRow,
+  type WorkerDockRowActionKind,
+  type WorkerDockRowView
+} from './WorkerDockRow'
 
 afterEach(cleanup)
 const running: WorkerDockRowView = {
@@ -32,7 +36,7 @@ function HeldRow({
   action
 }: {
   row: WorkerDockRowView
-  action: (row: WorkerDockRowView, kind: 'stop' | 'clear') => void
+  action: (row: WorkerDockRowView, kind: WorkerDockRowActionKind) => void
 }) {
   return (
     <WorkerDockRow

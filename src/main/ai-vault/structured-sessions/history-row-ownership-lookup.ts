@@ -6,10 +6,8 @@ import {
   structuredAgentRuntimeMetadata
 } from '../../runtime/agent-session/installation/structured-agent-runtime-metadata'
 import { getStructuredAgentSessionHost } from '../../native-chat/agent-session-wire/host/structured-agent-session-registry'
-import {
-  listStructuredProviderSessionOwnership,
-  type StructuredProviderSessionOwnership
-} from '../../native-chat/agent-session-wire/host/structured-provider-session-ownership'
+import type { StructuredProviderSessionOwnership } from '../../native-chat/agent-session-wire/host/structured-provider-session-ownership'
+import { listChatProviderSessionOwnership } from '../../native-chat/conversation-adoption/retired-conversation-ownership'
 
 // Each row asks the store's ownership index, so a projection never walks every saved chat.
 export function historyRowOwnershipLookup():
@@ -25,7 +23,7 @@ export function historyRowOwnershipLookup():
   const ownedBy = (view: AgentSessionConversationView) => {
     let byKey = projected.get(view.sessionId)
     if (!byKey) {
-      byKey = Map.groupBy(listStructuredProviderSessionOwnership([view]), ownershipKey)
+      byKey = Map.groupBy(listChatProviderSessionOwnership([view]), ownershipKey)
       projected.set(view.sessionId, byKey)
     }
     return byKey
@@ -61,14 +59,27 @@ export function historyRowOfDeletedChat():
 const ownershipKey = (ownership: { provider: string; providerSessionId: string }): string =>
   `${ownership.provider}\0${ownership.providerSessionId}`
 
-// Every link of a chat whose agent lists history, as `listStructuredProviderSessionOwnership` keys it.
-const ownershipKeys: AgentSessionConversationKeys = ({ provider, providerHandleChain }) => {
+// Every conversation of a chat whose agent lists history, as `listChatProviderSessionOwnership` keys it.
+const ownershipKeys: AgentSessionConversationKeys = ({
+  provider,
+  providerHandleChain,
+  retiredConversations
+}) => {
   const history = structuredAgentRuntimeMetadata(provider)?.sessionHistory
-  return history
-    ? providerHandleChain.map((link) =>
-        ownershipKey({ provider, providerSessionId: history.rowSessionId(link) })
-      )
-    : []
+  return [
+    ...(history
+      ? providerHandleChain.map((link) =>
+          ownershipKey({ provider, providerSessionId: history.rowSessionId(link) })
+        )
+      : []),
+    ...(retiredConversations ?? []).flatMap((retired) =>
+      structuredAgentRuntimeMetadata(retired.provider)?.sessionHistory
+        ? retired.providerSessionIds.map((providerSessionId) =>
+            ownershipKey({ provider: retired.provider, providerSessionId })
+          )
+        : []
+    )
+  ]
 }
 
 /** One history row agent can correspond to several chat providers. */

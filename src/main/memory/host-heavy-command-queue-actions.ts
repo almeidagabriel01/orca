@@ -14,6 +14,8 @@ export function heavyQueueActionArgs(action: HeavyQueueAction): string[] {
       return ['run-now', String(action.pid), ...(action.extra ? ['--extra'] : [])]
     case 'cancel':
       return ['cancel', String(action.pid)]
+    case 'stop':
+      return ['stop', String(action.pid)]
     case 'slots':
       return ['slots', String(action.slots)]
   }

@@ -7,6 +7,7 @@ import type {
   UsageValues
 } from '../../../../../../shared/diagnostics/process-stats-types'
 import type { Metric } from '../workspace-attribution/resource-usage-merge-types'
+import { isHeavyCpu, isHeavyMemory } from './resource-host-meters'
 
 export const METRIC_COLUMNS_CLS = 'flex items-center shrink-0 tabular-nums'
 export const CPU_COLUMN_CLS = 'w-12 text-right'
@@ -115,14 +116,18 @@ export const Sparkline = memo(SparklineImpl, (a, b) => {
 export function MetricPair({
   cpu,
   memory,
-  size = 'base'
+  size = 'base',
+  flagHeavy = false
 }: {
   cpu: Metric
   memory: Metric
   size?: 'base' | 'small'
+  /** Marks a single process's value past the heavy mark; totals leave it off. */
+  flagHeavy?: boolean
 }): React.JSX.Element {
-  const textCls = size === 'small' ? 'text-[11px]' : 'text-xs'
+  const textCls = size === 'small' ? 'text-2xs' : 'text-xs'
   const muted = cpu === null && memory === null
+  const heavyCls = 'font-medium text-status-warning-text'
   return (
     <div
       className={cn(
@@ -131,8 +136,12 @@ export function MetricPair({
         muted ? 'text-muted-foreground/50' : 'text-muted-foreground'
       )}
     >
-      <span className={CPU_COLUMN_CLS}>{formatMetricCpu(cpu)}</span>
-      <span className={MEM_COLUMN_CLS}>{formatMetricMemory(memory)}</span>
+      <span className={cn(CPU_COLUMN_CLS, flagHeavy && isHeavyCpu(cpu) && heavyCls)}>
+        {formatMetricCpu(cpu)}
+      </span>
+      <span className={cn(MEM_COLUMN_CLS, flagHeavy && isHeavyMemory(memory) && heavyCls)}>
+        {formatMetricMemory(memory)}
+      </span>
     </div>
   )
 }

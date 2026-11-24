@@ -15,6 +15,10 @@ export type StructuredAgentSessionOptionsArgs = {
   providerVisible: boolean
   providerStarting?: boolean
   providerRunning?: boolean
+  /** A turn is running or waiting on an answer, so switching agents first stops it. */
+  turnRunning?: boolean
+  /** Presses the chat's Stop; resolves once the request is sent, not when the turn ends. */
+  stopTurn?: () => Promise<unknown>
   hostOptionStamp?: string
   fence: number | null
   turnId: string | null

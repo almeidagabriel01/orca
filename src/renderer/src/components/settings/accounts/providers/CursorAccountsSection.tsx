@@ -13,6 +13,8 @@ import { SearchableSetting } from '../../section-layout/SearchableSetting'
 import { openAppHttpLinkFromAnchor } from '@/lib/browser/navigation/app-http-link-open'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { ACCOUNTS_SECTION_IDS } from '../accounts-search'
+import { ProviderNotInstalledSection, useAgentCliPresence } from '../provider-not-installed'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 
 const CURSOR_USAGE_DASHBOARD_URL = 'https://cursor.com/dashboard/spending'
 const SEARCH_KEYWORDS = ['cursor', 'usage', 'plan', 'spend', 'billing', 'rate limit']
@@ -42,8 +44,12 @@ function credentialSourceLabel(
   return null
 }
 
-export function CursorAccountsSection(): React.JSX.Element {
+// A desktop reads this sign-in from its own files, so its CLI is looked up here.
+const LOCAL_OWNER = { kind: 'local' } as const
+
+export function CursorAccountsSection({ hostLabel }: { hostLabel: string }): React.JSX.Element {
   const t = useTranslate()
+  const cli = useAgentCliPresence(LOCAL_OWNER)
   const refreshRateLimits = useAppStore((s) => s.refreshRateLimits)
   const cursorUsage = useAppStore((s) => s.rateLimits.cursor)
   const [status, setStatus] = useState<CursorAccountStatus | null>(null)
@@ -112,15 +118,27 @@ export function CursorAccountsSection(): React.JSX.Element {
       ? (cursorUsage.error ?? null)
       : null
 
+  const title = (
+    <span className="flex items-center gap-2">
+      <AgentIcon agent="cursor" size={16} />
+      {t('auto.components.settings.CursorAccountsSection.title', 'Cursor')}
+    </span>
+  )
+  if (!loading && providerSignInState(cli.installed('cursor'), !signedIn) === 'not-installed') {
+    return (
+      <ProviderNotInstalledSection
+        id={ACCOUNTS_SECTION_IDS.cursor}
+        title={title}
+        agent="cursor"
+        hostLabel={hostLabel}
+        onCheckAgain={() => void cli.refresh()}
+      />
+    )
+  }
   return (
     <div id={ACCOUNTS_SECTION_IDS.cursor} className="scroll-mt-6">
       <SettingsGroup
-        title={
-          <span className="flex items-center gap-2">
-            <AgentIcon agent="cursor" size={16} />
-            {t('auto.components.settings.CursorAccountsSection.title', 'Cursor')}
-          </span>
-        }
+        title={title}
         description={t(
           'auto.components.settings.CursorAccountsSection.subtitle',
           'Shows your Cursor plan usage from the sign-in already on this computer. Orca only reads it — it never changes your Cursor login.'

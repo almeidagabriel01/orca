@@ -30,11 +30,16 @@ import type { UsagePercentageDisplay } from '../../../../../shared/agent-usage/d
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { recomputeOn } from '@/lib/recompute-on'
 import { ProviderExtraUsageSection } from './provider-extra-usage-section'
-import { formatWindowLabel } from './rate-limit-window-localized-label'
 import { formatPoolCardLabel } from './usage-pool-label'
 import { formatResetsInCaption } from './usage-reset-caption'
 import { UsageBar, UsageValue } from './usage-meter'
-import { getReadingPace, paceTickPercent } from './usage-pace-caption'
+import {
+  getReadingPace,
+  getWindowSeverity,
+  paceTickPercent,
+  SEVERITY_FILL_CLASS,
+  SEVERITY_TEXT_CLASS
+} from './usage-pace-caption'
 import { PaceLine } from './usage-pace-line'
 
 export function formatTimeAgo(ts: number, t: Translate = translate): string {
@@ -75,38 +80,40 @@ export function formatResetCreditExpiry(
       })
 }
 
-export function ProviderIcon({ provider }: { provider: string }): React.JSX.Element {
+type ProviderIconProps = { provider: string; size?: number }
+
+export function ProviderIcon({ provider, size = 13 }: ProviderIconProps): React.JSX.Element {
   if (provider === 'codex') {
-    return <OpenAIIcon size={13} />
+    return <OpenAIIcon size={size} />
   }
   if (provider === 'gemini') {
-    return <GeminiIcon size={13} />
+    return <GeminiIcon size={size} />
   }
   if (provider === 'opencode-go') {
-    return <OpenCodeGoIcon size={13} />
+    return <OpenCodeGoIcon size={size} />
   }
   if (provider === 'kimi') {
-    return <AgentIcon agent="kimi" size={13} />
+    return <AgentIcon agent="kimi" size={size} />
   }
   if (provider === 'antigravity') {
-    return <AgentIcon agent="antigravity" size={13} />
+    return <AgentIcon agent="antigravity" size={size} />
   }
   if (provider === 'minimax') {
-    return <MiniMaxIcon size={13} />
+    return <MiniMaxIcon size={size} />
   }
   if (provider === 'grok') {
-    return <AgentIcon agent="grok" size={13} />
+    return <AgentIcon agent="grok" size={size} />
   }
   if (provider === 'zcode') {
-    return <AgentIcon agent="zcode" size={13} />
+    return <AgentIcon agent="zcode" size={size} />
   }
   if (provider === 'muse') {
-    return <AgentIcon agent="muse" size={13} />
+    return <AgentIcon agent="muse" size={size} />
   }
   if (provider === 'cursor') {
-    return <AgentIcon agent="cursor" size={13} />
+    return <AgentIcon agent="cursor" size={size} />
   }
-  return <ClaudeIcon size={13} />
+  return <ClaudeIcon size={size} />
 }
 
 function ErrorMessage({
@@ -167,10 +174,7 @@ function getWindowSectionLabel(
         ? formatPoolCardLabel(section.window, buckets, t)
         : section.name
     case 'session':
-      // Why: name the window by its length ("5h") when known, matching the roster and status bar.
-      return section.window && section.window.windowMinutes > 0
-        ? formatWindowLabel(section.window.windowMinutes)
-        : t('auto.components.status.bar.tooltip.94038ad2fa', 'Session')
+      return t('auto.components.status.bar.tooltip.94038ad2fa', 'Session')
     case 'weekly':
       return t('auto.components.status.bar.tooltip.252c096536', 'Weekly')
     case 'fableWeekly':
@@ -225,16 +229,17 @@ function ProviderRateLimitWindowSection({
         <UsageValue
           usedPercent={window.usedPercent}
           display={usagePercentageDisplay}
-          className={`shrink-0 font-semibold ${textClass}`}
+          className={`shrink-0 font-semibold ${inverted ? textClass : SEVERITY_TEXT_CLASS[getWindowSeverity(p, window, now)] || textClass}`}
         />
       </div>
-      {/* Why: fill follows the selected percentage; only this card colors it by consumption. */}
+      {/* Why: fill follows the selected percentage; its color is the window's pace severity. */}
       <UsageBar
         usedPercent={window.usedPercent}
         display={usagePercentageDisplay}
         tone="health"
         className="h-[6px] w-full"
         trackClassName={emptyBarClass}
+        fillClassName={SEVERITY_FILL_CLASS[getWindowSeverity(p, window, now)]}
         paceTickPercent={paceTickPercent(pace, usagePercentageDisplay)}
       />
       {pace ? (
@@ -242,6 +247,7 @@ function ProviderRateLimitWindowSection({
           pace={pace}
           display={usagePercentageDisplay}
           now={now}
+          usedPercent={window.usedPercent}
           mutedClass={mutedClass}
           inverted={inverted}
         />

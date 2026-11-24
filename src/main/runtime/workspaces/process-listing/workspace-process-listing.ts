@@ -96,7 +96,6 @@ export abstract class OrcaRuntimeWithGetWorktreePs extends RuntimeChatWorkerEven
       summaries,
       buildRuntimeWorktreeSummaryPathIndex(summaries, platformByRepoId)
     )
-    const session = this.store?.getWorkspaceSession?.()
     const countedPtyIds = new Set<string>()
     const terminalTitleEvidenceByRow = applyRuntimeWorktreePsTerminalActivity({
       freshPtyLiveness,
@@ -104,7 +103,7 @@ export abstract class OrcaRuntimeWithGetWorktreePs extends RuntimeChatWorkerEven
       leaves: this.leaves.values(),
       ptysById: this.ptysById,
       tabs: this.tabs,
-      session,
+      session: this.store?.getWorkspaceSession?.(),
       getPaneKey: (leaf) => this.makeRuntimePaneKey(leaf),
       paneOf: (pty) => this.paneOfPty(pty),
       getTitleDisplayClear: (ptyId) => this.getPtyTitleDisplayClear(ptyId),
@@ -292,6 +291,7 @@ export abstract class OrcaRuntimeWithGetWorktreePs extends RuntimeChatWorkerEven
             options,
             firstWorkRenameDeps(this.requireStore(), this)
           )
+          this.followStructuredChatTabAgent(summary)
         },
         statusSink: workerDockFailureSink(this.structuredAgentStatusSinkFn, this),
         conversationNaming: nameChat,

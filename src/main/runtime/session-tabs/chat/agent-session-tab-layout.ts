@@ -85,18 +85,31 @@ export function chatTabLayoutCommand(
     )
   )
   const sessionId = 'close' in change ? change.close : change.open.sessionId
-  const tabId =
-    workspace?.tabs.find((tab) => tab.kind === 'agent-session' && tab.entityId === sessionId)?.id ??
-    null
+  const shown = workspace?.tabs.find(
+    (tab) => tab.kind === 'agent-session' && tab.entityId === sessionId
+  )
+  const tabId = shown?.id ?? null
   if ('close' in change) {
     return tabId && change.tabId === tabId
       ? { type: 'closeTabs', workspace: worktreeId, tabIds: [tabId], force: true }
       : null
   }
   if (tabId) {
-    return (isReopenedChatTabId(change.open.tabId) || isReopenedChatTabId(tabId)) &&
+    if (
+      (isReopenedChatTabId(change.open.tabId) || isReopenedChatTabId(tabId)) &&
       tabId !== change.open.tabId
-      ? { type: 'closeTabs', workspace: worktreeId, tabIds: [tabId], force: true }
+    ) {
+      return { type: 'closeTabs', workspace: worktreeId, tabIds: [tabId], force: true }
+    }
+    // A chat switched to another agent keeps its tab, which follows the agent.
+    return shown?.kind === 'agent-session' && shown.agentSessionAgent !== change.open.agent
+      ? {
+          type: 'openAgentSessionTab',
+          workspace: worktreeId,
+          sessionId,
+          agent: change.open.agent,
+          tabId
+        }
       : null
   }
   const { sessionId: openedSessionId, agent, tabId: openedTabId } = change.open

@@ -1,10 +1,21 @@
-import { useSyncExternalStore } from 'react'
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
 import { toast } from 'sonner'
 import {
   AGENT_CHAT_ACCOUNT_OPTION_ID,
   agentSupportsChatAccountChoice
 } from '../../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import { AGENT_SESSION_CHAT_ACCOUNT_RUNTIME_CAPABILITY } from '../../../../../../../shared/agent-session/lifecycle/operations/agent-session-create-capabilities'
+import {
+  AGENT_SESSION_AGENT_SWITCH_RUNTIME_CAPABILITY,
+  type AgentSessionAgentSwitchTarget
+} from '../../../../../../../shared/agent-session/conversation-context/agent-session-agent-switch'
+import { switchStructuredAgentSessionAgent } from '@/runtime/native-chat/requests/structured-agent-session-switch-agent'
+import {
+  chatProviderAgents,
+  useHostStructuredAgentsVersion
+} from '@/runtime/native-chat/agent-catalogs/chat-provider-agents'
+import { executionHostIdForStructuredTarget } from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
+import { readRuntimeStatuses } from '@/store/slices/runtime-status/views/runtime-status-owner'
 import type { RuntimeClientTarget } from '../../../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import { useStructuredAgentSessionHostCapabilityState } from '@/runtime/native-chat/host-capabilities/structured-agent-session-host-capability'
 import { setStructuredSessionSelectionOption } from '@/lib/agent-session/launch/structured-agent-session-launch-options'
@@ -28,6 +39,19 @@ export type NativeChatAccountControl = {
   choice: string | undefined
   /** Absent once the chat has started: a running chat keeps the account it launched on. */
   choose?: (choice: string) => void
+  /** Present once the chat has started on a host that continues it on another agent or account. */
+  agentSwitch?: NativeChatAgentSwitch
+}
+
+/** "Continue with": the started chat's move to another agent or account, in place. */
+export type NativeChatAgentSwitch = {
+  /** The agent the chat runs on now. */
+  agent: string
+  /** The agents this host runs chats for, the current one included. */
+  agents: readonly string[]
+  /** A turn is running or waiting on the person: the host refuses unless it stops the turn. */
+  busy: boolean
+  switchTo: (target: AgentSessionAgentSwitchTarget, stopRunning?: boolean) => Promise<void>
 }
 
 /** Present for an agent and host that run a chat on an account of its own. */
@@ -39,6 +63,10 @@ export function useStructuredChatAccount(args: {
   /** The host's last statement of the chat's account and whether it ever started. */
   hostChoice: string | undefined
   sessionNeverStarted: boolean | undefined
+  /** A turn is running or waiting on an answer. */
+  turnRunning?: boolean
+  /** The chat's Stop, which "Stop and switch" presses before it switches. */
+  stopTurn?: () => Promise<unknown>
   reread: () => void
 }): NativeChatAccountControl | undefined {
   const t = useTranslate()
@@ -66,7 +94,45 @@ export function useStructuredChatAccount(args: {
     target,
     AGENT_SESSION_CHAT_ACCOUNT_RUNTIME_CAPABILITY
   )
-  if (!agentSupportsChatAccountChoice(agent) || capability !== 'supported') {
+  const switchCapability = useStructuredAgentSessionHostCapabilityState(
+    target,
+    AGENT_SESSION_AGENT_SWITCH_RUNTIME_CAPABILITY
+  )
+  useHostStructuredAgentsVersion()
+  // "Stop and switch" waits here for the stopped turn to end; the host switches only a chat at rest.
+  const afterStop = useRef<{ next: AgentSessionAgentSwitchTarget; done: () => void } | null>(null)
+  const switchNow = useRef<(next: AgentSessionAgentSwitchTarget) => Promise<void>>(async () => {})
+  const running = useRef(args.turnRunning === true)
+  const runPending = (): void => {
+    const pending = afterStop.current
+    if (!pending || running.current) {
+      return
+    }
+    afterStop.current = null
+    void switchNow.current(pending.next).finally(pending.done)
+  }
+  useEffect(() => {
+    running.current = args.turnRunning === true
+    runPending()
+  }, [args.turnRunning])
+  const ownsAccount = agentSupportsChatAccountChoice(agent) && capability === 'supported'
+  // A created chat that never ran still picks its account through the option, as before.
+  const switchFence =
+    switchCapability === 'supported' && args.sessionNeverStarted !== true ? fence : null
+  useLayoutEffect(() => {
+    // Read at a stopped turn's end, so it switches on the fence the chat has by then.
+    switchNow.current = async (next) => {
+      if (switchFence === null) {
+        return
+      }
+      const outcome = await switchStructuredAgentSessionAgent(target, sessionId, switchFence, next)
+      if (outcome.kind === 'failed') {
+        toast.error(outcome.text)
+      }
+      reread()
+    }
+  })
+  if (!ownsAccount && switchFence === null) {
     return undefined
   }
   const beforeCreate = fence === null
@@ -92,11 +158,46 @@ export function useStructuredChatAccount(args: {
     }
     reread()
   }
+  const switchTo = async (
+    next: AgentSessionAgentSwitchTarget,
+    stopRunning?: boolean
+  ): Promise<void> => {
+    if (!stopRunning || !args.turnRunning || !args.stopTurn) {
+      return switchNow.current(next)
+    }
+    afterStop.current?.done()
+    // Waiting before the Stop is sent, so a turn that ends first still switches.
+    const switched = new Promise<void>((done) => {
+      afterStop.current = { next, done }
+    })
+    const pending = afterStop.current
+    const stopped = await args.stopTurn().catch(() => null)
+    if (stopped === null && afterStop.current === pending) {
+      // Nothing was stopped: drop the wait rather than switch at some later turn's end.
+      afterStop.current = null
+      pending?.done()
+    }
+    runPending()
+    await switched
+  }
   return {
     target,
     choice: beforeCreate ? (held ?? projectChoice) : args.hostChoice,
-    ...(beforeCreate || args.sessionNeverStarted === true
+    ...(ownsAccount && (beforeCreate || args.sessionNeverStarted === true)
       ? { choose: (choice: string) => void choose(choice) }
+      : {}),
+    ...(switchFence !== null
+      ? {
+          agentSwitch: {
+            agent,
+            agents: chatProviderAgents(
+              executionHostIdForStructuredTarget(target),
+              readRuntimeStatuses()
+            ),
+            busy: args.turnRunning === true,
+            switchTo
+          }
+        }
       : {})
   }
 }

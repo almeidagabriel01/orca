@@ -128,7 +128,6 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
   const hostSendGate = useNativeChatHostSendGate(props.target, props.agent, hostOutage)
   const hostHeld = hostSendGate.sendBlockedReason !== null
   const submits = useSubmitReveal(controller, provisionalLaunch.retry, hostHeld, focusComposer)
-  const workerApprovalParty = nativeChatWorkerApprovalParty(props)
   const promptResponse = useStructuredPromptResponseHold(submits.respond)
   const needsFailureFacts =
     submits.queuedMessages.cards.some((card) => card.state === 'returned') ||
@@ -295,10 +294,11 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
                       directory={fileLinkContext}
                       messages={controller.messages}
                       view={continuation.view}
+                      chatAccount={controller.chatAccount}
                     >
                       <NativeChatHostSetupContext.Provider value={setup}>
                         <NativeChatWorkerApprovalTimeline
-                          party={workerApprovalParty}
+                          party={nativeChatWorkerApprovalParty(props)}
                           target={props.target}
                         >
                           {(timedRows) => (

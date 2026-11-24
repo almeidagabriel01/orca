@@ -73,6 +73,7 @@ export function useResourceUsageStatusController() {
   const [collapsedRepos, setCollapsedRepos] = useState<Set<string>>(new Set())
   const [collapsedWorktrees, setCollapsedWorktrees] = useState<Set<string>>(new Set())
   const [appCollapsed, setAppCollapsed] = useState(true)
+  const [workspaceFilter, setWorkspaceFilter] = useState('')
   const {
     sessionInventory,
     observedAt: resourcesObservedAt,
@@ -254,9 +255,26 @@ export function useResourceUsageStatusController() {
     popoverBodyFocusFrameRef
   })
 
+  const { unifiedRepos } = derived
+  // Folds every project and workspace, or opens them all.
+  const setAllCollapsed = useCallback(
+    (collapsed: boolean): void => {
+      setCollapsedRepos(collapsed ? new Set(unifiedRepos.map((group) => group.repoId)) : new Set())
+      setCollapsedWorktrees(
+        collapsed
+          ? new Set(unifiedRepos.flatMap((group) => group.worktrees.map((w) => w.worktreeId)))
+          : new Set()
+      )
+    },
+    [unifiedRepos]
+  )
+
   return {
     open,
     setOpen,
+    workspaceFilter,
+    setWorkspaceFilter,
+    setAllCollapsed,
     selectedTab,
     setSelectedTab,
     ptyViewActive,

@@ -2,7 +2,7 @@ import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
 
 /** The card's bulk actions, drawn only when one applies: Stop all for a provider that can only stop
- *  everything at once, and Clear failed once two or more failures can be acknowledged. */
+ *  everything at once, and Dismiss once two or more ended rows can be hidden or acknowledged. */
 export function WorkerDockCardFooter({
   stopAll,
   clearable,
@@ -44,11 +44,6 @@ export function WorkerDockCardFooter({
         <Button
           variant="ghost"
           size="xs"
-          aria-label={t(
-            'components.native-chat.workerDock.clearAllLabel',
-            'Clear all {{count}} failed workers',
-            { count: clearable, defaultValue_one: 'Clear failed worker' }
-          )}
           aria-disabled={clearing}
           onClick={() => {
             if (!clearing) {
@@ -56,7 +51,7 @@ export function WorkerDockCardFooter({
             }
           }}
         >
-          {t('components.native-chat.workerDock.clearFailed', 'Clear failed')}
+          {t('components.native-chat.workerDock.dismiss', 'Dismiss')}
         </Button>
       ) : null}
     </div>

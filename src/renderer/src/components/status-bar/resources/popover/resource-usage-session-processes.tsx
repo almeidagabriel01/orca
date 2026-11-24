@@ -198,6 +198,7 @@ function ProcessRow({
         cpu={showSubtree ? node.cpu : process.cpu}
         memory={showSubtree ? node.memory : process.memory}
         size="small"
+        flagHeavy
       />
       <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
     </TreeRow>

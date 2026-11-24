@@ -17,15 +17,35 @@ import {
   DialogFooter
 } from '../../../ui/dialog'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
+import { ProviderNotInstalledSection, useAgentCliPresence } from '../provider-not-installed'
+import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 
 type Snapshot = { opencode?: ManagedDataAccountsState; devin?: ManagedDataAccountsState }
 
-export function ManagedDataAccountsSection({
+/** The OpenCode and Devin data-account sections for one host. */
+export function ManagedDataAccountsSections({
+  target,
+  hostLabel
+}: {
+  target: RuntimeClientTarget
+  hostLabel: string
+}): React.JSX.Element {
+  return (
+    <div className="space-y-8">
+      <ManagedDataAccountsSection provider="opencode" target={target} hostLabel={hostLabel} />
+      <ManagedDataAccountsSection provider="devin" target={target} hostLabel={hostLabel} />
+    </div>
+  )
+}
+
+function ManagedDataAccountsSection({
   provider,
-  target
+  target,
+  hostLabel
 }: {
   provider: ManagedDataAccountProvider
   target: RuntimeClientTarget
+  hostLabel: string
 }): React.JSX.Element {
   const t = useTranslate()
   const [state, setState] = useState<ManagedDataAccountsState | null>(null)
@@ -34,6 +54,7 @@ export function ManagedDataAccountsSection({
   const [removeId, setRemoveId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const environmentId = target.kind === 'environment' ? target.environmentId : null
+  const cli = useAgentCliPresence(target)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -87,13 +108,25 @@ export function ManagedDataAccountsSection({
   }
 
   const command = `orca account add --agent ${provider}`
+  const title =
+    provider === 'opencode'
+      ? t('auto.lib.agent.catalog.e7a4ca5103', 'OpenCode')
+      : t('auto.lib.agent.catalog.fc80296033', 'Devin')
+  // Saved accounts stay listed so they can still be removed.
+  const noAccounts = state ? state.accounts.length === 0 : error !== null
+  if (providerSignInState(cli.installed(provider), noAccounts) === 'not-installed') {
+    return (
+      <ProviderNotInstalledSection
+        title={title}
+        agent={provider}
+        hostLabel={hostLabel}
+        onCheckAgain={() => void cli.refresh()}
+      />
+    )
+  }
   return (
     <SettingsGroup
-      title={
-        provider === 'opencode'
-          ? t('auto.lib.agent.catalog.e7a4ca5103', 'OpenCode')
-          : t('auto.lib.agent.catalog.fc80296033', 'Devin')
-      }
+      title={title}
       description={t(
         'accounts.managedData.description',
         'Add accounts by running this command in a terminal on the Orca host. Selection applies to new explicit agent launches on that host; direct SSH relay and Windows-hosted WSL launches use their own credentials.'

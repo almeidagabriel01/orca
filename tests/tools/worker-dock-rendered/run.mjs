@@ -393,9 +393,9 @@ await check('X clears by keyboard (Enter)', () =>
   })
 )
 
-await check('Clear failed in the footer clears every failure', () =>
+await check('Dismiss in the footer clears every failure', () =>
   scene('twentyOpen720', {}, async (page) => {
-    await page.getByRole('button', { name: /Clear all/ }).click()
+    await page.getByRole('button', { name: 'Dismiss', exact: true }).click()
     await page.waitForTimeout(300)
     const after = await rows(page)
     assert(!after.some((row) => row.state === 'failed'), 'a failure is still shown')
@@ -447,9 +447,12 @@ await check('a row click opens the worker', () =>
 await check('a remote chat shows no Stop or Clear that would do nothing', () =>
   scene('remoteOpen720', {}, async (page) => {
     assert((await rows(page)).length === 6, 'rows missing')
-    const actions = await page.locator('[data-worker-dock-action]').count()
-    assert(actions === 0, `${actions} live-looking actions on a remote chat`)
-    assert((await page.getByRole('button', { name: /Clear all/ }).count()) === 0, 'Clear all shown')
+    // Dismiss only hides a row in this window, so a remote chat may offer it; nothing else.
+    const labels = await page
+      .locator('[data-worker-dock-action]')
+      .evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-label') ?? ''))
+    const live = labels.filter((label) => !label.startsWith('Dismiss '))
+    assert(live.length === 0, `live-looking actions on a remote chat: ${live.join(', ')}`)
   })
 )
 
@@ -468,13 +471,13 @@ await check('a paired chat command still stops', () =>
   })
 )
 
-await check('Show in dock again restores the acknowledged failure', () =>
+await check('Undo restores the acknowledged failure', () =>
   scene('twentyOpen720', {}, async (page) => {
     const row = page.locator('[data-worker-dock-row="dock:0"]')
     await row.hover()
     await row.locator('[data-worker-dock-action]').click()
     await row.waitFor({ state: 'detached' })
-    await page.getByRole('button', { name: 'Show in dock again' }).click()
+    await page.getByRole('button', { name: 'Undo' }).click()
     // The toast is outside the card, so pressing it folds the card; the row is back on reopening.
     await page.waitForFunction(() =>
       document
@@ -555,12 +558,12 @@ for (const width of [720, 390, 320]) {
           assert(Math.abs(gap - 8) <= 1, `gap is ${gap}px`)
           assert(Math.abs(a.x + a.width / 2 - (b.x + b.width / 2)) <= 1, 'pill is not centered')
           assert(
-            (await page.getByRole('button', { name: /Clear all/ }).count()) === 0,
-            'folded Clear all is visible'
+            (await page.getByRole('button', { name: 'Dismiss', exact: true }).count()) === 0,
+            'folded Dismiss is visible'
           )
           await shot(page, `${layer}-${width}-${theme}`)
           await toggle(page).click()
-          await page.getByRole('button', { name: /Clear all/ }).waitFor()
+          await page.getByRole('button', { name: 'Dismiss', exact: true }).waitFor()
         })
       )
     }

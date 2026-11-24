@@ -1,3 +1,7 @@
+import {
+  isAgentSessionAgentSwitchTarget,
+  type AgentSessionAgentSwitchTarget
+} from '../../agent-session/conversation-context/agent-session-agent-switch'
 import { BotLinkOpenTargetSchema } from '../../bots/bot-link-open-target'
 import { AgentSessionSelectionSchema } from '../../agent-session/options/protocol/agent-session-execution-options'
 import {
@@ -256,6 +260,11 @@ export const ModelCatalogParams = z.strictObject({
   // Lists the agent's catalog again first; gate on the relist capability for the same reason.
   relist: z.literal(true).optional(),
   selectedModel: Identifier('Invalid selected model').optional()
+})
+
+export const SwitchAgentParams = z.strictObject({
+  envelope: MutationEnvelope,
+  target: z.custom<AgentSessionAgentSwitchTarget>(isAgentSessionAgentSwitchTarget)
 })
 
 export const ConversationCommandParams = z

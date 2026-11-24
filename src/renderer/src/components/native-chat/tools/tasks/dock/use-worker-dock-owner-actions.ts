@@ -11,6 +11,7 @@ import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 import { createNonSecureContextUuid } from '../../../../../../../shared/identifiers/non-secure-context-uuid'
 import type { WorkerDockRowView } from './WorkerDockRow'
 import type { WorkerDockStopBlock } from './worker-dock-stop-check'
+import { toastWorkerDockDismissed, type WorkerDockLocalDismissal } from './worker-dock-dismissals'
 
 /** A strip failure and the retry of the request that failed; no retry when none applies. */
 export type WorkerDockFailure = { message: string; retry?: () => void }
@@ -111,21 +112,12 @@ export function useWorkerDockOwnerActions(
     attempt()
   }, [])
   const clear = useCallback(
-    async (settlements: Parameters<typeof acknowledge>[0]) => {
+    async (settlements: Parameters<typeof acknowledge>[0], local?: WorkerDockLocalDismissal) => {
       await acknowledge(settlements)
-      toast.message(
-        t('components.native-chat.workerDock.cleared', 'Cleared {{count}} workers', {
-          count: settlements.length,
-          defaultValue_one: 'Cleared 1 worker'
-        }),
-        {
-          action: {
-            label: t('components.native-chat.workerDock.restore', 'Show in dock again'),
-            onClick: () =>
-              void acknowledge(settlements, false).catch((error) => toast.error(message(error)))
-          }
-        }
-      )
+      toastWorkerDockDismissed(t, settlements.length + (local?.count ?? 0), () => {
+        local?.undo()
+        void acknowledge(settlements, false).catch((error) => toast.error(message(error)))
+      })
     },
     [acknowledge, t]
   )
@@ -159,20 +151,26 @@ export function useWorkerDockOwnerActions(
     },
     [clear, party, stopBlock, t, target, track]
   )
-  const clearAll = useCallback(() => {
-    const captured = (identities ?? []).flatMap((row) =>
-      workerDockClearable(row) ? [{ dispatchId: row.dispatchId, settlement: row.settlement }] : []
-    )
-    const capturedDispatches = new Set(captured.map((item) => item.dispatchId))
-    const capturedIds = new Set(
-      (identities ?? [])
-        .filter((row) => capturedDispatches.has(row.dispatchId))
-        .map((row) => row.id)
-    )
-    if (captured.length) {
-      track(capturedIds, () => clear(captured))
-    }
-  }, [clear, identities, track])
+  /** Acknowledges every clearable failure; one toast undoes them with the rows the window hid itself. */
+  const clearAll = useCallback(
+    (local?: WorkerDockLocalDismissal) => {
+      const captured = (identities ?? []).flatMap((row) =>
+        workerDockClearable(row) ? [{ dispatchId: row.dispatchId, settlement: row.settlement }] : []
+      )
+      const capturedDispatches = new Set(captured.map((item) => item.dispatchId))
+      const capturedIds = new Set(
+        (identities ?? [])
+          .filter((row) => capturedDispatches.has(row.dispatchId))
+          .map((row) => row.id)
+      )
+      if (captured.length) {
+        track(capturedIds, () => clear(captured, local))
+      } else if (local) {
+        toastWorkerDockDismissed(t, local.count, local.undo)
+      }
+    },
+    [clear, identities, t, track]
+  )
   const restore = useCallback(() => {
     const shown = dialog?.result
     if (!dialog || !shown || shown.dispatchId !== dialog.row.dispatchId) {

@@ -3,7 +3,12 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { defaultRangeExtractor } from '@tanstack/react-virtual'
 import { useNativeChatToolRunWindow } from '../../runs/use-native-chat-tool-run-window'
 import { workerDockClearable } from '../../../../../../../shared/orchestration/dock/worker-dock'
-import { WorkerDockRow, workerDockRowTitle, type WorkerDockRowView } from './WorkerDockRow'
+import {
+  WorkerDockRow,
+  workerDockRowTitle,
+  type WorkerDockRowActionKind,
+  type WorkerDockRowView
+} from './WorkerDockRow'
 import { useLatestHandler } from '@/lib/use-latest-handler'
 import { cn } from '@/lib/class-names'
 import { workerDockSummary } from './worker-dock-summary'
@@ -34,6 +39,7 @@ type Identity = {
   changedAt?: number | null
   ownerActionsAvailable?: boolean
   settlement?: string | null
+  dismissKey?: string
 }
 
 /** The chat's open workers as one floating pill over the end of the transcript; pressing it opens
@@ -52,7 +58,7 @@ export function WorkerDockRoster(props: {
   onExpandedChange: (value: boolean) => void
   pending: ReadonlySet<string>
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
   onClearAll: () => void
   loadWindow?: (anchor: string) => Promise<void>
 }) {
@@ -97,7 +103,10 @@ export function WorkerDockRoster(props: {
   const clearing = props.identities.some(
     (row) => workerDockClearable(row) && props.pending.has(row.id)
   )
-  const clearable = props.identities.filter(workerDockClearable).length
+  // Dismiss hides ended rows: failures the host acknowledges plus work this window hides itself.
+  const clearable = props.identities.filter(
+    (row) => workerDockClearable(row) || Boolean(row.dismissKey)
+  ).length
   const { mixed, total, count } = workerDockSummary(
     props.countIdentities ?? props.identities,
     props.rows,

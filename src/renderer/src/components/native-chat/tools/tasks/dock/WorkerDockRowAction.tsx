@@ -4,12 +4,12 @@ import { useContext, useRef, useState } from 'react'
 import { Square, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
-import type { WorkerDockRowView } from './WorkerDockRow'
+import type { WorkerDockRowActionKind, WorkerDockRowView } from './WorkerDockRow'
 import { WorkerDockFeedLossesContext, workerDockCanStop } from './worker-dock-stop-check'
 
 type Press = {
   row: WorkerDockRowView
-  action: 'stop' | 'clear'
+  action: WorkerDockRowActionKind
   cancelled: boolean
   activated: boolean
   /** The feed this press started on, and its loss count then. */
@@ -28,7 +28,7 @@ function workerDockPressStillLive(press: Press, readLosses: () => number): boole
   )
 }
 
-/** A dock row's Stop or Clear, which keeps the pressed intent through a structural update. */
+/** A dock row's Stop, Clear or Dismiss, which keeps the pressed intent through a structural update. */
 export function WorkerDockRowAction({
   row,
   pending,
@@ -36,7 +36,7 @@ export function WorkerDockRowAction({
 }: {
   row: WorkerDockRowView
   pending: boolean
-  onAction: (row: WorkerDockRowView, action: 'stop' | 'clear') => void
+  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
 }) {
   const t = useTranslate()
   // One press per input, each cleared only by its own release: a mouse press, a touch press and a
@@ -47,7 +47,7 @@ export function WorkerDockRowAction({
   const releasedPointer = useRef<Press | null>(null)
   const keyPress = useRef<(Press & { key: string }) | null>(null)
   const readLosses = useContext(WorkerDockFeedLossesContext)
-  const [focusedAction, setFocusedAction] = useState<'stop' | 'clear' | null>(null)
+  const [focusedAction, setFocusedAction] = useState<WorkerDockRowActionKind | null>(null)
   const failed = row.state === 'failed' || row.state === 'unexpected'
   const owner = row.ownerActionsAvailable !== false && !row.retired
   // Only an action that can run gets a button: a remote worker, a cleared row or a failure with
@@ -55,7 +55,9 @@ export function WorkerDockRowAction({
   const canClear = owner && failed && Boolean(row.settlement)
   // The same rule a Stop is checked against when it is sent.
   const canStop = workerDockCanStop(row)
-  const action = focusedAction ?? (canClear ? 'clear' : 'stop')
+  // Hiding ended work needs no owner: it only changes what this window shows.
+  const canDismiss = !canClear && Boolean(row.dismissKey)
+  const action = focusedAction ?? (canClear ? 'clear' : canDismiss ? 'dismiss' : 'stop')
   const unavailable = !canStop || pending
   const startPress = (): Press => ({
     row,
@@ -69,7 +71,7 @@ export function WorkerDockRowAction({
     // Above the row's stretched open button, so a press here never opens the worker. The row shows
     // it on hover or focus.
     <div className="relative z-10 flex shrink-0 items-center">
-      {canClear || canStop ? (
+      {canClear || canDismiss || canStop ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -80,8 +82,8 @@ export function WorkerDockRowAction({
               data-worker-dock-action={row.id}
               className="size-5 [@media(pointer:coarse)]:size-7"
               aria-label={
-                action === 'clear'
-                  ? t('components.native-chat.workerDock.clearName', 'Clear {{name}}', {
+                action !== 'stop'
+                  ? t('components.native-chat.workerDock.dismissName', 'Dismiss {{name}}', {
                       name: row.name
                     })
                   : pending
@@ -197,7 +199,13 @@ export function WorkerDockRowAction({
                 }
                 const intendedRow = captured?.row ?? row
                 const intendedAction = captured?.action ?? action
-                if (intendedAction === 'clear' ? canClear && !pending : !unavailable) {
+                if (
+                  intendedAction === 'clear'
+                    ? canClear && !pending
+                    : intendedAction === 'dismiss'
+                      ? canDismiss
+                      : !unavailable
+                ) {
                   if (captured) {
                     captured.activated = true
                   }
@@ -205,7 +213,7 @@ export function WorkerDockRowAction({
                 }
               }}
             >
-              {action === 'clear' ? (
+              {action !== 'stop' ? (
                 <X className="size-3.5" />
               ) : (
                 <Square className="size-3.5 p-[3px]" fill="currentColor" />
@@ -215,8 +223,8 @@ export function WorkerDockRowAction({
           <TooltipContent side="top" sideOffset={4}>
             {pending
               ? t('components.native-chat.workerDock.stopping', 'Stopping…')
-              : action === 'clear'
-                ? t('components.native-chat.workerDock.clear', 'Clear')
+              : action !== 'stop'
+                ? t('components.native-chat.workerDock.dismiss', 'Dismiss')
                 : t('components.native-chat.workerDock.stop', 'Stop')}
           </TooltipContent>
         </Tooltip>

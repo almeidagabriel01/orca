@@ -20,6 +20,7 @@ import {
   trackAccountAddition
 } from '../sign-in/account-add-cancel-target'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
+import { ProviderNotInstalledSection } from '../provider-not-installed'
 
 export function renderCodexAccountsSection(
   model: AccountsPaneSectionModel,
@@ -35,6 +36,8 @@ export function renderCodexAccountsSection(
     codexAction,
     codexConfigSync,
     codexConfigSyncWarning,
+    codexCliMissing,
+    cliPresence,
     isRemoteAccountScope,
     remoteAccountScopeNotice,
     runCodexAccountAction,
@@ -46,15 +49,28 @@ export function renderCodexAccountsSection(
     visibleCodexAccounts,
     wslCapabilitiesLoading
   } = model
+  const title = (
+    <span className="flex items-center gap-2">
+      <OpenAIIcon size={16} />
+      {t('auto.components.settings.AccountsPane.ef91cfa06b', 'Codex')}
+    </span>
+  )
+  if (codexCliMissing) {
+    return (
+      <ProviderNotInstalledSection
+        key="codex-accounts"
+        id={ACCOUNTS_SECTION_IDS.codex}
+        title={title}
+        agent="codex"
+        hostLabel={accountRuntimeSentenceLabel}
+        onCheckAgain={() => void cliPresence.refresh()}
+      />
+    )
+  }
   return (
     <div key="codex-accounts" id={ACCOUNTS_SECTION_IDS.codex} className="scroll-mt-6">
       <SettingsGroup
-        title={
-          <span className="flex items-center gap-2">
-            <OpenAIIcon size={16} />
-            {t('auto.components.settings.AccountsPane.ef91cfa06b', 'Codex')}
-          </span>
-        }
+        title={title}
         description={
           <>
             <span className="block">

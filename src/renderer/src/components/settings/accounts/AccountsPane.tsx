@@ -4,7 +4,6 @@ import type {
   ClaudeRateLimitAccountsState,
   CodexRateLimitAccountsState
 } from '../../../../../shared/agent-accounts/managed-account-types'
-import type { CodexConfigSyncStatus } from '../../../../../shared/agent-accounts/codex/codex-config-sync-types'
 import type { RateLimitState } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { useObservedAccountPlans } from './use-observed-account-plans'
 import { toast } from 'sonner'
@@ -57,7 +56,6 @@ import type {
 import { AccountRenameDialog } from './account-rename-dialog'
 import { EMPTY_WSL_DISTROS, getSelectedAccountRuntime } from './scope/accounts-pane-runtime'
 import { getRuntimeSentenceLabel } from '../../../lib/provider-accounts/account-runtime-label'
-import { watchCodexConfigSyncStatus } from '../../../runtime/provider-accounts/codex-config-sync-observer'
 import { createAccountsPaneRunners } from './accounts-pane-account-actions'
 import { renderAccountsLocationSection } from './scope/accounts-pane-location-section'
 import { renderClaudeAccountsSection } from './claude/accounts-pane-claude-section'
@@ -66,8 +64,10 @@ import { renderGeminiAccountsSection } from './providers/accounts-pane-gemini-se
 import { renderOpenCodeAccountsSection } from './providers/accounts-pane-opencode-section'
 import { MiniMaxAccountsSection } from './usage/MiniMaxAccountsSection'
 import { useUsageHostSettings } from './usage/use-usage-host-settings'
-import { ManagedDataAccountsSection } from './providers/ManagedDataAccountsSection'
+import { ManagedDataAccountsSections } from './providers/ManagedDataAccountsSection'
 import { renderAccountsRemovalDialogs } from './accounts-pane-removal-dialogs'
+import { useCodexCliPresence } from './codex/use-codex-cli-presence'
+import { useCodexConfigSync } from './codex/use-codex-config-sync'
 
 export function AccountsPane({
   settings,
@@ -218,21 +218,20 @@ export function AccountsPane({
         authKind: activeCodexAccountId === null ? systemCodexIdentity?.authKind : undefined
       })
     : null
-  // An unusable ~/.codex leaves the mirror serving stale settings; surface why edits are ignored.
-  const [codexConfigSync, setCodexConfigSync] = useState<CodexConfigSyncStatus | null>(null)
-  useEffect(() => {
-    // Sync status describes local host homes; WSL/remote scopes mirror unrelated homes.
-    if (isRemoteAccountScope || accountRuntime.runtime !== 'host') {
-      setCodexConfigSync(null)
-      return
-    }
-    // Retry transient managed-home locks serially; lock release changes no effect dependency and overlapping polls could apply stale results.
-    return watchCodexConfigSyncStatus(setCodexConfigSync)
-    // Selection changes choose a different mirrored home; refetch rather than describe the previous account.
-  }, [isRemoteAccountScope, accountRuntime.runtime, activeCodexAccountId, codexAccountsLoaded])
+  const codexConfigSync = useCodexConfigSync(
+    isRemoteAccountScope,
+    accountRuntime.runtime,
+    activeCodexAccountId,
+    codexAccountsLoaded
+  )
   const codexConfigSyncWarning = getCodexConfigSyncWarning(codexConfigSync)
-  const systemCodexMissingSignIn = activeCodexAuthWarning === 'missing-sign-in'
-  const systemCodexNeedsSignIn = activeCodexAccountId === null && Boolean(activeCodexAuthWarning)
+  const codexCli = useCodexCliPresence(
+    accountOwner,
+    accountRuntime,
+    activeCodexAuthWarning,
+    visibleCodexAccounts.length > 0 || (systemCodexIdentity?.authKind ?? 'none') !== 'none'
+  )
+  const systemCodexNeedsSignIn = activeCodexAccountId === null && !!codexCli.activeCodexAuthWarning
   const accountRuntimeUnavailable =
     accountRuntime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
 
@@ -342,9 +341,8 @@ export function AccountsPane({
     visibleCodexAccounts,
     systemCodexActive,
     systemCodexNeedsSignIn,
-    systemCodexMissingSignIn,
     systemCodexIdentity,
-    activeCodexAuthWarning,
+    ...codexCli,
     activeCodexAccountId,
     codexConfigSync,
     codexConfigSyncWarning,
@@ -360,10 +358,11 @@ export function AccountsPane({
   const readsOwnerGrokCursor = !isRemoteAccountScope || isWebClientLocation()
   const visibleSections = [
     !searchQuery || /opencode|devin|account/i.test(searchQuery) ? (
-      <div key={accountOwnerKey} className="space-y-8">
-        <ManagedDataAccountsSection provider="opencode" target={accountOwner} />
-        <ManagedDataAccountsSection provider="devin" target={accountOwner} />
-      </div>
+      <ManagedDataAccountsSections
+        key={accountOwnerKey}
+        target={accountOwner}
+        hostLabel={accountRuntimeSentenceLabel}
+      />
     ) : null,
     wslSupportedPlatform &&
     !isRemoteAccountScope &&
@@ -398,10 +397,10 @@ export function AccountsPane({
       />
     ) : null,
     readsOwnerGrokCursor && matchesSettingsSearch(searchQuery, getAccountsGrokSearchEntries()) ? (
-      <GrokAccountsSection key="grok" />
+      <GrokAccountsSection key="grok" hostLabel={accountRuntimeSentenceLabel} />
     ) : null,
     readsOwnerGrokCursor && matchesSettingsSearch(searchQuery, getAccountsCursorSearchEntries()) ? (
-      <CursorAccountsSection key="cursor" />
+      <CursorAccountsSection key="cursor" hostLabel={accountRuntimeSentenceLabel} />
     ) : null,
     matchesSettingsSearch(searchQuery, getAccountsZcodePlanSearchEntries()) ? (
       <ZcodePlanAccountsSection

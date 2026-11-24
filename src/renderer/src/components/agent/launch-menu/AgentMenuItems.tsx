@@ -272,6 +272,7 @@ export function ProjectedAgentMenuItems({
           runLaunch={runLaunch}
           onSelectAgent={onSelectPickerAgent}
           hideSearch={hidePickerSearch}
+          collapseUnready
         />
       ) : (
         rows.map((row, index) => {

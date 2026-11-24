@@ -276,14 +276,15 @@ export function NativeChatAgentSwitchMenuView({
           </DropdownMenuRadioGroup>
           {hiddenCount > 0 ? (
             <DropdownMenuItem
-              className="text-xs text-muted-foreground"
               onSelect={(event) => {
                 // Why: keep the menu open so the added providers show in place.
                 event.preventDefault()
                 setShowAll(true)
               }}
             >
-              {t('components.native-chat.agentSwitch.showAll', 'Show all providers')}
+              <span className="text-xs text-muted-foreground">
+                {t('components.native-chat.agentSwitch.showAll', 'Show all providers')}
+              </span>
             </DropdownMenuItem>
           ) : null}
           {autoContinueAt !== null ? (

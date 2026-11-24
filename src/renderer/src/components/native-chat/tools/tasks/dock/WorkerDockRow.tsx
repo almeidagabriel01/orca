@@ -147,16 +147,24 @@ export const WorkerDockRow = memo(function WorkerDockRow({
         >
           {icon}
           <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-            <div className="flex w-full min-w-0 items-baseline gap-2">
+            {/* Narrow, the status takes its own line under the id rather than break mid-word. */}
+            <div className={cn('flex w-full min-w-0 items-baseline gap-2', narrow && 'flex-wrap')}>
               <span
                 data-worker-dock-name=""
-                className="max-w-30 shrink-0 truncate text-sm font-medium"
+                className={cn(
+                  'max-w-30 shrink-0 truncate text-sm font-medium',
+                  narrow && 'mr-auto'
+                )}
               >
                 {row.name}
               </span>
               <span
                 data-worker-dock-state=""
-                className={cn('min-w-0 flex-1 text-xs break-words', stateTone)}
+                className={cn(
+                  'text-xs',
+                  narrow ? 'order-last basis-full' : 'min-w-0 flex-1',
+                  stateTone
+                )}
               >
                 {mixed ? `${workerDockKindLabel(t, row.kind)} · ` : ''}
                 {state}

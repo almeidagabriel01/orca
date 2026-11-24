@@ -17,8 +17,17 @@ describe('emptyWorkspaceSurfaceOptions', () => {
     simulatorIsGoTo: false,
     terminalOnly: false
   })
-  const entry = (agent: TuiAgent, rows: NewTabAgentMenuRow[]) =>
-    ({ agent, label: agent, rows }) as unknown as AgentPickerEntry
+  const entry = (agent: TuiAgent, rows: NewTabAgentMenuRow[]): AgentPickerEntry => ({
+    agent,
+    label: agent,
+    rows,
+    surfaces: [],
+    defaultSurface: 'terminal',
+    terminal: {},
+    structured: {},
+    catalog: { origin: 'unknown' },
+    catalogRead: 'settled'
+  })
   const options = emptyWorkspaceSurfaceOptions(menu, [
     entry('claude', [
       { kind: 'chat', agent: 'claude' },

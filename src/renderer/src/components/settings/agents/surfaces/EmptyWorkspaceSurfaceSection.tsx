@@ -126,10 +126,10 @@ export function EmptyWorkspaceSurfaceView({
             icon: <AgentIcon agent={valueAgent} size={16} />,
             label: agentLabel(valueAgent)
           }
-        : {
-            icon: MENU_ICONS[value as EmptyWorkspaceMenuSurface],
-            label: menuItems.find((item) => item.id === value)?.label ?? value
-          }
+        : (menuItems.find((item) => item.id === value) ?? {
+            icon: MENU_ICONS['new-terminal'],
+            label: value
+          })
   return (
     <div id={EMPTY_WORKSPACE_SURFACE_SECTION_ID} className="scroll-mt-8">
       <SettingsGroup>
@@ -170,7 +170,7 @@ export function EmptyWorkspaceSurfaceView({
               <NewTabMenuContent
                 align="end"
                 sideOffset={6}
-                className="w-72 max-w-[calc(100vw-1rem)] rounded-[11px] border-border/80 p-1 shadow-[0_16px_36px_rgba(0,0,0,0.24)]"
+                className="w-72 max-w-[calc(100vw-1rem)]"
               >
                 <AgentLaunchPickerMenu
                   mode="select"

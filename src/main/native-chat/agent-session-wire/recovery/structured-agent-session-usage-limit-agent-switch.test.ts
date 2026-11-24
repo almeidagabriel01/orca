@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterEach, expect, it } from 'vitest'
 import { agentSessionFailureFact } from '../../../../shared/agent-session/failures/agent-session-failure'
 import { agentSessionFailureWords } from '../../../../shared/agent-session/failures/agent-session-failure-words'
@@ -354,3 +355,31 @@ it.each(cases)(
     expect(await chat.sweep(PASSES)).toEqual(PASSES.map(() => 0))
   }
 )
+
+it('a third switch hands over every stretch of the chat, not only the last one', async () => {
+  const chat = await cutChat('claude', RESET)
+  const { store } = chat.current
+  const said = async (words: string) =>
+    chat.journal.appendItem(
+      { provider: 'orca', clientMessageId: words },
+      { kind: 'message', role: 'assistant', blocks: [{ type: 'text', text: words }] },
+      {
+        fence: store.getRecord(SESSION)!.lease.runtimeFence,
+        turnScope: AGENT_JOURNAL_THREAD_SCOPE
+      }
+    )
+  await said('stretch one is about pelicans')
+  chat.at(1_000)
+  expect(await chat.switchTo('codex')).toMatchObject({ ok: true, value: { kind: 'agent' } })
+  await eventually(() => expect(store.getRecord(SESSION)?.pendingHandoff).toBeUndefined())
+  const [continued] = await chat.hostSubmissions()
+  await chat.finishTurn(continued!.clientMessageId)
+  await said('stretch two is about lighthouses')
+  expect(await chat.switchTo('claude')).toMatchObject({ ok: true, value: { kind: 'agent' } })
+  await said('stretch three is about glaciers')
+  expect(await chat.switchTo('codex')).toMatchObject({ ok: true, value: { kind: 'agent' } })
+  const prompt = readFileSync(store.getRecord(SESSION)!.pendingHandoff!.promptPath, 'utf8')
+  for (const topic of ['pelicans', 'lighthouses', 'glaciers']) {
+    expect(prompt).toContain(topic)
+  }
+})

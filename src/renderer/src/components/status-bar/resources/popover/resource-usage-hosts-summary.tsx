@@ -281,11 +281,12 @@ function HostCard({
           outsideCount={host.machine.outsideQueue?.length}
         />
       )}
-      {!collapsed && host.machine?.outsideQueue && (
+      {!collapsed && host.machine && (
         <HostOutsideQueue
           hostId={host.id}
           label={host.label}
-          groups={host.machine.outsideQueue}
+          heavy={host.machine.outsideQueue ?? []}
+          rest={host.machine.outsideOrca ?? []}
           hasQueue={Boolean(host.machine.heavyQueue)}
         />
       )}

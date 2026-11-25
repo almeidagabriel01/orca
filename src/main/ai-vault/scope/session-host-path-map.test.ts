@@ -88,6 +88,7 @@ describe('session host path map', () => {
 
   it('lists a synced conversation once, from the computer that recorded it', async () => {
     const row = (executionHostId: 'local' | 'runtime:other', cwd: string) =>
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: fixture sets only the fields the dedupe and cwd alias read
       ({
         id: `${executionHostId}:claude:s1:/t/s1.jsonl`,
         executionHostId,

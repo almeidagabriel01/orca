@@ -21,8 +21,6 @@ import {
   ROW_TRAILING_GUTTER_CLS
 } from './resource-usage-metrics'
 import type { getResourceMemoryMetricCopy } from './resource-memory-metric-copy'
-import type { ResourceHostSummary } from './resource-host-summary'
-import { OutsideOrcaSections } from './resource-usage-outside-orca'
 import { SharedAgentProcessesRow } from './resource-usage-chat-row'
 
 function TreeToolbarButton({
@@ -73,8 +71,7 @@ export function renderResourceUsagePopoverBody(
     handleKillSession,
     appCollapsed,
     setAppCollapsed,
-    daemonUnreachable,
-    hostSummaries
+    daemonUnreachable
   }: {
     setPopoverBodyNode: (node: HTMLDivElement | null) => void
     /** Owner split and machine cards, scrolled with the list so the popover has one scroll. */
@@ -101,7 +98,6 @@ export function renderResourceUsagePopoverBody(
     appCollapsed: boolean
     setAppCollapsed: Dispatch<SetStateAction<boolean>>
     daemonUnreachable: boolean
-    hostSummaries: readonly ResourceHostSummary[]
   },
   t: Translate = translate
 ): React.JSX.Element {
@@ -245,8 +241,6 @@ export function renderResourceUsagePopoverBody(
             onToggle={() => setAppCollapsed((v) => !v)}
           />
         )}
-
-        <OutsideOrcaSections hosts={hostSummaries} sortOption={sortOption} />
 
         {!resourceSnapshot && !daemonUnreachable && (
           <div className="px-3 py-4 text-center text-xs text-muted-foreground">

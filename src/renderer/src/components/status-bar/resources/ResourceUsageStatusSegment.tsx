@@ -201,8 +201,7 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
                 handleKillSession,
                 appCollapsed,
                 setAppCollapsed,
-                daemonUnreachable,
-                hostSummaries
+                daemonUnreachable
               },
               t
             )}

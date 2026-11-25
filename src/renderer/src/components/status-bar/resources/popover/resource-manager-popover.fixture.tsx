@@ -82,8 +82,7 @@ function Popover({
         handleKillSession: () => {},
         appCollapsed,
         setAppCollapsed,
-        daemonUnreachable: true,
-        hostSummaries: hosts
+        daemonUnreachable: true
       })}
       {renderResourceUsagePopoverFooter({
         handleOpenWorkspaceCleanup: () => {},

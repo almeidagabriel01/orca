@@ -26750,9 +26750,9 @@
       "noMatches": "Nothing matches “{{value0}}”"
     },
     "outsideQueue": {
-      "title": "Running outside the queue",
-      "titleNoQueue": "Heavy processes",
-      "caption": "Heavy processes the queue did not start. CPU is a share of one core.",
+      "title": "Outside the queue",
+      "titleNoQueue": "Outside Orca",
+      "caption": "Processes the queue did not start, heavy ones first. CPU is a share of one core.",
       "via": "via {{value0}}"
     }
   },

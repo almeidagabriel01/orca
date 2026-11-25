@@ -21266,7 +21266,32 @@
       "modeLatestStatus": "Letzter Stand (empfohlen)",
       "modeFullTranscript": "Vollständiges Protokoll",
       "modeFullCost": "Langsamer und verbraucht mehr von deinem Plan oder API-Guthaben.",
-      "startSessionSentence": "Sitzung starten"
+      "startSessionSentence": "Sitzung starten",
+      "environment": {
+        "label": "Umgebung",
+        "current": "dieser Workspace",
+        "currentBadge": "Aktuell",
+        "sameBranch": "Workspace auf demselben Branch",
+        "projectMissing": "Dieses Projekt ist auf diesem Host nicht eingerichtet. {{detail}}",
+        "branchMissing": "Kein Workspace auf {{branch}} auf diesem Host. Erstelle dort zuerst einen.",
+        "folderSource": "Ein Ordner-Workspace hat keinen Branch, der auf einem anderen Host fortgesetzt werden könnte.",
+        "detachedSource": "Dieser Workspace ist auf keinem Branch.",
+        "startBlocked": "Zuerst „{{action}}“, um auf {{host}} zu starten."
+      },
+      "sourceChanges": {
+        "checking": "Änderungen auf {{host}} werden geprüft…",
+        "clean": "Alles auf {{branch}} ist gepusht.",
+        "uncommittedFiles_one": "{{count}} nicht committete Datei",
+        "uncommittedFiles_other": "{{count}} nicht committete Dateien",
+        "unpushedCommits_one": "{{count}} nicht gepushter Commit",
+        "unpushedCommits_other": "{{count}} nicht gepushte Commits",
+        "and": "{{first}} und {{second}}",
+        "summary": "{{host}} hat {{changes}} auf {{branch}}.",
+        "onlyPushed": "Die andere Umgebung sieht nur, was gepusht ist.",
+        "messageLabel": "Commit-Nachricht",
+        "commitAndPush": "Committen und pushen",
+        "push": "Pushen"
+      }
     },
     "status": {
       "bar": {

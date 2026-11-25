@@ -20971,7 +20971,32 @@
       "modeLatestStatus": "Último estado (recomendado)",
       "modeFullTranscript": "Transcripción completa",
       "modeFullCost": "Más lento y consume más de tu plan o créditos de API.",
-      "startSessionSentence": "Iniciar sesión"
+      "startSessionSentence": "Iniciar sesión",
+      "environment": {
+        "label": "Entorno",
+        "current": "este workspace",
+        "currentBadge": "Actual",
+        "sameBranch": "workspace en la misma rama",
+        "projectMissing": "Este proyecto no está configurado en este host. {{detail}}",
+        "branchMissing": "No hay workspace en {{branch}} en este host. Crea uno allí primero.",
+        "folderSource": "Un workspace de carpeta no tiene rama para continuar en otro host.",
+        "detachedSource": "Este workspace no está en una rama.",
+        "startBlocked": "Haz “{{action}}” antes de empezar en {{host}}."
+      },
+      "sourceChanges": {
+        "checking": "Comprobando cambios en {{host}}…",
+        "clean": "Todo en {{branch}} está enviado.",
+        "uncommittedFiles_one": "{{count}} archivo sin confirmar",
+        "uncommittedFiles_other": "{{count}} archivos sin confirmar",
+        "unpushedCommits_one": "{{count}} commit sin enviar",
+        "unpushedCommits_other": "{{count}} commits sin enviar",
+        "and": "{{first}} y {{second}}",
+        "summary": "{{host}} tiene {{changes}} en {{branch}}.",
+        "onlyPushed": "El otro entorno solo ve lo que está enviado.",
+        "messageLabel": "Mensaje del commit",
+        "commitAndPush": "Commit y push",
+        "push": "Push"
+      }
     },
     "terminalPane": {
       "TerminalContextMenu": {

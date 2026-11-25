@@ -39,6 +39,9 @@ import {
 } from '../../../../shared/agent-session/conversation-context/agent-session-continuation'
 import { launchAgentSessionContinuation } from '@/lib/agent-session/launch/continuation/launch-agent-session-continuation'
 import { useAppStore } from '@/store'
+import { HandoffEnvironmentField } from './HandoffEnvironmentField'
+import { HandoffSourceChanges, HandoffStartReason } from './HandoffSourceChanges'
+import { useHandoffEnvironment } from './use-handoff-environment'
 import { isTuiAgentEnabled } from '../../../../shared/agent-launch/catalog/tui-agent-selection'
 import type { TuiAgent } from '../../../../shared/agent-launch/catalog/tui-agent'
 import {
@@ -63,7 +66,10 @@ export function AgentSessionContinuationDialog({
   onStarted
 }: AgentSessionContinuationDialogProps): React.JSX.Element {
   const t = useTranslate()
-  const workspace = request ? worktreeLaunchWorkspace(request.worktreeId) : null
+  const env = useHandoffEnvironment(open, request)
+  // The destination's request: agents are detected and launched where the session will run.
+  const target = env.effectiveRequest
+  const workspace = target ? worktreeLaunchWorkspace(target.worktreeId) : null
   const abortRef = useRef<AbortController | null>(null)
   const agentFieldRef = useRef<HTMLDivElement>(null)
   const contextLabelId = useId()
@@ -75,7 +81,7 @@ export function AgentSessionContinuationDialog({
     draft?: AgentPickerDraft
     entry?: AgentPickerEntry
   } | null>(null)
-  const detectionTarget = useAgentDetectionTargetForWorktree(request?.worktreeId ?? null)
+  const detectionTarget = useAgentDetectionTargetForWorktree(target?.worktreeId ?? null)
   const [contextPick, setContextPick] = useState<{
     request: AgentSessionContinuationRequest | null
     mode: AgentSessionContinuationContextMode
@@ -95,13 +101,13 @@ export function AgentSessionContinuationDialog({
       setStartingFor(null)
     }
   }
-  const contextMode = contextPick?.request === request ? contextPick.mode : 'focused'
+  const pickedContextMode = contextPick?.request === request ? contextPick.mode : 'focused'
   const starting = open && startingFor?.request === request
   const [showStarting, setShowStarting] = useState(false)
   const disabledAgents = settings?.disabledTuiAgents ?? EMPTY_DISABLED_AGENTS
 
   const observation = useAgentMenuObservation(
-    workspace ? { workspace, launchCwd: request?.initialCwd } : null,
+    workspace ? { workspace, launchCwd: target?.initialCwd } : null,
     open && Boolean(request),
     detectionTarget,
     { wakeOnOpen: true }
@@ -152,7 +158,9 @@ export function AgentSessionContinuationDialog({
     )
   const preparing = request === null
   const controlsDisabled = preparing || detecting || starting
-  const hasFullContext = request ? hasFullAgentSessionContext(request.source) : false
+  const hasFullContext = target ? hasFullAgentSessionContext(target.source) : false
+  // Another host cannot read this host's saved transcript, so it falls back to the latest status.
+  const contextMode = hasFullContext ? pickedContextMode : 'focused'
 
   useLayoutEffect(() => {
     const field = agentFieldRef.current
@@ -200,20 +208,24 @@ export function AgentSessionContinuationDialog({
     ) {
       return
     }
-    const prompt = buildAgentSessionContinuationPrompt(request.source, contextMode)
-    if (!prompt) {
+    const prompt = target && buildAgentSessionContinuationPrompt(target.source, contextMode)
+    if (!target || !prompt) {
       return
     }
     const start = { request }
     // Aborts when the dialog closes or moves to another request; a sent launch still settles.
     const signal = abortRef.current?.signal
     setStartingFor(start)
+    if (!(await env.prepareDestination())) {
+      setStartingFor((current) => (current === start ? null : current))
+      return
+    }
     const launched = await launchAgentSessionContinuation({
       agent: selectedAgent,
       prompt,
-      worktreeId: request.worktreeId,
-      groupId: request.groupId,
-      initialCwd: request.initialCwd,
+      worktreeId: target.worktreeId,
+      groupId: target.groupId,
+      initialCwd: target.initialCwd,
       launchChoice: selection.choice,
       ...(currentPick?.draft
         ? agentPickerFreshLaunchInputs(
@@ -241,7 +253,11 @@ export function AgentSessionContinuationDialog({
     ? getAgentLabel(request.source.sourceAgent)
     : null
   const startDisabled =
-    controlsDisabled || agents.length === 0 || !selectedAgent || !selection.ready
+    controlsDisabled ||
+    env.startBlocked ||
+    agents.length === 0 ||
+    !selectedAgent ||
+    !selection.ready
   const sourceLabel =
     sourceName || t('components.agentSessionContinuation.untitledSession', 'Current session')
 
@@ -297,6 +313,18 @@ export function AgentSessionContinuationDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Where it runs comes first: the agent list below is detected on that host. */}
+        {env.destinations ? (
+          <HandoffEnvironmentField
+            destinations={env.destinations}
+            value={env.destinationKey}
+            onChange={env.pickDestination}
+            disabled={controlsDisabled}
+          />
+        ) : null}
+        {env.elsewhere ? <HandoffSourceChanges {...env.sourceChanges} /> : null}
+        {env.destinationError ? <DialogError>{env.destinationError}</DialogError> : null}
+
         <div
           className="grid min-w-0 gap-1.5 outline-none"
           ref={agentFieldRef}
@@ -311,7 +339,7 @@ export function AgentSessionContinuationDialog({
             draftScope={draftScope}
             disabled={controlsDisabled}
             model={destinationModel}
-            worktreeId={request?.worktreeId}
+            worktreeId={target?.worktreeId}
             agent={selectedAgent}
             cli={selection.cli}
             value={currentPick?.draft}
@@ -369,7 +397,13 @@ export function AgentSessionContinuationDialog({
           ) : null}
         </div>
 
-        <DialogFooter>
+        <DialogFooter
+          start={
+            env.sourceChanges.state.kind === 'dirty' && env.elsewhere ? (
+              <HandoffStartReason host={env.destinationLabel} />
+            ) : undefined
+          }
+        >
           <DialogCancel>{t('components.native-chat.question.cancel', 'Cancel')}</DialogCancel>
           <Button
             type="button"

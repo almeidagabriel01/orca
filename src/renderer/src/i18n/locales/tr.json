@@ -23355,7 +23355,32 @@
       "modeLatestStatus": "Son durum (önerilen)",
       "modeFullTranscript": "Tam döküm",
       "modeFullCost": "Daha yavaştır ve planınızdan ya da API kredilerinizden daha fazla kullanır.",
-      "startSessionSentence": "Oturumu başlat"
+      "startSessionSentence": "Oturumu başlat",
+      "environment": {
+        "label": "Ortam",
+        "current": "bu çalışma alanı",
+        "currentBadge": "Geçerli",
+        "sameBranch": "aynı daldaki çalışma alanı",
+        "projectMissing": "Bu proje bu ana makinede kurulu değil. {{detail}}",
+        "branchMissing": "Bu ana makinede {{branch}} üzerinde çalışma alanı yok. Önce orada bir tane oluşturun.",
+        "folderSource": "Klasör çalışma alanının başka bir ana makinede sürdürülecek dalı yok.",
+        "detachedSource": "Bu çalışma alanı bir dalda değil.",
+        "startBlocked": "{{host}} üzerinde başlatmadan önce “{{action}}” yapın."
+      },
+      "sourceChanges": {
+        "checking": "{{host}} üzerindeki değişiklikler denetleniyor…",
+        "clean": "{{branch}} üzerindeki her şey gönderildi.",
+        "uncommittedFiles_one": "{{count}} commit edilmemiş dosya",
+        "uncommittedFiles_other": "{{count}} commit edilmemiş dosya",
+        "unpushedCommits_one": "{{count}} gönderilmemiş commit",
+        "unpushedCommits_other": "{{count}} gönderilmemiş commit",
+        "and": "{{first}} ve {{second}}",
+        "summary": "{{host}} üzerinde {{branch}} dalında {{changes}} var.",
+        "onlyPushed": "Diğer ortam yalnızca gönderilenleri görür.",
+        "messageLabel": "Commit mesajı",
+        "commitAndPush": "Commit et ve gönder",
+        "push": "Gönder"
+      }
     },
     "status": {
       "bar": {

@@ -209,7 +209,7 @@ export function QueueRow({
   return (
     <li data-queue-row className="group/procrow py-1 pl-3 pr-2">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1.5 [grid-template-areas:'main_actions'_'cmd_cmd']">
-        <div className="flex min-h-5 min-w-0 items-center gap-1.5 text-2xs text-muted-foreground [grid-area:main]">
+        <div className="flex min-h-5 min-w-0 flex-wrap items-center gap-x-1.5 text-2xs text-muted-foreground [grid-area:main]">
           <Icon
             className={cn('size-3 shrink-0', running && 'fill-current text-foreground')}
             aria-hidden
@@ -254,7 +254,7 @@ export function QueueRow({
           )}
           <span
             data-queue-place
-            className="min-w-0 flex-1 text-left font-medium text-foreground [overflow-wrap:anywhere]"
+            className="min-w-0 flex-1 text-left font-medium text-foreground [overflow-wrap:anywhere] @max-[24rem]/queue:basis-full @max-[24rem]/queue:pl-[1.125rem]"
             title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
           >
             {row.place}

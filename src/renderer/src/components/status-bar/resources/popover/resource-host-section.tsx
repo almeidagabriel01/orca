@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -11,23 +11,43 @@ function readCollapsed(storageKey: string): string[] {
   }
 }
 
+const SET_ALL_EVENT = 'orca:resource-host-sections-set-all'
+
+function writeCollapsed(storageKey: string, hostId: string, collapsed: boolean): void {
+  const others = readCollapsed(storageKey).filter((id) => id !== hostId)
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(collapsed ? [...others, hostId] : others))
+  } catch {
+    // Storage can be full or blocked; the fold still works for this session.
+  }
+}
+
+/** Folds or unfolds every host card and host section that is mounted. */
+export function setAllHostSectionsCollapsed(collapsed: boolean): void {
+  window.dispatchEvent(new CustomEvent<boolean>(SET_ALL_EVENT, { detail: collapsed }))
+}
+
 /** Whether a host's section is folded, remembered per host across popover opens and restarts. */
 export function useHostSectionCollapsed(
   storageKey: string,
   hostId: string
 ): [collapsed: boolean, toggle: () => void] {
   const [collapsed, setCollapsed] = useState(() => readCollapsed(storageKey).includes(hostId))
-  const toggle = (): void => {
-    const next = !collapsed
-    const others = readCollapsed(storageKey).filter((id) => id !== hostId)
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(next ? [...others, hostId] : others))
-    } catch {
-      // Storage can be full or blocked; the fold still works for this session.
-    }
+  const apply = (next: boolean): void => {
+    writeCollapsed(storageKey, hostId, next)
     setCollapsed(next)
   }
-  return [collapsed, toggle]
+  useEffect(() => {
+    const onSetAll = (event: Event): void => {
+      if (event instanceof CustomEvent && typeof event.detail === 'boolean') {
+        writeCollapsed(storageKey, hostId, event.detail)
+        setCollapsed(event.detail)
+      }
+    }
+    window.addEventListener(SET_ALL_EVENT, onSetAll)
+    return () => window.removeEventListener(SET_ALL_EVENT, onSetAll)
+  }, [storageKey, hostId])
+  return [collapsed, () => apply(!collapsed)]
 }
 
 /** A host's collapsible section under the project list; the fold is remembered per host. */

@@ -26607,7 +26607,10 @@
       "machines": "Machines",
       "loadLabel": "Load",
       "loadDetail": "1, 5 and 15 min: {{value0}}",
-      "swapLabel": "Swap"
+      "swapLabel": "Swap",
+      "expandCard": "Expand {{value0}}",
+      "collapseCard": "Collapse {{value0}}",
+      "outsideCount": "{{count}} heavy outside the queue"
     },
     "outsideOrca": {
       "title": "Outside Orca · {{value0}}",
@@ -26699,7 +26702,9 @@
         "dockerUnavailable": "Docker is not running there",
         "hostUnreachable": "Couldn't reach the host",
         "unsupportedHost": "That host runs an older Orca; update it"
-      }
+      },
+      "emptyOutside_one": "Nothing queued. 1 heavy process runs outside the queue.",
+      "emptyOutside_other": "Nothing queued. {{count}} heavy processes run outside the queue."
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"
@@ -26712,6 +26717,12 @@
       "expandAll": "Expand all",
       "collapseAll": "Collapse all",
       "noMatches": "Nothing matches “{{value0}}”"
+    },
+    "outsideQueue": {
+      "title": "Running outside the queue",
+      "titleNoQueue": "Heavy processes",
+      "caption": "Heavy processes the queue did not start. CPU is a share of one core.",
+      "via": "via {{value0}}"
     }
   },
   "browserExtensions": {

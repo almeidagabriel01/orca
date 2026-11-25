@@ -206,6 +206,7 @@ export class StructuredAgentSessionStatusFeed {
       starting: this.deps.starting?.(sessionId),
       lastActivityAt: projection.lastActivityAt,
       record,
+      launchAccountChoice: record ? this.deps.launchAccountChoice?.(record) : undefined,
       state: projection.state,
       stopping: projection.stopping,
       usageLimitContinue: this.deps.readUsageLimitContinue?.(sessionId, projection.usageLimitCut),

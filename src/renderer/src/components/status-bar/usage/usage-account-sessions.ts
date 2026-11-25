@@ -67,7 +67,7 @@ function usageProvider(agent: string | undefined): UsageSessionProvider | null {
   return agent === 'claude' || agent === 'codex' ? agent : null
 }
 
-/** A chat's own account pick; absent follows the host's selection (`claudeChatAccountId`). */
+/** The account a chat launches on (its own, else its project's default); absent follows the host. */
 export function chatAccountRef(accountChoice: string | undefined): UsageAccountRef {
   if (!accountChoice) {
     return { kind: 'selected' }

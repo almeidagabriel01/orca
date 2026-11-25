@@ -233,8 +233,8 @@ export type AgentSessionStatusSummary = {
   effort?: string
   fastMode?: string
   serviceTier?: string
-  /** The chat's own account, raw from the record (`isAgentChatAccountChoice`); absent follows the
-   *  host's selection. Absent from older hosts. */
+  /** The account the chat launches on (`isAgentChatAccountChoice`): its own, else its project's
+   *  default; absent follows the host's selection. Absent from older hosts. */
   accountChoice?: string
   /** Saved next-turn intent; moves clients' option stamps without a turn or model change. */
   interactionMode?: 'default' | 'plan'

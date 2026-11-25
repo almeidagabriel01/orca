@@ -31,6 +31,7 @@ export function structuredAgentSessionStatusSummary({
   session,
   lastActivityAt,
   record,
+  launchAccountChoice,
   state,
   stopping,
   starting,
@@ -51,6 +52,8 @@ export function structuredAgentSessionStatusSummary({
   }
   lastActivityAt: number
   record: AgentSessionConversationView | null
+  /** The account the chat launches on (its own, else its project's default); absent: its own. */
+  launchAccountChoice?: string
   state: StructuredAgentSessionStatusState
   starting?: boolean
   usageLimitContinue?: AgentSessionStatusSummary['usageLimitContinue']
@@ -70,7 +73,7 @@ export function structuredAgentSessionStatusSummary({
   const effort = record?.options?.effort
   const fastMode = record?.options?.fastMode
   const serviceTier = record?.options?.serviceTier
-  const accountChoice = record?.accountChoice
+  const accountChoice = launchAccountChoice ?? record?.accountChoice
   const interactionMode = record?.options?.interactionMode
   const fallbackModel = session.child
     ? structuredAgentSessionRuntimeFallbackModel(session.child)

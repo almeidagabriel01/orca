@@ -11,7 +11,8 @@ import type {
   StructuredChatNamingFailure,
   StructuredAgentSessionEndedChild,
   StructuredAgentSessionProviderChild,
-  QuietTurnEnd
+  QuietTurnEnd,
+  StructuredAgentSessionHostDeps
 } from '../host/structured-agent-session-host-types'
 import type { StructuredAgentSessionLogger } from '../host/structured-agent-session-logger'
 import type { StructuredAgentSessionChildWorkProducer } from './structured-agent-session-subagent-rows'
@@ -47,6 +48,8 @@ export type StructuredAgentSessionStatusFeedDeps = {
   quietTurnEnd?: QuietTurnEnd
   /** See `StructuredAgentSessionHostDeps.isBotHome`. */
   isBotHome?: (workspaceId: string) => boolean
+  /** See `StructuredAgentSessionHostDeps.launchAccountChoice`; absent: the record's own account. */
+  launchAccountChoice?: StructuredAgentSessionHostDeps['launchAccountChoice']
   readUsageLimitContinue?: (
     id: string,
     cut: HostUsageLimitCut | null

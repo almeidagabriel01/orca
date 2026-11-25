@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useTranslate } from '@/i18n/use-translate'
-import { resolveHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destinations'
+import {
+  resolveHandoffDestination,
+  type HandoffDestination
+} from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import { retargetContinuationRequest } from '@/lib/agent-session/launch/continuation/handoff-continuation-retarget'
 import { commitAndPushHandoffSource } from '@/lib/agent-session/launch/continuation/handoff-source-publish'
 import { syncHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destination-sync'

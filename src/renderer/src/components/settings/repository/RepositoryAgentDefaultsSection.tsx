@@ -4,7 +4,8 @@ import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-ag
 import type { AgentModelOptionChoices } from '../../../../../shared/agent-launch/choices/agent-launch-choices'
 import {
   normalizeProjectAgentLaunchDefaults,
-  type ProjectAgentLaunchDefaults
+  type ProjectAgentLaunchDefaults,
+  type ProjectAgentSurface
 } from '../../../../../shared/agent-launch/choices/project-agent-launch-defaults'
 import {
   getRepoExecutionHostId,
@@ -27,6 +28,9 @@ import { SettingsGroup } from '../section-layout/SettingsGroup'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { translate } from '@/i18n/i18n'
 import { matchesSettingsSearch } from '../search/settings-search'
+import { useServerSettingValue, type HostSettingsReply } from '../host-scope/use-host-setting'
+import { readHostOwnedSetting } from '../../../../../shared/settings/host-owned-settings'
+import { getRepositoryAgentDefaultsSectionId } from './repository-settings-targets'
 
 export function getRepositoryAgentDefaultsSearchEntry(t: Translate = translate) {
   return {
@@ -36,10 +40,16 @@ export function getRepositoryAgentDefaultsSearchEntry(t: Translate = translate) 
       'Default agent, model and account for new work in this project. Unset choices inherit this host’s defaults.'
     ),
     keywords: [
-      t('settings.projectAgentDefaults.keywords', 'agent model reasoning effort account default')
+      t(
+        'settings.projectAgentDefaults.keywords',
+        'agent model reasoning effort account default open as chat terminal surface'
+      )
     ]
   }
 }
+
+const readHostAgentSurface = (settings: HostSettingsReply): ProjectAgentSurface | undefined =>
+  readHostOwnedSetting(settings, 'agentDefaultSurface')
 
 /** False when the host refused, dropped or failed the save. */
 async function saveProjectDefaults(
@@ -102,6 +112,16 @@ function RepositoryAgentDefaultsEditor({
       }
     : null
   const { settings: hostSettings, pending } = useHostAgentMenuSettings(owner, settings, true, false)
+  const remoteSurface = useServerSettingValue({
+    environmentId: environmentId ?? null,
+    read: readHostAgentSurface,
+    updateFailedMessage: ''
+  }).setting
+  const hostSurface: ProjectAgentSurface | undefined = environmentId
+    ? remoteSurface.state === 'ready'
+      ? remoteSurface.value
+      : undefined
+    : settings?.agentDefaultSurface
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(false)
   const defaults = repo.agentLaunchDefaults
@@ -138,10 +158,18 @@ function RepositoryAgentDefaultsEditor({
     void save({ ...defaults, agentAccounts: accounts })
   }
   const disabled = pending || saving
+  const surfaceLabel = (surface: ProjectAgentSurface): string =>
+    surface === 'chat'
+      ? t('settings.projectAgentDefaults.surfaceChat', 'Chat')
+      : t('settings.projectAgentDefaults.surfaceTerminal', 'Terminal')
   const inherit = t('settings.projectAgentDefaults.inherit', 'Use host default')
   const agents = getAgentCatalog()
   return (
-    <SearchableSetting {...entry} forceVisible={forceVisible}>
+    <SearchableSetting
+      {...entry}
+      forceVisible={forceVisible}
+      id={getRepositoryAgentDefaultsSectionId(repo.id)}
+    >
       <SettingsGroup title={entry.title} description={entry.description}>
         <SettingsRow
           label={t('settings.projectAgentDefaults.agent', 'Default agent')}
@@ -171,6 +199,48 @@ function RepositoryAgentDefaultsEditor({
                     {candidate.label}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+        <SettingsRow
+          label={t('settings.projectAgentDefaults.surface', 'Open as')}
+          description={
+            selected === 'blank'
+              ? t(
+                  'settings.projectAgentDefaults.surfaceBlank',
+                  'Not used with a blank terminal; it always opens as a terminal.'
+                )
+              : undefined
+          }
+          control={
+            <Select
+              value={defaults?.defaultSurface ?? 'inherit'}
+              disabled={disabled || selected === 'blank'}
+              onValueChange={(value) =>
+                void save({
+                  ...defaults,
+                  defaultSurface: value === 'inherit' ? undefined : (value as ProjectAgentSurface)
+                })
+              }
+            >
+              <SelectTrigger aria-label={t('settings.projectAgentDefaults.surface', 'Open as')}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="inherit">
+                  {hostSurface
+                    ? t(
+                        'settings.projectAgentDefaults.surfaceInherit',
+                        'Host default ({{surface}})',
+                        {
+                          surface: surfaceLabel(hostSurface)
+                        }
+                      )
+                    : inherit}
+                </SelectItem>
+                <SelectItem value="chat">{surfaceLabel('chat')}</SelectItem>
+                <SelectItem value="terminal">{surfaceLabel('terminal')}</SelectItem>
               </SelectContent>
             </Select>
           }

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { useRepoSshGate } from '@/lib/workspace/catalog/use-repo-ssh-gate'
 import {
+  Bot,
   CircleX,
   Ellipsis,
   Eye,
@@ -28,7 +29,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { translate } from '@/i18n/i18n'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
-import { getRepositoryIconSectionId } from '@/components/settings/repository/repository-settings-targets'
+import {
+  getRepositoryAgentDefaultsSectionId,
+  getRepositoryIconSectionId
+} from '@/components/settings/repository/repository-settings-targets'
 import { WslMoveProjectMenuItem } from '@/components/wsl-move/WslMoveProjectMenuItem'
 import { WslMovedRepoUseHereMenuItem } from '@/components/wsl-move/WslMovedUseHereMenuItem'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
@@ -152,6 +156,14 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
         >
           <Shapes className="size-3.5" />
           {t('auto.components.sidebar.WorktreeList.e82d3589a1', 'Change Project Icon')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() =>
+            actions.onOpenRepoSettings(repo.id, getRepositoryAgentDefaultsSectionId(repo.id))
+          }
+        >
+          <Bot className="size-3.5" />
+          {t('settings.projectAgentDefaults.menuItem', 'Agent defaults…')}
         </DropdownMenuItem>
         {isGitRepoKind(repo) ? (
           <DropdownMenuItem onSelect={() => actions.onOpenWorktreeVisibility(repo)}>

@@ -33,3 +33,36 @@ export const projectOverrides = defineFixture({
     />
   )
 })
+export const surfaceTerminalOverride = defineFixture({
+  width: 640,
+  render: () => (
+    <RepositoryAgentDefaultsSection
+      repo={{
+        ...repo,
+        agentLaunchDefaults: { defaultTuiAgent: 'codex', defaultSurface: 'terminal' }
+      }}
+      updateRepo={() => {}}
+    />
+  )
+})
+export const surfaceBlankAgent = defineFixture({
+  width: 640,
+  render: () => (
+    <RepositoryAgentDefaultsSection
+      repo={{ ...repo, agentLaunchDefaults: { defaultTuiAgent: 'blank' } }}
+      updateRepo={() => {}}
+    />
+  )
+})
+export const narrow = defineFixture({
+  width: 360,
+  render: () => (
+    <RepositoryAgentDefaultsSection
+      repo={{
+        ...repo,
+        agentLaunchDefaults: { defaultTuiAgent: 'codex', defaultSurface: 'terminal' }
+      }}
+      updateRepo={() => {}}
+    />
+  )
+})

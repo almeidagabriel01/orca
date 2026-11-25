@@ -4,6 +4,10 @@ export function getRepositoryLocalCommandsSectionId(repoId: string): string {
   return `repo-${repoId}-local-commands`
 }
 
+export function getRepositoryAgentDefaultsSectionId(repoId: string): string {
+  return `repo-${repoId}-agent-defaults`
+}
+
 export function getRepositoryIconSectionId(repoId: string): string {
   return `repo-${repoId}-icon`
 }

@@ -1265,6 +1265,8 @@
       "newAgentsTitle": "New agents",
       "defaultSurfaceServerTitle": "Open agents as on {{host}}",
       "defaultSurfaceServerDescription": "{{host}}'s own default, for agents it starts itself, such as from its CLI or orchestration workers. Agents you open from this computer follow this computer's choice.",
+      "projectSurfaceFallbackNoChats": "This host can't run chats",
+      "projectSurfaceFallbackToast": "{{agent}} opened in a terminal: {{reason}}.",
       "emptyWorkspace": {
         "title": "Opening a workspace with no tabs",
         "description": "Any item of the + menu, an agent, or nothing.",
@@ -2056,12 +2058,18 @@
       "inherit": "Use host default",
       "agent": "Default agent",
       "blank": "Blank terminal",
+      "surface": "Open as",
+      "surfaceChat": "Chat",
+      "surfaceTerminal": "Terminal",
+      "surfaceInherit": "Host default ({{surface}})",
+      "menuItem": "Agent defaults…",
+      "surfaceBlank": "Not used with a blank terminal; it always opens as a terminal.",
       "modelsFor": "Model defaults for",
       "account": "Account",
       "accountDescription": "The account new chats in this project start on. Changing it in a chat changes only that chat.",
       "reset": "Reset to host defaults",
       "saveFailed": "Could not save project defaults. Check the connection and update the project’s runtime if needed.",
-      "keywords": "agent model reasoning effort account default"
+      "keywords": "agent model reasoning effort account default open as chat terminal surface"
     },
     "mobile": {
       "teamDisabledRelay": "Orca Relay is turned off by your team. Use LAN."

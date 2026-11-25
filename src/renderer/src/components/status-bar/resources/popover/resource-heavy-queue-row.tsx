@@ -265,7 +265,7 @@ export function QueueRow({
                 className={cn(
                   'min-w-0 flex-1 rounded-sm text-left font-mono text-3xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   // Two lines before it cuts; a click shows all of it.
-                  expanded ? 'whitespace-pre-wrap break-all' : 'line-clamp-2 break-all'
+                  expanded ? 'whitespace-pre-wrap break-words' : 'line-clamp-2 break-words'
                 )}
               >
                 {job.command}

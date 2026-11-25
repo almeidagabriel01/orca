@@ -23,6 +23,13 @@ import {
   type MeterTone
 } from './resource-host-meters'
 import { HostOutsideQueue } from './resource-usage-outside-queue'
+import { useHostSectionCollapsed } from './resource-host-section'
+import {
+  HOST_CARD_COLLAPSED_STORAGE_KEY,
+  HostCardChevron,
+  HostCardsFoldToolbar,
+  HostCollapsedSummary
+} from './resource-host-card-fold'
 import { HostHeavyQueue } from './resource-usage-heavy-queue'
 import type { HeavyMoveHost } from './resource-heavy-job-move'
 import { HostLabelByHostnameContext } from './resource-heavy-queue-host-note'
@@ -184,10 +191,15 @@ function HostCard({
   const t = useTranslate()
   const Icon = host.isLocal ? Laptop : Server
   const sampled = host.counts !== null
+  const [collapsed, toggleCollapsed] = useHostSectionCollapsed(
+    HOST_CARD_COLLAPSED_STORAGE_KEY,
+    host.id
+  )
   return (
     <li data-host-card className="overflow-hidden rounded-lg border border-border bg-card/40">
       {/* Why wrap: on a narrow card Orca's usage drops to its own line before the name is cut. */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 pt-2.5">
+        <HostCardChevron collapsed={collapsed} label={host.label} onToggle={toggleCollapsed} />
         <Icon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
         <span className="min-w-0 break-words text-xs font-semibold text-foreground">
           {host.label}
@@ -213,7 +225,8 @@ function HostCard({
           </Tooltip>
         )}
       </div>
-      {host.notice && (
+      {collapsed && <HostCollapsedSummary machine={host.machine} />}
+      {!collapsed && host.notice && (
         <p
           className={cn(
             'flex items-start gap-1.5 px-3 pt-1.5 text-2xs',
@@ -224,38 +237,40 @@ function HostCard({
           <span>{host.notice}</span>
         </p>
       )}
-      <div className="space-y-2.5 px-3 pt-2 pb-2.5">
-        {host.machine && <MachineMeters machine={host.machine} />}
-        {host.counts && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <CountChip
-              icon={SquareTerminal}
-              count={host.counts.terminals}
-              label={t('resourceManager.hosts.terminals', '{{count}} terminals', {
-                count: host.counts.terminals,
-                defaultValue_one: '{{count}} terminal'
-              })}
-            />
-            <CountChip
-              icon={Bot}
-              count={host.counts.agents}
-              label={t('resourceManager.hosts.agents', '{{count}} agents', {
-                count: host.counts.agents,
-                defaultValue_one: '{{count}} agent'
-              })}
-            />
-            <CountChip
-              icon={Play}
-              count={host.counts.commands}
-              label={t('resourceManager.hosts.commands', '{{count}} commands', {
-                count: host.counts.commands,
-                defaultValue_one: '{{count}} command'
-              })}
-            />
-          </div>
-        )}
-      </div>
-      {host.machine?.heavyQueue && (
+      {!collapsed && (
+        <div className="space-y-2.5 px-3 pt-2 pb-2.5">
+          {host.machine && <MachineMeters machine={host.machine} />}
+          {host.counts && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <CountChip
+                icon={SquareTerminal}
+                count={host.counts.terminals}
+                label={t('resourceManager.hosts.terminals', '{{count}} terminals', {
+                  count: host.counts.terminals,
+                  defaultValue_one: '{{count}} terminal'
+                })}
+              />
+              <CountChip
+                icon={Bot}
+                count={host.counts.agents}
+                label={t('resourceManager.hosts.agents', '{{count}} agents', {
+                  count: host.counts.agents,
+                  defaultValue_one: '{{count}} agent'
+                })}
+              />
+              <CountChip
+                icon={Play}
+                count={host.counts.commands}
+                label={t('resourceManager.hosts.commands', '{{count}} commands', {
+                  count: host.counts.commands,
+                  defaultValue_one: '{{count}} command'
+                })}
+              />
+            </div>
+          )}
+        </div>
+      )}
+      {!collapsed && host.machine?.heavyQueue && (
         <HostHeavyQueue
           hostId={host.id}
           label={host.label}
@@ -264,7 +279,7 @@ function HostCard({
           outsideCount={host.machine.outsideQueue?.length}
         />
       )}
-      {host.machine?.outsideQueue && (
+      {!collapsed && host.machine?.outsideQueue && (
         <HostOutsideQueue
           hostId={host.id}
           label={host.label}
@@ -300,6 +315,7 @@ export function ResourceHostCards({
   )
   return (
     <HostLabelByHostnameContext.Provider value={labelByHostname}>
+      {hosts.length > 0 && <HostCardsFoldToolbar />}
       <ul
         className="flex flex-col gap-2 px-3 pt-1 pb-3"
         aria-label={t('resourceManager.hosts.machines', 'Machines')}

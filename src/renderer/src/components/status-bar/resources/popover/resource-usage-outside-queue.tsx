@@ -38,15 +38,27 @@ export function HostOutsideQueue({
         type="button"
         onClick={toggleCollapsed}
         aria-expanded={!collapsed}
-        className="flex w-full items-center gap-1 py-1 pl-1.5 pr-3 text-left text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex w-full flex-wrap items-center gap-x-1 py-1 pl-1.5 pr-3 text-left text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {collapsed ? (
           <ChevronRight className="size-3 shrink-0" aria-hidden />
         ) : (
           <ChevronDown className="size-3 shrink-0" aria-hidden />
         )}
-        <span className="text-2xs font-semibold uppercase tracking-wider">{title}</span>
+        <span className="whitespace-nowrap text-2xs font-semibold uppercase tracking-wider">
+          {title}
+        </span>
         <span className="text-2xs tabular-nums">({groups.length})</span>
+        {collapsed && (
+          <span className="ml-auto">
+            <MetricPair
+              cpu={groups.reduce((sum, group) => sum + group.cpu, 0)}
+              memory={groups.reduce((sum, group) => sum + group.memory, 0)}
+              size="small"
+              flagHeavy
+            />
+          </span>
+        )}
       </button>
       {!collapsed && (
         <p className="px-3 pb-1 text-2xs text-muted-foreground">

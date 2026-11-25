@@ -208,7 +208,7 @@ export function QueueRow({
   }
   return (
     <li data-queue-row className="group/procrow py-1 pl-3 pr-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1.5 [grid-template-areas:'main_actions'_'cmd_cmd']">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1.5 [grid-template-areas:'main_actions'_'place_place'_'cmd_cmd']">
         <div className="flex min-h-5 min-w-0 flex-wrap items-center gap-x-1.5 text-2xs text-muted-foreground [grid-area:main]">
           <Icon
             className={cn('size-3 shrink-0', running && 'fill-current text-foreground')}
@@ -252,13 +252,22 @@ export function QueueRow({
               </TooltipContent>
             </Tooltip>
           )}
-          <span
-            data-queue-place
-            className="min-w-0 flex-1 text-left font-medium text-foreground [overflow-wrap:anywhere] @max-[24rem]/queue:basis-full @max-[24rem]/queue:pl-[1.125rem]"
-            title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
-          >
-            {row.place}
-          </span>
+        </div>
+        <div
+          data-queue-place
+          className="min-w-0 pl-[1.125rem] text-2xs font-medium break-words text-foreground [grid-area:place]"
+          title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
+        >
+          {job.workspace ? (
+            <PathText text={row.place} />
+          ) : (
+            <>
+              {folderName(row.place)}{' '}
+              <span className="font-normal text-muted-foreground">
+                <PathText text={row.place} />
+              </span>
+            </>
+          )}
         </div>
         <div className="[grid-area:actions]">
           <RowActions
@@ -342,5 +351,28 @@ export function QueueRow({
         </div>
       )}
     </li>
+  )
+}
+
+function folderName(place: string): string {
+  return place.split('/').findLast(Boolean) ?? place
+}
+
+/** Lets a path wrap only after its slashes. */
+function PathText({ text }: { text: string }): React.JSX.Element {
+  const parts = text.split('/')
+  return (
+    <>
+      {parts.map((part, index) => (
+        <React.Fragment key={index}>
+          {part}
+          {index < parts.length - 1 && (
+            <>
+              /<wbr />
+            </>
+          )}
+        </React.Fragment>
+      ))}
+    </>
   )
 }

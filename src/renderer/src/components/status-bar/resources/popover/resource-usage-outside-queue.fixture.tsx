@@ -93,3 +93,28 @@ export const vpsMixedNarrow = defineFixture({
   width: 320,
   render: () => <Cards hosts={[vps, noQueue]} />
 })
+
+// Own ids, so the folds these remember never reach the other fixtures.
+const foldHosts = [
+  { ...mac, id: 'fold-mac' },
+  { ...vps, id: 'fold-vps' }
+]
+// Folds the Mac's outside-queue section and the whole vps card, so their one-line summaries show.
+const foldSome = async (frame: HTMLElement): Promise<void> => {
+  const [macCard, vpsCard] = frame.querySelectorAll<HTMLElement>('li[data-host-card]')
+  macCard
+    .querySelector<HTMLButtonElement>('section:last-of-type > button[aria-expanded="true"]')
+    ?.click()
+  vpsCard.querySelector<HTMLButtonElement>('button[aria-expanded="true"]')?.click()
+  await new Promise(requestAnimationFrame)
+}
+export const folded = defineFixture({
+  width: 448,
+  render: () => <Cards hosts={foldHosts} />,
+  interact: foldSome
+})
+export const foldedNarrow = defineFixture({
+  width: 320,
+  render: () => <Cards hosts={foldHosts} />,
+  interact: foldSome
+})

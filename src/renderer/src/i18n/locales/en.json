@@ -26599,7 +26599,10 @@
       "machines": "Machines",
       "loadLabel": "Load",
       "loadDetail": "1, 5 and 15 min: {{value0}}",
-      "swapLabel": "Swap"
+      "swapLabel": "Swap",
+      "expandCard": "Expand {{value0}}",
+      "collapseCard": "Collapse {{value0}}",
+      "outsideCount": "{{count}} heavy outside the queue"
     },
     "outsideOrca": {
       "title": "Outside Orca · {{value0}}",

@@ -3524,6 +3524,8 @@
   },
   "resourceManager": {
     "heavyQueue": {
+      "emptyOutside_one": "Nothing queued. 1 heavy process runs outside the queue.",
+      "emptyOutside_other": "Nothing queued. {{count}} heavy processes run outside the queue.",
       "slots_one": "Runs one at a time",
       "slots_other": "Runs up to {{count}} at once"
     },

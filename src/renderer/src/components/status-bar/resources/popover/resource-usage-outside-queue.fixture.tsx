@@ -66,7 +66,7 @@ const vps: ResourceHostSummary = {
         count: 4,
         workspace: ws('orca', 'cardinalfish')
       }
-    ] as OutsideQueueProcessGroup[]
+    ] satisfies OutsideQueueProcessGroup[]
   }
 }
 const noQueue: ResourceHostSummary = {

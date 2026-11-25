@@ -1,11 +1,9 @@
 import type { OutsideQueueProcessGroup } from '../../../../../shared/diagnostics/process-stats-types'
 import { finiteNumber, isRecord } from './host-snapshot-value-guards'
 
-const OUTSIDE_QUEUE_KINDS: readonly unknown[] = [
-  'app',
-  'container',
-  'command'
-] satisfies OutsideQueueProcessGroup['kind'][]
+function outsideQueueKind(value: unknown): OutsideQueueProcessGroup['kind'] | null {
+  return value === 'app' || value === 'container' || value === 'command' ? value : null
+}
 const MAX_OUTSIDE_QUEUE_GROUPS = 12
 const MAX_OUTSIDE_QUEUE_TEXT_CHARS = 128
 
@@ -28,9 +26,10 @@ export function parseOutsideQueueGroups(value: unknown): OutsideQueueProcessGrou
     const memory = finiteNumber(row.memory)
     const count = finiteNumber(row.count)
     const name = boundedText(row.name)
+    const kind = outsideQueueKind(row.kind)
     if (
       !name ||
-      !OUTSIDE_QUEUE_KINDS.includes(row.kind) ||
+      !kind ||
       cpu === null ||
       cpu < 0 ||
       memory === null ||
@@ -48,7 +47,7 @@ export function parseOutsideQueueGroups(value: unknown): OutsideQueueProcessGrou
     const folder = boundedText(row.folder)
     groups.push({
       name,
-      kind: row.kind as OutsideQueueProcessGroup['kind'],
+      kind,
       cpu,
       memory,
       count: Math.floor(count),

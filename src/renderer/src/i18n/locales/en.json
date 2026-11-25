@@ -26613,7 +26613,8 @@
       "swapLabel": "Swap",
       "expandCard": "Expand {{value0}}",
       "collapseCard": "Collapse {{value0}}",
-      "outsideCount": "{{count}} heavy outside the queue"
+      "outsideCount": "{{count}} heavy outside the queue",
+      "metrics": "Metrics"
     },
     "outsideOrca": {
       "title": "Outside Orca · {{value0}}",

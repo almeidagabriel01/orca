@@ -50,6 +50,27 @@ export function useHostSectionCollapsed(
   return [collapsed, () => apply(!collapsed)]
 }
 
+/** A fold that is not per host, remembered across popover opens and restarts; folded by default. */
+export function useRememberedFold(
+  storageKey: string
+): [collapsed: boolean, setCollapsed: React.Dispatch<React.SetStateAction<boolean>>] {
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(storageKey) !== 'false'
+    } catch {
+      return true
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, String(collapsed))
+    } catch {
+      // Storage can be full or blocked; the fold still works for this session.
+    }
+  }, [storageKey, collapsed])
+  return [collapsed, setCollapsed]
+}
+
 /** A host's collapsible section under the project list; the fold is remembered per host. */
 export function ResourceHostSection({
   hostId,

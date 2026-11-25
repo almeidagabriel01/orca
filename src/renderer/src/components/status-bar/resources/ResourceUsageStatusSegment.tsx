@@ -21,6 +21,8 @@ import {
 } from './popover/resource-usage-popover-body'
 import { renderResourceUsageKillDialog } from './popover/resource-usage-kill-dialog'
 import { ResourceHostCards } from './popover/resource-usage-hosts-summary'
+import { ResourceFoldAllToolbar } from './popover/resource-host-card-fold'
+import { setAllHostSectionsCollapsed } from './popover/resource-host-section'
 import { WorkspaceSpaceCompactPanel } from '../workspace-storage/WorkspaceSpaceCompactPanel'
 
 export function ResourceUsageStatusSegment(): React.JSX.Element {
@@ -163,6 +165,13 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
                 setPopoverBodyNode,
                 overview: (
                   <>
+                    <ResourceFoldAllToolbar
+                      onSetAll={(collapsed) => {
+                        setAllHostSectionsCollapsed(collapsed)
+                        controller.setAllCollapsed(collapsed)
+                        setAppCollapsed(collapsed)
+                      }}
+                    />
                     {ownerSplit &&
                       renderResourceUsageSummary(
                         { ownerSplit, commitBadgeLabel, commitToneClass, orphanCount },

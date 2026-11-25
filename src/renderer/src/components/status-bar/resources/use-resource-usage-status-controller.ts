@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useRememberedFold } from './popover/resource-host-section'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { useAppStore } from '../../../store/index'
 import { useDaemonActions } from '../../shared/useDaemonActions'
@@ -72,7 +73,7 @@ export function useResourceUsageStatusController() {
   const [sortOption, setSortOption] = useState<SortOption>('memory')
   const [collapsedRepos, setCollapsedRepos] = useState<Set<string>>(new Set())
   const [collapsedWorktrees, setCollapsedWorktrees] = useState<Set<string>>(new Set())
-  const [appCollapsed, setAppCollapsed] = useState(true)
+  const [appCollapsed, setAppCollapsed] = useRememberedFold('orca.resourceManager.appCollapsed')
   const [workspaceFilter, setWorkspaceFilter] = useState('')
   const {
     sessionInventory,

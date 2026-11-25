@@ -3,6 +3,7 @@ import type {
   AiVaultSearchHit,
   AiVaultSearchResponse
 } from '../../../shared/ai-vault/search/ai-vault-search-types'
+import type { ExecutionHostId } from '../../../shared/execution-host/execution-host'
 import { searchAllExecutionHosts } from './ai-vault-search-all-hosts'
 
 function hit(overrides: Partial<AiVaultSearchHit> = {}): AiVaultSearchHit {
@@ -18,10 +19,10 @@ function hit(overrides: Partial<AiVaultSearchHit> = {}): AiVaultSearchHit {
     source: { presence: 'present', filePath: '/home/u/.claude/projects/app/session-1.jsonl' },
     evidence: null,
     ...overrides
-  } as AiVaultSearchHit
+  }
 }
 
-function leg(executionHostId: string, hits: AiVaultSearchHit[]) {
+function leg(executionHostId: ExecutionHostId, hits: AiVaultSearchHit[]) {
   const response: AiVaultSearchResponse = {
     kind: 'results',
     hits,
@@ -35,7 +36,7 @@ function leg(executionHostId: string, hits: AiVaultSearchHit[]) {
 
 describe('searchAllExecutionHosts', () => {
   it('shows a synced conversation once, from the host that recorded it', async () => {
-    const response = await searchAllExecutionHosts({ query: 'synced' } as never, [
+    const response = await searchAllExecutionHosts({ query: 'synced' }, [
       leg('local', [hit({ recordedOnOtherMachine: true })]),
       leg('ssh:vps', [hit()])
     ])

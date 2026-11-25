@@ -10,6 +10,7 @@ type RepoRow = {
 const mocks = vi.hoisted(() => {
   const state: {
     hostSettings: { emptyWorkspaceSurface?: string }
+    /** The global default agent (Settings), this app's own. */
     defaultTuiAgent?: string
     owner: string
     repos: RepoRow[]
@@ -18,18 +19,21 @@ const mocks = vi.hoisted(() => {
 })
 
 vi.mock('@/store/index', () => ({
-  useAppStore: { getState: () => ({ settings: {}, repos: mocks.repos }) }
+  useAppStore: {
+    getState: () => ({ settings: { defaultTuiAgent: mocks.defaultTuiAgent }, repos: mocks.repos })
+  }
 }))
 vi.mock('./host-empty-workspace-settings', () => ({
   // The owning host's own Settings, e.g. the VPS with "Workspace without tabs" set to Claude.
   emptyWorkspaceSettingsFor: () => mocks.hostSettings
 }))
-vi.mock('@/runtime/agent-launch-settings/use-host-agent-launch-preferences', () => ({
-  readAgentLaunchPreferencesForWorktree: () => ({ defaultTuiAgent: mocks.defaultTuiAgent })
-}))
-// The workspace's owning host; the project row lookup on that host stays real.
+// The workspace's owning host; preferences and the project row lookup on that host stay real.
 vi.mock('@/runtime/native-chat/session-ownership/structured-agent-session-owner', () => ({
   resolveStructuredAgentSessionOwner: () => mocks.owner
+}))
+// No paired host has reported its preferences yet, so the project's layer decides there.
+vi.mock('@/store/slices/runtime-status/views/runtime-status-owner', () => ({
+  readRuntimeStatuses: () => new Map()
 }))
 vi.mock('@/lib/agent-session/launch/inventory/useAgentDetectionTarget', () => ({
   getAgentDetectionTargetKeyForWorktree: () => 'local',
@@ -47,7 +51,7 @@ const blank = { defaultTuiAgent: 'blank' }
 
 describe('emptyWorkspaceOpensDefaultChat', () => {
   beforeEach(() => {
-    // The host's "Workspace without tabs" opens Claude, as on the reporting machine.
+    // The host's "Workspace without tabs" was saved as Claude, as on the reporting machines.
     mocks.hostSettings = { emptyWorkspaceSurface: 'agent:claude' }
     mocks.defaultTuiAgent = undefined
     mocks.owner = 'local'
@@ -57,29 +61,37 @@ describe('emptyWorkspaceOpensDefaultChat', () => {
     ]
   })
 
-  it("opens the host's empty-workspace agent when the project names none", () => {
+  it("ignores the host's saved agent: global Blank and no project default open no agent", () => {
+    mocks.defaultTuiAgent = 'blank'
+    expect(emptyWorkspaceOpensDefaultChat(LOCAL_WT)).toBe(false)
+  })
+
+  it('opens the global default agent when the project names none', () => {
+    mocks.defaultTuiAgent = 'claude'
     expect(emptyWorkspaceOpensDefaultChat(LOCAL_WT)).toBe(true)
   })
 
-  it("lets a local git project set to Blank win over the host's empty-workspace agent", () => {
+  it('lets a local git project set to Blank win over a global agent', () => {
+    mocks.defaultTuiAgent = 'claude'
     mocks.repos[0].agentLaunchDefaults = blank
     expect(emptyWorkspaceOpensDefaultChat(LOCAL_WT)).toBe(false)
   })
 
-  it("lets a folder project on a paired host set to Blank win over that host's agent", () => {
+  it('lets a folder project on a paired host set to Blank open no agent', () => {
     mocks.owner = 'runtime:env-1'
     mocks.repos[1].agentLaunchDefaults = blank
     expect(emptyWorkspaceOpensDefaultChat(VPS_WT)).toBe(false)
   })
 
-  it("keeps the host's empty-workspace agent over a global Blank (project > host > global)", () => {
+  it("opens a project's own agent even when the global default is Blank", () => {
     mocks.defaultTuiAgent = 'blank'
+    mocks.repos[0].agentLaunchDefaults = { defaultTuiAgent: 'codex' }
     expect(emptyWorkspaceOpensDefaultChat(LOCAL_WT)).toBe(true)
   })
 
-  it('opens nothing when the global default is Blank and the host names no agent', () => {
-    mocks.hostSettings = {}
-    mocks.defaultTuiAgent = 'blank'
-    expect(emptyWorkspaceOpensDefaultChat(LOCAL_WT)).toBe(false)
+  it('opens the default agent for the new default-agent choice too', () => {
+    mocks.hostSettings = { emptyWorkspaceSurface: 'default-agent' }
+    mocks.defaultTuiAgent = 'claude'
+    expect(emptyWorkspaceOpensDefaultChat(LOCAL_WT)).toBe(true)
   })
 })

@@ -3,7 +3,7 @@ import { translate } from '@/i18n/i18n'
 import { structuredAgentLabel } from '@/lib/agent-session/launch/structured-agent-session-launch-label'
 import {
   emptyWorkspaceAgentLaunchSurface,
-  emptyWorkspaceSurfaceAgent,
+  emptyWorkspaceSurfaceOpensAgent,
   normalizeEmptyWorkspaceAgentSurface,
   normalizeEmptyWorkspaceSurface,
   type EmptyWorkspaceAgentSurface
@@ -45,7 +45,7 @@ import type { AgentLaunchPreferences } from '@/runtime/agent-launch-settings/hos
 type DefaultChatHost = {
   target: AgentDetectionTarget
   preferences: AgentLaunchPreferences
-  /** Named in Settings, so it opens even as a terminal. */
+  /** Settings asked for an agent here, so it opens even as a terminal. */
   explicit: boolean
   /** Chat or Terminal as chosen beside it, or by the project; absent follows Open agents as. */
   surface?: EmptyWorkspaceAgentSurface
@@ -86,17 +86,15 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
   const surface = normalizeEmptyWorkspaceSurface(
     emptyWorkspaceSettingsFor(state, worktreeId).emptyWorkspaceSurface
   )
-  const hostAgent = emptyWorkspaceSurfaceAgent(surface)
-  const project = launchProject(state, worktreeId)
-  const projectAgent = project?.agentLaunchDefaults?.defaultTuiAgent
-  // A + menu item, "nothing", or a project set to Blank opens no agent: the project outranks the host's pick.
-  if ((surface !== undefined && !hostAgent) || projectAgent === 'blank') {
+  const explicit = emptyWorkspaceSurfaceOpensAgent(surface)
+  // A + menu item or "nothing" opens no agent.
+  if (surface !== undefined && !explicit) {
     return undefined
   }
-  const explicit = hostAgent && projectAgent ? projectAgent : hostAgent
-  // Why: only a saved agent asks for a chat here; Auto must not turn catalog order into a launch (#36594).
-  const saved = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
-  const chosen = explicit ?? saved
+  // Why: the project's default, else the global one, picks the agent (Blank at either opens none);
+  // the host's choice only says an agent opens. Auto must not turn catalog order into a launch (#36594).
+  const chosen = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
+  const project = launchProject(state, worktreeId)
   const projectSurface = project?.agentLaunchDefaults?.defaultSurface !== undefined
   if (
     !chosen ||
@@ -114,7 +112,7 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
     target && {
       target,
       preferences: { ...preferences, defaultTuiAgent: chosen },
-      explicit: explicit !== null,
+      explicit,
       projectSurface,
       ...(explicit || projectSurface ? agentSurface(state, worktreeId, project) : {})
     }

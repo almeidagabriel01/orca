@@ -1,17 +1,17 @@
-import { useMemo, type JSX, type ReactNode } from 'react'
-import { Ban, Check, ChevronDown, FilePlus, Globe, Smartphone, TerminalSquare } from 'lucide-react'
-import { useTranslate } from '@/i18n/use-translate'
-import { getAgentCatalog } from '@/lib/agent-catalog/agent-catalog'
-import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
-import { AgentIcon } from '@/components/agent/icons/AgentIcon'
-import { AgentLaunchPickerMenu } from '@/components/agent/AgentLaunchPickerMenu'
-import { useAgentLaunchPickerInventorySource } from '@/components/agent/use-agent-launch-picker-inventory'
-import { useAgentPickerInventoryEntries } from '@/components/agent/agent-picker-inventory-source'
-import { useAgentMenuObservation } from '@/components/agent/launch-menu/use-new-tab-agent-menu-rows'
+import type { JSX, ReactNode } from 'react'
 import {
-  buildTabCreateMenuOptions,
-  findMatchingTabCreateMenuOptions
-} from '@/components/tab-bar/create-menu/tab-create-menu-options'
+  Ban,
+  Bot,
+  Check,
+  ChevronDown,
+  FilePlus,
+  Globe,
+  Smartphone,
+  TerminalSquare
+} from 'lucide-react'
+import { useTranslate } from '@/i18n/use-translate'
+import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
+import { buildTabCreateMenuOptions } from '@/components/tab-bar/create-menu/tab-create-menu-options'
 import { TabBarCreateRowPicker } from '@/components/tab-bar/create-menu/TabBarCreateRowPicker'
 import { NewTabMenuContent } from '@/components/tab-bar/menu-fit/NewTabMenuContent'
 import { isMacOs } from '@/components/tab-bar/model/use-tab-bar-runtime-model'
@@ -24,7 +24,7 @@ import {
 } from '../../../ui/dropdown-menu'
 import type { GlobalSettings } from '../../../../../../shared/settings/global-settings-types'
 import {
-  emptyWorkspaceSurfaceAgent,
+  emptyWorkspaceSurfaceOpensAgent,
   normalizeEmptyWorkspaceAgentSurface,
   normalizeEmptyWorkspaceSurface,
   type EmptyWorkspaceAgentSurface,
@@ -32,8 +32,6 @@ import {
   type EmptyWorkspaceSurface
 } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { nativeChatPreferenceFor } from '../../../../../../shared/agent-launch/choices/structured-native-chat-launch-route'
-import type { AgentPickerEntry } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
-import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
 import { SettingsRow, SettingsSegmentedControl } from '../../form-controls/SettingsFormControls'
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { EMPTY_WORKSPACE_SURFACE_SECTION_ID } from '../agents-search'
@@ -48,20 +46,14 @@ import {
   type HostSettingsReply
 } from '../../host-scope/use-host-setting'
 import { rememberHostEmptyWorkspaceSettings } from '@/lib/workspace/activation/initial-surface/host-empty-workspace-settings'
-import {
-  emptyWorkspaceAgentMissing,
-  emptyWorkspaceSurfaceOptions
-} from './empty-workspace-surface-options'
+import { emptyWorkspaceSurfaceOptions } from './empty-workspace-surface-options'
 
-const LOCAL_AGENTS = { kind: 'local' } as const
 const MENU_ICONS: Record<EmptyWorkspaceMenuSurface, ReactNode> = {
   'new-terminal': <TerminalSquare className="size-4" />,
   'new-browser': <Globe className="size-4" />,
   'new-markdown': <FilePlus className="size-4" />,
   'new-simulator': <Smartphone className="size-4" />
 }
-const agentLabel = (agent: TuiAgent): string =>
-  getAgentCatalog().find((entry) => entry.id === agent)?.label ?? agent
 
 type SectionProps = {
   settings: GlobalSettings
@@ -82,7 +74,7 @@ function readHostChoice(settings: HostSettingsReply): HostChoice | undefined {
   return {
     emptyWorkspaceSurface: surface,
     // A host reports a default how even with no agent chosen; then Open agents as decides.
-    ...(emptyWorkspaceSurfaceAgent(surface)
+    ...(emptyWorkspaceSurfaceOpensAgent(surface)
       ? { emptyWorkspaceAgentSurface: readHostOwnedSetting(settings, 'emptyWorkspaceAgentSurface') }
       : {}),
     agentDefaultSurface: readHostOwnedSetting(settings, 'agentDefaultSurface')
@@ -90,7 +82,7 @@ function readHostChoice(settings: HostSettingsReply): HostChoice | undefined {
 }
 
 /**
- * What clicking a workspace with no tabs opens: any + menu item, an installed agent, or nothing.
+ * What clicking a workspace with no tabs opens: any + menu item, the default agent, or nothing.
  * Per host, like Open agents as: the picked host's workspaces follow its own choice.
  */
 export function EmptyWorkspaceSurfaceSection({
@@ -106,25 +98,9 @@ export function EmptyWorkspaceSurfaceSection({
     read: readHostChoice,
     updateFailedMessage: getHostSettingUpdateFailedMessage(host, t)
   })
-  const agentsTarget = useMemo(
-    () => (environmentId ? ({ kind: 'runtime', environmentId } as const) : LOCAL_AGENTS),
-    [environmentId]
-  )
-  // The + menu's own agent inventory for the picked host.
-  const { model } = useAgentMenuObservation(null, true, agentsTarget)
-  const entries = useAgentPickerInventoryEntries(
-    useAgentLaunchPickerInventorySource(undefined, model, true)
-  )
-  const agentEntries = model.state === 'settled' ? entries : null
   const simulatorAvailable = isMacOs && props.settings.mobileEmulatorEnabled !== false
   if (!environmentId) {
-    return (
-      <EmptyWorkspaceSurfaceView
-        {...props}
-        agentEntries={agentEntries}
-        simulatorAvailable={simulatorAvailable}
-      />
-    )
+    return <EmptyWorkspaceSurfaceView {...props} simulatorAvailable={simulatorAvailable} />
   }
   if (remote.setting.state !== 'ready') {
     return (
@@ -152,7 +128,6 @@ export function EmptyWorkspaceSurfaceSection({
       // Only the host's own values decide; this computer's per-agent choices do not apply there.
       settings={{ ...props.settings, nativeChatProviders: undefined, ...choice }}
       updateSettings={write}
-      agentEntries={agentEntries}
       simulatorAvailable={simulatorAvailable}
     />
   )
@@ -161,11 +136,8 @@ export function EmptyWorkspaceSurfaceSection({
 export function EmptyWorkspaceSurfaceView({
   settings,
   updateSettings,
-  agentEntries,
   simulatorAvailable
 }: SectionProps & {
-  /** Null while the agent inventory loads. */
-  agentEntries: AgentPickerEntry[] | null
   simulatorAvailable: boolean
 }): JSX.Element {
   const t = useTranslate()
@@ -180,51 +152,42 @@ export function EmptyWorkspaceSurfaceView({
     },
     t
   )
-  const options = emptyWorkspaceSurfaceOptions(menuOptions, agentEntries ?? [])
+  const options = emptyWorkspaceSurfaceOptions(menuOptions)
   const saved = settings.defaultTuiAgent === 'blank' ? null : settings.defaultTuiAgent
-  // Unset follows the original rule, so show what it does today.
-  const value: EmptyWorkspaceSurface =
-    normalizeEmptyWorkspaceSurface(settings.emptyWorkspaceSurface) ??
-    (saved && newAgentLaunchesMayOpenChats(settings) ? `agent:${saved}` : 'new-terminal')
-  const valueAgent = emptyWorkspaceSurfaceAgent(value)
-  const missingAgent = emptyWorkspaceAgentMissing(value, options, agentEntries !== null)
-    ? valueAgent
-    : null
-  // Unset follows Open agents as for this agent, so show what that opens today.
-  const agentSurfaceFor = (agent: TuiAgent): EmptyWorkspaceAgentSurface =>
+  // Unset follows the original rule, so show what it does today. An older `agent:<id>` reads as
+  // the default agent: the project's default, else the global one, picks which agent opens.
+  const stored = normalizeEmptyWorkspaceSurface(settings.emptyWorkspaceSurface)
+  const value: EmptyWorkspaceSurface = emptyWorkspaceSurfaceOpensAgent(stored)
+    ? 'default-agent'
+    : (stored ??
+      (saved && newAgentLaunchesMayOpenChats(settings) ? 'default-agent' : 'new-terminal'))
+  const opensAgent = value === 'default-agent'
+  // Unset follows Open agents as for the default agent, so show what that opens today.
+  const agentSurface: EmptyWorkspaceAgentSurface =
     normalizeEmptyWorkspaceAgentSurface(settings.emptyWorkspaceAgentSurface) ??
-    (nativeChatPreferenceFor(settings, agent) ? 'chat' : 'terminal')
+    (nativeChatPreferenceFor(settings, saved ?? '') ? 'chat' : 'terminal')
   const pick = (surface: EmptyWorkspaceSurface): void => {
-    const agent = emptyWorkspaceSurfaceAgent(surface)
-    // Saved with the agent, so the choice stays as shown.
+    // Saved with how the agent opens, so the choice stays as shown.
     updateSettings(
-      agent
-        ? { emptyWorkspaceSurface: surface, emptyWorkspaceAgentSurface: agentSurfaceFor(agent) }
+      surface === 'default-agent'
+        ? { emptyWorkspaceSurface: surface, emptyWorkspaceAgentSurface: agentSurface }
         : { emptyWorkspaceSurface: surface }
     )
   }
-  const menuItems = options.flatMap((option) =>
-    option.kind === 'menu'
-      ? [
-          {
-            id: option.value,
-            label: option.label,
-            icon: MENU_ICONS[option.value],
-            run: () => pick(option.value)
-          }
-        ]
-      : []
-  )
+  const menuItems = options.map((option) => ({
+    id: option.value,
+    label: option.label,
+    icon: MENU_ICONS[option.value],
+    run: () => pick(option.value)
+  }))
   const title = t('settings.agents.emptyWorkspace.title', 'Opening a workspace with no tabs')
   const nothing = t('settings.agents.emptyWorkspace.nothing', 'Nothing')
+  const defaultAgent = t('settings.agents.emptyWorkspace.defaultAgent', 'Default agent')
   const current =
     value === 'nothing'
       ? { icon: <Ban className="size-4" />, label: nothing }
-      : valueAgent
-        ? {
-            icon: <AgentIcon agent={valueAgent} size={16} />,
-            label: agentLabel(valueAgent)
-          }
+      : opensAgent
+        ? { icon: <Bot className="size-4" />, label: defaultAgent }
         : (menuItems.find((item) => item.id === value) ?? {
             icon: MENU_ICONS['new-terminal'],
             label: value
@@ -234,22 +197,10 @@ export function EmptyWorkspaceSurfaceView({
       <SettingsGroup>
         <SettingsRow
           label={title}
-          description={
-            missingAgent ? (
-              <span className="text-status-warning-text">
-                {t(
-                  'settings.agents.emptyWorkspace.agentMissing',
-                  "{{agent}} isn't installed here, so a terminal opens instead.",
-                  { agent: agentLabel(missingAgent) }
-                )}
-              </span>
-            ) : (
-              t(
-                'settings.agents.emptyWorkspace.description',
-                'Any item of the + menu, an agent, or nothing.'
-              )
-            )
-          }
+          description={t(
+            'settings.agents.emptyWorkspace.descriptionDefaultAgent',
+            "Any item of the + menu, the project's default agent (else the global one), or nothing."
+          )}
           control={
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
@@ -271,48 +222,23 @@ export function EmptyWorkspaceSurfaceView({
                 sideOffset={6}
                 className="w-72 max-w-[calc(100vw-1rem)]"
               >
-                <AgentLaunchPickerMenu
-                  mode="select"
-                  setupDisabled
-                  collapseUnready
-                  entries={agentEntries ?? []}
-                  checkedAgent={valueAgent}
-                  onSelectAgent={(agent) => pick(`agent:${agent}`)}
-                  runLaunch={() => {}}
-                  header={(query) => {
-                    const shown = query.trim()
-                      ? findMatchingTabCreateMenuOptions(query, menuOptions).flatMap((option) =>
-                          menuItems.filter((item) => item.id === option.id)
-                        )
-                      : menuItems
-                    return shown.length ? (
-                      <>
-                        <DropdownMenuSeparator className="my-0 mb-1.5" />
-                        <TabBarCreateRowPicker items={shown} checkedId={value} label={title} />
-                        <DropdownMenuSeparator />
-                      </>
-                    ) : (
-                      <DropdownMenuSeparator className="my-0 mb-1.5" />
-                    )
-                  }}
-                  footer={
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="launch" onSelect={() => pick('nothing')}>
-                        <Ban className="size-3.5" />
-                        <span className="flex-1">{nothing}</span>
-                        {value === 'nothing' ? (
-                          <Check className="size-3.5" aria-hidden="true" />
-                        ) : null}
-                      </DropdownMenuItem>
-                    </>
-                  }
-                />
+                <TabBarCreateRowPicker items={menuItems} checkedId={value} label={title} />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="launch" onSelect={() => pick('default-agent')}>
+                  <Bot className="size-3.5" />
+                  <span className="flex-1">{defaultAgent}</span>
+                  {opensAgent ? <Check className="size-3.5" aria-hidden="true" /> : null}
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="launch" onSelect={() => pick('nothing')}>
+                  <Ban className="size-3.5" />
+                  <span className="flex-1">{nothing}</span>
+                  {value === 'nothing' ? <Check className="size-3.5" aria-hidden="true" /> : null}
+                </DropdownMenuItem>
               </NewTabMenuContent>
             </DropdownMenu>
           }
         />
-        {valueAgent ? (
+        {opensAgent ? (
           <SettingsRow
             label={t('settings.agents.emptyWorkspace.openAs', 'Open as')}
             description={t(
@@ -323,7 +249,7 @@ export function EmptyWorkspaceSurfaceView({
               <SettingsSegmentedControl
                 size="sm"
                 ariaLabel={t('settings.agents.emptyWorkspace.openAs', 'Open as')}
-                value={agentSurfaceFor(valueAgent)}
+                value={agentSurface}
                 onChange={(surface) =>
                   updateSettings({
                     emptyWorkspaceSurface: value,

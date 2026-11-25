@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   emptyWorkspaceAgentLaunchSurface,
   emptyWorkspaceSkipsHostShell,
-  emptyWorkspaceSurfaceAgent,
+  emptyWorkspaceSurfaceOpensAgent,
   normalizeEmptyWorkspaceAgentSurface,
   normalizeEmptyWorkspaceSurface
 } from './empty-workspace-surface'
@@ -14,14 +14,17 @@ describe('normalizeEmptyWorkspaceSurface', () => {
       'agent:claude-agent-teams'
     )
     expect(normalizeEmptyWorkspaceSurface('nothing')).toBe('nothing')
+    expect(normalizeEmptyWorkspaceSurface('default-agent')).toBe('default-agent')
     expect(normalizeEmptyWorkspaceSurface('agent:nope')).toBeUndefined()
     expect(normalizeEmptyWorkspaceSurface('open-markdown')).toBeUndefined()
     expect(normalizeEmptyWorkspaceSurface(42)).toBeUndefined()
   })
 
-  it('names the agent only for an agent surface', () => {
-    expect(emptyWorkspaceSurfaceAgent('agent:codex')).toBe('codex')
-    expect(emptyWorkspaceSurfaceAgent('new-terminal')).toBeNull()
+  it('opens an agent for the default agent and an older agent:<id>, whose id is ignored', () => {
+    expect(emptyWorkspaceSurfaceOpensAgent('default-agent')).toBe(true)
+    expect(emptyWorkspaceSurfaceOpensAgent('agent:codex')).toBe(true)
+    expect(emptyWorkspaceSurfaceOpensAgent('new-terminal')).toBe(false)
+    expect(emptyWorkspaceSurfaceOpensAgent(undefined)).toBe(false)
   })
 })
 
@@ -44,6 +47,7 @@ describe('emptyWorkspaceSkipsHostShell', () => {
     expect(emptyWorkspaceSkipsHostShell({})).toBe(false)
     expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'new-terminal' })).toBe(false)
     expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'agent:claude' })).toBe(true)
+    expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'default-agent' })).toBe(true)
     expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'nothing' })).toBe(true)
     expect(emptyWorkspaceSkipsHostShell({ emptyWorkspaceSurface: 'new-browser' })).toBe(true)
   })

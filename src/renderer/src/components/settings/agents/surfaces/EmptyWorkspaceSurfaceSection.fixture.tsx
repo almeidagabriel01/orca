@@ -1,39 +1,10 @@
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import { getDefaultSettings } from '../../../../../../shared/orca-profiles/constants'
-import type { AgentPickerEntry } from '../../../../../../shared/agent-launch/picker/agent-launch-picker'
-import type { NewTabAgentMenuRow } from '../../../../../../shared/agent-launch/picker/agent-launch-picker-rows'
-import type { TuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent'
 import type {
   EmptyWorkspaceAgentSurface,
   EmptyWorkspaceSurface
 } from '../../../../../../shared/workspace/activation/empty-workspace-surface'
 import { EmptyWorkspaceSurfaceView } from './EmptyWorkspaceSurfaceSection'
-
-function entry(agent: TuiAgent, label: string, rows: NewTabAgentMenuRow[]): AgentPickerEntry {
-  const ready = rows.some((row) => row.kind === 'chat' || row.kind === 'cli')
-  return {
-    agent,
-    label,
-    rows,
-    surfaces: ready ? ['terminal'] : [],
-    defaultSurface: 'terminal',
-    terminal: {},
-    structured: {},
-    catalog: { origin: 'unknown' },
-    catalogRead: 'settled'
-  }
-}
-
-// A host with Claude, Agent Teams and Codex; Grok and OpenCode would need installing.
-const ENTRIES: AgentPickerEntry[] = [
-  entry('claude', 'Claude', [{ kind: 'chat', agent: 'claude' }]),
-  entry('claude-agent-teams', 'Claude Agent Teams', [{ kind: 'cli', agent: 'claude-agent-teams' }]),
-  entry('codex', 'Codex', [{ kind: 'cli', agent: 'codex' }]),
-  entry('grok', 'Grok', [{ kind: 'chat', agent: 'grok', setup: true }]),
-  entry('opencode', 'OpenCode', [
-    { kind: 'chat-unavailable', agent: 'opencode', reason: 'not-installed' }
-  ])
-]
 
 function Section({
   surface,
@@ -51,7 +22,6 @@ function Section({
         ...(agentSurface ? { emptyWorkspaceAgentSurface: agentSurface } : {})
       }}
       updateSettings={() => {}}
-      agentEntries={ENTRIES}
       simulatorAvailable
     />
   )
@@ -68,16 +38,17 @@ export const closed = defineFixture({
   width: 760,
   render: () => (
     <div className="bg-background p-4">
-      <Section surface="agent:claude" />
+      <Section surface="default-agent" />
     </div>
   )
 })
 
+/** The menu: the + menu's items, the default agent, and nothing; no per-agent list. */
 export const open = defineFixture({
   width: 760,
   render: () => (
-    <div className="min-h-[460px] bg-background p-4">
-      <Section surface="agent:claude" />
+    <div className="min-h-[320px] bg-background p-4">
+      <Section surface="default-agent" />
     </div>
   ),
   interact: openMenu
@@ -86,41 +57,15 @@ export const open = defineFixture({
 export const openMenuItemChosen = defineFixture({
   width: 760,
   render: () => (
-    <div className="min-h-[460px] bg-background p-4">
+    <div className="min-h-[320px] bg-background p-4">
       <Section surface="new-browser" />
     </div>
   ),
   interact: openMenu
 })
 
-export const showAllAgents = defineFixture({
-  width: 760,
-  render: () => (
-    <div className="min-h-[520px] bg-background p-4">
-      <Section surface="nothing" />
-    </div>
-  ),
-  interact: async (frame) => {
-    await openMenu(frame)
-    ;[...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
-      .find((item) => item.textContent?.includes('Show all agents'))
-      ?.click()
-    await settle()
-  }
-})
-
-/** A chosen agent the host no longer runs: the row says a terminal opens instead. */
-export const agentMissing = defineFixture({
-  width: 760,
-  render: () => (
-    <div className="bg-background p-4">
-      <Section surface="agent:gemini" />
-    </div>
-  )
-})
-
-/** A chosen agent shows Open as right under it, saved with the choice. */
-export const agentOpensAsChat = defineFixture({
+/** A host saved before this change (`agent:claude`) reads as the default agent. */
+export const legacyAgentReadsAsDefault = defineFixture({
   width: 760,
   render: () => (
     <div className="bg-background p-4">
@@ -129,11 +74,21 @@ export const agentOpensAsChat = defineFixture({
   )
 })
 
+/** The default agent shows Open as right under it, saved with the choice. */
+export const agentOpensAsChat = defineFixture({
+  width: 760,
+  render: () => (
+    <div className="bg-background p-4">
+      <Section surface="default-agent" agentSurface="chat" />
+    </div>
+  )
+})
+
 export const agentOpensAsTerminal = defineFixture({
   width: 760,
   render: () => (
     <div className="bg-background p-4">
-      <Section surface="agent:claude" agentSurface="terminal" />
+      <Section surface="default-agent" agentSurface="terminal" />
     </div>
   )
 })

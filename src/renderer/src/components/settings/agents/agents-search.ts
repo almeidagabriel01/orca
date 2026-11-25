@@ -171,8 +171,8 @@ const getAllAgentsPaneSearchEntries = createLocalizedCatalog(() => [
     targetSectionId: EMPTY_WORKSPACE_SURFACE_SECTION_ID,
     title: translate('settings.agents.emptyWorkspace.title', 'Opening a workspace with no tabs'),
     description: translate(
-      'settings.agents.emptyWorkspace.description',
-      'Any item of the + menu, an agent, or nothing.'
+      'settings.agents.emptyWorkspace.descriptionDefaultAgent',
+      "Any item of the + menu, the project's default agent (else the global one), or nothing."
     ),
     keywords: [
       ...translateSearchKeyword('settings.chat.providers.searchTerminal', 'terminal'),

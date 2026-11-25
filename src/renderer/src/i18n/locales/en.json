@@ -1272,15 +1272,15 @@
       "projectSurfaceFallbackToast": "{{agent}} opened in a terminal: {{reason}}.",
       "emptyWorkspace": {
         "title": "Opening a workspace with no tabs",
-        "description": "Any item of the + menu, an agent, or nothing.",
         "keyword": "workspace",
         "nothing": "Nothing",
-        "agentMissing": "{{agent}} isn't installed here, so a terminal opens instead.",
         "agentMissingToast": "{{agent}} isn't installed, so a terminal opened instead.",
         "openAs": "Open as",
         "openAsDescription": "Chat opens the chat UI; Terminal opens the agent in a terminal.",
         "openAsChat": "Chat",
-        "openAsTerminal": "Terminal"
+        "openAsTerminal": "Terminal",
+        "descriptionDefaultAgent": "Any item of the + menu, the project's default agent (else the global one), or nothing.",
+        "defaultAgent": "Default agent"
       }
     },
     "followSymlinkedDirectoriesKeywords": {

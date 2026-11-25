@@ -13,7 +13,6 @@ function view(overrides: Partial<GlobalSettings>, updateSettings = vi.fn()) {
     <EmptyWorkspaceSurfaceView
       settings={{ ...getDefaultSettings('/home/test'), ...overrides }}
       updateSettings={updateSettings}
-      agentEntries={[]}
       simulatorAvailable={false}
     />
   )
@@ -41,10 +40,18 @@ describe('Opening a workspace with no tabs: Open as', () => {
     })
     expect(checked()).toBe('Terminal')
     fireEvent.click(screen.getByRole('radio', { name: 'Chat' }))
+    // An older `agent:<id>` is saved back as the default agent; its id never picked the agent.
     expect(update).toHaveBeenCalledWith({
-      emptyWorkspaceSurface: 'agent:claude',
+      emptyWorkspaceSurface: 'default-agent',
       emptyWorkspaceAgentSurface: 'chat'
     })
+  })
+
+  it('shows an older agent:<id> as the default agent, not that agent', () => {
+    view({ emptyWorkspaceSurface: 'agent:codex' })
+    expect(
+      screen.getByRole('button', { name: 'Opening a workspace with no tabs' }).textContent
+    ).toBe('Default agent')
   })
 
   it('has no Open as row for a + menu item or nothing', () => {

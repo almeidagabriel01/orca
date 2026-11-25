@@ -10,8 +10,15 @@ export const EMPTY_WORKSPACE_MENU_SURFACES = [
 ] as const
 export type EmptyWorkspaceMenuSurface = (typeof EMPTY_WORKSPACE_MENU_SURFACES)[number]
 
-/** What opening a workspace with no tabs shows: a + menu item, an agent, or nothing. */
-export type EmptyWorkspaceSurface = EmptyWorkspaceMenuSurface | `agent:${TuiAgent}` | 'nothing'
+/**
+ * What opening a workspace with no tabs shows: a + menu item, the default agent, or nothing.
+ * `agent:<id>` is the older spelling of 'default-agent'; its id no longer picks the agent.
+ */
+export type EmptyWorkspaceSurface =
+  | EmptyWorkspaceMenuSurface
+  | 'default-agent'
+  | `agent:${TuiAgent}`
+  | 'nothing'
 
 /** How a chosen agent opens in an empty workspace. */
 export type EmptyWorkspaceAgentSurface = 'chat' | 'terminal'
@@ -30,7 +37,7 @@ export function normalizeEmptyWorkspaceAgentSurface(
 }
 
 export function normalizeEmptyWorkspaceSurface(value: unknown): EmptyWorkspaceSurface | undefined {
-  if (value === 'nothing') {
+  if (value === 'nothing' || value === 'default-agent') {
     return value
   }
   if (typeof value !== 'string') {
@@ -44,12 +51,11 @@ export function normalizeEmptyWorkspaceSurface(value: unknown): EmptyWorkspaceSu
   return agent !== null && isTuiAgent(agent) ? `agent:${agent}` : undefined
 }
 
-/** The agent an empty workspace opens, when its surface names one. */
-export function emptyWorkspaceSurfaceAgent(
+/** Whether an empty workspace opens an agent; which one is the project's default, else the global one. */
+export function emptyWorkspaceSurfaceOpensAgent(
   surface: EmptyWorkspaceSurface | undefined
-): TuiAgent | null {
-  const agent = surface?.startsWith('agent:') ? surface.slice('agent:'.length) : null
-  return agent !== null && isTuiAgent(agent) ? agent : null
+): boolean {
+  return surface === 'default-agent' || surface?.startsWith('agent:') === true
 }
 
 /** Launch fields for the chosen agent: Chat asks for the chat route (the host may still decline it), Terminal forces one. */

@@ -117,7 +117,7 @@ export class AgentAwakeService {
     this.refresh('status-change')
   }
 
-  /** Replace one WSL host's working agents; an empty list clears that host. */
+  /** Replace one WSL or paired host's working agents; an empty list clears that host. */
   setWslHostStatuses(environmentId: string, statuses: readonly WslHostAwakeStatus[]): void {
     for (const key of this.wslHostKeysByEnvironment.get(environmentId) ?? []) {
       this.wslHostStatusLease.remove(key)

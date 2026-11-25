@@ -19,6 +19,7 @@ import {
 } from '../notifications/desktop-presence-reporter'
 import { agentHookServer } from '../agent-hooks/server/agent-hook-server'
 import { startWslHostAgentAwake } from '../ipc/wsl/wsl-host-agent-awake-wiring'
+import { startPairedHostAgentAwake } from '../ipc/runtime-environments/paired-host-agent-awake-wiring'
 import { initTelemetry, track } from '../telemetry/client'
 import { setCodexTrustGrantTelemetry } from '../codex/trust/grants/codex-trust-grant-telemetry'
 import { initObservability } from '../observability/index'
@@ -81,9 +82,14 @@ export function initializeMainProcessObservers(store: Store): void {
   const unsubscribeHookStatus = bindAgentAwakeToHookStatus(agentHookServer, state.agentAwakeService)
   // WSL-host agents never reach the hook server; their host's own stream reports them.
   const stopWslHostAgentAwake = startWslHostAgentAwake(state.agentAwakeService)
+  // Headless servers are nobody's client; only a desktop stays up for the hosts it drives.
+  const stopPairedHostAgentAwake = state.isServeMode
+    ? () => {}
+    : startPairedHostAgentAwake(state.agentAwakeService)
   state.unsubscribeAgentAwakeStatusChanges = () => {
     unsubscribeHookStatus()
     stopWslHostAgentAwake()
+    stopPairedHostAgentAwake()
   }
   // Initialize before IPC/renderers can track; the telemetry client gates dev/disabled cases itself.
   // Load the SDK after first paint (#35752); headless serve and GPU failures never show a window.

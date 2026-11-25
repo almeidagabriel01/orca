@@ -263,6 +263,12 @@ function isEndFrame(frame: unknown): boolean {
 
 /** The host's evidence clock for a live working terminal agent, or null when it should not count. */
 function workingHostObservedAt(tab: unknown): number | null {
+  if (isRecord(tab) && tab.type === 'agent-session') {
+    // Chat tabs: the host already folds child and background work into chatStatus.state.
+    return isRecord(tab.chatStatus) && tab.chatStatus.state === 'working'
+      ? finiteClock(tab.chatStatus)
+      : null
+  }
   if (!isRecord(tab) || tab.type !== 'terminal' || !isRecord(tab.agentStatus)) {
     return null
   }
@@ -286,6 +292,10 @@ function workingHostObservedAt(tab: unknown): number | null {
       return null
     }
   }
+  return finiteClock(status)
+}
+
+function finiteClock(status: Record<string, unknown>): number | null {
   const observedAt =
     typeof status.evidenceObservedAt === 'number' ? status.evidenceObservedAt : status.updatedAt
   return typeof observedAt === 'number' && Number.isFinite(observedAt) ? observedAt : null

@@ -64,28 +64,53 @@ export function AccountNameInput({
     onDone(save ? accountNameToSave(draft, saved) : null)
   }
   return (
-    <Input
-      autoFocus
-      value={draft}
-      maxLength={MANAGED_ACCOUNT_DISPLAY_NAME_MAX_LENGTH}
-      placeholder={placeholder}
-      aria-label={t('accounts.rename.label', 'Display name')}
-      className="h-7 min-w-0 flex-1"
-      onClick={(event) => event.stopPropagation()}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => finish(true)}
-      onKeyDown={(event) => {
-        event.stopPropagation()
-        // An IME's Enter commits a candidate; it must not save a half-typed name.
-        if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-          event.preventDefault()
-          finish(true)
-        } else if (event.key === 'Escape') {
-          event.preventDefault()
-          finish(false)
-        }
-      }}
-    />
+    // The name's slot; -my-1 absorbs the compact input's extra height so the card does not grow.
+    <div className="-my-1 w-40 max-w-full min-w-0 font-medium">
+      <Input
+        density="compact"
+        autoFocus
+        value={draft}
+        maxLength={MANAGED_ACCOUNT_DISPLAY_NAME_MAX_LENGTH}
+        placeholder={placeholder}
+        aria-label={t('accounts.rename.label', 'Display name')}
+        onClick={(event) => event.stopPropagation()}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => finish(true)}
+        onKeyDown={(event) => {
+          event.stopPropagation()
+          // An IME's Enter commits a candidate; it must not save a half-typed name.
+          if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+            event.preventDefault()
+            finish(true)
+          } else if (event.key === 'Escape') {
+            event.preventDefault()
+            finish(false)
+          }
+        }}
+      />
+    </div>
+  )
+}
+
+/** The row's selectable area; a div while its name is edited, since an input cannot live in a button. */
+export function AccountSelectArea({
+  editing,
+  onSelect,
+  disabled,
+  children
+}: {
+  editing: boolean
+  onSelect: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}): React.JSX.Element {
+  const className = 'flex min-w-0 flex-1 flex-col gap-0.5 text-left disabled:cursor-default'
+  return editing ? (
+    <div className={className}>{children}</div>
+  ) : (
+    <button type="button" onClick={onSelect} disabled={disabled} className={className}>
+      {children}
+    </button>
   )
 }
 

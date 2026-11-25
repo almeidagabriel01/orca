@@ -25,6 +25,7 @@ import {
 } from './claude-sign-in-link-menu'
 import {
   AccountRenameButton,
+  AccountSelectArea,
   isEditingAccountName,
   renderAccountNameInput
 } from '../account-name-field'
@@ -91,59 +92,58 @@ export function renderClaudeAccountRow(
       }`}
     >
       <div className="flex w-full items-center justify-between gap-3 max-md:flex-col max-md:items-start">
-        {isEditingAccountName(model, nameTarget) ? (
-          renderAccountNameInput(model, nameTarget, account, t)
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              void runClaudeAccountAction(
-                `select:${account.id}`,
-                () =>
-                  selectClaudeProviderAccount(accountOwner, {
-                    accountId: account.id,
-                    ...accountRuntimeView
-                  }),
-                accountRuntimeView
-              )
-            }}
-            disabled={isBusy || account.needsSignIn}
-            className="flex min-w-0 flex-1 flex-col gap-0.5 text-left disabled:cursor-default"
-          >
-            <div className="flex min-w-0 items-center gap-2">
+        <AccountSelectArea
+          editing={isEditingAccountName(model, nameTarget)}
+          onSelect={() => {
+            void runClaudeAccountAction(
+              `select:${account.id}`,
+              () =>
+                selectClaudeProviderAccount(accountOwner, {
+                  accountId: account.id,
+                  ...accountRuntimeView
+                }),
+              accountRuntimeView
+            )
+          }}
+          disabled={isBusy || account.needsSignIn}
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            {isEditingAccountName(model, nameTarget) ? (
+              renderAccountNameInput(model, nameTarget, account, t)
+            ) : (
               <span className="truncate text-sm font-medium">{accountLabel}</span>
+            )}
+            <Badge
+              variant="outline"
+              className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/70"
+            >
+              {getClaudeAccountRuntimeLabel(account, accountRuntime.label)}
+            </Badge>
+            {isActive ? (
               <Badge
                 variant="outline"
-                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/70"
+                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
               >
-                {getClaudeAccountRuntimeLabel(account, accountRuntime.label)}
+                {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
               </Badge>
-              {isActive ? (
-                <Badge
-                  variant="outline"
-                  className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
-                >
-                  {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
-                </Badge>
-              ) : null}
-            </div>
-            <span className="truncate text-[11px] text-muted-foreground">
-              {joinAccountDetails(
-                account.needsSignIn
-                  ? [
-                      namedEmail,
-                      t('accounts.claude.signInRequired', 'Sign in again to use this account')
-                    ]
-                  : [
-                      account.organizationName,
-                      plan,
-                      namedEmail,
-                      formatAccountTimestamp(account.lastAuthenticatedAt, intlLocale)
-                    ]
-              )}
-            </span>
-          </button>
-        )}
+            ) : null}
+          </div>
+          <span className="truncate text-[11px] text-muted-foreground">
+            {joinAccountDetails(
+              account.needsSignIn
+                ? [
+                    namedEmail,
+                    t('accounts.claude.signInRequired', 'Sign in again to use this account')
+                  ]
+                : [
+                    account.organizationName,
+                    plan,
+                    namedEmail,
+                    formatAccountTimestamp(account.lastAuthenticatedAt, intlLocale)
+                  ]
+            )}
+          </span>
+        </AccountSelectArea>
         <div className="flex shrink-0 items-center justify-end gap-1 max-md:w-full max-md:flex-wrap">
           <AccountRenameButton
             t={t}

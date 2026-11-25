@@ -12,16 +12,11 @@ import { ACCOUNTS_SECTION_IDS, getAccountsCodexSearchEntries } from '../accounts
 import { getCodexSystemDefaultSubtitle } from '../scope/accounts-pane-runtime'
 import type { AccountsPaneSectionModel } from '../accounts-pane-types'
 import { renderCodexAccountRow } from './accounts-pane-codex-account-row'
-import { OwnLoginRowTitle } from '../own-login-row-title'
+import { OwnLoginCard } from '../own-login-card'
 import {
   getAccountDisplayName,
   SYSTEM_DEFAULT_ACCOUNT_NAME_KEY
 } from '../../../../../../shared/agent-accounts/managed-account-display-names'
-import {
-  AccountRenameButton,
-  isEditingAccountName,
-  renderAccountNameInput
-} from '../account-name-field'
 import { signInCodexAccountOnHost } from '@/runtime/provider-accounts/sign-in/runtime-host-account-sign-in-client'
 import { HostAccountSignInPrompt } from '../sign-in/HostAccountSignInPrompt'
 import {
@@ -256,88 +251,67 @@ export function renderCodexAccountsSection(
           )}
 
           <div className="space-y-2">
-            <div className="flex items-center gap-1">
-              {isEditingAccountName(model, systemNameTarget) ? (
-                renderAccountNameInput(
-                  model,
-                  systemNameTarget,
-                  { displayName: systemDefaultName, email: systemCodexIdentity?.email },
-                  t
+            <OwnLoginCard
+              model={model}
+              target={systemNameTarget}
+              account={{ displayName: systemDefaultName, email: systemCodexIdentity?.email }}
+              name={systemDefaultShortName}
+              active={systemCodexActive}
+              t={t}
+              cardClassName={
+                systemCodexNeedsSignIn
+                  ? 'border-destructive/50 bg-destructive/5'
+                  : systemCodexActive
+                    ? 'border-foreground/20 bg-accent/15'
+                    : 'border-border/70 hover:border-border hover:bg-accent/8'
+              }
+              disabled={codexAction !== 'idle' || accountRuntimeUnavailable}
+              canRename={accountRuntime.runtime === 'host'}
+              onSelect={() =>
+                void runCodexAccountAction('select:system', () =>
+                  selectCodexProviderAccount(accountOwner, {
+                    accountId: null,
+                    runtime: accountRuntime.runtime,
+                    wslDistro: accountRuntime.wslDistro
+                  })
                 )
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void runCodexAccountAction('select:system', () =>
-                      selectCodexProviderAccount(accountOwner, {
-                        accountId: null,
-                        runtime: accountRuntime.runtime,
-                        wslDistro: accountRuntime.wslDistro
-                      })
-                    )
-                  }
-                  disabled={codexAction !== 'idle' || accountRuntimeUnavailable}
-                  className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
-                    systemCodexNeedsSignIn
-                      ? 'border-destructive/50 bg-destructive/5'
-                      : systemCodexActive
-                        ? 'border-foreground/20 bg-accent/15'
-                        : 'border-border/70 hover:border-border hover:bg-accent/8'
-                  } disabled:cursor-default disabled:opacity-100`}
+              }
+              badges={
+                systemCodexNeedsSignIn ? (
+                  <Badge
+                    variant="destructive"
+                    className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
+                  >
+                    {t('auto.components.settings.AccountsPane.93c47b333a', 'Needs sign-in')}
+                  </Badge>
+                ) : null
+              }
+              detail={
+                <span
+                  className={`truncate text-[11px] ${
+                    systemCodexNeedsSignIn ? 'text-destructive' : 'text-muted-foreground'
+                  }`}
                 >
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <OwnLoginRowTitle
-                      name={systemDefaultShortName}
-                      active={systemCodexActive}
-                      t={t}
-                    >
-                      {systemCodexNeedsSignIn ? (
-                        <Badge
-                          variant="destructive"
-                          className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
-                        >
-                          {t('auto.components.settings.AccountsPane.93c47b333a', 'Needs sign-in')}
-                        </Badge>
-                      ) : null}
-                    </OwnLoginRowTitle>
-                    <span
-                      className={`truncate text-[11px] ${
-                        systemCodexNeedsSignIn ? 'text-destructive' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {systemCodexNeedsSignIn
-                        ? systemCodexMissingSignIn
-                          ? t(
-                              'auto.components.settings.AccountsPane.codexSystemDefaultNeedsSignIn',
-                              'No Codex sign-in was found for {{value0}}.',
-                              { value0: accountRuntimeSentenceLabel }
-                            )
-                          : t(
-                              'auto.components.settings.AccountsPane.fd62f37c24',
-                              'Codex reported this {{value0}} login is out of date.',
-                              { value0: accountRuntimeSentenceLabel }
-                            )
-                        : getCodexSystemDefaultSubtitle(
-                            systemCodexIdentity,
-                            accountRuntimeSentenceLabel,
-                            t
-                          )}
-                    </span>
-                  </div>
-                </button>
-              )}
-              {accountRuntime.runtime === 'host' ? (
-                <AccountRenameButton
-                  t={t}
-                  pending={model.renamingAccountKeys.has(
-                    `codex:${SYSTEM_DEFAULT_ACCOUNT_NAME_KEY}`
-                  )}
-                  onRename={() =>
-                    model.setEditingNameKey(`codex:${SYSTEM_DEFAULT_ACCOUNT_NAME_KEY}`)
-                  }
-                />
-              ) : null}
-            </div>
+                  {systemCodexNeedsSignIn
+                    ? systemCodexMissingSignIn
+                      ? t(
+                          'auto.components.settings.AccountsPane.codexSystemDefaultNeedsSignIn',
+                          'No Codex sign-in was found for {{value0}}.',
+                          { value0: accountRuntimeSentenceLabel }
+                        )
+                      : t(
+                          'auto.components.settings.AccountsPane.fd62f37c24',
+                          'Codex reported this {{value0}} login is out of date.',
+                          { value0: accountRuntimeSentenceLabel }
+                        )
+                    : getCodexSystemDefaultSubtitle(
+                        systemCodexIdentity,
+                        accountRuntimeSentenceLabel,
+                        t
+                      )}
+                </span>
+              }
+            />
             {visibleCodexAccounts.length === 0 ? (
               <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
                 {isRemoteAccountScope

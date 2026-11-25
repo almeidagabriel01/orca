@@ -4,6 +4,7 @@ import { resolveAgentLaunchRoute } from './agent-launch-routing'
 
 describe('buildAgentLaunchRouteInput', () => {
   it("lets the project's terminal surface beat the host's chat default", () => {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: stub holds only the fields buildAgentLaunchRouteInput reads
     const store = {
       settings: { agentDefaultSurface: 'chat', nativeChatProviders: { claude: true } },
       repos: [{ id: 'repo-1', agentLaunchDefaults: { defaultSurface: 'terminal' } }]

@@ -220,7 +220,7 @@ function RepositoryAgentDefaultsEditor({
               onValueChange={(value) =>
                 void save({
                   ...defaults,
-                  defaultSurface: value === 'inherit' ? undefined : (value as ProjectAgentSurface)
+                  defaultSurface: value === 'chat' || value === 'terminal' ? value : undefined
                 })
               }
             >

@@ -17,16 +17,13 @@ function fallbackReason(store: AgentLaunchRouteStore, args: AgentLaunchRouteArgs
   const answer = hostChatAnswer(
     buildAgentLaunchRouteInput(store, { ...args, preferredSurface: 'chat' })
   )
-  switch (answer) {
-    case 'no-chats':
-      return translate('settings.agents.projectSurfaceFallbackNoChats', "This host can't run chats")
-    case 'not-yet-known':
-      return chatUnavailableLabel('check-failed')
-    case 'yes':
-      return chatUnavailableLabel('not-on-host')
-    default:
-      return chatUnavailableLabel(answer)
+  if (answer === 'no-chats') {
+    return translate('settings.agents.projectSurfaceFallbackNoChats', "This host can't run chats")
   }
+  if (answer === 'not-yet-known') {
+    return chatUnavailableLabel('check-failed')
+  }
+  return chatUnavailableLabel(answer === 'yes' ? 'not-on-host' : answer)
 }
 
 /** The project asked for a chat but this host opens the agent's terminal instead; say why. */

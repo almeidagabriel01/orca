@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { withProjectAgentLaunchDefaults } from './project-agent-launch-defaults'
+import {
+  normalizeProjectAgentLaunchDefaults,
+  withProjectAgentLaunchDefaults
+} from './project-agent-launch-defaults'
 import { structuredLaunchSeedOptions } from '../../native-chat/input/session-options/native-chat-session-option-defaults'
 
 const host = {
@@ -33,5 +36,18 @@ describe('withProjectAgentLaunchDefaults', () => {
       agentLaunchDefaults: { agentLaunchChoices: { codex: { model: 'gpt-5.3-codex' } } }
     })
     expect(settings.agentLaunchChoices?.codex).toEqual({ model: 'gpt-5.3-codex' })
+  })
+
+  it('lets a project surface beat the host global and per-agent chat choices', () => {
+    const settings = withProjectAgentLaunchDefaults(
+      { ...host, agentDefaultSurface: 'chat' as const, nativeChatProviders: { claude: true } },
+      { agentLaunchDefaults: normalizeProjectAgentLaunchDefaults({ defaultSurface: 'terminal' }) }
+    )
+    expect(settings).toMatchObject({
+      agentDefaultSurface: 'terminal',
+      emptyWorkspaceAgentSurface: 'terminal',
+      nativeChatProviders: {}
+    })
+    expect(normalizeProjectAgentLaunchDefaults({ defaultSurface: 'tui' })).toBeUndefined()
   })
 })

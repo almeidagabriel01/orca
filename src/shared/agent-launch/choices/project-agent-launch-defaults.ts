@@ -14,6 +14,16 @@ export type ProjectAgentLaunchDefaults = {
   agentLaunchChoices?: AgentLaunchChoices
   /** The saved account a new chat runs on, per agent that takes one; unset follows the host. */
   agentAccounts?: Partial<Record<TuiAgent, string>>
+  /** Whether new agents in this project open as chat or terminal TUI; unset follows the host. */
+  defaultSurface?: ProjectAgentSurface
+}
+
+export type ProjectAgentSurface = 'chat' | 'terminal'
+
+type SurfaceSettings = {
+  agentDefaultSurface?: ProjectAgentSurface
+  emptyWorkspaceAgentSurface?: ProjectAgentSurface
+  nativeChatProviders?: Partial<Record<string, boolean>>
 }
 
 function normalizeAgentAccounts(value: unknown): Partial<Record<TuiAgent, string>> {
@@ -40,21 +50,22 @@ export function normalizeProjectAgentLaunchDefaults(
   const agent = fields.get('defaultTuiAgent')
   const choices = normalizeAgentLaunchChoices(fields.get('agentLaunchChoices'))
   const accounts = normalizeAgentAccounts(fields.get('agentAccounts'))
+  const surface = fields.get('defaultSurface')
   const defaults: ProjectAgentLaunchDefaults = {
     ...(agent === 'blank' || (typeof agent === 'string' && isTuiAgent(agent))
       ? { defaultTuiAgent: agent }
       : {}),
     ...(Object.keys(choices).length ? { agentLaunchChoices: choices } : {}),
-    ...(Object.keys(accounts).length ? { agentAccounts: accounts } : {})
+    ...(Object.keys(accounts).length ? { agentAccounts: accounts } : {}),
+    ...(surface === 'chat' || surface === 'terminal' ? { defaultSurface: surface } : {})
   }
   return Object.keys(defaults).length ? defaults : undefined
 }
 
 /** The one place a project's defaults layer over the host's; explicit launch choices still win downstream. */
-export function withProjectAgentLaunchDefaults<T extends ProjectAgentLaunchDefaults>(
-  settings: T,
-  repo: { agentLaunchDefaults?: ProjectAgentLaunchDefaults } | null | undefined
-): T {
+export function withProjectAgentLaunchDefaults<
+  T extends ProjectAgentLaunchDefaults & SurfaceSettings
+>(settings: T, repo: { agentLaunchDefaults?: ProjectAgentLaunchDefaults } | null | undefined): T {
   const defaults = repo?.agentLaunchDefaults
   if (!defaults) {
     return settings
@@ -74,7 +85,15 @@ export function withProjectAgentLaunchDefaults<T extends ProjectAgentLaunchDefau
   return {
     ...settings,
     ...(defaults.defaultTuiAgent != null ? { defaultTuiAgent: defaults.defaultTuiAgent } : {}),
-    agentLaunchChoices: choices
+    agentLaunchChoices: choices,
+    // The project's surface beats the host's global and per-agent chat choices.
+    ...(defaults.defaultSurface
+      ? {
+          agentDefaultSurface: defaults.defaultSurface,
+          emptyWorkspaceAgentSurface: defaults.defaultSurface,
+          nativeChatProviders: {}
+        }
+      : {})
   }
 }
 

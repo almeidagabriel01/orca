@@ -22916,7 +22916,12 @@
     "refresh": "Yenile",
     "restartLocal": "Yerel arka plan hizmetini yeniden başlat",
     "killAllLocal": "Tüm yerel oturumları sonlandır",
-    "killFailed": "Terminal sonlandırılamadı. Son gözlemlenen oturumlar korunur."
+    "killFailed": "Terminal sonlandırılamadı. Son gözlemlenen oturumlar korunur.",
+    "heavyQueueChip": {
+      "summary": "{{slots}} yuvadan {{running}} tanesi çalışıyor, {{waiting}} bekliyor",
+      "offline": "Erişilemedi",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "browserExtensions": {
     "permission": {

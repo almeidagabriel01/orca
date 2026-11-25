@@ -22657,7 +22657,12 @@
     "refresh": "Actualizar",
     "restartLocal": "Reiniciar daemon local",
     "killAllLocal": "Finalizar todas las sesiones locales",
-    "killFailed": "No se pudo finalizar el terminal. Se conservan las sesiones observadas por última vez."
+    "killFailed": "No se pudo finalizar el terminal. Se conservan las sesiones observadas por última vez.",
+    "heavyQueueChip": {
+      "summary": "{{running}} de {{slots}} plazas en uso, {{waiting}} en espera",
+      "offline": "No se pudo conectar",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "csv": {
     "detectingDelimiter": "Detectando delimitador…",

@@ -25401,6 +25401,11 @@
       "agents": "智能体",
       "otherTerminals": "其他终端",
       "privateBytes": "Orca 和终端已提交的内存"
+    },
+    "heavyQueueChip": {
+      "summary": "{{slots}} 个槽位中 {{running}} 个运行中，{{waiting}} 个等待中",
+      "offline": "无法连接",
+      "aria": "{{host}}：{{text}}"
     }
   },
   "browserExtensions": {

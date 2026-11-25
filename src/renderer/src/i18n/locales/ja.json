@@ -23989,7 +23989,12 @@
     "refresh": "更新",
     "restartLocal": "ローカルデーモンを再起動",
     "killAllLocal": "すべてのローカルセッションを終了",
-    "killFailed": "ターミナルを終了できませんでした。最後に観測されたセッションを保持しています。"
+    "killFailed": "ターミナルを終了できませんでした。最後に観測されたセッションを保持しています。",
+    "heavyQueueChip": {
+      "summary": "{{slots}} 枠中 {{running}} 枠が実行中、{{waiting}} 件待機中",
+      "offline": "接続できませんでした",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "workspaceSpace": {
     "table": {

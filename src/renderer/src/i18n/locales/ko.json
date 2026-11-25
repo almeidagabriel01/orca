@@ -25419,6 +25419,11 @@
       "agents": "에이전트",
       "otherTerminals": "기타 터미널",
       "privateBytes": "Orca와 터미널이 확보한 메모리"
+    },
+    "heavyQueueChip": {
+      "summary": "슬롯 {{slots}}개 중 {{running}}개 실행 중, {{waiting}}개 대기 중",
+      "offline": "연결할 수 없습니다",
+      "aria": "{{host}}: {{text}}"
     }
   },
   "workspaceSpace": {

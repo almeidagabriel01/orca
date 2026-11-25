@@ -22678,7 +22678,12 @@
     "refresh": "Actualiser",
     "restartLocal": "Redémarrer le daemon local",
     "killAllLocal": "Terminer toutes les sessions locales",
-    "killFailed": "Le terminal n’a pas pu être arrêté. Les sessions observées en dernier sont conservées."
+    "killFailed": "Le terminal n’a pas pu être arrêté. Les sessions observées en dernier sont conservées.",
+    "heavyQueueChip": {
+      "summary": "{{running}} sur {{slots}} emplacements utilisés, {{waiting}} en attente",
+      "offline": "Connexion impossible",
+      "aria": "{{host}} : {{text}}"
+    }
   },
   "csv": {
     "detectingDelimiter": "Détection du délimiteur…",

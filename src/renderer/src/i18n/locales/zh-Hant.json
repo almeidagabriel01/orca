@@ -22462,7 +22462,12 @@
     "refresh": "重新整理",
     "restartLocal": "重新啟動本機常駐程式",
     "killAllLocal": "結束所有本機工作階段",
-    "killFailed": "無法結束終端機。將保留上次觀察到的工作階段。"
+    "killFailed": "無法結束終端機。將保留上次觀察到的工作階段。",
+    "heavyQueueChip": {
+      "summary": "{{slots}} 個插槽中 {{running}} 個執行中，{{waiting}} 個等待中",
+      "offline": "無法連線",
+      "aria": "{{host}}：{{text}}"
+    }
   },
   "browserExtensions": {
     "permission": {

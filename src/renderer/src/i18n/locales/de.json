@@ -22954,7 +22954,12 @@
     "refresh": "Aktualisieren",
     "restartLocal": "Lokalen Daemon neu starten",
     "killAllLocal": "Alle lokalen Sitzungen beenden",
-    "killFailed": "Das Terminal konnte nicht beendet werden. Die zuletzt beobachteten Sitzungen bleiben erhalten."
+    "killFailed": "Das Terminal konnte nicht beendet werden. Die zuletzt beobachteten Sitzungen bleiben erhalten.",
+    "heavyQueueChip": {
+      "summary": "{{running}} von {{slots}} Plätzen belegt, {{waiting}} wartend",
+      "offline": "Nicht erreichbar",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "browserExtensions": {
     "permission": {

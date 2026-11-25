@@ -26374,7 +26374,12 @@
       "tooltip": "{{agent}} chat, including the processes running under it"
     },
     "sharedAgentProcesses": "Shared agent processes",
-    "hostChatsUpdateRequired": "Update {{value0}} to see its chats."
+    "hostChatsUpdateRequired": "Update {{value0}} to see its chats.",
+    "heavyQueueChip": {
+      "summary": "{{running}} of {{slots}} slots running, {{waiting}} waiting",
+      "offline": "Couldn't be reached",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "browserExtensions": {
     "permission": {

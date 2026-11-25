@@ -23771,7 +23771,12 @@
     "openToObserve": "Abra Recursos para observar as sessões de terminal.",
     "killAllLocal": "Encerrar todas as sessões locais",
     "ptys": "PTYs",
-    "restartLocal": "Reiniciar daemon local"
+    "restartLocal": "Reiniciar daemon local",
+    "heavyQueueChip": {
+      "summary": "{{running}} de {{slots}} vagas em uso, {{waiting}} aguardando",
+      "offline": "Não foi possível conectar",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "browserTab": {
     "agentDriving": "Um agente está usando esta página",

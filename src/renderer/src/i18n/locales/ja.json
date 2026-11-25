@@ -23485,6 +23485,8 @@
     "antigravityReferenceDescription": "このトランスクリプトを参照として使用して、新規 Antigravity CLI 会話を続けます。",
     "searchHitSourceHost": "{{value0}} で見つかりました",
     "recordedOnOtherMachineCopy": "別のコンピューターで記録 · そちらで開いてください",
+    "recordedOnOfflineHost": "{{value0}} で記録されましたが、オフラインです。再接続してそちらで再開してください。",
+    "recordedOnUnknownHost": "別のコンピューターで記録されました。そのコンピューターでフォルダーをワークスペースとして開くと、そちらで再開できます。",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "antigravityChatToCli": "チャット → CLI",

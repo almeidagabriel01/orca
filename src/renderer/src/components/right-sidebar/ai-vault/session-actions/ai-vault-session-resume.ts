@@ -13,6 +13,12 @@ import {
 import type { AppState } from '@/store/types'
 import { getIndexedWorktreeMap } from '@/store/slices/worktrees/listing/worktree-catalog-index'
 import { translate } from '@/i18n/i18n'
+import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import {
+  aiVaultOtherMachineOfflineReason,
+  aiVaultOtherMachineUnknownReason,
+  resolveAiVaultOtherMachineOrigin
+} from './ai-vault-session-other-machine'
 import type { Translate } from '@/i18n/use-translate'
 import { parseWorkspaceKey } from '../../../../../../shared/workspace/identity/workspace-scope'
 import '../session-list/ai-vault-session-worktree'
@@ -37,6 +43,8 @@ export type AiVaultSessionResumeState = {
   blocked: boolean
   worktreeId: string | null
   usesSessionWorktree: boolean
+  /** Shown in place of Resume when it cannot run. */
+  unavailableReason?: string
 }
 
 export type AiVaultSessionResumeAction = {
@@ -101,8 +109,13 @@ export function resolveAiVaultHistorySessionResumeState(
     'sessionFilePath' | 'sessionExecutionHostId'
   > & {
     session: AiVaultSession
+    /** Runtime hosts known to be disconnected. */
+    isHostOffline?: (hostId: ExecutionHostId) => boolean
   }
 ): AiVaultSessionResumeState {
+  if (args.session.recordedOnOtherMachine) {
+    return resolveAiVaultOtherMachineResumeState(args)
+  }
   const child = Boolean(args.session.subagent)
   return resolveAiVaultSessionResumeState({
     ...args,
@@ -119,6 +132,29 @@ export function resolveAiVaultHistorySessionResumeState(
     // Lazy children are absent from the panel map; never resume them in an unrelated active workspace.
     activeWorktreeId: child ? null : args.activeWorktreeId
   })
+}
+
+// A synced copy resumes only where it was recorded, in the workspace that holds its cwd there.
+function resolveAiVaultOtherMachineResumeState(
+  args: Parameters<typeof resolveAiVaultHistorySessionResumeState>[0]
+): AiVaultSessionResumeState {
+  const origin = resolveAiVaultOtherMachineOrigin(args)
+  const blocked = { blocked: true, worktreeId: null, usesSessionWorktree: false }
+  if (!origin) {
+    return { ...blocked, unavailableReason: aiVaultOtherMachineUnknownReason() }
+  }
+  if (args.isHostOffline?.(origin.hostId)) {
+    return { ...blocked, unavailableReason: aiVaultOtherMachineOfflineReason(origin.hostId) }
+  }
+  const state = resolveAiVaultSessionResumeState({
+    ...args,
+    sessionFilePath: args.session.filePath,
+    sessionExecutionHostId: origin.hostId,
+    worktreeInfo: origin.worktreeInfo,
+    // Never fall back to the active workspace: it may sit on the copy's host.
+    activeWorktreeId: null
+  })
+  return state.blocked ? { ...state, unavailableReason: aiVaultOtherMachineUnknownReason() } : state
 }
 
 export function resolveAiVaultSessionResumeActions(args: {

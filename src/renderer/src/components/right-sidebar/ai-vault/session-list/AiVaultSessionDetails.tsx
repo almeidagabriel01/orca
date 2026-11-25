@@ -68,6 +68,7 @@ export function SessionInlineDetails({
   onResumeInNewChat,
   onResumeInNewCli,
   onOpenLog,
+  resumeUnavailableReason,
   actionsHidden = false
 }: {
   id: string
@@ -85,6 +86,7 @@ export function SessionInlineDetails({
   onResumeInNewChat?: () => void
   onResumeInNewCli?: () => void
   onOpenLog?: () => void
+  resumeUnavailableReason?: string
   /** Hides the action bar; the details stay. */
   actionsHidden?: boolean
 }): React.JSX.Element {
@@ -92,10 +94,11 @@ export function SessionInlineDetails({
   // Zero-turn sessions cannot resume meaningful content; show not-saved status instead.
   const referenceSession = isAntigravityReferenceSession(session)
   const hasResumableContent = isAiVaultSessionResumableContent(session)
-  const showResumeInWorktree = hasResumableContent && Boolean(resumeActions.worktree.worktreeId)
+  // The row shows the reason in place of Resume.
+  const resumable = hasResumableContent && !resumeUnavailableReason
+  const showResumeInWorktree = resumable && Boolean(resumeActions.worktree.worktreeId)
   const showResumeInNewTab =
-    hasResumableContent &&
-    (!resumeActions.worktree.worktreeId || Boolean(resumeActions.newTab.worktreeId))
+    resumable && (!resumeActions.worktree.worktreeId || Boolean(resumeActions.newTab.worktreeId))
   const promptPreview = sessionPromptPreview(session)
   const detailTurns = sessionDetailConversationTurns(session, 3)
   const accountLabel = useAiVaultSessionAccount(session)

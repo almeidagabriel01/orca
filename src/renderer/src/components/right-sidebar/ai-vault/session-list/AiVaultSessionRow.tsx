@@ -50,6 +50,7 @@ export function VaultSessionRow({
   detailsExpanded,
   resumeDisabled,
   resumeHidden,
+  resumeUnavailableReason,
   onToggleDetails,
   originalPaneTarget,
   onJumpToOriginalPane,
@@ -85,6 +86,7 @@ export function VaultSessionRow({
   detailsExpanded: boolean
   resumeDisabled: boolean
   resumeHidden?: boolean
+  resumeUnavailableReason?: string
   onToggleDetails: () => void
   originalPaneTarget?: AiVaultOriginalPaneTarget | null
   onJumpToOriginalPane?: () => void
@@ -140,7 +142,8 @@ export function VaultSessionRow({
           'The transcript source is unavailable.'
         )
   const requestDelete = (): void => onRequestDelete?.(session)
-  const draggable = !resumeDisabled && !onPick
+  // A synced copy's drag payload names the copy's host; it resumes only through its row's Resume.
+  const draggable = !resumeDisabled && !onPick && !session.recordedOnOtherMachine
   const detailsTooltip = detailsExpanded
     ? t('auto.components.right.sidebar.AiVaultSessionRow.hideDetails', 'Hide Details')
     : t('auto.components.right.sidebar.AiVaultSessionRow.showDetails', 'Show Details')
@@ -270,6 +273,14 @@ export function VaultSessionRow({
         vaultScope={vaultScope}
         sourceHostLabel={sourceHostLabel}
       />
+      {detailsExpanded && resumeUnavailableReason ? (
+        <div
+          className="mt-2 text-[11px] leading-4 text-muted-foreground"
+          data-testid="ai-vault-session-resume-unavailable"
+        >
+          {resumeUnavailableReason}
+        </div>
+      ) : null}
       {detailsExpanded ? (
         <SessionInlineDetails
           id={detailsId}
@@ -285,6 +296,7 @@ export function VaultSessionRow({
           onResumeInNewCli={onResumeInNewCli}
           // The unsaved notice's "open the log" hint needs the button the picker hides.
           onOpenLog={onPick ? undefined : onOpenLog}
+          resumeUnavailableReason={resumeUnavailableReason}
           actionsHidden={Boolean(onPick)}
         />
       ) : null}

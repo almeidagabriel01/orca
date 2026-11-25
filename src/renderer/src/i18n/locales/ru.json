@@ -23322,6 +23322,8 @@
     "antigravityReferenceDescription": "Продолжает в новом разговоре Antigravity CLI, используя эту историю как справочный материал.",
     "searchHitSourceHost": "Найдено на {{value0}}",
     "recordedOnOtherMachineCopy": "Записано на другом компьютере · откройте там",
+    "recordedOnOfflineHost": "Записано на {{value0}}, который не в сети. Подключите его снова, чтобы продолжить там.",
+    "recordedOnUnknownHost": "Записано на другом компьютере. Откройте её папку как рабочее пространство на том компьютере, чтобы продолжить там.",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "Продолжить в CLI",

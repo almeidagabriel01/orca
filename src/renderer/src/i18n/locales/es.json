@@ -23288,6 +23288,8 @@
     "antigravityReferenceDescription": "Continúa en una nueva conversación de la CLI de Antigravity usando esta transcripción como referencia.",
     "searchHitSourceHost": "Encontrada en {{value0}}",
     "recordedOnOtherMachineCopy": "Grabada en otro equipo · ábrela allí",
+    "recordedOnOfflineHost": "Grabada en {{value0}}, que está sin conexión. Vuelve a conectarlo para reanudarla allí.",
+    "recordedOnUnknownHost": "Grabada en otro equipo. Abre su carpeta como espacio de trabajo en ese equipo para reanudarla allí.",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "Continuar en la CLI",

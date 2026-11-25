@@ -22957,6 +22957,8 @@
     "antigravityReferenceDescription": "Continue dans une nouvelle conversation Antigravity CLI en utilisant cette transcription comme référence.",
     "searchHitSourceHost": "Trouvée sur {{value0}}",
     "recordedOnOtherMachineCopy": "Enregistrée sur un autre ordinateur · ouvrez-la là-bas",
+    "recordedOnOfflineHost": "Enregistrée sur {{value0}}, hors ligne. Reconnectez-le pour la reprendre là-bas.",
+    "recordedOnUnknownHost": "Enregistrée sur un autre ordinateur. Ouvrez son dossier comme espace de travail sur cet ordinateur pour la reprendre là-bas.",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "Continuer en CLI",

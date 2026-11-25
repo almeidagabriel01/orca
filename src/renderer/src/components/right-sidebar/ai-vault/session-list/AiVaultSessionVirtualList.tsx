@@ -237,6 +237,15 @@ export function AiVaultSessionVirtualList({
       resumeInChat: getSessionResumeInChat(session),
       searchHit: searchHits?.get(session.id)
     })
+    // A synced copy never replaces this chat: it opens in its recording host's workspace.
+    if (session.recordedOnOtherMachine) {
+      if (!actions.resumeWorktreeId) {
+        return false
+      }
+      onResume(session, actions.resumeWorktreeId)
+      resumeHere.dismiss()
+      return true
+    }
     if (resumeHere.alongside) {
       return pickAlongside(session, actions, resumeHere)
     }

@@ -9,6 +9,8 @@ export function canContinueAiVaultSessionInNewSession(
 ): boolean {
   return Boolean(
     targetWorktreeId &&
+    // A synced copy's hand-off would read the copy; it resumes only on its recording host.
+    !session.recordedOnOtherMachine &&
     // Only its chat holds the conversation, so the hand-off starts from that chat instead.
     !isCursorAcpSessionRow(session) &&
     // A database row's host saves its conversation when Hand Off opens, even with no preview text.

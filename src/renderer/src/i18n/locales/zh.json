@@ -24621,6 +24621,8 @@
     "antigravityReferenceDescription": "使用此记录作为参考继续新的Antigravity CLI 对话",
     "searchHitSourceHost": "在 {{value0}} 上找到",
     "recordedOnOtherMachineCopy": "在另一台电脑上记录 · 请在那里打开",
+    "recordedOnOfflineHost": "记录于 {{value0}}，但它已离线。重新连接后即可在那里恢复。",
+    "recordedOnUnknownHost": "在另一台电脑上记录。在那台电脑上将其文件夹作为工作区打开，即可在那里恢复。",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → 命令行界面",
     "continueInCli": "在 CLI 中继续",

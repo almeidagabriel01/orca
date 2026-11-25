@@ -258,6 +258,7 @@ export const AiVaultVirtualRow = memo(function AiVaultVirtualRow({
             canJumpToOriginalPane ? () => onJumpToOriginalPane(row.session) : undefined
           }
           resumeHidden={structuredSessionOpen}
+          resumeUnavailableReason={resumeState?.unavailableReason}
           showJumpToWorktree={showJumpToWorktree}
           onJumpToWorktree={worktreeJumpId ? () => onJumpToWorktree(worktreeJumpId) : undefined}
           subagentResume={{ getState: getSessionResumeState, onResume }}

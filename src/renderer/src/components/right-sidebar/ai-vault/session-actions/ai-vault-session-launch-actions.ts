@@ -35,6 +35,7 @@ import { createNonSecureContextUuid } from '../../../../../../shared/identifiers
 import { describeAiVaultResumeFailure } from '@/lib/agent-session/resume/history/ai-vault-resume-refusal'
 import { resumeAiVaultSessionInNewChat } from './ai-vault-session-resume-in-chat-launch'
 import { resolveAiVaultTargetWorkspacePath } from './ai-vault-session-launch-target'
+import { aiVaultResumeSessionForWorkspace } from './ai-vault-session-other-machine'
 import type {
   AiVaultResumeCommandSession,
   AiVaultResumeStartup
@@ -88,8 +89,9 @@ export function useAiVaultSessionLaunchActions({
   )
 
   const copyResumeCommand = useCallback(
-    async (session: AiVaultSession, worktreeId?: string | null): Promise<void> => {
-      if (session.structuredSession) {
+    async (row: AiVaultSession, worktreeId?: string | null): Promise<void> => {
+      const session = aiVaultResumeSessionForWorkspace(row, targetState, worktreeId)
+      if (!session || session.structuredSession) {
         return
       }
       try {
@@ -105,7 +107,7 @@ export function useAiVaultSessionLaunchActions({
         notifyAiVaultSessionPreparationFailure(error, session.agent)
       }
     },
-    [buildResumeCommand]
+    [buildResumeCommand, targetState]
   )
 
   const launchInTerminal = useCallback(
@@ -140,7 +142,11 @@ export function useAiVaultSessionLaunchActions({
   )
 
   const handleResume = useCallback(
-    (session: AiVaultSession, targetWorktreeId?: string): void => {
+    (row: AiVaultSession, targetWorktreeId?: string): void => {
+      const session = aiVaultResumeSessionForWorkspace(row, targetState, targetWorktreeId)
+      if (!session) {
+        return
+      }
       if (session.structuredSession) {
         void activateAiVaultStructuredSession(session)
         return
@@ -155,7 +161,7 @@ export function useAiVaultSessionLaunchActions({
         (message) => describeAiVaultResumeFailure(new Error(message), session.agent)
       )
     },
-    [buildResumeStartup, launchInTerminal]
+    [buildResumeStartup, launchInTerminal, targetState]
   )
 
   // Native chat keeps the conversation it owns; the terminal gets a copy (see the fork builder).

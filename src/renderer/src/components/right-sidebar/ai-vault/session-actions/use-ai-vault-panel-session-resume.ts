@@ -19,12 +19,14 @@ import {
 } from '../session-list/ai-vault-session-worktree'
 import { withAiVaultCurrentWorktreeStatus } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-worktree'
 
-// A synced copy resumes only on the computer that recorded it; when connected, that computer's row replaces it.
-const OTHER_MACHINE_RESUME_STATE = { blocked: true, worktreeId: null, usesSessionWorktree: false }
-const OTHER_MACHINE_RESUME_ACTIONS = {
-  worktree: { worktreeId: null, disabled: true },
-  newTab: { worktreeId: null, disabled: true }
-}
+import { parseExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import {
+  isDisconnectedRuntimeHostState,
+  runtimeHostConnectionStateForEntry
+} from '@/runtime/hosts/connections/runtime-host-connection-state'
+import type { RuntimeStatuses } from '@/store/slices/runtime-status/views/runtime-status-owner'
+
+const selectHostStatuses = (_state: unknown, statuses: RuntimeStatuses): RuntimeStatuses => statuses
 
 export function useAiVaultPanelSessionResume(args: {
   sessions: readonly AiVaultSession[]
@@ -58,23 +60,45 @@ export function useAiVaultPanelSessionResume(args: {
     }),
     [workspaceId, getSessionWorktreeInfo, ownerWorkspaces, repos, resumeTargetState]
   )
+  // A synced copy resumes on the host that recorded it, so its row follows that host's connection.
+  const hostStatuses = useAppStoreWithHostStatuses(selectHostStatuses)
+  const isHostOffline = useCallback(
+    (hostId: string) => {
+      const host = parseExecutionHostId(hostId)
+      return (
+        host?.kind === 'runtime' &&
+        isDisconnectedRuntimeHostState(
+          runtimeHostConnectionStateForEntry(hostStatuses.get(host.environmentId))
+        )
+      )
+    },
+    [hostStatuses]
+  )
   const getSessionResumeState = useCallback(
     (session: AiVaultSession) =>
-      session.recordedOnOtherMachine
-        ? OTHER_MACHINE_RESUME_STATE
-        : resolveAiVaultHistorySessionResumeState(getSessionRowResumeArgs(session)),
-    [getSessionRowResumeArgs]
+      resolveAiVaultHistorySessionResumeState({
+        ...getSessionRowResumeArgs(session),
+        isHostOffline
+      }),
+    [getSessionRowResumeArgs, isHostOffline]
   )
   const getSessionResumeActions = useCallback(
-    (session: AiVaultSession) =>
-      session.recordedOnOtherMachine
-        ? OTHER_MACHINE_RESUME_ACTIONS
-        : resolveAiVaultSessionResumeActions({
-            ...getSessionRowResumeArgs(session),
-            sessionFilePath: session.filePath,
-            sessionExecutionHostId: session.executionHostId
-          }),
-    [getSessionRowResumeArgs]
+    (session: AiVaultSession) => {
+      if (!session.recordedOnOtherMachine) {
+        return resolveAiVaultSessionResumeActions({
+          ...getSessionRowResumeArgs(session),
+          sessionFilePath: session.filePath,
+          sessionExecutionHostId: session.executionHostId
+        })
+      }
+      // Only the recording host's workspace; a new tab in the active one could sit on the copy's host.
+      const state = getSessionResumeState(session)
+      return {
+        worktree: { worktreeId: state.worktreeId, disabled: state.blocked },
+        newTab: { worktreeId: null, disabled: true }
+      }
+    },
+    [getSessionRowResumeArgs, getSessionResumeState]
   )
   // Chat resume must preserve the session’s workspace: Claude finds transcripts through launch-cwd-derived paths.
   const launchRoute = useAppStoreWithHostStatuses(selectAgentLaunchRouteView)

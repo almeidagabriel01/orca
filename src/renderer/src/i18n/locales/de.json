@@ -22571,6 +22571,8 @@
     "antigravityReferenceDescription": "Setzt die Unterhaltung in einer neuen Antigravity-CLI-Unterhaltung mit diesem Protokoll als Referenz fort.",
     "searchHitSourceHost": "Auf {{value0}} gefunden",
     "recordedOnOtherMachineCopy": "Auf einem anderen Computer aufgezeichnet · dort öffnen",
+    "recordedOnOfflineHost": "Auf {{value0}} aufgezeichnet, das offline ist. Verbinde es erneut, um dort fortzusetzen.",
+    "recordedOnUnknownHost": "Auf einem anderen Computer aufgezeichnet. Öffne den Ordner dort als Workspace, um sie dort fortzusetzen.",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "In CLI fortsetzen",

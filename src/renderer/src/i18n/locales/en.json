@@ -25279,6 +25279,8 @@
     "antigravityReferenceDescription": "Continues in a new Antigravity CLI conversation using this transcript as a reference.",
     "searchHitSourceHost": "Found on {{value0}}",
     "recordedOnOtherMachineCopy": "Recorded on another computer · open it there",
+    "recordedOnOfflineHost": "Recorded on {{value0}}, which is offline. Reconnect it to resume there.",
+    "recordedOnUnknownHost": "Recorded on another computer. Open its folder as a workspace on that computer to resume it there.",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "antigravityChatToCli": "Chat → CLI",

@@ -122,6 +122,8 @@ export type RuntimeStore = {
   getMobileClientTabSelections?: Store['getMobileClientTabSelections']
   setMobileClientTabSelections?: Store['setMobileClientTabSelections']
   getSettings(): {
+    computerAwakeMode?: GlobalSettings['computerAwakeMode']
+    keepComputerAwakeWhileAgentsRun?: GlobalSettings['keepComputerAwakeWhileAgentsRun']
     browserClientHostedRemoteEnabled?: GlobalSettings['browserClientHostedRemoteEnabled']
     autoRenameBranchFromWork?: GlobalSettings['autoRenameBranchFromWork']
     nativeChatAutoName?: GlobalSettings['nativeChatAutoName']

@@ -43,10 +43,7 @@ import {
   normalizeMobilePairingCustomAddress,
   normalizeMobilePairingCustomAddresses
 } from '../../../shared/remote-runtime/pairing/mobile-pairing-custom-address'
-import {
-  computerAwakeSettingsForMode,
-  normalizeComputerAwakeMode
-} from '../../../shared/app-lifecycle/computer-awake-mode'
+import { withComputerAwakeSettings } from '../../../shared/app-lifecycle/computer-awake-mode'
 import { resolveAiVaultSearchSettings } from '../../../shared/ai-vault/search/ai-vault-search-settings'
 import { applySessionSearchSettingsChange } from '../../ai-vault-search/session-search-enablement'
 import { getRuntimeEnvironmentRegistryRoot } from '../runtime-environments/catalog/runtime-environment-registry-root'
@@ -119,22 +116,7 @@ export function registerSettingsHandlers(
     delete sanitizedArgs.activeRuntimeEnvironmentId
     // Only the main-process directory picker may grant trusted floating-workspace paths.
     delete sanitizedArgs.floatingTerminalTrustedCwds
-    if ('computerAwakeMode' in sanitizedArgs) {
-      Object.assign(
-        sanitizedArgs,
-        computerAwakeSettingsForMode(
-          normalizeComputerAwakeMode(
-            sanitizedArgs.computerAwakeMode,
-            sanitizedArgs.keepComputerAwakeWhileAgentsRun
-          )
-        )
-      )
-    } else if ('keepComputerAwakeWhileAgentsRun' in sanitizedArgs) {
-      Object.assign(
-        sanitizedArgs,
-        computerAwakeSettingsForMode(sanitizedArgs.keepComputerAwakeWhileAgentsRun ? 'auto' : 'off')
-      )
-    }
+    Object.assign(sanitizedArgs, withComputerAwakeSettings(sanitizedArgs))
     if (typeof args.floatingTerminalCwd === 'string') {
       sanitizedArgs.floatingTerminalCwd = await sanitizeFloatingWorkspaceDirectorySetting(
         store,
@@ -220,14 +202,6 @@ export function registerSettingsHandlers(
       if (browserSessionsResult.status === 'rejected') {
         console.warn('[settings] failed to apply network proxy settings to browser sessions')
       }
-    }
-    if (
-      'computerAwakeMode' in sanitizedArgs ||
-      'keepComputerAwakeWhileAgentsRun' in sanitizedArgs
-    ) {
-      agentAwakeService?.setMode(
-        normalizeComputerAwakeMode(result.computerAwakeMode, result.keepComputerAwakeWhileAgentsRun)
-      )
     }
     await getClaudeAgentViewService().reconcile(result)
     const hookSettingChanged =

@@ -34,3 +34,37 @@ export function computerAwakeSettingsForMode(mode: ComputerAwakeMode): {
     keepComputerAwakeWhileAgentsRun: mode !== 'off'
   }
 }
+
+/** Keeps the mode and its legacy boolean in step; every settings writer routes through this. */
+export function withComputerAwakeSettings<
+  T extends { computerAwakeMode?: unknown; keepComputerAwakeWhileAgentsRun?: boolean }
+>(updates: T): T {
+  if ('computerAwakeMode' in updates) {
+    return {
+      ...updates,
+      ...computerAwakeSettingsForMode(
+        normalizeComputerAwakeMode(
+          updates.computerAwakeMode,
+          updates.keepComputerAwakeWhileAgentsRun
+        )
+      )
+    }
+  }
+  if ('keepComputerAwakeWhileAgentsRun' in updates) {
+    return {
+      ...updates,
+      ...computerAwakeSettingsForMode(updates.keepComputerAwakeWhileAgentsRun ? 'auto' : 'off')
+    }
+  }
+  return updates
+}
+
+export function readComputerAwakeMode(settings: {
+  computerAwakeMode?: unknown
+  keepComputerAwakeWhileAgentsRun?: boolean
+}): ComputerAwakeMode {
+  return normalizeComputerAwakeMode(
+    settings.computerAwakeMode,
+    settings.keepComputerAwakeWhileAgentsRun
+  )
+}

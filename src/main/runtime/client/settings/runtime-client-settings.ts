@@ -46,6 +46,7 @@ import { hostNativeChatDefaults } from '../../../../shared/native-chat/settings/
 import { getDefaultNotificationSettings } from '../../../../shared/notifications/notification-settings-defaults'
 import type { NotificationSettings } from '../../../../shared/notifications/notification-settings-types'
 import { projectSourceControlLaunchRecipes } from './runtime-client-source-control-ai-projection'
+import * as awake from '../../../../shared/app-lifecycle/computer-awake-mode'
 import { projectHostOwnedSettings } from '../../../../shared/settings/host-owned-settings'
 
 /** Which Orca cloud services this host registered; headless hosts register none. */
@@ -77,6 +78,7 @@ export class RuntimeClientSettingsController {
     const launchProfile = composeAgentLaunchProfile(settings, process.platform)
     return {
       ...projectHostOwnedSettings(settings),
+      computerAwakeMode: awake.readComputerAwakeMode(settings),
       defaultTuiAgent: settings.defaultTuiAgent ?? null,
       newWorkspaceSetupOnly: false,
       disabledTuiAgents: settings.disabledTuiAgents ?? [],
@@ -163,7 +165,7 @@ export class RuntimeClientSettingsController {
     // Legacy clients can select an agent or a shell, but cannot select None.
     this.store.updateSettings(
       {
-        ...otherUpdates,
+        ...awake.withComputerAwakeSettings(otherUpdates),
         ...(hostNotifications
           ? {
               notifications: {

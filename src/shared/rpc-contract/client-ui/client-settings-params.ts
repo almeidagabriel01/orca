@@ -14,6 +14,7 @@ import { WorktreeVisibilityDefaultsUpdate } from '../workspaces/worktree-visibil
 import { WorkspaceCleanupRulesParam } from '../workspace-cleanup/workspace-cleanup-policy-params'
 import { AGENT_CHAT_PERMISSION_MODES } from '../../agent-launch/permissions/agent-chat-permission-mode'
 import { PR_AUTO_REFRESH_CADENCES } from '../../source-control/hosted-review/review-refresh-policy'
+import { COMPUTER_AWAKE_MODES } from '../../app-lifecycle/computer-awake-mode'
 import { HOST_OWNED_SETTING_UPDATE_SHAPE } from '../../settings/host-owned-settings'
 
 export const TaskProviderParam = z.custom<TaskProvider>(isTaskProvider, {
@@ -103,6 +104,7 @@ export const SettingsUpdate = z
   .object({
     ...HOST_OWNED_SETTING_UPDATE_SHAPE,
     machineName: z.string().trim().max(MACHINE_NAME_MAX_LENGTH).optional(),
+    computerAwakeMode: z.enum(COMPUTER_AWAKE_MODES).optional(),
     worktreeVisibilityDefaults: WorktreeVisibilityDefaultsUpdate.optional(),
     defaultTuiAgent: z
       .unknown()

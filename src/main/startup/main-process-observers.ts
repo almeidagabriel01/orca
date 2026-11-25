@@ -7,7 +7,7 @@ import { provideHostUsageAnalytics } from '../usage/host-usage-analytics'
 import { BACKEND_PUBLIC_USAGE_METHOD } from '../../shared/backend/backend-service-contract'
 import { AgentAwakeService } from '../power/agent-awake-service'
 import { bindAgentAwakeToHookStatus } from '../power/agent-awake-hook-status-binding'
-import { normalizeComputerAwakeMode } from '../../shared/app-lifecycle/computer-awake-mode'
+import { readComputerAwakeMode } from '../../shared/app-lifecycle/computer-awake-mode'
 import { registerSystemResumeBroadcast } from '../power/system-resume-broadcast'
 import { recordWakeSignal } from '../power/wake-signal-clock'
 import { installBackgroundRunAwakeHold } from '../power/background-run-awake-hold'
@@ -71,12 +71,7 @@ export function initializeMainProcessObservers(store: Store): void {
     }
   })
   state.agentAwakeService = new AgentAwakeService()
-  state.agentAwakeService.setMode(
-    normalizeComputerAwakeMode(
-      store.getSettings().computerAwakeMode,
-      store.getSettings().keepComputerAwakeWhileAgentsRun
-    )
-  )
+  state.agentAwakeService.setMode(readComputerAwakeMode(store.getSettings()))
   // Hydrated rows preserve UI only; only this runtime's live hook events may keep the machine awake.
   state.agentAwakeService.setStatuses([])
   const unsubscribeHookStatus = bindAgentAwakeToHookStatus(agentHookServer, state.agentAwakeService)
@@ -86,7 +81,15 @@ export function initializeMainProcessObservers(store: Store): void {
   const stopPairedHostAgentAwake = state.isServeMode
     ? () => {}
     : startPairedHostAgentAwake(state.agentAwakeService)
+  // Every settings writer (IPC and runtime RPC) switches the live service through here.
+  const awakeService = state.agentAwakeService
+  const unsubscribeAwakeMode = store.onSettingsChanged((updates, settings) => {
+    if ('computerAwakeMode' in updates || 'keepComputerAwakeWhileAgentsRun' in updates) {
+      awakeService.setMode(readComputerAwakeMode(settings))
+    }
+  })
   state.unsubscribeAgentAwakeStatusChanges = () => {
+    unsubscribeAwakeMode()
     unsubscribeHookStatus()
     stopWslHostAgentAwake()
     stopPairedHostAgentAwake()

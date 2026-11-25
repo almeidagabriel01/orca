@@ -52,6 +52,7 @@ export function HostCollapsedSummary({
   if (!machine) {
     return null
   }
+  const heavyOutside = machine.outsideOrca?.filter((group) => group.heavy).length
   const parts = [
     machine.cpuPercent === null
       ? null
@@ -68,9 +69,9 @@ export function HostCollapsedSummary({
           count: terminals,
           defaultValue_one: '{{count}} terminal'
         }),
-    machine.outsideQueue?.length
+    heavyOutside
       ? t('resourceManager.hosts.outsideCount', '{{count}} heavy outside the queue', {
-          count: machine.outsideQueue.length
+          count: heavyOutside
         })
       : null
   ].filter(Boolean)

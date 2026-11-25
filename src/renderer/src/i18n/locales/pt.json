@@ -24765,12 +24765,14 @@
     "outsideOrca": {
       "collapse": "Recolher Fora do Orca",
       "expand": "Expandir Fora do Orca",
+      "heavy": "pesado",
       "kernel": "Kernel",
       "processCount": "×{{value0}}",
       "showLess": "Mostrar menos",
       "showMore": "Mostrar mais {{count}}",
       "title": "Fora do Orca · {{value0}}",
-      "tooltip": "Apps, containers e comandos que o Orca não iniciou, agrupados. A CPU é a fatia de um núcleo, então pode passar de 100% em máquinas com vários núcleos."
+      "tooltip": "Apps, containers e comandos que o Orca não iniciou, agrupados. A CPU é a fatia de um núcleo, então pode passar de 100% em máquinas com vários núcleos.",
+      "via": "via {{value0}}"
     },
     "owner": {
       "agents": "Agentes",

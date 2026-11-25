@@ -7,15 +7,14 @@ import {
 import type {
   ChatAgentMemory,
   HeavyCommandQueue,
-  HostMemory,
   OutsideOrcaProcessGroup,
   SessionMemory,
   UsageValues,
   WorktreeMemory
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
-import { parseOutsideQueueGroups } from './outside-queue-parse'
 import { parseHeavyCommandQueue } from './heavy-command-queue-parse'
+import { parseOutsideOrcaGroups } from './outside-orca-parse'
 import { finiteNumber, isRecord } from './host-snapshot-value-guards'
 
 export type UsedOfTotal = { used: number; total: number }
@@ -35,7 +34,6 @@ export type HostMachineTotals = {
   outsideOrca: OutsideOrcaProcessGroup[] | null
   /** The host's vps-heavy queue; null when it has none. */
   heavyQueue: HeavyCommandQueue | null
-  outsideQueue?: HostMemory['outsideQueue'] | null
 }
 
 export type RuntimeHostResourceResult =
@@ -187,50 +185,8 @@ export function parseHostMachineTotals(value: unknown): HostMachineTotals {
     disk: usedOfTotal(host.diskUsed, host.diskTotal),
     loadAverage: isLoadAverage(load) ? load : null,
     outsideOrca: parseOutsideOrcaGroups(host.outsideOrca),
-    heavyQueue: parseHeavyCommandQueue(host.heavyQueue),
-    outsideQueue: parseOutsideQueueGroups(host.outsideQueue)
+    heavyQueue: parseHeavyCommandQueue(host.heavyQueue)
   }
-}
-
-const OUTSIDE_ORCA_KINDS: readonly unknown[] = ['app', 'container', 'command', 'kernel']
-function isOutsideOrcaKind(value: unknown): value is OutsideOrcaProcessGroup['kind'] {
-  return OUTSIDE_ORCA_KINDS.includes(value)
-}
-const MAX_OUTSIDE_ORCA_GROUPS = 100
-const MAX_OUTSIDE_ORCA_NAME_CHARS = 64
-
-// Why capped: a paired server is another machine; malformed or oversized rows must not reach the UI.
-function parseOutsideOrcaGroups(value: unknown): OutsideOrcaProcessGroup[] | null {
-  if (!Array.isArray(value)) {
-    return null
-  }
-  const groups: OutsideOrcaProcessGroup[] = []
-  for (const row of value.slice(0, MAX_OUTSIDE_ORCA_GROUPS)) {
-    const cpu = isRecord(row) ? finiteNumber(row.cpu) : null
-    const memory = isRecord(row) ? finiteNumber(row.memory) : null
-    const processCount = isRecord(row) ? finiteNumber(row.processCount) : null
-    if (
-      isRecord(row) &&
-      typeof row.name === 'string' &&
-      row.name.length > 0 &&
-      isOutsideOrcaKind(row.kind) &&
-      cpu !== null &&
-      cpu >= 0 &&
-      memory !== null &&
-      memory >= 0 &&
-      processCount !== null &&
-      processCount >= 1
-    ) {
-      groups.push({
-        name: row.name.slice(0, MAX_OUTSIDE_ORCA_NAME_CHARS),
-        kind: row.kind,
-        cpu,
-        memory,
-        processCount: Math.floor(processCount)
-      })
-    }
-  }
-  return groups
 }
 
 function isLoadAverage(load: (number | null)[]): load is [number, number, number] {

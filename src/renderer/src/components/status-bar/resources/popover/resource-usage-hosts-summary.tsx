@@ -22,7 +22,6 @@ import {
   usedPercent,
   type MeterTone
 } from './resource-host-meters'
-import { HostOutsideQueue } from './resource-usage-outside-queue'
 import { useHostSectionCollapsed } from './resource-host-section'
 import {
   HOST_CARD_COLLAPSED_STORAGE_KEY,
@@ -278,15 +277,7 @@ function HostCard({
           label={host.label}
           queue={host.machine.heavyQueue}
           movableHosts={movableHosts}
-          outsideCount={host.machine.outsideQueue?.length}
-        />
-      )}
-      {!collapsed && host.machine?.outsideQueue && (
-        <HostOutsideQueue
-          hostId={host.id}
-          label={host.label}
-          groups={host.machine.outsideQueue}
-          hasQueue={Boolean(host.machine.heavyQueue)}
+          outsideCount={host.machine.outsideOrca?.filter((group) => group.heavy).length}
         />
       )}
     </li>

@@ -1,86 +1,121 @@
 import { describe, expect, it } from 'vitest'
-import { buildProcessIndex, parsePsOutput } from './process-index'
+import { buildProcessIndex, type ProcRow } from './process-index'
 import {
-  groupOutsideOrcaProcesses,
-  listOutsideOrcaRows,
-  parseDockerContainerNames
+  groupOutsideRows,
+  listOutsideRows,
+  parseDockerContainerNames,
+  type ProcessDetail
 } from './host-outside-orca-processes'
+import { scriptLabelOf } from './process-script-label'
 
+const GB = 1024 ** 3
 const HARVEY = '07f7800b2084296c851928de35f3c2e16e4ba8934191d13201e8795546d5e670'
-const SCRAPER = '9d8d1dceb7d7149b48e7d1c645f67b9a93ddf65431664b5ca9af65746312fc5a'
+const row = (pid: number, ppid: number, cpu: number, memory: number, command: string): ProcRow => ({
+  pid,
+  ppid,
+  cpu,
+  memory,
+  command
+})
+const ctx = (rows: ProcRow[], platform: NodeJS.Platform) => ({
+  index: buildProcessIndex(rows, null, 'rss'),
+  platform,
+  containerNames: parseDockerContainerNames(`${HARVEY} harvey-harvey-1\n`),
+  workspaceOf: (cwd: string) =>
+    cwd === '/repo/wt' ? { worktreeId: 'w1', worktreeName: 'wt', repoName: 'repo' } : null,
+  home: '/Users/me'
+})
 
-function index(ps: string) {
-  return buildProcessIndex(parsePsOutput(ps, 'command'), null, 'rss')
-}
+describe('one outside list per host', () => {
+  it('counts every process outside Orca once and marks heavy work the queue did not start', () => {
+    const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    const rows = [
+      row(1, 0, 0, 1, '/sbin/launchd'),
+      row(100, 1, 300, GB, '/Applications/Orca.app/Contents/MacOS/Orca'),
+      row(101, 100, 300, GB, '/Applications/Orca.app/Contents/Frameworks/Orca Helper.app/x'),
+      row(200, 100, 0, 1, '/bin/zsh'),
+      row(201, 200, 400, GB, '/usr/local/bin/node'),
+      row(202, 200, 1, 1, '/usr/bin/git'),
+      row(300, 1, 0, 1, '/usr/bin/vps-heavy'),
+      row(301, 300, 400, 2 * GB, '/usr/bin/cc'),
+      row(400, 1, 30, GB, chrome),
+      row(401, 400, 30, GB, `${chrome} Helper.app/Contents/MacOS/Helper`),
+      row(500, 1, 0, 1, '/Library/Developer/CoreSimulator/Profiles/launchd_sim'),
+      row(501, 500, 40, 200, '/x/CoreSimulator/Devices/A/x.simruntime/SpringBoard')
+    ]
+    const index = buildProcessIndex(rows, null, 'rss')
+    const outside = listOutsideRows(
+      index,
+      { appRootPids: [100, null], sessionRootPids: [200], queuePids: [300] },
+      'darwin'
+    )
+    const details = new Map<number, ProcessDetail>([[400, { command: chrome, cwd: '/repo/wt' }]])
+    const groups = groupOutsideRows(outside ?? [], details, ctx(rows, 'darwin'))
+    const byName = Object.fromEntries(groups.map((g) => [g.name, g]))
 
-const byName = (groups: ReturnType<typeof groupOutsideOrcaProcesses>) =>
-  Object.fromEntries(groups.map((g) => [g.name, g]))
-
-describe('processes outside Orca', () => {
-  it('folds macOS helpers into the outermost app bundle and excludes Orca trees', () => {
-    const ps = [
-      '  1   0  0.0  1024 /sbin/launchd',
-      ' 10   1 12.0  2048 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      ' 11  10 30.5  4096 /Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/1/Helpers/Google Chrome Helper (Renderer).app/Contents/MacOS/Google Chrome Helper (Renderer)',
-      ' 20   1  5.0  1024 /Applications/Orca.app/Contents/MacOS/Orca',
-      ' 21  20  9.0  1024 /Applications/Orca.app/Contents/Frameworks/Orca Helper.app/Contents/MacOS/Orca Helper',
-      ' 22  20  1.0   512 /bin/zsh',
-      ' 23  22 50.0   512 node',
-      ' 30   1  0.5   256 /Users/me/Secret Tools/postgres'
-    ].join('\n')
-    const rows = listOutsideOrcaRows(index(ps), [20, null], 'darwin')
-    const groups = byName(groupOutsideOrcaProcesses(rows ?? [], 'darwin', null))
-    expect(Object.keys(groups).sort()).toEqual(['Google Chrome', 'launchd', 'postgres'])
-    expect(groups['Google Chrome']).toEqual({
-      kind: 'app',
-      name: 'Google Chrome',
-      cpu: 42.5,
-      memory: 6144 * 1024,
-      processCount: 2
+    // Orca's app, terminals and agents stay out; everything else is listed exactly once.
+    expect(outside?.map((r) => r.pid).sort((a, b) => a - b)).toEqual([
+      1, 300, 301, 400, 401, 500, 501
+    ])
+    expect(groups.reduce((sum, g) => sum + g.processCount, 0)).toBe(outside!.length)
+    expect(groups.reduce((sum, g) => sum + g.cpu, 0)).toBe(0 + 0 + 400 + 60 + 40)
+    expect(byName['node vitest']).toBeUndefined()
+    expect(byName.cc).not.toHaveProperty('heavy')
+    expect(byName['Google Chrome']).toMatchObject({
+      heavy: true,
+      processCount: 2,
+      cpu: 60,
+      workspace: { worktreeName: 'wt' }
     })
-    expect(groups.postgres.kind).toBe('command')
+    expect(byName['iOS Simulator']).toMatchObject({ heavy: true, processCount: 2, devices: 1 })
+    expect(byName.Orca).toBeUndefined()
   })
 
-  it('folds Linux containers by cgroup and skips Orca units with their reparented children', () => {
+  it('leaves out Linux PTY scopes and every other Orca unit', () => {
     const pad = ' '.repeat(40)
-    const ps = [
-      `    1     0  0.1 10436 0::/init.scope${pad}systemd`,
-      `    2     0  0.0     0 -${pad}kthreadd`,
-      `   40     2  1.0     0 -${pad}kworker/0:1`,
-      `  100     1  0.4 31460 0::/system.slice/containerd.service${pad}containerd`,
-      `  200   100  2.0  1000 0::/system.slice/docker-${HARVEY}.scope${pad}python`,
-      `  201   200  3.0  2000 0::/system.slice/docker-${HARVEY}.scope${pad}gunicorn`,
-      `  300   100  1.0   500 12:pids:/docker/${SCRAPER},11:memory:/docker/${SCRAPER}${pad}chrome`,
-      `  400     1  0.0   100 0::/user.slice/orca_pty_orca_daemon_x_2.scope${pad}claude`,
-      `  401   400  9.0  9000 0::/user.slice/app.slice/app-com.google.Chrome-401.scope${pad}chrome`,
-      `  450     1  2.0  2000 0::/user.slice/app.slice/orca-serve.service${pad}chrome`,
-      `  500     1  7.0  3000 0::/user.slice/user@1000.service/app.slice${pad}orca-ide`,
-      `  501   500  0.0   100 0::/user.slice/user@1000.service/app.slice${pad}ps`,
-      `  600     1  4.0   700 0::/user.slice/session-1.scope${pad}Web Content`
-    ].join('\n')
-    const rows = listOutsideOrcaRows(index(ps), [500], 'linux')
-    const names = parseDockerContainerNames(`${HARVEY} harvey-harvey-1\nnot a row\n`)
-    const groups = byName(groupOutsideOrcaProcesses(rows ?? [], 'linux', names))
-    expect(Object.keys(groups).sort()).toEqual([
-      SCRAPER.slice(0, 12),
-      'Web Content',
-      'containerd',
-      'harvey-harvey-1',
-      'kernel',
-      'systemd'
+    const rows = [
+      row(2, 0, 0, 0, `-${pad}kthreadd`),
+      row(40, 2, 90, 0, `-${pad}kworker/0:1`),
+      row(200, 1, 2, GB, `0::/system.slice/docker-${HARVEY}.scope${pad}python`),
+      row(400, 1, 0, 1, `0::/user.slice/orca_pty_orca_daemon_x_2.scope${pad}bash`),
+      row(401, 400, 99, 1, `0::/user.slice/app.slice/app-Chrome-401.scope${pad}chrome`),
+      row(450, 1, 99, GB, `0::/user.slice/app.slice/orca-serve.service${pad}node`),
+      row(460, 1, 99, GB, `0::/user.slice/app.slice/app-orca-460.scope${pad}orca-ide`)
+    ]
+    const index = buildProcessIndex(rows, null, 'rss')
+    const outside = listOutsideRows(
+      index,
+      { appRootPids: [], sessionRootPids: [], queuePids: [] },
+      'linux'
+    )
+    expect(outside?.map((r) => r.pid)).toEqual([2, 40, 200])
+    const groups = groupOutsideRows(outside ?? [], new Map(), ctx(rows, 'linux'))
+    expect(groups.map((g) => [g.name, g.kind, g.heavy])).toEqual([
+      ['kernel', 'kernel', undefined],
+      ['harvey-harvey-1', 'container', true]
     ])
-    expect(groups['harvey-harvey-1']).toEqual({
-      kind: 'container',
-      name: 'harvey-harvey-1',
-      cpu: 5,
-      memory: 3000 * 1024,
-      processCount: 2
-    })
-    expect(groups.kernel).toMatchObject({ kind: 'kernel', processCount: 2 })
   })
 
   it('reports nothing when the sweep had no command columns', () => {
-    const rows = buildProcessIndex(parsePsOutput('  1  0  0.0  1024\n'), null, 'rss')
-    expect(listOutsideOrcaRows(rows, [], 'linux')).toBeNull()
+    const index = buildProcessIndex([{ pid: 1, ppid: 0, cpu: 0, memory: 1 }], null, 'rss')
+    expect(
+      listOutsideRows(index, { appRootPids: [], sessionRootPids: [], queuePids: [] }, 'linux')
+    ).toBeNull()
+  })
+})
+
+describe('scriptLabelOf', () => {
+  it.each([
+    ['node /repo/node_modules/vitest/vitest.mjs run', 'vitest'],
+    ['node /usr/local/lib/node_modules/lighthouse/cli/index.js https://x.com', 'lighthouse'],
+    ['python3 -m http.server 8000', 'http.server'],
+    ['/usr/bin/git status', null]
+  ])('%s -> %s', (argv, label) => {
+    expect(scriptLabelOf(argv)).toBe(label)
+  })
+
+  it('never leaks a URL or exceeds 40 safe characters', () => {
+    const label = scriptLabelOf(`node https://user:secret@x.com/${'a'.repeat(80)}`)
+    expect(label ?? '').toMatch(/^[A-Za-z0-9@._/-]{0,40}$/)
   })
 })

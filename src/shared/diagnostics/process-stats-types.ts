@@ -84,12 +84,10 @@ export type HostMemory = {
   diskUsed?: number
   /** 1, 5 and 15 minute load averages; absent on Windows. */
   loadAverage?: number[]
-  /** Top groups by CPU and by memory outside Orca's process trees; absent on Windows and older hosts. */
+  /** Top groups by CPU and by memory outside Orca's process trees, plus every heavy group; absent on Windows and older hosts. */
   outsideOrca?: OutsideOrcaProcessGroup[]
   /** The vps-heavy command queue; absent on hosts without one, on Windows and on older hosts. */
   heavyQueue?: HeavyCommandQueue
-  /** Heavy process groups the queue did not start, Orca's own app excluded; absent on Windows and older hosts. */
-  outsideQueue?: OutsideQueueProcessGroup[]
 }
 
 /** Commands waiting for or holding one of the host's vps-heavy slots. */
@@ -146,6 +144,10 @@ export type HeavyJobMovedTo = { peer: string; alias: string; hostname: string | 
 
 export type HeavyCommandWorkspace = { worktreeId: string; worktreeName: string; repoName: string }
 
+/** A group outside Orca is heavy past either mark, counting only what the queue did not start. */
+export const OUTSIDE_HEAVY_CPU_PERCENT = 25
+export const OUTSIDE_HEAVY_MEMORY_BYTES = 1024 ** 3
+
 /** Processes folded by macOS app bundle, Linux container, or command name; cpu is percent of one core. */
 export type OutsideOrcaProcessGroup = {
   name: string
@@ -153,22 +155,15 @@ export type OutsideOrcaProcessGroup = {
   cpu: number
   memory: number
   processCount: number
-}
-
-/** Processes above the heavy threshold folded by app, container or tool; cpu is percent of one core. */
-export type OutsideQueueProcessGroup = {
-  /** e.g. "iOS Simulator", "Google Chrome", "node vitest", "xcodebuild", a container name. */
-  name: string
-  kind: 'app' | 'container' | 'command'
+  /** Booted devices, for the iOS Simulator group. */
+  devices?: number
   /** Tool that launched the group when it is another process, e.g. "lighthouse" for Chrome. */
   launcher?: string
-  cpu: number
-  memory: number
-  /** Simulator devices for "iOS Simulator", else processes. */
-  count: number
-  /** The Orca workspace holding the group's cwd (or its parent's); absent when none does. */
+  /** What the queue did not start passes the heavy threshold. */
+  heavy?: true
+  /** Heavy groups: the Orca workspace holding the group's cwd (or its parent's); absent when none does. */
   workspace?: HeavyCommandWorkspace
-  /** Last segment of that cwd when no workspace holds it; absent for / and the home directory. */
+  /** Heavy groups: last segment of that cwd when no workspace holds it; absent for / and the home directory. */
   folder?: string
 }
 

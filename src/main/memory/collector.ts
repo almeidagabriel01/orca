@@ -13,7 +13,7 @@ import { getLocalDaemonPid } from './local-daemon-pid'
 import { enumerateHostProcesses } from './host-process-index'
 import { claimProcessTree, claimPtyProcessTrees } from './pty-process-trees'
 import { collectHeavyCommandQueue } from './host-heavy-command-queue'
-import { collectHostOutsideProcesses } from './host-outside-queue-processes'
+import { collectHostOutsideProcesses } from './host-outside-orca-sweep'
 import {
   agentRegistrationMark,
   hasAgentProcessRegistrations,
@@ -165,11 +165,12 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     rows: claimProcessTree(processIndex, root.pid, claimed, true)
   }))
   rememberSessionProcessRows(ptyTrees, agentTrees, Date.now())
+  // The outside list is extra; a failed sweep of it must not cost the snapshot.
   const outside = await collectHostOutsideProcesses(processIndex, store, heavyQueue, {
     ptys,
     claimed,
     agentTrees
-  })
+  }).catch(() => ({}))
 
   const orphan = createEmptyWorktreeMemoryBucket(
     ORPHAN_WORKTREE_ID,

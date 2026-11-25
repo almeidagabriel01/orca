@@ -182,7 +182,6 @@ describe('parseHostMachineTotals', () => {
       outsideOrca: [
         { name: 'harvey-harvey-1', kind: 'container', cpu: 4, memory: 90, processCount: 5 }
       ],
-      outsideQueue: null,
       heavyQueue: {
         readAt: 9_000,
         slots: 2,
@@ -232,7 +231,6 @@ describe('parseHostMachineTotals', () => {
       disk: null,
       loadAverage: null,
       outsideOrca: null,
-      outsideQueue: null,
       heavyQueue: null
     })
   })
@@ -258,7 +256,6 @@ describe('parseHostMachineTotals', () => {
       disk: null,
       loadAverage: null,
       outsideOrca: null,
-      outsideQueue: null,
       heavyQueue: null
     })
     expect(parseHostMachineTotals('garbage').memory).toBeNull()

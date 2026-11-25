@@ -26624,7 +26624,9 @@
       "showLess": "Show less",
       "showMore": "Show {{count}} more",
       "expand": "Expand Outside Orca",
-      "collapse": "Collapse Outside Orca"
+      "collapse": "Collapse Outside Orca",
+      "heavy": "heavy",
+      "via": "via {{value0}}"
     },
     "heavyQueue": {
       "title": "Heavy command queue · {{value0}}",
@@ -26721,12 +26723,6 @@
       "expandAll": "Expand all",
       "collapseAll": "Collapse all",
       "noMatches": "Nothing matches “{{value0}}”"
-    },
-    "outsideQueue": {
-      "title": "Running outside the queue",
-      "titleNoQueue": "Heavy processes",
-      "caption": "Heavy processes the queue did not start. CPU is a share of one core.",
-      "via": "via {{value0}}"
     }
   },
   "browserExtensions": {

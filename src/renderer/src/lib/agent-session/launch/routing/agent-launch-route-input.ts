@@ -258,7 +258,8 @@ export function findLaunchProjectRepo(
 ) {
   const repoId =
     workspace.repoId ?? (workspace.worktreeId ? getRepoIdFromWorktreeId(workspace.worktreeId) : '')
-  return workspace.kind === 'git-worktree' && repoId
+  // Folder projects are repos too; only floating and project-group folders name none.
+  return repoId
     ? (state.repos?.find((repo) => repoMatchesHostIdentity(repo, repoId, executionHostId)) ?? null)
     : null
 }

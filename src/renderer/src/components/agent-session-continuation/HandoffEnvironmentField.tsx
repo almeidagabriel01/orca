@@ -6,9 +6,10 @@ import { DialogError } from '@/components/ui/dialog-parts'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
-import type {
-  HandoffDestination,
-  HandoffDestinationBlock
+import {
+  isPickableHandoffDestination,
+  type HandoffDestination,
+  type HandoffDestinationBlock
 } from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import { HandoffSourceChanges } from './HandoffSourceChanges'
 import type { HandoffDestinationCreation, HandoffEnvironment } from './use-handoff-environment'
@@ -87,12 +88,12 @@ export function HandoffEnvironmentField({
               className={cn(
                 'flex min-w-0 items-start gap-2.5 rounded-md border border-border px-3 py-2',
                 row.key === value && 'border-foreground/40 bg-accent',
-                row.block && row.block.kind !== 'branch-missing' && 'opacity-60'
+                !isPickableHandoffDestination(row) && 'opacity-60'
               )}
             >
               <RadioGroupItem
                 value={row.key}
-                disabled={disabled || row.block !== null}
+                disabled={disabled || !isPickableHandoffDestination(row)}
                 className="mt-0.5"
               />
               <span className="grid min-w-0 flex-1 gap-0.5">

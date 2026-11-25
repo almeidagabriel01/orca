@@ -120,12 +120,20 @@ export function buildHandoffDestinations(input: HandoffDestinationInput): Handof
   return rows
 }
 
-/** The row a hand-off starts at for `key`; a blocked or unknown key falls back to the current row. */
+/** Whether a row can be picked: open, or missing only the branch's workspace (created from the row). */
+export function isPickableHandoffDestination(row: HandoffDestination): boolean {
+  return row.block === null || row.block.kind === 'branch-missing'
+}
+
+/** The row a hand-off starts at for `key`; an unpickable or unknown key falls back to the current row. */
 export function resolveHandoffDestination(
   destinations: readonly HandoffDestination[] | null | undefined,
   key: string | undefined
 ): HandoffDestination | undefined {
-  return destinations?.find((row) => row.key === key && !row.block) ?? destinations?.[0]
+  return (
+    destinations?.find((row) => row.key === key && isPickableHandoffDestination(row)) ??
+    destinations?.[0]
+  )
 }
 
 // Same precedence as findWorktreeById: the paired runtime serving the row wins over the stamped host.

@@ -119,4 +119,14 @@ describe('resolveHandoffDestination', () => {
     expect(resolveHandoffDestination(rows, undefined)?.key).toBe('current:src')
     expect(resolveHandoffDestination(null, 'host:runtime:mac')).toBeUndefined()
   })
+
+  it('keeps a picked host whose branch workspace is missing or still loading', () => {
+    const empty = build({ worktreesByRepo: { r1: [wt('src', 'r1', 'feat/x', 'local')] } })
+    expect(resolveHandoffDestination(empty, 'host:runtime:mac')).toMatchObject({
+      key: 'host:runtime:mac',
+      worktreeId: null,
+      block: { kind: 'branch-missing' }
+    })
+    expect(resolveHandoffDestination(rows, 'host:runtime:mac')?.key).toBe('host:runtime:mac')
+  })
 })

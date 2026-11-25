@@ -16,6 +16,7 @@ import {
   handoffBlockText,
   handoffRowDetail
 } from '@/components/agent-session-continuation/HandoffEnvironmentField'
+import { isPickableHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import type { NativeChatHandOffTarget } from '../../pane/actions/use-native-chat-hand-off'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 
@@ -85,7 +86,7 @@ function HostPickerRows({
           <DropdownMenuRadioItem
             key={row.key}
             value={row.key}
-            disabled={row.block !== null && row.block.kind !== 'branch-missing'}
+            disabled={!isPickableHandoffDestination(row)}
             onSelect={() => {
               if (row.kind !== 'current') {
                 onPick(row.key)

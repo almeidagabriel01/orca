@@ -145,8 +145,8 @@ export function useHandoffEnvironment(
     createDestination: (row: HandoffDestination) => void createDestination(row),
     elsewhere,
     effectiveRequest,
-    // Another host sees only what is pushed, so the source must be clean before starting there.
-    startBlocked: elsewhere && git.state.kind !== 'clean',
+    // Another host sees only what is pushed, and needs the branch's workspace before starting there.
+    startBlocked: elsewhere && (git.state.kind !== 'clean' || !destination?.worktreeId),
     destinationLabel: destination?.hostLabel ?? '',
     sourceChanges: {
       state: git.state,

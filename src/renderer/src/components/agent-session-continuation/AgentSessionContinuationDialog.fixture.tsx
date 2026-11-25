@@ -143,8 +143,9 @@ const vpsAgents: TuiAgent[] = ['codex', 'claude', 'gemini']
 const vpsInventoryKey = getRuntimeAgentInventoryKey('vps', vpsDevelop.id)
 
 /** `pushed`: after Commit & push, the Mac copy is clean and Start opens on the vps.
- * `preselected`: opened from the composer's host menu, so the vps row starts picked. */
-function toServer(pushed: boolean, preselected = false) {
+ * `preselected`: opened from the composer's host menu, so the vps row starts picked.
+ * `vpsBranch`: false when the vps has no `develop` workspace yet, so its row offers to create one. */
+function toServer(pushed: boolean, preselected = false, vpsBranch = true) {
   return defineFixture({
     width: 640,
     store: {
@@ -152,7 +153,7 @@ function toServer(pushed: boolean, preselected = false) {
       projectHostSetups: [hostSetup('s-mac', 'local', macRepo), hostSetup('s-vps', VPS, vpsRepo)],
       worktreesByRepo: {
         [macRepo.id]: [macDevelop],
-        [vpsRepo.id]: [vpsDevelop]
+        [vpsRepo.id]: vpsBranch ? [vpsDevelop] : []
       },
       runtimeEnvironments: [vpsEnvironment],
       runtimeStatusByEnvironmentId: new Map([
@@ -209,3 +210,4 @@ function toServer(pushed: boolean, preselected = false) {
 export const handoffToServer = toServer(false)
 export const handoffToServerPushed = toServer(true)
 export const handoffToServerPreselected = toServer(false, true)
+export const handoffToServerPreselectedNoWorkspace = toServer(true, true, false)

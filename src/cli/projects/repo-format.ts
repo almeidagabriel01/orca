@@ -33,6 +33,7 @@ function formatAgentLaunchDefaults(value: unknown): string {
   return [
     'agentDefaults:',
     `  agent: ${defaults?.defaultTuiAgent ?? 'inherit'}`,
+    `  surface: ${defaults?.defaultSurface ?? 'inherit'}`,
     ...[...agents].map(([agent, parts]) => `  ${agent}: ${parts.join(' ')}`)
   ].join('\n')
 }

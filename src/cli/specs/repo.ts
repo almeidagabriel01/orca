@@ -25,20 +25,21 @@ export const REPO_COMMAND_SPECS: CommandSpec[] = [
     usage: 'orca repo show --repo <selector> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'repo'],
     notes: [
-      "agentLaunchDefaults is the project's agent defaults (null when every one follows the host): defaultTuiAgent, agentLaunchChoices.<agent>.model and .options.effort, and agentAccounts.claude."
+      "agentLaunchDefaults is the project's agent defaults (null when every one follows the host): defaultTuiAgent, defaultSurface, agentLaunchChoices.<agent>.model and .options.effort, and agentAccounts.claude."
     ]
   },
   {
     path: ['repo', 'set'],
     summary: "Set a repo's non-Orca worktree visibility, browser profile, or agent defaults",
     usage:
-      'orca repo set --repo <selector> [--external-worktree-visibility show|hide|inherit] [--browser-profile <id>|inherit] [--default-agent <agent>|blank|inherit] [--default-model <agent>=<model>|<agent>=inherit|inherit]... [--default-effort <agent>=<level>|<agent>=inherit|inherit]... [--default-account <account>|system|host|inherit] [--json]',
+      'orca repo set --repo <selector> [--external-worktree-visibility show|hide|inherit] [--browser-profile <id>|inherit] [--default-agent <agent>|blank|inherit] [--default-surface chat|terminal|inherit] [--default-model <agent>=<model>|<agent>=inherit|inherit]... [--default-effort <agent>=<level>|<agent>=inherit|inherit]... [--default-account <account>|system|host|inherit] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'repo',
       'external-worktree-visibility',
       'browser-profile',
       'default-agent',
+      'default-surface',
       'default-model',
       'default-effort',
       'default-account'
@@ -49,7 +50,7 @@ export const REPO_COMMAND_SPECS: CommandSpec[] = [
       'Per-worktree visibility rules still apply.',
       "--browser-profile picks the profile new browser tabs in this repo use, overriding the Browser setting's profile for new tabs; inherit clears it. Ids come from `orca tab profile list`; `default` is the Default profile.",
       "The --default-* flags set the project's agent defaults (Settings > Projects > Agent defaults), saved on the host that owns the repo; with --environment, that paired server. Unset choices follow the host's own defaults.",
-      '--default-agent picks the agent new work in this project starts (blank for a plain terminal); --default-model and --default-effort take <agent>=<value> and repeat for several agents; <agent>=inherit clears one agent, a bare inherit clears every agent.',
+      '--default-agent picks the agent new work in this project starts (blank for a plain terminal); --default-surface picks chat or terminal for it; --default-model and --default-effort take <agent>=<value> and repeat for several agents; <agent>=inherit clears one agent, a bare inherit clears every agent.',
       "--default-account picks the Claude account new Claude chats in this project start on: an id, email or label from `orca account list --agent claude` (run on that host), or system for the provider's own sign-in; host or inherit clears it."
     ],
     examples: [

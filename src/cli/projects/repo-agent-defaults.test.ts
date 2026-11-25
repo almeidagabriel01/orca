@@ -88,6 +88,14 @@ describe('orca repo set agent defaults', () => {
     expect(sent).toBeNull()
   })
 
+  it('sets and clears the surface', async () => {
+    expect((await repoSet(['--default-surface', 'chat'], SAVED)).sent).toMatchObject({
+      defaultSurface: 'chat'
+    })
+    const cleared = await repoSet(['--default-surface', 'inherit'], { defaultSurface: 'chat' })
+    expect(cleared.sent).toBeNull()
+  })
+
   it('clears the account with host and resolves a saved one by email', async () => {
     expect((await repoSet(['--default-account', 'host'], SAVED)).sent).toEqual({
       defaultTuiAgent: 'codex',
@@ -101,6 +109,7 @@ describe('orca repo set agent defaults', () => {
     [['--default-account', 'acct-missing']],
     [['--default-account', 'acct-wsl']],
     [['--default-agent', 'not-an-agent']],
+    [['--default-surface', 'tui']],
     [['--default-model', 'opus']]
   ])('refuses %j without saving', async (args) => {
     const { error, calls } = await repoSet(args, SAVED)

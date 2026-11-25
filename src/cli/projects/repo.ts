@@ -101,7 +101,7 @@ export const REPO_HANDLERS: Record<string, CommandHandler> = {
     if (visibility === undefined && browserProfile === undefined && !agentDefaultsPatch) {
       throw new RuntimeClientError(
         'invalid_argument',
-        'Pass --external-worktree-visibility, --browser-profile, or a --default-agent/--default-model/--default-effort/--default-account flag.'
+        'Pass --external-worktree-visibility, --browser-profile, or a --default-agent/--default-surface/--default-model/--default-effort/--default-account flag.'
       )
     }
     if (

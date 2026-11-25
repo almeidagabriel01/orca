@@ -7,6 +7,8 @@ export const FLAG_HELP_TEXT: Record<string, string> = {
     '--browser-profile <id>|inherit  Browser profile for new tabs in this repo, or inherit the Browser setting',
   'default-agent':
     "--default-agent <agent>|blank|inherit  Agent new work in this project starts, or inherit the host's",
+  'default-surface':
+    "--default-surface chat|terminal|inherit  Surface new agent work in this project opens, or inherit the host's",
   'default-model':
     '--default-model <agent>=<model>|inherit  Project model for an agent (repeatable); inherit clears',
   'default-effort':

@@ -22,6 +22,7 @@ import { getManagedAccountLookupNames } from '../../shared/agent-accounts/manage
 
 export const REPO_AGENT_DEFAULT_FLAGS = [
   'default-agent',
+  'default-surface',
   'default-model',
   'default-effort',
   'default-account'
@@ -32,6 +33,8 @@ type AgentEntry = [agent: TuiAgent | '*', value: string | null]
 
 export type RepoAgentDefaultsPatch = {
   agent?: ProjectAgentLaunchDefaults['defaultTuiAgent'] | null
+  /** null clears. */
+  surface?: ProjectAgentLaunchDefaults['defaultSurface'] | null
   models: AgentEntry[]
   efforts: AgentEntry[]
   /** The Claude account: an id or `system`; null clears. */
@@ -89,6 +92,22 @@ function readDefaultAgent(
   )
 }
 
+function readDefaultSurface(
+  flags: HandlerContext['flags']
+): ProjectAgentLaunchDefaults['defaultSurface'] | null | undefined {
+  const surface = getOptionalStringFlag(flags, 'default-surface')
+  if (surface === undefined || surface === 'chat' || surface === 'terminal') {
+    return surface
+  }
+  if (clearing(surface)) {
+    return null
+  }
+  throw new RuntimeClientError(
+    'invalid_argument',
+    `--default-surface "${surface}" is not valid; pass chat, terminal, or inherit.`
+  )
+}
+
 /** Undefined when no agent-defaults flag was passed. */
 export function readRepoAgentDefaultsPatch(
   flags: HandlerContext['flags']
@@ -98,6 +117,7 @@ export function readRepoAgentDefaultsPatch(
   }
   return {
     agent: readDefaultAgent(flags),
+    surface: readDefaultSurface(flags),
     models: readAgentEntries(flags, 'default-model', 'model'),
     efforts: readAgentEntries(flags, 'default-effort', 'effort'),
     account: getOptionalStringFlag(flags, 'default-account')
@@ -157,6 +177,9 @@ export function applyRepoAgentDefaultsPatch(
   const next: ProjectAgentLaunchDefaults = { ...base }
   if (patch.agent !== undefined) {
     next.defaultTuiAgent = patch.agent ?? undefined
+  }
+  if (patch.surface !== undefined) {
+    next.defaultSurface = patch.surface ?? undefined
   }
   const choices: AgentLaunchChoices = { ...base.agentLaunchChoices }
   applyChoiceEntries(choices, patch.models, 'model')

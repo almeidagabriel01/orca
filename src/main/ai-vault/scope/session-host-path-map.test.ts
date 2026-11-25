@@ -111,6 +111,11 @@ describe('session host path map', () => {
     const original = row('runtime:other', OTHER_HOST_APP)
     const merged = mergeAiVaultListResults([result([copy]), result([original])], undefined, true)
     expect(merged.sessions).toEqual([original])
+    // A same-host row is no proof the recording computer answered.
+    const sameHost = { ...row('local', OTHER_HOST_APP), id: 'local:claude:s1:/t/other.jsonl' }
+    expect(
+      mergeAiVaultListResults([result([copy, sameHost])], undefined, true).sessions
+    ).toHaveLength(2)
     // With the recording computer offline, the copy is all there is.
     expect(mergeAiVaultListResults([result([copy])], undefined, true).sessions).toEqual([copy])
   })

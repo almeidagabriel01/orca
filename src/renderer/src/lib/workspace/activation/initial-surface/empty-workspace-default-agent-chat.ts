@@ -86,15 +86,17 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
   const surface = normalizeEmptyWorkspaceSurface(
     emptyWorkspaceSettingsFor(state, worktreeId).emptyWorkspaceSurface
   )
-  const explicit = emptyWorkspaceSurfaceAgent(surface)
-  // A + menu item or "nothing" opens no agent.
-  if (surface !== undefined && !explicit) {
+  const hostAgent = emptyWorkspaceSurfaceAgent(surface)
+  const project = launchProject(state, worktreeId)
+  const projectAgent = project?.agentLaunchDefaults?.defaultTuiAgent
+  // A + menu item, "nothing", or a project set to Blank opens no agent: the project outranks the host's pick.
+  if ((surface !== undefined && !hostAgent) || projectAgent === 'blank') {
     return undefined
   }
+  const explicit = hostAgent && projectAgent ? projectAgent : hostAgent
   // Why: only a saved agent asks for a chat here; Auto must not turn catalog order into a launch (#36594).
   const saved = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
   const chosen = explicit ?? saved
-  const project = launchProject(state, worktreeId)
   const projectSurface = project?.agentLaunchDefaults?.defaultSurface !== undefined
   if (
     !chosen ||

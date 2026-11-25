@@ -69,10 +69,15 @@ export function SessionMetadata({
         {sourceHostLabel ? (
           <WorktreeHostContextBadge
             label={sourceHostLabel}
-            className="min-w-0 shrink"
-            title={t('aiVault.searchHitSourceHost', 'Found on {{value0}}', {
-              value0: sourceHostLabel
-            })}
+            // A synced copy's badge names its recording host in full.
+            className={session.recordedOnOtherMachine ? 'max-w-none shrink-0' : 'min-w-0 shrink'}
+            title={
+              session.recordedOnOtherMachine
+                ? sourceHostLabel
+                : t('aiVault.searchHitSourceHost', 'Found on {{value0}}', {
+                    value0: sourceHostLabel
+                  })
+            }
           />
         ) : null}
         {isAntigravityReferenceSession(session) ? (

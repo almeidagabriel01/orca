@@ -24621,6 +24621,8 @@
     "antigravityReferenceDescription": "使用此记录作为参考继续新的Antigravity CLI 对话",
     "searchHitSourceHost": "在 {{value0}} 上找到",
     "recordedOnOtherMachineCopy": "在另一台电脑上记录 · 请在那里打开",
+    "recordedOnHost": "记录于 {{value0}}",
+    "resumeOnHost": "在 {{value0}} 上恢复",
     "recordedOnOfflineHost": "记录于 {{value0}}，但它已离线。重新连接后即可在那里恢复。",
     "recordedOnUnknownHost": "在另一台电脑上记录。在那台电脑上将其文件夹作为工作区打开，即可在那里恢复。",
     "antigravityIdeToCli": "IDE → CLI",
@@ -24655,7 +24657,6 @@
       "scannerStopped": "会话扫描器意外停止。请刷新以重试"
     },
     "sessionAccount": "账户",
-    "sessionAccountUnknown": "未知",
     "antigravityChatToCli": "聊天 → CLI"
   },
   "common": {

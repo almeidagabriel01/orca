@@ -22957,6 +22957,8 @@
     "antigravityReferenceDescription": "Continue dans une nouvelle conversation Antigravity CLI en utilisant cette transcription comme référence.",
     "searchHitSourceHost": "Trouvée sur {{value0}}",
     "recordedOnOtherMachineCopy": "Enregistrée sur un autre ordinateur · ouvrez-la là-bas",
+    "recordedOnHost": "Enregistrée sur {{value0}}",
+    "resumeOnHost": "Reprendre sur {{value0}}",
     "recordedOnOfflineHost": "Enregistrée sur {{value0}}, hors ligne. Reconnectez-le pour la reprendre là-bas.",
     "recordedOnUnknownHost": "Enregistrée sur un autre ordinateur. Ouvrez son dossier comme espace de travail sur cet ordinateur pour la reprendre là-bas.",
     "antigravityIdeToCli": "IDE → CLI",
@@ -22992,8 +22994,7 @@
       "scannerMissing": "L’analyseur de sessions est absent de cette installation d’Orca. Réinstaller Orca permet de le restaurer.",
       "scannerStopped": "L’analyseur de sessions s’est arrêté de manière inattendue. Actualisez pour réessayer."
     },
-    "sessionAccount": "Compte",
-    "sessionAccountUnknown": "Inconnu"
+    "sessionAccount": "Compte"
   },
   "common": {
     "retry": "Réessayer",

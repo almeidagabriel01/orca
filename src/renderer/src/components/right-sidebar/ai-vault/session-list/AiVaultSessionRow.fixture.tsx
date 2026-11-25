@@ -4,6 +4,7 @@ import {
   aiVaultOtherMachineLabel,
   aiVaultOtherMachineOfflineReason
 } from '../session-actions/ai-vault-session-other-machine'
+import { aiVaultSessionResumeLabel } from '../session-actions/ai-vault-session-resume'
 import { VaultSessionRow } from './AiVaultSessionRow'
 
 // A Claude conversation synced from the Mac, listed by the VPS that holds the copy.
@@ -56,7 +57,7 @@ function row(props: {
       onToggleDetails={noop}
       showJumpToWorktree={false}
       onResume={noop}
-      resumeLabel="Resume"
+      resumeLabel={aiVaultSessionResumeLabel({ usesSessionWorktree: true, originHostLabel: 'mac' })}
       resumeActions={{
         worktree: { worktreeId: props.worktreeId, disabled: !props.worktreeId },
         newTab: { worktreeId: null, disabled: true }
@@ -64,7 +65,7 @@ function row(props: {
       onResumeInWorktree={noop}
       onResumeInNewTab={noop}
       onCopyId={noop}
-      sourceHostLabel={aiVaultOtherMachineLabel()}
+      sourceHostLabel={aiVaultOtherMachineLabel('mac')}
       onPick={props.picker ? noop : undefined}
     />
   )
@@ -76,7 +77,7 @@ export const pickerOffline = defineFixture({
     row({
       picker: true,
       worktreeId: null,
-      resumeUnavailableReason: aiVaultOtherMachineOfflineReason('runtime:mac')
+      resumeUnavailableReason: aiVaultOtherMachineOfflineReason('mac')
     })
 })
 

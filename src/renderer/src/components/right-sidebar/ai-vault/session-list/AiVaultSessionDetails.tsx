@@ -68,7 +68,7 @@ export function SessionInlineDetails({
   onResumeInNewChat,
   onResumeInNewCli,
   onOpenLog,
-  resumeUnavailableReason,
+  resumeOverride,
   actionsHidden = false
 }: {
   id: string
@@ -86,7 +86,8 @@ export function SessionInlineDetails({
   onResumeInNewChat?: () => void
   onResumeInNewCli?: () => void
   onOpenLog?: () => void
-  resumeUnavailableReason?: string
+  /** A synced copy's Resume: named after its host, or replaced by the row's reason. */
+  resumeOverride?: { label?: string; unavailableReason?: string }
   /** Hides the action bar; the details stay. */
   actionsHidden?: boolean
 }): React.JSX.Element {
@@ -94,8 +95,7 @@ export function SessionInlineDetails({
   // Zero-turn sessions cannot resume meaningful content; show not-saved status instead.
   const referenceSession = isAntigravityReferenceSession(session)
   const hasResumableContent = isAiVaultSessionResumableContent(session)
-  // The row shows the reason in place of Resume.
-  const resumable = hasResumableContent && !resumeUnavailableReason
+  const resumable = hasResumableContent && !resumeOverride?.unavailableReason
   const showResumeInWorktree = resumable && Boolean(resumeActions.worktree.worktreeId)
   const showResumeInNewTab =
     resumable && (!resumeActions.worktree.worktreeId || Boolean(resumeActions.newTab.worktreeId))
@@ -152,7 +152,8 @@ export function SessionInlineDetails({
               <Play className="size-3.5" />
               {referenceSession
                 ? t('aiVault.continueInCli', 'Continue in CLI')
-                : aiVaultResumeInSessionWorkspaceLabel(resumeActions.worktree.worktreeId, t)}
+                : (resumeOverride?.label ??
+                  aiVaultResumeInSessionWorkspaceLabel(resumeActions.worktree.worktreeId, t))}
             </Button>
           ) : null}
           {showResumeInNewTab ? (

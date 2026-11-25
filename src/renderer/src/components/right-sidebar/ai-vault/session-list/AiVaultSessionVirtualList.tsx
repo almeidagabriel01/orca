@@ -380,7 +380,9 @@ export function AiVaultSessionVirtualList({
                     row?.type !== 'session'
                       ? undefined
                       : row.session.recordedOnOtherMachine
-                        ? aiVaultOtherMachineLabel()
+                        ? aiVaultOtherMachineLabel(
+                            getSessionResumeState(row.session).originHostLabel
+                          )
                         : searchHitHostLabels?.get(row.session.executionHostId)
                   }
                   buildResumeStartup={buildResumeStartup}

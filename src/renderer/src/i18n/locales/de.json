@@ -22571,6 +22571,8 @@
     "antigravityReferenceDescription": "Setzt die Unterhaltung in einer neuen Antigravity-CLI-Unterhaltung mit diesem Protokoll als Referenz fort.",
     "searchHitSourceHost": "Auf {{value0}} gefunden",
     "recordedOnOtherMachineCopy": "Auf einem anderen Computer aufgezeichnet · dort öffnen",
+    "recordedOnHost": "Auf {{value0}} aufgezeichnet",
+    "resumeOnHost": "Auf {{value0}} fortsetzen",
     "recordedOnOfflineHost": "Auf {{value0}} aufgezeichnet, das offline ist. Verbinde es erneut, um dort fortzusetzen.",
     "recordedOnUnknownHost": "Auf einem anderen Computer aufgezeichnet. Öffne den Ordner dort als Workspace, um sie dort fortzusetzen.",
     "antigravityIdeToCli": "IDE → CLI",
@@ -22610,8 +22612,7 @@
       "scannerMissing": "Der Sitzungs-Scanner fehlt in dieser Orca-Installation. Eine Neuinstallation von Orca stellt ihn wieder her.",
       "scannerStopped": "Der Sitzungs-Scanner wurde unerwartet beendet. Zum Wiederholen aktualisieren."
     },
-    "sessionAccount": "Konto",
-    "sessionAccountUnknown": "Unbekannt"
+    "sessionAccount": "Konto"
   },
   "common": {
     "retry": "Erneut versuchen",

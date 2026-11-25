@@ -2,7 +2,10 @@ import { expect, it } from 'vitest'
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import type { Worktree } from '../../../../../../shared/worktree/types'
-import { resolveAiVaultHistorySessionResumeState } from './ai-vault-session-resume'
+import {
+  aiVaultSessionResumeLabel,
+  resolveAiVaultHistorySessionResumeState
+} from './ai-vault-session-resume'
 
 // The VPS holds a copy synced from the Mac; the Mac (this client) has the recorded folder as a workspace.
 const repos = [
@@ -50,22 +53,26 @@ function resume(isHostOffline?: (hostId: string) => boolean) {
     activeWorktreeId: vpsWorktree.id,
     worktrees,
     repos,
+    hostLabel: (hostId) => (hostId === 'local' ? 'mac' : 'vps'),
     ...(isHostOffline ? { isHostOffline } : {})
   })
 }
 
 it('resumes a synced copy in the recording host workspace, never the copy holder', () => {
-  expect(resume()).toMatchObject({
+  const state = resume()
+  expect(state).toMatchObject({
     blocked: false,
     worktreeId: macWorktree.id,
-    usesSessionWorktree: true
+    usesSessionWorktree: true,
+    originHostLabel: 'mac'
   })
+  expect(aiVaultSessionResumeLabel(state)).toBe('Resume on mac')
 })
 
 it('blocks with an explanation while the recording host is offline', () => {
   const state = resume((hostId) => hostId === 'local')
   expect(state).toMatchObject({ blocked: true, worktreeId: null })
-  expect(state.unavailableReason).toBeTruthy()
+  expect(state.unavailableReason).toContain('mac')
 })
 
 it('blocks a copy whose recorded folder no other host holds', () => {

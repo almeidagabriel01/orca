@@ -1,7 +1,6 @@
 import { translate } from '@/i18n/i18n'
 import { getAiVaultResumeWorkspaceExecutionHostId } from '@/lib/agent-session/resume/history/ai-vault-resume-target'
 import type { AppState } from '@/store/types'
-import { getTranslatedExecutionHostLabel } from '@/runtime/hosts/display/execution-host-label'
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
 import {
   getRepoExecutionHostId,
@@ -18,11 +17,13 @@ import {
 } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-worktree'
 
 /** The host badge of a copy synced from another computer, listed only while that computer's own row is missing. */
-export function aiVaultOtherMachineLabel(): string {
-  return translate(
-    'aiVault.recordedOnOtherMachineCopy',
-    'Recorded on another computer · open it there'
-  )
+export function aiVaultOtherMachineLabel(originHostLabel?: string): string {
+  return originHostLabel
+    ? translate('aiVault.recordedOnHost', 'Recorded on {{value0}}', { value0: originHostLabel })
+    : translate(
+        'aiVault.recordedOnOtherMachineCopy',
+        'Recorded on another computer · open it there'
+      )
 }
 
 /** The workspace, on a host other than the copy's, that holds the recorded cwd. */
@@ -91,11 +92,11 @@ export function aiVaultResumeSessionForWorkspace(
     : null
 }
 
-export function aiVaultOtherMachineOfflineReason(hostId: ExecutionHostId): string {
+export function aiVaultOtherMachineOfflineReason(hostLabel: string): string {
   return translate(
     'aiVault.recordedOnOfflineHost',
     'Recorded on {{value0}}, which is offline. Reconnect it to resume there.',
-    { value0: getTranslatedExecutionHostLabel(hostId) }
+    { value0: hostLabel }
   )
 }
 

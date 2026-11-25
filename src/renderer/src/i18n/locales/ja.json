@@ -23485,6 +23485,8 @@
     "antigravityReferenceDescription": "このトランスクリプトを参照として使用して、新規 Antigravity CLI 会話を続けます。",
     "searchHitSourceHost": "{{value0}} で見つかりました",
     "recordedOnOtherMachineCopy": "別のコンピューターで記録 · そちらで開いてください",
+    "recordedOnHost": "{{value0}} で記録",
+    "resumeOnHost": "{{value0}} で再開",
     "recordedOnOfflineHost": "{{value0}} で記録されましたが、オフラインです。再接続してそちらで再開してください。",
     "recordedOnUnknownHost": "別のコンピューターで記録されました。そのコンピューターでフォルダーをワークスペースとして開くと、そちらで再開できます。",
     "antigravityIdeToCli": "IDE → CLI",
@@ -23519,8 +23521,7 @@
       "scannerMissing": "この Orca にはセッションスキャナーが含まれていません。Orca を再インストールすると復元されます。",
       "scannerStopped": "セッションスキャナーが予期せず停止しました。更新して再試行してください。"
     },
-    "sessionAccount": "アカウント",
-    "sessionAccountUnknown": "不明"
+    "sessionAccount": "アカウント"
   },
   "common": {
     "retry": "再試行",

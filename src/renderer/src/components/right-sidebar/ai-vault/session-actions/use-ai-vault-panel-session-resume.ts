@@ -19,7 +19,10 @@ import {
 } from '../session-list/ai-vault-session-worktree'
 import { withAiVaultCurrentWorktreeStatus } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-worktree'
 
-import { parseExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import {
+  parseExecutionHostId,
+  type ExecutionHostId
+} from '../../../../../../shared/execution-host/execution-host'
 import {
   isDisconnectedRuntimeHostState,
   runtimeHostConnectionStateForEntry
@@ -34,8 +37,10 @@ export function useAiVaultPanelSessionResume(args: {
   allWorktrees: readonly Worktree[]
   workspaceId: string | null
   resumeTargetState: AiVaultSessionResumeTargetState
+  /** Host names as the host menu shows them. */
+  hostLabel?: (hostId: ExecutionHostId) => string
 }) {
-  const { sessions, repos, allWorktrees, workspaceId, resumeTargetState } = args
+  const { sessions, repos, allWorktrees, workspaceId, resumeTargetState, hostLabel } = args
   // Folder workspaces also own sessions by cwd for resume and jump.
   const ownerWorkspaces = useAiVaultSessionOwnerWorkspaces(allWorktrees, resumeTargetState)
   const sessionWorktreeById = useAiVaultSessionWorktreeMap({
@@ -78,9 +83,10 @@ export function useAiVaultPanelSessionResume(args: {
     (session: AiVaultSession) =>
       resolveAiVaultHistorySessionResumeState({
         ...getSessionRowResumeArgs(session),
-        isHostOffline
+        isHostOffline,
+        hostLabel
       }),
-    [getSessionRowResumeArgs, isHostOffline]
+    [getSessionRowResumeArgs, isHostOffline, hostLabel]
   )
   const getSessionResumeActions = useCallback(
     (session: AiVaultSession) => {

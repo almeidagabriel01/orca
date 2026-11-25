@@ -342,6 +342,8 @@
     "antigravityReferenceDescription": "Continua em uma nova conversa do Antigravity CLI usando esta transcrição como referência.",
     "searchHitSourceHost": "Encontrado em {{value0}}",
     "recordedOnOtherMachineCopy": "Gravada em outro computador · abra lá",
+    "recordedOnHost": "Gravada em {{value0}}",
+    "resumeOnHost": "Retomar em {{value0}}",
     "recordedOnOfflineHost": "Gravada em {{value0}}, que está offline. Reconecte-o para retomar lá.",
     "recordedOnUnknownHost": "Gravada em outro computador. Abra a pasta dela como workspace nesse computador para retomar lá.",
     "antigravityIdeToCli": "IDE → CLI",
@@ -378,7 +380,6 @@
       "scannerStopped": "O verificador de sessões parou inesperadamente. Atualize para tentar novamente."
     },
     "sessionAccount": "Conta",
-    "sessionAccountUnknown": "Desconhecido",
     "antigravityChatToCli": "Bate-papo → CLI"
   },
   "checksPanel": {

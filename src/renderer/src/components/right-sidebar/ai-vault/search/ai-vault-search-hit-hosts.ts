@@ -15,10 +15,15 @@ export function aiVaultSearchHitHostLabels(
   if (hostIds.size < 2) {
     return null
   }
-  const optionLabels = new Map(
-    hostOptions.map((option) => [option.id, aiVaultHostScopeLabel(option, t)])
-  )
-  return new Map(
-    [...hostIds].map((id) => [id, optionLabels.get(id) ?? getTranslatedExecutionHostLabel(id, t)])
-  )
+  return new Map([...hostIds].map((id) => [id, aiVaultHostLabel(id, hostOptions, t)]))
+}
+
+/** A host's name as the host menu shows it. */
+export function aiVaultHostLabel(
+  hostId: ExecutionHostId,
+  hostOptions: readonly AiVaultHostScopeOption[],
+  t: Translate = translate
+): string {
+  const option = hostOptions.find((candidate) => candidate.id === hostId)
+  return option ? aiVaultHostScopeLabel(option, t) : getTranslatedExecutionHostLabel(hostId, t)
 }

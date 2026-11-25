@@ -296,7 +296,11 @@ export function VaultSessionRow({
           onResumeInNewCli={onResumeInNewCli}
           // The unsaved notice's "open the log" hint needs the button the picker hides.
           onOpenLog={onPick ? undefined : onOpenLog}
-          resumeUnavailableReason={resumeUnavailableReason}
+          resumeOverride={
+            session.recordedOnOtherMachine
+              ? { label: resumeLabel, unavailableReason: resumeUnavailableReason }
+              : undefined
+          }
           actionsHidden={Boolean(onPick)}
         />
       ) : null}

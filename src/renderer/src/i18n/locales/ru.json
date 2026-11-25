@@ -23322,6 +23322,8 @@
     "antigravityReferenceDescription": "Продолжает в новом разговоре Antigravity CLI, используя эту историю как справочный материал.",
     "searchHitSourceHost": "Найдено на {{value0}}",
     "recordedOnOtherMachineCopy": "Записано на другом компьютере · откройте там",
+    "recordedOnHost": "Записано на {{value0}}",
+    "resumeOnHost": "Продолжить на {{value0}}",
     "recordedOnOfflineHost": "Записано на {{value0}}, который не в сети. Подключите его снова, чтобы продолжить там.",
     "recordedOnUnknownHost": "Записано на другом компьютере. Откройте её папку как рабочее пространство на том компьютере, чтобы продолжить там.",
     "antigravityIdeToCli": "IDE → CLI",
@@ -23363,8 +23365,7 @@
       "invalidResultsSkipped_few": "Пропущены {{count}} некорректные записи в результатах истории сессий агентов.",
       "invalidResultsSkipped_many": "Пропущено {{count}} некорректных записей в результатах истории сессий агентов."
     },
-    "sessionAccount": "Учётная запись",
-    "sessionAccountUnknown": "Неизвестно"
+    "sessionAccount": "Учётная запись"
   },
   "common": {
     "retry": "Повторить",

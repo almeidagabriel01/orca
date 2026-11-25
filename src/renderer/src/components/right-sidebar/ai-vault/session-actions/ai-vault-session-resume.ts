@@ -13,6 +13,7 @@ import {
 import type { AppState } from '@/store/types'
 import { getIndexedWorktreeMap } from '@/store/slices/worktrees/listing/worktree-catalog-index'
 import { translate } from '@/i18n/i18n'
+import { getTranslatedExecutionHostLabel } from '@/runtime/hosts/display/execution-host-label'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import {
   aiVaultOtherMachineOfflineReason,
@@ -45,6 +46,8 @@ export type AiVaultSessionResumeState = {
   usesSessionWorktree: boolean
   /** Shown in place of Resume when it cannot run. */
   unavailableReason?: string
+  /** A synced copy's recording host, by name. */
+  originHostLabel?: string
 }
 
 export type AiVaultSessionResumeAction = {
@@ -111,6 +114,7 @@ export function resolveAiVaultHistorySessionResumeState(
     session: AiVaultSession
     /** Runtime hosts known to be disconnected. */
     isHostOffline?: (hostId: ExecutionHostId) => boolean
+    hostLabel?: (hostId: ExecutionHostId) => string
   }
 ): AiVaultSessionResumeState {
   if (args.session.recordedOnOtherMachine) {
@@ -143,8 +147,13 @@ function resolveAiVaultOtherMachineResumeState(
   if (!origin) {
     return { ...blocked, unavailableReason: aiVaultOtherMachineUnknownReason() }
   }
+  const originHostLabel = (args.hostLabel ?? getTranslatedExecutionHostLabel)(origin.hostId)
   if (args.isHostOffline?.(origin.hostId)) {
-    return { ...blocked, unavailableReason: aiVaultOtherMachineOfflineReason(origin.hostId) }
+    return {
+      ...blocked,
+      originHostLabel,
+      unavailableReason: aiVaultOtherMachineOfflineReason(originHostLabel)
+    }
   }
   const state = resolveAiVaultSessionResumeState({
     ...args,
@@ -154,7 +163,9 @@ function resolveAiVaultOtherMachineResumeState(
     // Never fall back to the active workspace: it may sit on the copy's host.
     activeWorktreeId: null
   })
-  return state.blocked ? { ...state, unavailableReason: aiVaultOtherMachineUnknownReason() } : state
+  return state.blocked
+    ? { ...state, originHostLabel, unavailableReason: aiVaultOtherMachineUnknownReason() }
+    : { ...state, originHostLabel }
 }
 
 export function resolveAiVaultSessionResumeActions(args: {
@@ -290,9 +301,12 @@ export function aiVaultSessionRowResumeGating(
 
 export function aiVaultSessionResumeLabel(
   state: Pick<AiVaultSessionResumeState, 'usesSessionWorktree'> &
-    Partial<Pick<AiVaultSessionResumeState, 'worktreeId'>>,
+    Partial<Pick<AiVaultSessionResumeState, 'worktreeId' | 'originHostLabel'>>,
   t: Translate = translate
 ): string {
+  if (state.originHostLabel) {
+    return t('aiVault.resumeOnHost', 'Resume on {{value0}}', { value0: state.originHostLabel })
+  }
   if (state.usesSessionWorktree) {
     return aiVaultResumeInSessionWorkspaceLabel(state.worktreeId, t)
   }

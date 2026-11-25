@@ -1,4 +1,5 @@
-import { useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
+import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '@/store/index'
 import { useAllWorktrees } from '@/store/slices/worktrees/listing/use-worktree-catalog'
@@ -51,7 +52,7 @@ import {
   type AiVaultSessionListKeyboard
 } from '../session-list/use-ai-vault-session-keyboard-navigation'
 import { useAiVaultPanelHandle, type AiVaultPanelProps } from '../scope/ai-vault-panel-handle'
-import { aiVaultSearchHitHostLabels } from '../search/ai-vault-search-hit-hosts'
+import { aiVaultHostLabel, aiVaultSearchHitHostLabels } from '../search/ai-vault-search-hit-hosts'
 import {
   selectFolderWorkspaces,
   selectWorktreesByRepo
@@ -211,7 +212,11 @@ export default function AiVaultPanel({
     repos,
     allWorktrees,
     workspaceId: effectiveActiveWorktreeId,
-    resumeTargetState
+    resumeTargetState,
+    hostLabel: useCallback(
+      (hostId: ExecutionHostId) => aiVaultHostLabel(hostId, hostScopeOptions, t),
+      [hostScopeOptions, t]
+    )
   })
   const launchActions = useAiVaultSessionLaunchActions({
     activeWorktree: activeWorktree ?? null,

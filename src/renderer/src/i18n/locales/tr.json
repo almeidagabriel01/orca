@@ -25111,6 +25111,8 @@
     "antigravityReferenceDescription": "Bu konuşma dökümünü referans alarak yeni bir Antigravity CLI konuşmasında devam eder.",
     "searchHitSourceHost": "{{value0}} üzerinde bulundu",
     "recordedOnOtherMachineCopy": "Başka bir bilgisayarda kaydedildi · orada açın",
+    "recordedOnHost": "{{value0}} üzerinde kaydedildi",
+    "resumeOnHost": "{{value0}} üzerinde sürdür",
     "recordedOnOfflineHost": "{{value0}} üzerinde kaydedildi ve çevrimdışı. Orada sürdürmek için yeniden bağlayın.",
     "recordedOnUnknownHost": "Başka bir bilgisayarda kaydedildi. Orada sürdürmek için klasörünü o bilgisayarda çalışma alanı olarak açın.",
     "antigravityIdeToCli": "IDE → CLI",
@@ -25151,7 +25153,6 @@
       "scannerStopped": "Oturum tarayıcısı beklenmedik şekilde durdu. Yeniden denemek için yenileyin."
     },
     "sessionAccount": "Hesap",
-    "sessionAccountUnknown": "Bilinmiyor",
     "antigravityChatToCli": "Sohbet → CLI"
   },
   "common": {

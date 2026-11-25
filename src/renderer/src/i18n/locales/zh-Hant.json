@@ -22236,6 +22236,8 @@
     "antigravityReferenceDescription": "使用此記錄作為參考繼續新的 Antigravity CLI 對話。",
     "searchHitSourceHost": "在 {{value0}} 上找到",
     "recordedOnOtherMachineCopy": "在另一台電腦上記錄 · 請在那裡開啟",
+    "recordedOnHost": "記錄於 {{value0}}",
+    "resumeOnHost": "在 {{value0}} 上繼續",
     "recordedOnOfflineHost": "記錄於 {{value0}}，但它已離線。重新連線後即可在那裡繼續。",
     "recordedOnUnknownHost": "在另一台電腦上記錄。在那台電腦上將其資料夾開啟為工作區，即可在那裡繼續。",
     "antigravityIdeToCli": "IDE → CLI",
@@ -22274,8 +22276,7 @@
       "scannerMissing": "此 Orca 安裝中缺少工作階段掃描器。重新安裝 Orca 即可還原。",
       "scannerStopped": "工作階段掃描器意外停止。請重新整理以重試。"
     },
-    "sessionAccount": "帳戶",
-    "sessionAccountUnknown": "未知"
+    "sessionAccount": "帳戶"
   },
   "common": {
     "retry": "重試",

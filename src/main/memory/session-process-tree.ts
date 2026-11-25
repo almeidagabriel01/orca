@@ -160,6 +160,9 @@ export function parseDarwinPsDetails(stdout: string, now: number): Map<number, P
   return details
 }
 
+// Sweep and session-tree reads queue here so together they hold one of the addon's two path-read slots.
+let darwinCwdReads: Promise<void> = Promise.resolve()
+
 async function readDarwinDetails(pids: number[]): Promise<Map<number, ProcessDetails>> {
   // One ps for the whole tree; exits 1 when a pid has gone, and still lists the others.
   const result = await runProcess({
@@ -170,11 +173,14 @@ async function readDarwinDetails(pids: number[]): Promise<Map<number, ProcessDet
     timeoutMs: 2_000
   }).catch(() => null)
   const details = parseDarwinPsDetails(result?.stdout ?? '', Date.now())
+  // Why: the addon skips reads past two in flight, so a parallel burst left all but two folders unknown; one read takes µs.
   // ponytail: libproc only; without the addon folders stay unknown rather than one lsof per process every poll.
-  await Promise.all(
-    [...details].map(async ([pid, row]) => {
+  const reads = darwinCwdReads.then(async () => {
+    for (const [pid, row] of details) {
       row.cwd = (await readLibprocProcessFilePath('cwd', pid).catch(() => null)) || null
-    })
-  )
+    }
+  })
+  darwinCwdReads = reads
+  await reads
   return details
 }

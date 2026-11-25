@@ -1,5 +1,5 @@
 import React from 'react'
-import { Monitor, Server } from 'lucide-react'
+import { Monitor, Server, TriangleAlert } from 'lucide-react'
 import { SettingsSearchableSelect } from '../../form-controls/SettingsSearchableSelect'
 import { useTranslate } from '@/i18n/use-translate'
 import {
@@ -12,6 +12,7 @@ import {
   RUN_HOST_DEFAULT_VALUE,
   getGlobalRunHostLabel,
   getProjectRunHostOptions,
+  getStaleRunHostName,
   setProjectRunHost,
   useRunHostCandidates,
   type ProjectRunHostOption
@@ -36,16 +37,27 @@ export function RunHostChoiceSetting({
   onValueChange: (hostId: ExecutionHostId | null) => void
 }): React.JSX.Element {
   const t = useTranslate()
+  const staleName = getStaleRunHostName(value, options)
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
       <div className="min-w-0 flex-1 basis-64 space-y-0.5">
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
+        {staleName ? (
+          <p className="flex items-start gap-1 text-xs text-status-warning-text">
+            <TriangleAlert className="mt-0.5 size-3 shrink-0" />
+            {t(
+              'settings.runHost.staleSaved',
+              '{{value0}} no longer runs heavy work, so {{value1}} is used.',
+              { value0: staleName, value1: defaultLabel }
+            )}
+          </p>
+        ) : null}
       </div>
       <div className="w-64 max-w-full shrink-0 [&>button]:w-full">
         <SettingsSearchableSelect
           ariaLabel={title}
-          value={value ?? RUN_HOST_DEFAULT_VALUE}
+          value={staleName ? RUN_HOST_DEFAULT_VALUE : (value ?? RUN_HOST_DEFAULT_VALUE)}
           groups={[
             {
               key: 'run-hosts',

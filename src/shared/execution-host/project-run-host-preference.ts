@@ -16,6 +16,11 @@ type RunHostPreferenceInput = {
   heavyRunHostDefault?: ExecutionHostId | null
 }
 
+/** fork.2 could save an SSH alias; only this computer and paired servers run the heavy queue. */
+function runHostOrNull(hostId: ExecutionHostId | null | undefined): ExecutionHostId | undefined {
+  return hostId && !hostId.startsWith('ssh:') ? hostId : undefined
+}
+
 export type RunHostPreferenceSource = 'project' | 'global'
 
 export type RunHostFallbackReason = 'project_missing' | 'host_unavailable'
@@ -31,11 +36,13 @@ export function getPreferredRunHostId(
   settings: RunHostPreferenceInput | null | undefined,
   projectId: string | null | undefined
 ): { hostId: ExecutionHostId; source: RunHostPreferenceSource } | null {
-  const projectHostId = projectId ? settings?.projectRunHostIds?.[projectId] : undefined
+  const projectHostId = projectId
+    ? runHostOrNull(settings?.projectRunHostIds?.[projectId])
+    : undefined
   if (projectHostId) {
     return { hostId: projectHostId, source: 'project' }
   }
-  const globalHostId = settings?.heavyRunHostDefault
+  const globalHostId = runHostOrNull(settings?.heavyRunHostDefault)
   return globalHostId ? { hostId: globalHostId, source: 'global' } : null
 }
 
@@ -52,8 +59,10 @@ export function getEffectiveRunHostId(
 ): EffectiveRunHost | null {
   const available = new Set(availableHostIds)
   const reachable = reachableHostIds ? new Set(reachableHostIds) : null
-  const projectHostId = projectId ? settings?.projectRunHostIds?.[projectId] : undefined
-  const globalHostId = settings?.heavyRunHostDefault ?? undefined
+  const projectHostId = projectId
+    ? runHostOrNull(settings?.projectRunHostIds?.[projectId])
+    : undefined
+  const globalHostId = runHostOrNull(settings?.heavyRunHostDefault)
   let fallbackFrom: EffectiveRunHost['fallbackFrom']
   for (const [hostId, source] of [
     [projectHostId, 'project'],
@@ -89,6 +98,7 @@ export function effectiveRunHostSetupFilter(
 /** Whether any "Run on" preference is saved; a cleared project leaves an empty map behind. */
 export function hasRunHostPreference(settings: RunHostPreferenceInput | null | undefined): boolean {
   return Boolean(
-    settings?.heavyRunHostDefault || Object.values(settings?.projectRunHostIds ?? {}).some(Boolean)
+    runHostOrNull(settings?.heavyRunHostDefault) ||
+    Object.values(settings?.projectRunHostIds ?? {}).some(runHostOrNull)
   )
 }

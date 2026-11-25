@@ -1,54 +1,44 @@
-import React, { useState } from 'react'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import React from 'react'
+import { useAppStore } from '@/store'
+import { getProjectHostSetupProjectionFromState } from '@/store/projects/project-host-setup-selector'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
-import { ProjectRunHostSetting, type RunHostChoiceOption } from './ProjectRunHostSetting'
-import { realRunHostOptions, stressRunHostOptions } from './run-host-fixture-options'
+import { ProjectRunHostRow } from './ProjectRunHostSetting'
+import {
+  RUN_HOST_FIXTURE_PROJECT_ID,
+  openRunHostDropdown,
+  runHostFixtureStore
+} from './run-host-fixture-store'
 
-function Interactive({
-  options,
-  initial
-}: {
-  options: RunHostChoiceOption[]
-  initial: ExecutionHostId | null
-}): React.JSX.Element {
-  const [value, setValue] = useState(initial)
+/** The row exactly as Project Settings mounts it, reading the seeded store. */
+function Row(): React.JSX.Element {
+  const setups = useAppStore((state) => getProjectHostSetupProjectionFromState(state).setups)
   return (
     <div className="p-3">
-      <ProjectRunHostSetting
-        options={options}
-        value={value}
-        globalLabel="Automatic"
-        onValueChange={setValue}
-      />
+      <ProjectRunHostRow projectId={RUN_HOST_FIXTURE_PROJECT_ID} projectHostSetups={setups} />
     </div>
   )
 }
 
-const openDropdown = (frame: HTMLElement): void => {
-  frame.querySelector<HTMLElement>('[role="combobox"]')?.click()
-}
-
-const real = (initial: ExecutionHostId | null) => (): React.JSX.Element => (
-  <Interactive options={realRunHostOptions} initial={initial} />
-)
-const stress = (): React.JSX.Element => (
-  <Interactive options={stressRunHostOptions} initial="runtime:github.com-client-a" />
-)
-
-export const wide = defineFixture({ width: 640, render: real('runtime:env-vps') })
-
-export const narrow = defineFixture({ width: 340, render: real('runtime:env-vps') })
-
-export const globalDefaultWide = defineFixture({ width: 640, render: real(null) })
-
-export const globalDefaultNarrow = defineFixture({ width: 340, render: real(null) })
-
-export const openNarrow = defineFixture({
-  width: 340,
-  render: real(null),
-  interact: openDropdown
+const render = (): React.JSX.Element => <Row />
+const onVps = runHostFixtureStore({
+  projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'runtime:env-vps' }
+})
+// A fork.2 user could have saved an ssh alias here.
+const staleAlias = runHostFixtureStore({
+  projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'ssh:github.com-client-a' }
 })
 
-export const stressWide = defineFixture({ width: 640, render: stress })
+export const wide = defineFixture({ width: 640, store: onVps, render })
 
-export const stressNarrow = defineFixture({ width: 340, render: stress })
+export const narrow = defineFixture({ width: 340, store: onVps, render })
+
+export const openWide = defineFixture({
+  width: 640,
+  store: runHostFixtureStore(),
+  render,
+  interact: openRunHostDropdown
+})
+
+export const staleAliasWide = defineFixture({ width: 640, store: staleAlias, render })
+
+export const staleAliasNarrow = defineFixture({ width: 340, store: staleAlias, render })

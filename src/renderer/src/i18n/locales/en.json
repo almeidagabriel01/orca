@@ -714,6 +714,9 @@
       "description": "Host new workspaces and heavy commands go to when a project has no Run on host of its own. Automatic keeps choosing per project.",
       "automatic": "Automatic"
     },
+    "runHost": {
+      "staleSaved": "{{value0}} no longer runs heavy work, so {{value1}} is used."
+    },
     "projectRunHost": {
       "useGlobal": "Use global default ({{value0}})",
       "label": "Run on",

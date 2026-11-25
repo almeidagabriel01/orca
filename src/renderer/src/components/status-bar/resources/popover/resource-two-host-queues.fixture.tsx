@@ -186,3 +186,16 @@ export const runOnBlockedMenu = defineFixture({
 })
 
 export const runOnBlockedMenuNarrow = defineFixture({ ...runOnBlockedMenu, width: 352 })
+
+// The same vps paired a second time by IP: its card shows, but "Run on" names the machine once.
+const hostsWithDuplicate = [...hosts, host('env-vps-ip', '100.64.0.10', false, 8, vpsQueue)]
+
+export const runOnDuplicatePairingMenu = defineFixture({
+  width: 512,
+  render: () => (
+    <HeavyJobMoveCheckContext.Provider value={cannedCheck}>
+      <ResourceHostCards hosts={hostsWithDuplicate} />
+    </HeavyJobMoveCheckContext.Provider>
+  ),
+  interact: openMenuOf('pnpm test')
+})

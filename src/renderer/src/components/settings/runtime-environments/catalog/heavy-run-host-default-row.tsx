@@ -58,20 +58,6 @@ export function HeavyRunHostDefaultRow({
     hostId: host.id,
     label: translateHostDisplayLabel(host, t)
   }))
-  if (value && !options.some((option) => option.hostId === value)) {
-    // A saved host this client no longer reaches stays visible so the user can change it.
-    options.push({
-      hostId: value,
-      label: t(
-        'auto.components.settings.SettingsHostScopePicker.unavailable',
-        '{{value0}} (unavailable)',
-        {
-          value0: value
-        }
-      ),
-      disabled: true
-    })
-  }
   return (
     <HeavyRunHostDefaultSetting
       options={options}

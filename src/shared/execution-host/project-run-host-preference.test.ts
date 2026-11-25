@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getEffectiveRunHostId } from './project-run-host-preference'
+import { getEffectiveRunHostId, hasRunHostPreference } from './project-run-host-preference'
 
 const VPS = 'runtime:vps' as const
 const MAC = 'local' as const
@@ -42,4 +42,15 @@ describe('getEffectiveRunHostId', () => {
     expect(getEffectiveRunHostId({}, 'p', [MAC, VPS])).toBeNull()
     expect(getEffectiveRunHostId({ heavyRunHostDefault: null }, 'p', [MAC])).toBeNull()
   })
+})
+
+it('treats an ssh alias saved by fork.2 as no preference, so routing stays automatic', () => {
+  const settings = {
+    projectRunHostIds: { p: 'ssh:vps' as const },
+    heavyRunHostDefault: 'ssh:github.com-client-a' as const
+  }
+  expect(getEffectiveRunHostId(settings, 'p', [MAC, 'ssh:vps', 'ssh:github.com-client-a'])).toBe(
+    null
+  )
+  expect(hasRunHostPreference(settings)).toBe(false)
 })

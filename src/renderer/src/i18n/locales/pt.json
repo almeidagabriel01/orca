@@ -1531,6 +1531,9 @@
       "description": "Host para onde vão os novos workspaces e os comandos pesados quando o projeto não tem um Rodar em próprio. Automático continua escolhendo por projeto.",
       "automatic": "Automático"
     },
+    "runHost": {
+      "staleSaved": "{{value0}} não roda mais trabalho pesado, então vale {{value1}}."
+    },
     "projectRunHost": {
       "useGlobal": "Usar padrão global ({{value0}})",
       "label": "Rodar em",

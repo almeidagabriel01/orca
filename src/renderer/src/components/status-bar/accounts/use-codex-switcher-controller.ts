@@ -4,16 +4,9 @@ import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-
 import { useAppStore } from '../../../store/index'
 import type { AccountOwner } from '@/runtime/provider-accounts/ownership/wsl-host-account-owner'
 import { runtimeTargetEnvironmentId } from '@/runtime/rpc/targets/runtime-client-target'
-import {
-  emptyCodexAccountsState,
-  selectCodexProviderAccount
-} from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
+import { emptyCodexAccountsState } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
 import { useProviderAccountList } from './use-provider-account-list'
 import { useTranslate } from '@/i18n/use-translate'
-import {
-  markLiveCodexSessionsForRestart,
-  resolveCodexRestartPromptAccountLabel
-} from '@/lib/agent-session/accounts/codex/codex-session-restart'
 import {
   getWindowsTerminalCapabilityOwnerKey,
   useWindowsTerminalCapabilities
@@ -30,7 +23,6 @@ import {
 } from './status-bar-runtime-targets'
 import {
   buildCodexStatusSwitchGroups,
-  getCodexStatusActiveId,
   normalizeCodexStatusRuntimeTarget,
   resolveCodexStatusAccountState
 } from './status-bar-codex-accounts'
@@ -47,7 +39,6 @@ export function useCodexSwitcherController(
 ) {
   const t = useTranslate()
   const [open, setOpen] = useState(false)
-  const [isSwitching, setIsSwitching] = useState(false)
   const [reauthenticatingAccountId, setReauthenticatingAccountId] = useState<string | null>(null)
   // Why: pending-action flags outlive an owner change; the list hook's guard is per owner.
   const mountedRef = useRef(true)
@@ -112,57 +103,6 @@ export function useCodexSwitcherController(
     menuOpenRef.current = open
   }, [open])
 
-  const handleSelectAccount = async (
-    accountId: string | null,
-    target: CodexStatusRuntimeTarget
-  ): Promise<void> => {
-    if (isSwitching || reauthenticatingAccountId !== null) {
-      return
-    }
-    const previousActiveAccountId = getCodexStatusActiveId(accountState, target)
-    setIsSwitching(true)
-    try {
-      const next = await selectCodexProviderAccount(runtimeTarget, {
-        accountId,
-        runtime: target.runtime,
-        wslDistro: target.wslDistro
-      })
-      recordFeatureInteraction('codex-account-switching')
-      setAccounts(next)
-      // Why: remote selections live on the server; local GlobalSettings are untouched, so refetching is pure churn.
-      if (!hasActiveRuntimeEnvironment) {
-        await fetchSettings()
-      }
-      const nextActiveAccountId = getCodexStatusActiveId(next, target)
-      if (previousActiveAccountId !== nextActiveAccountId) {
-        await markLiveCodexSessionsForRestart({
-          previousAccountLabel: resolveCodexRestartPromptAccountLabel(
-            accountState.accounts,
-            previousActiveAccountId
-          ),
-          nextAccountLabel: resolveCodexRestartPromptAccountLabel(
-            next.accounts,
-            nextActiveAccountId
-          ),
-          // Emails can coincide; IDs determine whether switching returns to the launch account.
-          previousAccountId: previousActiveAccountId ?? null,
-          nextAccountId: nextActiveAccountId ?? null,
-          // Only this owner/runtime slot changed; other lanes keep their current launch accounts.
-          owner: runtimeTarget,
-          target,
-          // Why: clearing a distro-less WSL row nulls every distro slot at once.
-          clearsEveryWslDistro: accountId === null
-        })
-      }
-    } catch (error) {
-      console.error('Failed to switch Codex account from status bar:', error)
-    } finally {
-      if (mountedRef.current) {
-        setIsSwitching(false)
-      }
-    }
-  }
-
   const handleSignInAccount = (
     accountId: string,
     target: CodexStatusRuntimeTarget
@@ -172,7 +112,7 @@ export function useCodexSwitcherController(
       menuOpenRef,
       fetchInactiveCodexAccountUsage,
       fetchSettings,
-      isSwitching,
+      isSwitching: false,
       mountedRef,
       ownerMountedRef,
       reauthenticatingAccountId,
@@ -242,12 +182,10 @@ export function useCodexSwitcherController(
   return {
     activeTarget,
     handleOpenChange,
-    handleSelectAccount,
     handleSelectRuntime,
     handleSignInAccount,
     hasActiveRuntimeEnvironment,
     inactiveCodexAccounts,
-    isSwitching,
     open,
     openSettingsPage,
     openSettingsTarget,

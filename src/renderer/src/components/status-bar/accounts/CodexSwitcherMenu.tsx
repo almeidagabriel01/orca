@@ -42,7 +42,7 @@ export function CodexSwitcherMenu(props: CodexSwitcherProps): React.JSX.Element 
         triggerContent={props.triggerContent}
         ariaLabel={t(
           'auto.components.status.bar.StatusBar.ba55303942',
-          'Open Codex details and account switcher'
+          'Open Codex details and accounts'
         )}
       />
     )
@@ -65,13 +65,11 @@ function CodexSwitcherForOwner({
     handleConfirmReset,
     handleOpenChange,
     handleResetMenuSelect,
-    handleSelectAccount,
     handleSelectRuntime,
     handleSignInAccount,
     hasActiveRuntimeEnvironment,
     inactiveCodexAccounts,
     isRedeemingReset,
-    isSwitching,
     open,
     openSettingsPage,
     openSettingsTarget,
@@ -89,7 +87,7 @@ function CodexSwitcherForOwner({
     switchGroups
   } = useCodexSwitcherController(codex, ownerUsage, owner)
 
-  const isBusy = isSwitching || reauthenticatingAccountId !== null
+  const isBusy = reauthenticatingAccountId !== null
   const signInRequired = codex.status === 'error' && isCodexUsageSignInRequired(codex)
   const authFailureAccount = codex.usageMetadata?.authFailureAccount
   const authFailureMatchesActive =
@@ -134,14 +132,6 @@ function CodexSwitcherForOwner({
       active={target.active}
       isDefault={target.active}
       key={`${selectedGroup?.key}:${target.id ?? 'system'}`}
-      onSelect={(event) => {
-        // Why: keep the menu open so the follow-up "restart live Codex tabs" prompt stays in this interaction.
-        event.preventDefault()
-        if (!target.active) {
-          void handleSelectAccount(target.id, target.runtimeTarget)
-        }
-      }}
-      disabled={isBusy || target.active}
       action={
         showSignInAction ? (
           <InlineUsageSignInAction
@@ -187,7 +177,7 @@ function CodexSwitcherForOwner({
       triggerContent={triggerContent}
       ariaLabel={t(
         'auto.components.status.bar.StatusBar.ba55303942',
-        'Open Codex details and account switcher'
+        'Open Codex details and accounts'
       )}
       variant="account"
       usageSignInHint={

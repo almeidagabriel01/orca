@@ -171,7 +171,7 @@ export function ClaudeSwitcherForOwner({
         await fetchSettings()
       }
       const nextActiveAccountId = getClaudeStatusActiveId(next, target)
-      if (runningSessions || (!chatAction && previousActiveAccountId !== nextActiveAccountId)) {
+      if (runningSessions) {
         void handleRunningClaudeSessionsAfterSwitch({
           owner: runtimeTarget,
           target,
@@ -315,17 +315,22 @@ export function ClaudeSwitcherForOwner({
         target.active ||
         (signInId === null && target.disabled)
       }
-      onSelect={(event) => {
-        event.preventDefault()
-        if (target.active) {
-          return
-        }
-        if (signInId) {
-          void handleSignIn(signInId)
-        } else if (!target.active) {
-          void handleSelectAccount(target.id, target.runtimeTarget)
-        }
-      }}
+      // Why: only a chat's own picker switches accounts; the status bar lists them read-only.
+      onSelect={
+        chatAction
+          ? (event) => {
+              event.preventDefault()
+              if (target.active) {
+                return
+              }
+              if (signInId) {
+                void handleSignIn(signInId)
+              } else {
+                void handleSelectAccount(target.id, target.runtimeTarget)
+              }
+            }
+          : undefined
+      }
       action={
         signInId ? (
           <InlineUsageSignInAction
@@ -350,7 +355,7 @@ export function ClaudeSwitcherForOwner({
       trigger={accountControl?.button}
       ariaLabel={t(
         'auto.components.status.bar.StatusBar.3dd7ddfae1',
-        'Open Claude details and account switcher'
+        'Open Claude details and accounts'
       )}
       variant="account"
       accountStatus={

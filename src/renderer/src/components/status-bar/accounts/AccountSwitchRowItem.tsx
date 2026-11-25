@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
+import { menuItemVariants } from '@/components/ui/menu-item'
 
 /** Marks the account the computer uses now, beside its name in an account picker. */
 export function AccountDefaultBadge(): React.JSX.Element {
@@ -37,36 +38,57 @@ export function AccountSwitchRowItem({
   action?: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
+  const title = detail ? `${label}\n${detail}` : label
+  const content = (
+    <>
+      <span className="flex w-4 shrink-0 justify-center">
+        {active ? (
+          <>
+            <Check className="size-3.5" />
+            <span className="sr-only">
+              {t('auto.components.status.bar.StatusBar.ff0fbe9311', 'Active')}
+            </span>
+          </>
+        ) : null}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate">{label}</span>
+          {isDefault ? <AccountDefaultBadge /> : null}
+        </span>
+        {detail ? <span className="truncate text-2xs text-muted-foreground">{detail}</span> : null}
+      </span>
+      {children ? <div className="w-1/2 max-w-48 shrink-0 text-xs">{children}</div> : null}
+    </>
+  )
   return (
     <div className="flex items-center">
-      <DropdownMenuItem
-        title={detail ? `${label}\n${detail}` : label}
-        {...props}
-        aria-current={active ? 'true' : undefined}
-        data-current={active ? 'true' : undefined}
-        className={cn('min-h-9 min-w-0 flex-1', className)}
-      >
-        <span className="flex w-4 shrink-0 justify-center">
-          {active ? (
-            <>
-              <Check className="size-3.5" />
-              <span className="sr-only">
-                {t('auto.components.status.bar.StatusBar.ff0fbe9311', 'Active')}
-              </span>
-            </>
-          ) : null}
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate">{label}</span>
-            {isDefault ? <AccountDefaultBadge /> : null}
-          </span>
-          {detail ? (
-            <span className="truncate text-2xs text-muted-foreground">{detail}</span>
-          ) : null}
-        </span>
-        {children ? <div className="w-1/2 max-w-48 shrink-0 text-xs">{children}</div> : null}
-      </DropdownMenuItem>
+      {props.onSelect ? (
+        <DropdownMenuItem
+          title={title}
+          {...props}
+          aria-current={active ? 'true' : undefined}
+          data-current={active ? 'true' : undefined}
+          className={cn('min-h-9 min-w-0 flex-1', className)}
+        >
+          {content}
+        </DropdownMenuItem>
+      ) : (
+        // Why: usage-only rows must not be menu actions, so they carry no select handler.
+        <div
+          title={title}
+          aria-current={active ? 'true' : undefined}
+          data-current={active ? 'true' : undefined}
+          aria-description={props['aria-description']}
+          className={cn(
+            menuItemVariants(),
+            'min-h-9 min-w-0 flex-1 data-[current=true]:bg-accent',
+            className
+          )}
+        >
+          {content}
+        </div>
+      )}
       {action ? <div className="shrink-0 pr-1.5">{action}</div> : null}
     </div>
   )

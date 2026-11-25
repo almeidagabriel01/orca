@@ -39,7 +39,7 @@ export function ClaudeSwitcherMenu(props: ClaudeSwitcherMenuProps): React.JSX.El
         triggerContent={props.triggerContent}
         ariaLabel={t(
           'auto.components.status.bar.StatusBar.3dd7ddfae1',
-          'Open Claude details and account switcher'
+          'Open Claude details and accounts'
         )}
       />
     )

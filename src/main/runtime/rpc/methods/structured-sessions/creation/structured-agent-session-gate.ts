@@ -9,6 +9,7 @@ import { getStructuredAgentSessionHost } from '../../../../../native-chat/agent-
 import type { StructuredAgentSessionHost } from '../../../../../native-chat/agent-session-wire/host/structured-agent-session-host'
 import type { StructuredAgentSessionCaller } from '../../../../../native-chat/agent-session-wire/host/structured-agent-session-host-types'
 import type { RpcContext } from '../../../core'
+import { readLaunchProject } from '../../../../../agent-launch/agent-launch-mode-settings'
 import { rpcCallerOperationKey } from '../../../callers/rpc-caller-identity'
 import { structuredAgentSessionHostRefusal } from '../../../../agent-session/installation/structured-agent-session-host-refusal'
 import {
@@ -41,11 +42,19 @@ export function requireStructuredAgentAudience(ctx: RpcContext, agent: string): 
 }
 
 /** Only createSupport consults launch preference for legacy mode pickers, preserving their terminal-fallback refusal. */
-export function requireStructuredCreateSupportAdmission(ctx: RpcContext, agent?: string): void {
+export async function requireStructuredCreateSupportAdmission(
+  ctx: RpcContext,
+  worktree: string,
+  agent?: string
+): Promise<void> {
   requireStructuredAgentAudience(ctx, agent ?? '')
   if (
     createSupportFollowsHostSetting(ctx) &&
-    !isStructuredNativeChatDefaultFor(ctx.runtime, agent ?? '')
+    !isStructuredNativeChatDefaultFor(
+      ctx.runtime,
+      agent ?? '',
+      await readLaunchProject(ctx.runtime, { worktree })
+    )
   ) {
     throw agentSessionRefusalError('structured_agent_session_unsupported', {
       reason: 'clientCapabilityMissing'

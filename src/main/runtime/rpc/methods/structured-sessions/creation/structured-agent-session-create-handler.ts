@@ -159,7 +159,7 @@ export async function handleStructuredAgentSessionCreateSupport(
   params: z.infer<typeof CreateSupportParams>,
   ctx: RpcContext
 ) {
-  requireStructuredCreateSupportAdmission(ctx, params.agent)
+  await requireStructuredCreateSupportAdmission(ctx, params.worktree, params.agent)
   // The installed release stays host-side: the reply keeps its released shape.
   const { installation: _installation, ...support } =
     await ctx.runtime.getStructuredAgentSessionCreateSupport(params.worktree, params.agent)

@@ -3,11 +3,11 @@
 import {
   decideAgentLaunchMode,
   downgradeAgentLaunchModeForHost,
-  readAgentLaunchModeSettings,
   resolveAgentLaunchModeOnHost,
   type AgentLaunchModeSettings,
   type AgentLaunchModeVocabulary
 } from '../../../../../agent-launch/agent-launch-mode'
+import { readAgentLaunchModeSettings } from '../../../../../agent-launch/agent-launch-mode-settings'
 
 import type { AgentLaunchModeReceipt } from '../../../../../../shared/agent-launch/contracts/agent-launch-intent'
 import type { AgentLaunchSurface } from '../../../../../../shared/agent-launch/contracts/agent-launch-surface'
@@ -68,7 +68,8 @@ export function downgradeWorkerStartModeForHost(
 }
 
 export function readWorkerStartModeSettings(
-  runtime: Parameters<typeof readAgentLaunchModeSettings>[0]
+  runtime: Parameters<typeof readAgentLaunchModeSettings>[0],
+  project?: Parameters<typeof readAgentLaunchModeSettings>[2]
 ): AgentLaunchModeSettings | null {
-  return readAgentLaunchModeSettings(runtime)
+  return readAgentLaunchModeSettings(runtime, undefined, project)
 }

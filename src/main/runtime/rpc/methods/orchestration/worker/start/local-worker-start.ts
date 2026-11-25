@@ -17,7 +17,7 @@ import {
   workerStartTargetLabel
 } from './worker-start-selector-refusal'
 import { resolveWorkerStartModeOnHost } from '../../structured-workers/orchestration-worker-start-mode'
-import { lineageModeForResolvedAgent } from './worker-chat-lineage'
+import { lineageModeForResolvedAgent, workerStartProject } from './worker-chat-lineage'
 import type { AgentLaunchModeReceipt as WorkerStartModeReceipt } from '../../../../../../../shared/agent-launch/contracts/agent-launch-intent'
 import { EXISTING_WORKTREE_SETUP, placeWorkerAgent } from './placement/worker-start-agent-placement'
 import { resolveExistingWorkerWorkspace } from './placement/folder-worktree-placement'
@@ -132,7 +132,9 @@ export async function startLocalWorker(args: {
       resolvedWorktreeId: resolvedWorktree?.id
     })
   }
-  const decided = lineageModeForResolvedAgent(runtime, args.mode, { ...args, params, agent })
+  const project = await workerStartProject(runtime, resolvedWorktree?.id, creationTarget)
+  const start = { ...args, params, agent, project }
+  const decided = lineageModeForResolvedAgent(runtime, args.mode, start)
   const hostMode = resolveWorkerStartModeOnHost(runtime, decided, resolvedWorktree?.id, agent)
   let mode = chatWorkerMode(await hostMode, chat)
 

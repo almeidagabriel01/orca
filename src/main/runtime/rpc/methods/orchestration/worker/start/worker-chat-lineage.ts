@@ -11,6 +11,7 @@ import {
   decideWorkerStartMode,
   readWorkerStartModeSettings
 } from '../../structured-workers/orchestration-worker-start-mode'
+import { readLaunchProject } from '../../../../../../agent-launch/agent-launch-mode-settings'
 
 /** Workers started from a persistent agent's home, and every worker under them at any depth, start
  *  as chats: the home's own chats start the lineage, and each worker passes its Dispatch's stamp on. */
@@ -54,8 +55,8 @@ export function decideStartMode(
   return { mode: decideWorkerStartMode({ params, settings, chatLineage }), chatLineage }
 }
 
-/** A configured alias resolves to its agent after the start's mode was decided: a lineage start
- *  decides again for the agent it names, so an alias of a chat-capable agent still starts a chat. */
+/** The agent and project resolve after the start's mode was decided: a lineage start decides again
+ *  for the agent an alias names, and a project's own Open as decides again under its defaults. */
 export function lineageModeForResolvedAgent(
   runtime: Parameters<typeof readWorkerStartModeSettings>[0],
   decided: ReturnType<typeof decideWorkerStartMode>,
@@ -63,16 +64,32 @@ export function lineageModeForResolvedAgent(
     chatLineage?: boolean
     params: Parameters<typeof decideWorkerStartMode>[0]['params']
     agent: string | undefined
+    project?: Parameters<typeof readWorkerStartModeSettings>[1]
   }
 ): ReturnType<typeof decideWorkerStartMode> {
-  if (!start.chatLineage || !start.agent || start.agent === start.params.agent) {
+  const aliasedLineage = start.chatLineage && start.agent && start.agent !== start.params.agent
+  if (!aliasedLineage && !start.project?.agentLaunchDefaults?.defaultSurface) {
     return decided
   }
   return decideWorkerStartMode({
-    params: { ...start.params, agent: start.agent },
-    settings: readWorkerStartModeSettings(runtime),
-    chatLineage: true
+    params: { ...start.params, ...(start.agent ? { agent: start.agent } : {}) },
+    settings: readWorkerStartModeSettings(runtime, start.project),
+    chatLineage: start.chatLineage
   })
+}
+
+/** The project a worker starts in: its existing workspace's, or the repo its new worktree comes from. */
+export function workerStartProject(
+  runtime: Parameters<typeof readLaunchProject>[0],
+  worktreeId: string | undefined,
+  creation: { repoSelector: string } | undefined
+): ReturnType<typeof readLaunchProject> {
+  if (worktreeId) {
+    return readLaunchProject(runtime, { worktree: `id:${worktreeId}` })
+  }
+  return creation
+    ? readLaunchProject(runtime, { repo: creation.repoSelector })
+    : Promise.resolve(null)
 }
 
 /** A lineage start that had to take a terminal says why on its item too, where its owner looks.

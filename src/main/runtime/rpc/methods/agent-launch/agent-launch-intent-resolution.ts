@@ -10,8 +10,12 @@ import type { OrcaRuntimeService } from '../../../orca-runtime'
 import { assertTerminalLaunchAdmissible } from '../../../../agent-launch/agent-launch-surface-factories'
 import type { AgentLaunchParams } from '../../../../../shared/rpc-contract/agent-launch/agent-launch-params'
 import { resolveAgentLaunchModeOnHost } from '../../../../agent-launch/agent-launch-mode'
+import { readLaunchProject } from '../../../../agent-launch/agent-launch-mode-settings'
+import { worktreeCreateRepoSelector } from '../workspaces/worktree-create-args'
 
 import type { EarlyAgentLaunchTab } from './agent-launch-tab-publication'
+
+type LaunchProject = Awaited<ReturnType<typeof readLaunchProject>>
 
 type ResolvedAgentLaunchIntent = Omit<AgentLaunchIntent, 'sessionOptions'> & {
   sessionOptions?: Readonly<NonNullable<AgentLaunchParams['sessionOptions']>>
@@ -21,30 +25,41 @@ type ResolvedAgentLaunchIntent = Omit<AgentLaunchIntent, 'sessionOptions'> & {
  * Use launch scope: floating workspaces have no Git worktree record, and folder rows are synthetic. */
 async function agentLaunchTarget(
   params: AgentLaunchParams,
-  runtime: Pick<OrcaRuntimeService, 'showTerminalWorkspaceLaunchScope'>
-): Promise<AgentLaunchTarget> {
+  runtime: Pick<OrcaRuntimeService, 'showTerminalWorkspaceLaunchScope' | 'showRepo'>
+): Promise<{ target: AgentLaunchTarget; project: LaunchProject }> {
   if (params.target.kind !== 'existing') {
-    return { kind: params.target.kind, create: { ...params.target.create } }
+    return {
+      target: { kind: params.target.kind, create: { ...params.target.create } },
+      project:
+        params.target.kind === 'create-worktree'
+          ? await readLaunchProject(runtime, {
+              repo: worktreeCreateRepoSelector(params.target.create)
+            })
+          : null
+    }
   }
   const workspace = await runtime.showTerminalWorkspaceLaunchScope(params.target.worktree)
   return {
-    kind: 'existing',
-    worktree: workspace.id,
-    workspacePath: workspace.path,
-    connectionId: workspace.connectionId
+    target: {
+      kind: 'existing',
+      worktree: workspace.id,
+      workspacePath: workspace.path,
+      connectionId: workspace.connectionId
+    },
+    project: workspace.repo
   }
 }
 
-async function agentLaunchIntent(
+function agentLaunchIntent(
   params: AgentLaunchParams,
-  runtime: OrcaRuntimeService,
   /** The pane of a tab already shown for this launch; the spawn must land in it. */
-  publishedPaneKey: string | undefined
-): Promise<ResolvedAgentLaunchIntent> {
+  publishedPaneKey: string | undefined,
+  target: AgentLaunchTarget
+): ResolvedAgentLaunchIntent {
   const paneKey = publishedPaneKey ?? params.paneKey
   return {
     agent: params.agent,
-    target: await agentLaunchTarget(params, runtime),
+    target,
     ...(params.prompt ? { prompt: params.prompt } : {}),
     ...(params.sessionOptions ? { sessionOptions: params.sessionOptions } : {}),
     ...(params.chatOptions ? { chatOptions: params.chatOptions } : {}),
@@ -89,9 +104,10 @@ export async function resolveUnlaunchedIntent(
   early: EarlyAgentLaunchTab | null,
   modeOptions: { terminalOnly?: boolean; callerRendersStructured?: boolean } = {}
 ): Promise<{ intent: ResolvedAgentLaunchIntent; decidedMode: AgentLaunchModeReceipt }> {
-  const intent = await agentLaunchIntent(params, runtime, early?.paneKey)
+  const { target, project } = await agentLaunchTarget(params, runtime)
+  const intent = agentLaunchIntent(params, early?.paneKey, target)
   await validateReusedTerminal(intent, runtime)
-  const preflight = decideAgentLaunchIntentMode({ intent, runtime, ...modeOptions })
+  const preflight = decideAgentLaunchIntentMode({ intent, runtime, project, ...modeOptions })
   const decidedMode =
     intent.target.kind === 'existing'
       ? await resolveAgentLaunchModeOnHost(

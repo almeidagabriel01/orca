@@ -20,10 +20,8 @@ import { makePaneKey, parsePaneKey } from '../../../../../shared/workspace-layou
 import { workspaceKindForWorktreeId } from '../../../../../shared/agent-launch/contracts/workspace-launch-kind'
 import { trackRunningAgentLaunchPane } from '../../../../agent-launch/agent-launch-pane-attachment'
 import type { AgentLaunchPaneVerdict } from '../../../../../shared/agent-launch/contracts/agent-launch-pane-verdict'
-import {
-  decideAgentLaunchMode,
-  readAgentLaunchModeSettings
-} from '../../../../agent-launch/agent-launch-mode'
+import { decideAgentLaunchMode } from '../../../../agent-launch/agent-launch-mode'
+import { readAgentLaunchModeSettings } from '../../../../agent-launch/agent-launch-mode-settings'
 import type { RpcContext } from '../../core'
 import type { AgentLaunchParams } from '../../../../../shared/rpc-contract/agent-launch/agent-launch-params'
 import { agentLaunchOperationCallerKey } from './agent-launch-replay'
@@ -140,7 +138,7 @@ export async function publishAgentLaunchTabEarly(
     // The launch resolves it again after admission and answers for it there.
     return null
   }
-  const settings = readAgentLaunchModeSettings(runtime, params)
+  const settings = readAgentLaunchModeSettings(runtime, params, workspace.repo)
   const preflight = decideAgentLaunchMode({
     placement: {
       agent: params.agent,

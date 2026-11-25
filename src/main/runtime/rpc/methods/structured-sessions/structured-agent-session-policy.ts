@@ -12,7 +12,7 @@ import type { RuntimeCapability } from '../../../../../shared/remote-runtime/pro
 import { AGENT_SESSION_OPTIONAL_MODEL_CLIENT_CAPABILITY } from '../../../../../shared/agent-session/options/protocol/agent-session-optional-model-capability'
 import { nativeChatPreferenceFor } from '../../../../../shared/agent-launch/choices/structured-native-chat-launch-route'
 import { isAgentSessionHandleProvider } from '../../../../../shared/agent-session/lifecycle/provider-handles/agent-session-provider-handle'
-import { readAgentLaunchModeSettings } from '../../../../agent-launch/agent-launch-mode'
+import { readAgentLaunchModeSettings } from '../../../../agent-launch/agent-launch-mode-settings'
 import type { RpcContext } from '../../core'
 
 export function clientReadsOptionsWithoutModel(
@@ -110,9 +110,10 @@ export function createSupportFollowsHostSetting(
 /** This host's resolved preference; session audience remains independent of new launches. */
 export function isStructuredNativeChatDefaultFor(
   runtime: Parameters<typeof readAgentLaunchModeSettings>[0],
-  agent: string
+  agent: string,
+  project?: Parameters<typeof readAgentLaunchModeSettings>[2]
 ): boolean {
-  return nativeChatPreferenceFor(readAgentLaunchModeSettings(runtime), agent)
+  return nativeChatPreferenceFor(readAgentLaunchModeSettings(runtime, undefined, project), agent)
 }
 
 export function clientRequestsCommands(ctx: Pick<RpcContext, 'clientCapabilities'>): boolean {

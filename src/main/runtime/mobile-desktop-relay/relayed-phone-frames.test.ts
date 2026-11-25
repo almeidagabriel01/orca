@@ -1,8 +1,6 @@
 import { nativeChatPreferenceFor } from '../../../shared/agent-launch/choices/structured-native-chat-launch-route'
-import {
-  readAgentLaunchModeSettings,
-  decideAgentLaunchMode
-} from '../../agent-launch/agent-launch-mode'
+import { decideAgentLaunchMode } from '../../agent-launch/agent-launch-mode'
+import { readAgentLaunchModeSettings } from '../../agent-launch/agent-launch-mode-settings'
 import { describe, expect, it } from 'vitest'
 import {
   encodeTerminalStreamFrame,

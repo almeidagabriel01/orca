@@ -5,15 +5,17 @@ import type {
 import { workspaceKindForLaunchTarget } from '../../shared/agent-launch/contracts/workspace-launch-kind'
 import {
   decideAgentLaunchMode,
-  readAgentLaunchModeSettings,
   DEFAULT_LAUNCH_VOCABULARY,
   type AgentLaunchModeVocabulary
 } from './agent-launch-mode'
+import { readAgentLaunchModeSettings } from './agent-launch-mode-settings'
 
 /** The same preflight is used for admission and execution, before workspace creation. */
 export function decideAgentLaunchIntentMode(execution: {
   intent: AgentLaunchIntent
   runtime: Parameters<typeof readAgentLaunchModeSettings>[0]
+  /** The target's project; absent follows the host's settings alone. */
+  project?: Parameters<typeof readAgentLaunchModeSettings>[2]
   terminalOnly?: boolean
   callerRendersStructured?: boolean
   vocabulary?: AgentLaunchModeVocabulary
@@ -30,7 +32,9 @@ export function decideAgentLaunchIntentMode(execution: {
         : {}),
       ...(execution.callerRendersStructured === false ? { callerRendersStructured: false } : {})
     },
-    settings: execution.terminalOnly ? undefined : readAgentLaunchModeSettings(runtime, intent),
+    settings: execution.terminalOnly
+      ? undefined
+      : readAgentLaunchModeSettings(runtime, intent, execution.project),
     ...(execution.terminalOnly ? { terminalOnly: true } : {}),
     ...(intent.surface ? { surface: intent.surface } : {}),
     vocabulary: execution.vocabulary ?? DEFAULT_LAUNCH_VOCABULARY

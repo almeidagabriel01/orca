@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppStore } from '@/store'
+import { installWindowVisibilityInterval } from '@/lib/window-activity/window-visibility-interval'
 import { useTranslate } from '@/i18n/use-translate'
 import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 import { getRepoExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
@@ -71,9 +72,6 @@ export function useHeavyQueueChips(): HeavyQueueChipHost[] {
     let cancelled = false
     const inFlight = new Set<string>()
     const poll = (): void => {
-      if (document.visibilityState !== 'visible') {
-        return
-      }
       for (const id of ids) {
         if (inFlight.has(id)) {
           continue
@@ -87,13 +85,10 @@ export function useHeavyQueueChips(): HeavyQueueChipHost[] {
         })
       }
     }
-    poll()
-    const timer = window.setInterval(poll, POLL_MS)
-    document.addEventListener('visibilitychange', poll)
+    const stop = installWindowVisibilityInterval({ run: poll, intervalMs: POLL_MS })
     return () => {
       cancelled = true
-      window.clearInterval(timer)
-      document.removeEventListener('visibilitychange', poll)
+      stop()
     }
   }, [environmentKey])
 

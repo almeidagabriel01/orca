@@ -3,6 +3,7 @@ import type { HeavyCommandJob } from '../../shared/diagnostics/process-stats-typ
 import { toHeavyQueueCounts } from './host-heavy-queue-counts'
 
 const job = (pid: number, status: HeavyCommandJob['status']): HeavyCommandJob =>
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the counts read only pid and status
   ({ pid, status }) as HeavyCommandJob
 
 describe('toHeavyQueueCounts', () => {

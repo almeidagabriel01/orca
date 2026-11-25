@@ -1,4 +1,4 @@
-import { withClaudeProfileTerminalEnv } from '../../../claude-accounts/profiles/routing/claude-profile-installed-router'
+import { withClaudeProfileProjectTerminalEnv } from '../../../claude-accounts/profiles/routing/claude-profile-pointer-file'
 import { projectClaudeAccountChoiceForWorktree } from '../../../claude-accounts/selection/claude-chat-account-choice'
 import { mintPtySessionId } from '../../../daemon/sessions/pty-session-id'
 import { LocalPtyProvider } from '../../../providers/local-pty/local-pty-provider'
@@ -119,7 +119,11 @@ export async function preparePtyIpcSpawnPreflight(ctx: PtyIpcSpawnState): Promis
   ctx.spawnTiming.mark('preflight')
   // The project's default Claude account, as new chats in it get; restored panes resume on it too.
   const claudeAccount = projectClaudeAccountChoiceForWorktree(ctx.deps.store, args.worktreeId)
-  args.env = withClaudeProfileTerminalEnv(args.env, ctx.codexSelectionTarget, claudeAccount)
+  args.env = await withClaudeProfileProjectTerminalEnv(
+    args.env,
+    ctx.codexSelectionTarget,
+    claudeAccount
+  )
   ctx.claudeAuth =
     ctx.isClaudeLaunch && ctx.deps.prepareClaudeAuth
       ? await ctx.deps.prepareClaudeAuth(ctx.codexSelectionTarget, claudeAccount)

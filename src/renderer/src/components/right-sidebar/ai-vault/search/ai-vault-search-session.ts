@@ -33,6 +33,7 @@ export function aiVaultSearchHitToSession(
     subagentTranscriptCount: 0,
     resumeCommand: hit.resumeCommand ?? '',
     subagent: null,
+    ...(hit.recordedOnOtherMachine ? { recordedOnOtherMachine: true as const } : {}),
     ...(hit.accountHome !== undefined
       ? { accountHome: hit.accountHome, accountWslDistro: hit.accountWslDistro }
       : {}),

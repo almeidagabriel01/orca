@@ -74,6 +74,8 @@ export const AiVaultSearchHitSchema = z
     source: AiVaultSearchSourceSchema,
     evidence: AiVaultSearchEvidenceSchema.nullable(),
     resumeCommand: z.string().optional(),
+    /** A copy synced from the machine that recorded it; the desktop sets it from its path map. */
+    recordedOnOtherMachine: z.literal(true).optional().catch(undefined),
     /** The native chat owning this transcript, from the indexing host; older hosts omit it. */
     structuredSession: z
       .object({ sessionId: z.string().min(1).max(512), workspaceId: z.string().min(1).max(512) })

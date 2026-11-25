@@ -14,7 +14,14 @@ import {
   AiVaultSearchStatusSchema,
   AiVaultSetSearchEnabledParamsSchema
 } from '../../../shared/ai-vault/search/ai-vault-search-contract'
+import { isAbsolute } from 'node:path'
+import { sessionFileExecutionNamespace } from '../../../shared/ai-vault/scanning/ai-vault-scope-cwd-match'
+import {
+  hostPathsForRecordedCwd,
+  readSessionHostPathMap
+} from '../../ai-vault/scope/session-host-path-map'
 import type {
+  AiVaultSearchHit,
   AiVaultSearchRequest,
   AiVaultSearchResponse,
   AiVaultSearchStatus
@@ -142,10 +149,28 @@ async function searchByExecutionHostScope(
 }
 
 async function searchLocalSessions(request: AiVaultSearchRequest): Promise<AiVaultSearchResponse> {
-  return searchWithStructuredOwners(searchSessionService(request, 'ipc'), {
+  const response = await searchWithStructuredOwners(searchSessionService(request, 'ipc'), {
     ensureHost: handlerOptions.ensureStructuredSessionOwnership,
     opensChat: OPENS_EVERY_STRUCTURED_CHAT
   })
+  return response.kind === 'results'
+    ? { ...response, hits: await markOtherMachineHits(response.hits) }
+    : response
+}
+
+/** Same rule as list rows: this host's path map places the recorded cwd, so the file was synced here. */
+async function markOtherMachineHits(hits: AiVaultSearchHit[]): Promise<AiVaultSearchHit[]> {
+  const links = await readSessionHostPathMap()
+  return links.length === 0
+    ? hits
+    : hits.map((hit) =>
+        hit.cwd &&
+        isAbsolute(hit.cwd) &&
+        sessionFileExecutionNamespace(hit.source.filePath ?? '') === 'native' &&
+        hostPathsForRecordedCwd(hit.cwd, links).length > 0
+          ? { ...hit, recordedOnOtherMachine: true as const }
+          : hit
+      )
 }
 
 /** One leg per list-visible host; broken enumeration loses only its own host class. */

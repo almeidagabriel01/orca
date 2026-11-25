@@ -8,6 +8,7 @@ import type {
   AiVaultSearchResponse
 } from '../../../shared/ai-vault/search/ai-vault-search-types'
 import type { ExecutionHostId } from '../../../shared/execution-host/execution-host'
+import { dropOtherMachineCopies } from '../../ai-vault/listing/session-list-results'
 import {
   decodeMergedSearchCursor,
   encodeMergedSearchCursor,
@@ -88,7 +89,8 @@ export async function searchAllExecutionHosts(
   await Promise.all(
     walks.map((walk) => fetchHostPage(walk, resumed?.hosts[walk.executionHostId] ?? null))
   )
-  const hits = await drainMergedPage(walks, limit, sort)
+  // A synced copy yields to the hit from the host that recorded it, as in the list.
+  const hits = dropOtherMachineCopies(await drainMergedPage(walks, limit, sort))
   return mergedSearchResponse(walks, { limit, sort, key }, hits, Date.now() - startedAt)
 }
 

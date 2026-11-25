@@ -5,6 +5,9 @@ import type { OutsideOrcaProcessGroup } from '../../../../../../shared/diagnosti
 import { MetricPair } from './resource-usage-metrics'
 import { useHostSectionCollapsed } from './resource-host-section'
 
+/** Rows always shown: every heavy group, topped up with the busiest others. */
+const MIN_VISIBLE_ROWS = 5
+
 const COLLAPSED_STORAGE_KEY = 'orca.resourceManager.outsideQueueCollapsed'
 
 const KIND_ICON = { app: AppWindow, container: Box, command: SquareTerminal, kernel: Cpu } as const
@@ -80,6 +83,9 @@ export function HostOutsideQueue({
     ? t('resourceManager.outsideQueue.title', 'Outside the queue')
     : t('resourceManager.outsideQueue.titleNoQueue', 'Outside Orca')
   const lighter = [...rest].sort((a, b) => b.cpu - a.cpu || b.memory - a.memory)
+  const pinned = Math.max(0, MIN_VISIBLE_ROWS - heavy.length)
+  const shownLighter = showRest ? lighter : lighter.slice(0, pinned)
+  const hiddenCount = lighter.length - Math.min(pinned, lighter.length)
   return (
     <section
       className={`@container/queue ${hasQueue ? 'border-t border-border/60 ' : ''}pb-1.5`}
@@ -121,11 +127,12 @@ export function HostOutsideQueue({
           {heavy.map((group) => (
             <OutsideRow key={rowKey(group)} group={group} heavy />
           ))}
-          {showRest &&
-            lighter.map((group) => <OutsideRow key={rowKey(group)} group={group} heavy={false} />)}
+          {shownLighter.map((group) => (
+            <OutsideRow key={rowKey(group)} group={group} heavy={false} />
+          ))}
         </ul>
       )}
-      {!collapsed && lighter.length > 0 && (
+      {!collapsed && hiddenCount > 0 && (
         <button
           type="button"
           onClick={() => setShowRest((v) => !v)}
@@ -135,7 +142,7 @@ export function HostOutsideQueue({
           {showRest
             ? t('resourceManager.outsideOrca.showLess', 'Show less')
             : t('resourceManager.outsideOrca.showMore', 'Show {{count}} more', {
-                count: lighter.length
+                count: hiddenCount
               })}
         </button>
       )}

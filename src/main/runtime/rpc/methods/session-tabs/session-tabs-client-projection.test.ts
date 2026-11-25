@@ -31,14 +31,12 @@ const snapshot = {
 
 const hosts = { describeClientHostedBrowserPage: () => undefined }
 
-function chatStatusFor(capabilities: readonly string[]): unknown {
-  const projected = projectSessionTabsForInventoryStream(
-    snapshot,
-    'runtime',
-    capabilities as never,
-    hosts
-  )
-  return (projected.tabs[0] as { chatStatus?: unknown }).chatStatus
+function chatStatusFor(
+  capabilities: Parameters<typeof projectSessionTabsForInventoryStream>[2]
+): unknown {
+  const projected = projectSessionTabsForInventoryStream(snapshot, 'runtime', capabilities, hosts)
+  const tab = projected.tabs[0]
+  return tab && 'chatStatus' in tab ? tab.chatStatus : undefined
 }
 
 describe('projectSessionTabsForInventoryStream', () => {

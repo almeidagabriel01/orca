@@ -2,6 +2,7 @@ import React from 'react'
 import { Laptop, Server } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
+import { cn } from '@/lib/class-names'
 import { STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS } from '../../composition/status-bar-context-menu-policy'
 import { formatHeavyQueueChip, type HeavyQueueChipValue } from './heavy-queue-chip-state'
 
@@ -49,7 +50,11 @@ export function HeavyQueueStatusChips({
                 type="button"
                 {...STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS}
                 onClick={onOpen}
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded px-1 py-0.5 hover:bg-accent/70"
+                // Why dimmed: an offline host's "–" must not read like a live count.
+                className={cn(
+                  'inline-flex shrink-0 cursor-pointer items-center gap-1 rounded px-1 py-0.5 hover:bg-accent/70',
+                  value.status === 'offline' && 'opacity-50'
+                )}
                 aria-label={t('resourceManager.heavyQueueChip.aria', '{{host}}: {{text}}', {
                   host: host.label,
                   text

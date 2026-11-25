@@ -379,6 +379,7 @@ import {
 } from './connectors/connector-params'
 import {
   DiagnosticsHeavyQueueActionParams,
+  DiagnosticsHeavyQueueCountsParams,
   DiagnosticsMemoryParams,
   DiagnosticsProcessTreeParams
 } from './diagnostics-params'
@@ -1531,6 +1532,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'desktopBrowserBridge.result': DesktopBrowserBridgeResultParams,
   'desktopBrowserBridge.resultChunk': DesktopBrowserBridgeResultChunkParams,
   'diagnostics.heavyQueueAction': DiagnosticsHeavyQueueActionParams,
+  'diagnostics.heavyQueueCounts': DiagnosticsHeavyQueueCountsParams,
   'diagnostics.memory': DiagnosticsMemoryParams,
   'diagnostics.processTree': DiagnosticsProcessTreeParams,
   'emulator.attach': AttachParamsOfEmulatorParams,

@@ -4,6 +4,7 @@ import type { PerfNoticeSignals } from '../../../shared/diagnostics/perf-notice-
 import type { HeavyQueueAction } from '../../../shared/rpc-contract/diagnostics-params'
 import type { TelemetryConsentState } from '../../../shared/telemetry/telemetry-consent-types'
 import type {
+  HeavyQueueCounts,
   MemorySnapshot,
   SessionProcessTree,
   StatsSummary
@@ -46,6 +47,8 @@ export type MemoryApi = {
   ) => Promise<SessionProcessTree | null>
   /** Controls this computer's vps-heavy queue; rejects with the script's message when it refuses. */
   heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission) => Promise<void>
+  /** Slot, running and waiting counts of this computer's vps-heavy queue; null without one. */
+  getHeavyQueueCounts: () => Promise<HeavyQueueCounts | null>
   readPerfNoticeSignals: () => Promise<PerfNoticeSignals | null>
   countHiddenBrowserPages: (hiddenForMs: number) => Promise<number>
   resourceWindowVisible: () => Promise<boolean>

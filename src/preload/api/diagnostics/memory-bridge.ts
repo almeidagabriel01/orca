@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron'
 import type {
+  HeavyQueueCounts,
   MemorySnapshot,
   SessionProcessTree
 } from '../../../shared/diagnostics/process-stats-types'
@@ -19,6 +20,8 @@ export const memoryApi = {
     ipcRenderer.invoke('memory:getProcessTree', sessionId, admission),
   heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission): Promise<void> =>
     ipcRenderer.invoke('memory:heavyQueueAction', action, admission),
+  getHeavyQueueCounts: (): Promise<HeavyQueueCounts | null> =>
+    ipcRenderer.invoke('memory:getHeavyQueueCounts'),
   readPerfNoticeSignals: (): Promise<PerfNoticeSignals> =>
     ipcRenderer.invoke('memory:readPerfNoticeSignals'),
   countHiddenBrowserPages: (hiddenForMs: number): Promise<number> =>

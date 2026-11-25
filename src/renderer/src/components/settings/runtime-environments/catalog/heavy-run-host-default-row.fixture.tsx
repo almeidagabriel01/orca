@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import type { RunHostChoiceOption } from '../../repository/hosts/ProjectRunHostSetting'
 import { HeavyRunHostDefaultSetting } from './heavy-run-host-default-row'
 
-const options = [
+const VPS: ExecutionHostId = 'runtime:vps'
+
+const options: RunHostChoiceOption[] = [
   { hostId: 'local', label: 'Mac' },
   { hostId: 'runtime:vps', label: 'vps' },
   { hostId: 'ssh:build-box', label: 'build-box', disabled: true }
-] as never
+]
 
 function Interactive({ initial }: { initial: ExecutionHostId | null }): React.JSX.Element {
   const [value, setValue] = useState(initial)
@@ -19,9 +22,7 @@ function Interactive({ initial }: { initial: ExecutionHostId | null }): React.JS
 }
 
 const renderAutomatic = (): React.JSX.Element => <Interactive initial={null} />
-const renderHost = (): React.JSX.Element => (
-  <Interactive initial={'runtime:vps' as ExecutionHostId} />
-)
+const renderHost = (): React.JSX.Element => <Interactive initial={VPS} />
 
 export const wide = defineFixture({ width: 640, render: renderAutomatic })
 

@@ -24,9 +24,10 @@ function parseArgv(value: unknown): string[] | undefined {
     return undefined
   }
   // Why all or nothing: a cut argv would run a different command on the other host.
-  return value.every((arg) => typeof arg === 'string' && arg.length <= MAX_COMMAND_CHARS)
-    ? (value as string[])
-    : undefined
+  const args = value.filter(
+    (arg): arg is string => typeof arg === 'string' && arg.length <= MAX_COMMAND_CHARS
+  )
+  return args.length === value.length ? args : undefined
 }
 
 function parsePeer(value: unknown): HeavyQueuePeer | null {

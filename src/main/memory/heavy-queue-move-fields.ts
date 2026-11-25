@@ -26,12 +26,16 @@ function isArgv(value: unknown): value is string[] {
   )
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
 /** A peer as `peers` rows ({name}) and `movedTo` ({peer}) name it. */
 function parsePeer(value: unknown, nameKey: 'name' | 'peer'): HeavyQueuePeer | null {
-  if (typeof value !== 'object' || value === null) {
+  if (!isObject(value)) {
     return null
   }
-  const row = value as Record<string, unknown>
+  const row = value
   const name = boundedName(row[nameKey])
   const alias = boundedName(row.alias)
   return name && alias ? { name, alias, hostname: boundedName(row.hostname) } : null

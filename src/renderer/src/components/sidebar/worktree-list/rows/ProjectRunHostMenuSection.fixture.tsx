@@ -8,12 +8,15 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import type { ProjectRunHostOption } from '@/lib/workspace/creation/project-run-host'
 import { ProjectRunHostRadioItems } from './ProjectRunHostMenuSection'
 
-const options = [
+const LOCAL: ExecutionHostId = 'local'
+
+const options: ProjectRunHostOption[] = [
   { hostId: 'local', label: 'Mac' },
   { hostId: 'runtime:vps', label: 'vps' }
-] as never
+]
 
 function OpenMenu({ initial }: { initial: ExecutionHostId | null }): React.JSX.Element {
   const [value, setValue] = useState<ExecutionHostId | null>(initial)
@@ -44,7 +47,7 @@ function OpenMenu({ initial }: { initial: ExecutionHostId | null }): React.JSX.E
 
 export const open = defineFixture({
   width: 260,
-  render: () => <OpenMenu initial={'local' as ExecutionHostId} />
+  render: () => <OpenMenu initial={LOCAL} />
 })
 
 export const globalDefault = defineFixture({

@@ -29,8 +29,17 @@ const job = (pid: number, fields: Partial<HeavyCommandJob> = {}): HeavyCommandJo
   ...fields
 })
 
-const queue = (jobs: HeavyCommandJob[], fields: Partial<HeavyCommandQueue> = {}) =>
-  ({ readAt: 0, slots: 1, controls: true, canMoveHost: true, jobs, ...fields }) as HeavyCommandQueue
+const queue = (
+  jobs: HeavyCommandJob[],
+  fields: Partial<HeavyCommandQueue> = {}
+): HeavyCommandQueue => ({
+  readAt: 0,
+  slots: 1,
+  controls: true,
+  canMoveHost: true,
+  jobs,
+  ...fields
+})
 
 const host = (id: string, jobs: HeavyCommandJob[], fields: Partial<HeavyCommandQueue> = {}) =>
   ({ id, label: id.toUpperCase(), queue: queue(jobs, fields) }) satisfies HeavyMoveHost

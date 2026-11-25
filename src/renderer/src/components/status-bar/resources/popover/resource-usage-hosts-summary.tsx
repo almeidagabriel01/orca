@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   AlertTriangle,
   Bot,
@@ -24,6 +24,7 @@ import {
 } from './resource-host-meters'
 import { HostHeavyQueue } from './resource-usage-heavy-queue'
 import type { HeavyMoveHost } from './resource-heavy-job-move'
+import { HostLabelByHostnameContext } from './resource-heavy-queue-host-note'
 
 const TONE_TEXT_CLS: Record<MeterTone, string> = {
   normal: 'text-foreground',
@@ -277,14 +278,26 @@ export function ResourceHostCards({
       ? [{ id: host.id, label: host.label, queue: host.machine.heavyQueue }]
       : []
   )
+  const labelByHostname = useMemo(
+    () =>
+      new Map(
+        hosts.flatMap((host) => {
+          const hostname = host.machine?.heavyQueue?.hostname
+          return hostname ? [[hostname, host.label] as const] : []
+        })
+      ),
+    [hosts]
+  )
   return (
-    <ul
-      className="flex flex-col gap-2 px-3 pt-1 pb-3"
-      aria-label={t('resourceManager.hosts.machines', 'Machines')}
-    >
-      {hosts.map((host) => (
-        <HostCard key={host.id} host={host} movableHosts={movableHosts} />
-      ))}
-    </ul>
+    <HostLabelByHostnameContext.Provider value={labelByHostname}>
+      <ul
+        className="flex flex-col gap-2 px-3 pt-1 pb-3"
+        aria-label={t('resourceManager.hosts.machines', 'Machines')}
+      >
+        {hosts.map((host) => (
+          <HostCard key={host.id} host={host} movableHosts={movableHosts} />
+        ))}
+      </ul>
+    </HostLabelByHostnameContext.Provider>
   )
 }

@@ -24696,10 +24696,6 @@
     "resources": "Recursos",
     "refresh": "Atualizar",
     "killFailed": "Não foi possível encerrar o terminal. As últimas sessões observadas são mantidas.",
-    "chatRow": {
-      "tooltip": "Chat do {{agent}}, incluindo os processos em execução nele"
-    },
-    "sharedAgentProcesses": "Processos de agentes compartilhados",
     "countUnavailable": "contagem de terminais indisponível",
     "openToObserve": "Abra Recursos para observar as sessões de terminal.",
     "killAllLocal": "Encerrar todas as sessões locais",

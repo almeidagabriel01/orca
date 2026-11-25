@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { translate } from '@/i18n/i18n'
+import { installWindowVisibilityInterval } from '@/lib/window-activity/window-visibility-interval'
 import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 import { isPairedWebClientWindow } from '@/app-shell/chrome/desktop-window-chrome'
 import { useAppStore } from '@/store'
@@ -82,11 +83,11 @@ export function HeavyJobAutoRouter(): null {
           inFlight = false
         })
     }
-    tick()
-    const timer = window.setInterval(tick, POLL_MS)
+    // Runs immediately when visible, then every POLL_MS; pauses while the window is hidden.
+    const stopInterval = installWindowVisibilityInterval({ run: tick, intervalMs: POLL_MS })
     return () => {
       cancelled = true
-      window.clearInterval(timer)
+      stopInterval()
       setHosts([])
     }
   }, [visible])

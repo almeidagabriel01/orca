@@ -24,9 +24,18 @@ function setup(id: string, repoId: string, hostId: ProjectHostSetup['hostId']): 
   }
 }
 
+const project: Project = {
+  id: 'p',
+  displayName: 'app',
+  badgeColor: '',
+  sourceRepoIds: [],
+  createdAt: 0,
+  updatedAt: 0
+}
+
 const base = {
   eligibleRepos: [repo('mac-repo', 'local'), repo('vps-repo', VPS)],
-  projects: [{ id: 'p', sourceRepoIds: [] } as unknown as Project],
+  projects: [project],
   projectHostSetups: [setup('s-mac', 'mac-repo', 'local'), setup('s-vps', 'vps-repo', VPS)],
   projectRunHostIds: { p: VPS }
 }

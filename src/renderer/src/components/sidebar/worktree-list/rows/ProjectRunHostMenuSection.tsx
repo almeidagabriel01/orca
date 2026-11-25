@@ -40,9 +40,11 @@ export function ProjectRunHostRadioItems({
   return (
     <>
       <DropdownMenuSeparator />
-      <DropdownMenuLabel className="flex items-center gap-1.5">
-        <Server className="size-3.5" />
-        {t('sidebar.projectRunHost.label', 'Run on')}
+      <DropdownMenuLabel>
+        <span className="flex items-center gap-1.5">
+          <Server className="size-3.5" />
+          {t('sidebar.projectRunHost.label', 'Run on')}
+        </span>
       </DropdownMenuLabel>
       <DropdownMenuRadioGroup
         value={value ?? RUN_HOST_DEFAULT_VALUE}

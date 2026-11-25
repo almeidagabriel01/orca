@@ -51,7 +51,7 @@ export function RunHostChoiceSetting({
           className="h-auto max-w-full flex-wrap justify-start self-start @lg:justify-end @lg:self-auto"
           aria-label={title}
         >
-          <ToggleGroupItem value={RUN_HOST_DEFAULT_VALUE} className="h-8 min-w-0 px-3 text-xs">
+          <ToggleGroupItem value={RUN_HOST_DEFAULT_VALUE} className="h-8 min-w-0">
             <span className="max-w-56 truncate">{defaultLabel}</span>
           </ToggleGroupItem>
           {options.map((option) => (
@@ -59,7 +59,7 @@ export function RunHostChoiceSetting({
               key={option.hostId}
               value={option.hostId}
               disabled={option.disabled}
-              className="h-8 min-w-0 px-3 text-xs"
+              className="h-8 min-w-0"
             >
               <span className="max-w-40 truncate">{option.label}</span>
             </ToggleGroupItem>

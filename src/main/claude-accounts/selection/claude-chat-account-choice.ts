@@ -2,6 +2,9 @@ import {
   AGENT_CHAT_SYSTEM_ACCOUNT,
   agentSupportsChatAccountChoice
 } from '../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import { projectAgentAccountChoice } from '../../../shared/agent-launch/choices/project-agent-launch-defaults'
+import { getRepoIdFromWorktreeId } from '../../../shared/worktree/id'
+import type { Repo } from '../../../shared/repository/repo-types'
 import type { ClaudeProfileRouter } from '../profiles/routing/claude-profile-router'
 import { getClaudeProfileRouter } from '../profiles/routing/claude-profile-installed-router'
 import { CLAUDE_CHAT_ACCOUNT_MISSING_MESSAGE } from '../profiles/routing/claude-profile-launch-errors'
@@ -37,5 +40,23 @@ export function usableChatAccountChoice(
     agentSupportsChatAccountChoice(agent) &&
     !claudeChatAccountChoiceProblem(getClaudeProfileRouter(), choice)
     ? choice
+    : undefined
+}
+
+/** The account a new Claude launch in this project starts on: its usable default, else none. */
+export function projectClaudeAccountChoice(
+  repo: Pick<Repo, 'agentLaunchDefaults'> | null | undefined,
+  agent = 'claude'
+): string | undefined {
+  return usableChatAccountChoice(agent, projectAgentAccountChoice(repo, agent))
+}
+
+/** `projectClaudeAccountChoice` for a terminal, which knows only its worktree id. */
+export function projectClaudeAccountChoiceForWorktree(
+  store: { getRepo(id: string): Pick<Repo, 'agentLaunchDefaults'> | undefined } | undefined,
+  worktreeId: string | undefined
+): string | undefined {
+  return worktreeId && store
+    ? projectClaudeAccountChoice(store.getRepo(getRepoIdFromWorktreeId(worktreeId)))
     : undefined
 }

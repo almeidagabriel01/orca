@@ -36,15 +36,15 @@ const render = (): React.JSX.Element => (
 
 export const open = defineFixture({
   width: 280,
-  store: runHostFixtureStore({ projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'local' } }),
+  ...runHostFixtureStore({ projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'local' } }),
   render
 })
 
-export const globalDefault = defineFixture({ width: 280, store: runHostFixtureStore(), render })
+export const globalDefault = defineFixture({ width: 280, ...runHostFixtureStore(), render })
 
 export const staleAlias = defineFixture({
   width: 280,
-  store: runHostFixtureStore({
+  ...runHostFixtureStore({
     heavyRunHostDefault: 'ssh:github.com-client-a',
     projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'ssh:vps' }
   }),

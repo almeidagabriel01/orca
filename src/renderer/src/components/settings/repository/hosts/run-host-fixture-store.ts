@@ -2,7 +2,7 @@ import type { AppState } from '@/store/types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import type { GlobalSettings } from '../../../../../../shared/settings/global-settings-types'
 import { getProjectIdentityKey } from '../../../../../../shared/project/host-setup/project-host-setup-projection'
-import { getDefaultSettings } from '../../../../../../shared/orca-profiles/constants'
+import { useAppStore } from '@/store'
 import {
   DUPLICATE_PAIRED_SERVER_ENVIRONMENTS,
   DUPLICATE_PAIRED_SERVER_STATUS,
@@ -40,22 +40,31 @@ const repos: Repo[] = [
 ]
 
 /** The app state the real "Run on" rows read: full ssh config, server paired by alias and by IP. */
-export function runHostFixtureStore(settings: Partial<GlobalSettings> = {}): Partial<AppState> {
+export function runHostFixtureStore(settings: Partial<GlobalSettings> = {}): {
+  store: Partial<AppState>
+  setup: () => void
+} {
   return {
-    repos,
-    sshTargetLabels: new Map(FULL_SSH_CONFIG_TARGET_LABELS),
-    runtimeEnvironments: DUPLICATE_PAIRED_SERVER_ENVIRONMENTS.map((environment) => ({
-      id: environment.id,
-      name: environment.name ?? environment.id,
-      createdAt: 1,
-      updatedAt: 1,
-      lastUsedAt: null,
-      runtimeId: null,
-      endpoints: [],
-      preferredEndpointId: environment.id
-    })),
-    runtimeStatusByEnvironmentId: new Map(DUPLICATE_PAIRED_SERVER_STATUS),
-    settings: { ...getDefaultSettings('/home/fixture'), ...settings }
+    store: {
+      repos,
+      sshTargetLabels: new Map(FULL_SSH_CONFIG_TARGET_LABELS),
+      runtimeEnvironments: DUPLICATE_PAIRED_SERVER_ENVIRONMENTS.map((environment) => ({
+        id: environment.id,
+        name: environment.name ?? environment.id,
+        createdAt: 1,
+        updatedAt: 1,
+        lastUsedAt: null,
+        runtimeId: null,
+        endpoints: [],
+        preferredEndpointId: environment.id
+      })),
+      runtimeStatusByEnvironmentId: new Map(DUPLICATE_PAIRED_SERVER_STATUS)
+    },
+    // Merged over the fixture's default settings, which the store already holds.
+    setup: () =>
+      useAppStore.setState((state) => ({
+        settings: state.settings && { ...state.settings, ...settings }
+      }))
   }
 }
 

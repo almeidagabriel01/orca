@@ -25,6 +25,7 @@ export function RunHostChoiceSetting({
   title,
   description,
   defaultLabel,
+  fallbackLabel = defaultLabel,
   options,
   value,
   onValueChange
@@ -32,6 +33,8 @@ export function RunHostChoiceSetting({
   title: string
   description: string
   defaultLabel: string
+  /** What a stale saved host falls back to, when the default option's label says more. */
+  fallbackLabel?: string
   options: readonly RunHostChoiceOption[]
   value: ExecutionHostId | null
   onValueChange: (hostId: ExecutionHostId | null) => void
@@ -49,7 +52,7 @@ export function RunHostChoiceSetting({
             {t(
               'settings.runHost.staleSaved',
               '{{value0}} no longer runs heavy work, so {{value1}} is used.',
-              { value0: staleName, value1: defaultLabel }
+              { value0: staleName, value1: fallbackLabel }
             )}
           </p>
         ) : null}
@@ -123,6 +126,7 @@ export function ProjectRunHostSetting({
       defaultLabel={t('settings.projectRunHost.useGlobal', 'Use global default ({{value0}})', {
         value0: globalLabel
       })}
+      fallbackLabel={globalLabel}
       options={options}
       value={value}
       onValueChange={onValueChange}

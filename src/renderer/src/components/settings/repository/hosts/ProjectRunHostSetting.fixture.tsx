@@ -28,17 +28,17 @@ const staleAlias = runHostFixtureStore({
   projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'ssh:github.com-client-a' }
 })
 
-export const wide = defineFixture({ width: 640, store: onVps, render })
+export const wide = defineFixture({ width: 640, ...onVps, render })
 
-export const narrow = defineFixture({ width: 340, store: onVps, render })
+export const narrow = defineFixture({ width: 340, ...onVps, render })
 
 export const openWide = defineFixture({
   width: 640,
-  store: runHostFixtureStore(),
+  ...runHostFixtureStore(),
   render,
   interact: openRunHostDropdown
 })
 
-export const staleAliasWide = defineFixture({ width: 640, store: staleAlias, render })
+export const staleAliasWide = defineFixture({ width: 640, ...staleAlias, render })
 
-export const staleAliasNarrow = defineFixture({ width: 340, store: staleAlias, render })
+export const staleAliasNarrow = defineFixture({ width: 340, ...staleAlias, render })

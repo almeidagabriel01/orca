@@ -7,6 +7,7 @@ import type {
   HeavyCommandJob,
   HeavyCommandQueue
 } from '../../shared/diagnostics/process-stats-types'
+import { parseHeavyJobMoveFields, parseHeavyQueueMoveFields } from './heavy-queue-move-fields'
 import {
   getRepoExecutionHostId,
   LOCAL_EXECUTION_HOST_ID
@@ -57,7 +58,7 @@ export function parseHeavyQueueJob(value: unknown): HeavyCommandJob | null {
   const { pid, status, slot, queuedAt, startedAt, cwd, command } = value
   if (
     !isPositiveInteger(pid) ||
-    (status !== 'running' && status !== 'waiting') ||
+    (status !== 'running' && status !== 'waiting' && status !== 'moved') ||
     !isEpochSeconds(queuedAt) ||
     typeof cwd !== 'string' ||
     typeof command !== 'string'
@@ -65,19 +66,21 @@ export function parseHeavyQueueJob(value: unknown): HeavyCommandJob | null {
     return null
   }
   const running = status === 'running'
+  const waiting = status === 'waiting'
   return {
     pid,
     status,
     // The wrapper writes slot 0 while it waits.
     slot: running && isPositiveInteger(slot) ? slot : null,
-    position: !running && isPositiveInteger(value.position) ? value.position : null,
-    ordered: !running && value.ordered === true,
+    position: waiting && isPositiveInteger(value.position) ? value.position : null,
+    ordered: waiting && value.ordered === true,
     direct: value.direct === true,
     extra: running && value.extra === true,
     queuedAt: queuedAt * 1000,
     startedAt: running && isEpochSeconds(startedAt) ? startedAt * 1000 : null,
     cwd,
-    command
+    command,
+    ...parseHeavyJobMoveFields(value)
   }
 }
 
@@ -112,7 +115,11 @@ export async function findHeavyQueueScript(
   return null
 }
 
-type ScriptListing = { jobs: HeavyCommandJob[]; slots: number | null; controls: boolean }
+type ScriptListing = {
+  jobs: HeavyCommandJob[]
+  slots: number | null
+  controls: boolean
+} & Pick<HeavyCommandQueue, 'hostname' | 'peers' | 'canMoveHost'>
 
 function parseJobList(value: unknown): HeavyCommandJob[] {
   return Array.isArray(value)
@@ -131,7 +138,8 @@ export function parseHeavyQueueListing(value: unknown): ScriptListing | null {
   return {
     jobs: parseJobList(value.jobs),
     slots: isPositiveInteger(value.slots) ? value.slots : null,
-    controls: true
+    controls: true,
+    ...parseHeavyQueueMoveFields(value)
   }
 }
 
@@ -225,6 +233,8 @@ export async function readHeavyCommandQueue({
     slots: listing?.slots ?? (await readSlots(home)),
     controls: listing?.controls ?? false,
     canStop: Boolean(listing?.controls && script && (await scriptSupportsStop(script))),
+    ...(listing?.hostname !== undefined ? { hostname: listing.hostname } : {}),
+    ...(listing?.canMoveHost ? { canMoveHost: true, peers: listing.peers ?? [] } : {}),
     jobs
   }
 }

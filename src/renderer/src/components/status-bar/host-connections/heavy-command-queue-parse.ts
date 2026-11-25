@@ -1,5 +1,7 @@
+import type { HeavyQueuePeer } from '../../../../../shared/diagnostics/heavy-job-move-types'
 import type {
   HeavyCommandJob,
+  HeavyJobMovedTo,
   HeavyCommandQueue,
   HeavyCommandWorkspace
 } from '../../../../../shared/diagnostics/process-stats-types'
@@ -10,6 +12,38 @@ const MAX_JOBS = 200
 const MAX_COMMAND_CHARS = 8_192
 const MAX_PATH_CHARS = 1_024
 const MAX_NAME_CHARS = 256
+const MAX_ARGS = 256
+const MAX_PEERS = 16
+
+function boundedString(value: unknown, max: number): string | null {
+  return typeof value === 'string' && value.length > 0 ? value.slice(0, max) : null
+}
+
+function parseArgv(value: unknown): string[] | undefined {
+  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_ARGS) {
+    return undefined
+  }
+  // Why all or nothing: a cut argv would run a different command on the other host.
+  return value.every((arg) => typeof arg === 'string' && arg.length <= MAX_COMMAND_CHARS)
+    ? (value as string[])
+    : undefined
+}
+
+function parsePeer(value: unknown): HeavyQueuePeer | null {
+  if (!isRecord(value)) {
+    return null
+  }
+  const name = boundedString(value.name, MAX_NAME_CHARS)
+  const alias = boundedString(value.alias, MAX_NAME_CHARS)
+  return name && alias
+    ? { name, alias, hostname: boundedString(value.hostname, MAX_NAME_CHARS) }
+    : null
+}
+
+function parseMovedTo(value: unknown): HeavyJobMovedTo | null {
+  const peer = parsePeer(isRecord(value) ? { ...value, name: value.peer } : null)
+  return peer ? { peer: peer.name, alias: peer.alias, hostname: peer.hostname } : null
+}
 
 function positiveInteger(value: unknown): number | null {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null
@@ -46,7 +80,7 @@ function parseJob(value: unknown): HeavyCommandJob | null {
   if (
     pid === null ||
     queuedAt === null ||
-    (status !== 'running' && status !== 'waiting') ||
+    (status !== 'running' && status !== 'waiting' && status !== 'moved') ||
     typeof value.cwd !== 'string' ||
     typeof value.command !== 'string'
   ) {
@@ -54,6 +88,10 @@ function parseJob(value: unknown): HeavyCommandJob | null {
   }
   const running = status === 'running'
   const workspace = parseWorkspace(value.workspace)
+  const argv = parseArgv(value.argv)
+  const group = boundedString(value.group, MAX_NAME_CHARS)
+  const movedFrom = boundedString(value.movedFrom, MAX_NAME_CHARS)
+  const movedTo = status === 'moved' ? parseMovedTo(value.movedTo) : null
   return {
     pid,
     status,
@@ -66,6 +104,10 @@ function parseJob(value: unknown): HeavyCommandJob | null {
     startedAt: running ? epochMs(value.startedAt) : null,
     cwd: value.cwd.slice(0, MAX_PATH_CHARS),
     command: value.command.slice(0, MAX_COMMAND_CHARS),
+    ...(argv ? { argv } : {}),
+    ...(group ? { group } : {}),
+    ...(movedFrom ? { movedFrom } : {}),
+    ...(movedTo ? { movedTo } : {}),
     ...(workspace ? { workspace } : {})
   }
 }
@@ -81,11 +123,21 @@ export function parseHeavyCommandQueue(value: unknown): HeavyCommandQueue | null
   if (readAt === null || slots === null) {
     return null
   }
+  const hostname = boundedString(value.hostname, MAX_NAME_CHARS)
   return {
     readAt,
     slots,
     controls: value.controls === true,
     canStop: value.canStop === true,
+    ...(hostname ? { hostname } : {}),
+    ...(value.controls === true && value.canMoveHost === true
+      ? {
+          canMoveHost: true,
+          peers: Array.isArray(value.peers)
+            ? value.peers.slice(0, MAX_PEERS).flatMap((peer) => parsePeer(peer) ?? [])
+            : []
+        }
+      : {}),
     jobs: value.jobs.slice(0, MAX_JOBS).flatMap((job) => parseJob(job) ?? [])
   }
 }

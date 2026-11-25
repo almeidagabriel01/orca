@@ -387,6 +387,8 @@ import {
   ConnectorSlackMirrorStatus
 } from './connectors/connector-params'
 import {
+  DiagnosticsHeavyJobMoveSourceParams,
+  DiagnosticsHeavyJobTargetParams,
   DiagnosticsHeavyQueueActionParams,
   DiagnosticsMemoryParams,
   DiagnosticsProcessTreeParams
@@ -1552,6 +1554,8 @@ export const RPC_PARAMS_BY_METHOD = {
   'desktopBrowserBridge.fileRead': DesktopBrowserBridgeFileReadParams,
   'desktopBrowserBridge.result': DesktopBrowserBridgeResultParams,
   'desktopBrowserBridge.resultChunk': DesktopBrowserBridgeResultChunkParams,
+  'diagnostics.heavyJobMoveSource': DiagnosticsHeavyJobMoveSourceParams,
+  'diagnostics.heavyJobTargetCheck': DiagnosticsHeavyJobTargetParams,
   'diagnostics.heavyQueueAction': DiagnosticsHeavyQueueActionParams,
   'diagnostics.memory': DiagnosticsMemoryParams,
   'diagnostics.processTree': DiagnosticsProcessTreeParams,

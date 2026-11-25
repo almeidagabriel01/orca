@@ -12,24 +12,26 @@ import { getProjectHostSetupProjectionFromState } from '@/store/projects/project
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import {
+  getGlobalRunHostLabel,
   getProjectRunHostOptions,
   getRepoRunHostProjectId,
   setProjectRunHost,
+  useRunHostCandidates,
+  RUN_HOST_DEFAULT_VALUE,
   type ProjectRunHostOption
 } from '@/lib/workspace/creation/project-run-host'
-import { useRuntimeStatusByEnvironmentId } from '@/store/slices/runtime-status/views/use-runtime-status-view'
-import { buildExecutionHostRegistry } from '../../../../../../shared/execution-host/execution-host-registry'
-import { getHostDisplayLabelOverrides } from '../../../../../../shared/execution-host/host-setting-overrides'
 
-/** Presentational "Run on" radio list; renders nothing for a single-host project. */
+/** Presentational "Run on" radio list; renders nothing for a single-host project. null = global default. */
 export function ProjectRunHostRadioItems({
   options,
   value,
+  globalLabel,
   onValueChange
 }: {
   options: readonly ProjectRunHostOption[]
   value: ExecutionHostId | null
-  onValueChange: (hostId: ExecutionHostId) => void
+  globalLabel: string
+  onValueChange: (hostId: ExecutionHostId | null) => void
 }): React.JSX.Element | null {
   const t = useTranslate()
   if (options.length < 2) {
@@ -43,19 +45,33 @@ export function ProjectRunHostRadioItems({
         {t('sidebar.projectRunHost.label', 'Run on')}
       </DropdownMenuLabel>
       <DropdownMenuRadioGroup
-        value={value ?? ''}
+        value={value ?? RUN_HOST_DEFAULT_VALUE}
         onValueChange={(next) => {
+          if (next === RUN_HOST_DEFAULT_VALUE) {
+            onValueChange(null)
+            return
+          }
           const option = options.find((candidate) => candidate.hostId === next)
           if (option) {
             onValueChange(option.hostId)
           }
         }}
       >
+        <DropdownMenuRadioItem
+          value={RUN_HOST_DEFAULT_VALUE}
+          // Keep the menu open so the new check is visible.
+          onSelect={(event) => event.preventDefault()}
+        >
+          <span className="max-w-56 truncate">
+            {t('settings.projectRunHost.useGlobal', 'Use global default ({{value0}})', {
+              value0: globalLabel
+            })}
+          </span>
+        </DropdownMenuRadioItem>
         {options.map((option) => (
           <DropdownMenuRadioItem
             key={option.hostId}
             value={option.hostId}
-            // Keep the menu open so the new check is visible.
             onSelect={(event) => event.preventDefault()}
           >
             <span className="max-w-48 truncate">{option.label}</span>
@@ -72,30 +88,17 @@ export function ProjectRunHostMenuSection({ repo }: { repo: Repo }): React.JSX.E
   const projectHostSetups = useAppStore(
     (state) => getProjectHostSetupProjectionFromState(state).setups
   )
-  const repos = useAppStore((state) => state.repos)
-  const settings = useAppStore((state) => state.settings)
-  const sshTargetLabels = useAppStore((state) => state.sshTargetLabels)
-  const sshConnectionStates = useAppStore((state) => state.sshConnectionStates)
-  const runtimeEnvironments = useAppStore((state) => state.runtimeEnvironments)
-  const runtimeStatusByEnvironmentId = useRuntimeStatusByEnvironmentId()
+  const projectRunHostIds = useAppStore((state) => state.settings?.projectRunHostIds)
+  const heavyRunHostDefault = useAppStore((state) => state.settings?.heavyRunHostDefault)
   // Same configured-only registry the composer resolves against, so every option is creatable.
-  const hostOptions = buildExecutionHostRegistry({
-    repos,
-    settings,
-    hostSource: 'configured-only',
-    sshTargetLabels,
-    sshConnectionStates,
-    runtimeEnvironments,
-    runtimeStatusByEnvironmentId,
-    hostLabelOverrides: getHostDisplayLabelOverrides(settings)
-  })
-  const projectRunHostIds = settings?.projectRunHostIds
+  const hostOptions = useRunHostCandidates()
   const projectId = getRepoRunHostProjectId(repo, projectHostSetups)
   const options = getProjectRunHostOptions(projectId, projectHostSetups, hostOptions, t)
   return (
     <ProjectRunHostRadioItems
       options={options}
       value={projectRunHostIds?.[projectId] ?? null}
+      globalLabel={getGlobalRunHostLabel(heavyRunHostDefault, hostOptions, t)}
       onValueChange={(hostId) => setProjectRunHost(projectId, hostId)}
     />
   )

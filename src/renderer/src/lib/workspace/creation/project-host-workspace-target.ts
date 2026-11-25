@@ -15,7 +15,7 @@ import { resolveNewWorkspaceDialogRepoId } from '../../../../../shared/new-works
 import { findSoleHostCopy } from '../../../../../shared/worktree/host-qualified-identity'
 import { normalizeRuntimePathForComparison } from '../../../../../shared/file-access/cross-platform-path'
 import {
-  runHostPreferenceFilter,
+  effectiveRunHostSetupFilter,
   type ProjectRunHostIds
 } from '../../../../../shared/execution-host/project-run-host-preference'
 
@@ -75,6 +75,8 @@ type ProjectHostWorkspaceTargetInput = {
   actionableHostIds?: ReadonlySet<ExecutionHostId>
   /** Per-project "Run on" host; a soft default below explicit picks, above the focused scope. */
   projectRunHostIds?: ProjectRunHostIds | null
+  /** Global "Run heavy work on" host, used when the project has no "Run on" of its own. */
+  heavyRunHostDefault?: ExecutionHostId | null
 }
 
 type ProjectSetupModel = {
@@ -232,7 +234,7 @@ export function resolveWorkspaceCreationTarget(
 
   if (projectId) {
     // A stale or unreachable preference falls through; explicit host picks above fail closed.
-    const preferred = runHostPreferenceFilter(input.projectRunHostIds, projectId)
+    const preferred = effectiveRunHostSetupFilter(input, projectId, setups)
     const preferredTarget = preferred && findReadySetupTarget(setups, reposById, preferred)
     if (preferredTarget) {
       return { status: 'ready', target: preferredTarget }
@@ -270,9 +272,10 @@ export function resolveWorkspaceCreationTarget(
   // A repo picked in the dialog keeps its host; only a seeded one follows the preference.
   const preferredLegacy =
     repoId && !input.draftRepoId
-      ? runHostPreferenceFilter(
-          input.projectRunHostIds,
-          allSetups.find((setup) => setup.repoId === repoId)?.projectId
+      ? effectiveRunHostSetupFilter(
+          input,
+          allSetups.find((setup) => setup.repoId === repoId)?.projectId,
+          setups
         )
       : null
   const preferredLegacyTarget =

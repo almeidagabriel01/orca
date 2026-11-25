@@ -57,4 +57,27 @@ describe('resolveWorkspaceCreationTarget run-on preference', () => {
     expect(hostOf({ ...base, initialRepoId: 'mac-repo', actionableHostIds })).toBe('local')
     expect(hostOf({ ...base, projectId: 'p', projectRunHostIds: { p: 'ssh:gone' } })).toBe('local')
   })
+
+  it('uses the global default when the project has none, and the project value over it', () => {
+    const { projectRunHostIds: _unset, ...noProject } = base
+    const input = { ...noProject, projectId: 'p', focusedHostScope: 'local' as const }
+    expect(hostOf({ ...input, heavyRunHostDefault: VPS })).toBe(VPS)
+    expect(hostOf({ ...noProject, initialRepoId: 'mac-repo', heavyRunHostDefault: VPS })).toBe(VPS)
+    expect(hostOf({ ...input, heavyRunHostDefault: null })).toBe('local')
+    expect(hostOf({ ...input, projectRunHostIds: { p: 'local' }, heavyRunHostDefault: VPS })).toBe(
+      'local'
+    )
+  })
+
+  it('falls back to the global default when the project host lacks the project', () => {
+    expect(
+      hostOf({
+        ...base,
+        projectId: 'p',
+        projectRunHostIds: { p: 'ssh:gone' },
+        heavyRunHostDefault: VPS,
+        focusedHostScope: 'local'
+      })
+    ).toBe(VPS)
+  })
 })

@@ -257,6 +257,9 @@ export async function syncRuntimeBackedSettings(
         delete runtimeSettings.agentDefaultSurface
         delete runtimeSettings.nativeChatProviders
         delete runtimeSettings.activeRuntimeEnvironmentId
+        // Run-on hosts are client-relative ids; the host's own copy means nothing here.
+        delete runtimeSettings.heavyRunHostDefault
+        delete runtimeSettings.projectRunHostIds
         const updatedVisibilityDefaults = normalizeWorktreeVisibilityDefaults(
           runtimeSettings.worktreeVisibilityDefaults
         )

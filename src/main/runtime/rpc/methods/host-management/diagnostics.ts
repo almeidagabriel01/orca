@@ -4,12 +4,20 @@ import {
   toPairedMemoryReplyWithChats
 } from '../../../../memory/memory-snapshot-paired-reply'
 import {
+  DiagnosticsHeavyJobMoveSourceParams,
+  DiagnosticsHeavyJobTargetParams,
   DiagnosticsHeavyQueueActionParams,
   DiagnosticsMemoryParams,
   DiagnosticsProcessTreeParams
 } from '../../../../../shared/rpc-contract/diagnostics-params'
 import { collectSessionProcessTree } from '../../../../memory/session-process-tree'
 import { runHeavyQueueAction } from '../../../../memory/host-heavy-command-queue-actions'
+import {
+  checkHeavyJobTarget,
+  createHeavyJobMoveDeps,
+  describeHeavyJobForMove,
+  localRepos
+} from '../../../../memory/host-heavy-job-move'
 
 export const DIAGNOSTICS_METHODS = [
   defineMethod({
@@ -40,5 +48,25 @@ export const DIAGNOSTICS_METHODS = [
       await runHeavyQueueAction(action)
       return { ok: true }
     }
+  }),
+  defineMethod({
+    name: 'diagnostics.heavyJobMoveSource',
+    permission: 'workspace',
+    params: DiagnosticsHeavyJobMoveSourceParams,
+    handler: async ({ pid }, { runtime }) =>
+      describeHeavyJobForMove(
+        pid,
+        createHeavyJobMoveDeps(() => localRepos(runtime.requireStore().getRepos()))
+      )
+  }),
+  defineMethod({
+    name: 'diagnostics.heavyJobTargetCheck',
+    permission: 'workspace',
+    params: DiagnosticsHeavyJobTargetParams,
+    handler: async (request, { runtime }) =>
+      checkHeavyJobTarget(
+        request,
+        createHeavyJobMoveDeps(() => localRepos(runtime.requireStore().getRepos()))
+      )
   })
 ]

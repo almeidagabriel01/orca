@@ -15,8 +15,8 @@ const options = [
   { hostId: 'runtime:vps', label: 'vps' }
 ] as never
 
-function OpenMenu(): React.JSX.Element {
-  const [value, setValue] = useState<ExecutionHostId | null>('local' as ExecutionHostId)
+function OpenMenu({ initial }: { initial: ExecutionHostId | null }): React.JSX.Element {
+  const [value, setValue] = useState<ExecutionHostId | null>(initial)
   return (
     <div className="h-48 w-64">
       <DropdownMenu open modal={false}>
@@ -30,11 +30,24 @@ function OpenMenu(): React.JSX.Element {
             <SlidersHorizontal className="size-3.5" />
             Project Settings
           </DropdownMenuItem>
-          <ProjectRunHostRadioItems options={options} value={value} onValueChange={setValue} />
+          <ProjectRunHostRadioItems
+            options={options}
+            value={value}
+            globalLabel="vps"
+            onValueChange={setValue}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
   )
 }
 
-export const open = defineFixture({ width: 260, render: () => <OpenMenu /> })
+export const open = defineFixture({
+  width: 260,
+  render: () => <OpenMenu initial={'local' as ExecutionHostId} />
+})
+
+export const globalDefault = defineFixture({
+  width: 260,
+  render: () => <OpenMenu initial={null} />
+})

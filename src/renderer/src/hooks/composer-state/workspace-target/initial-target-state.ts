@@ -51,6 +51,7 @@ export function useComposerInitialTargetState(input: ComposerInitialTargetStateI
   } = input
   const { resolveInitialWorkspaceRunSeed } = decisions
   const projectRunHostIds = useAppStore((state) => state.settings?.projectRunHostIds)
+  const heavyRunHostDefault = useAppStore((state) => state.settings?.heavyRunHostDefault)
 
   const draftRepoId = persistDraft ? (newWorkspaceDraft?.repoId ?? null) : null
 
@@ -93,7 +94,8 @@ export function useComposerInitialTargetState(input: ComposerInitialTargetStateI
     projectHostSetupHostId: initialWorkspaceTarget ? initialRunSeed.hostId : null,
     focusedHostScope: workspaceHostScope,
     actionableHostIds,
-    projectRunHostIds
+    projectRunHostIds,
+    heavyRunHostDefault
   })
 
   const resolvedInitialRepoId =

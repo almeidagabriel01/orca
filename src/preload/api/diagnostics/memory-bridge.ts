@@ -8,6 +8,11 @@ import type { PerfNoticeSignals } from '../../../shared/diagnostics/perf-notice-
 
 import type { ResourceViewAdmission } from '../../../shared/diagnostics/resource-view-admission'
 import type { HeavyQueueAction } from '../../../shared/rpc-contract/diagnostics-params'
+import type {
+  HeavyJobMoveSource,
+  HeavyJobTargetCheck,
+  HeavyJobTargetRequest
+} from '../../../shared/diagnostics/heavy-job-move-types'
 
 export const memoryApi = {
   getSnapshot: (admission?: ResourceViewAdmission): Promise<MemorySnapshot> =>
@@ -19,6 +24,15 @@ export const memoryApi = {
     ipcRenderer.invoke('memory:getProcessTree', sessionId, admission),
   heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission): Promise<void> =>
     ipcRenderer.invoke('memory:heavyQueueAction', action, admission),
+  heavyJobMoveSource: (
+    pid: number,
+    admission?: ResourceViewAdmission
+  ): Promise<HeavyJobMoveSource> => ipcRenderer.invoke('memory:heavyJobMoveSource', pid, admission),
+  heavyJobTargetCheck: (
+    request: HeavyJobTargetRequest,
+    admission?: ResourceViewAdmission
+  ): Promise<HeavyJobTargetCheck> =>
+    ipcRenderer.invoke('memory:heavyJobTargetCheck', request, admission),
   readPerfNoticeSignals: (): Promise<PerfNoticeSignals> =>
     ipcRenderer.invoke('memory:readPerfNoticeSignals'),
   countHiddenBrowserPages: (hiddenForMs: number): Promise<number> =>

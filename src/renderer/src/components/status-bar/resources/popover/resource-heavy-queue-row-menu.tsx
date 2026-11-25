@@ -9,14 +9,12 @@ import {
   MoreHorizontal,
   Square,
   X,
-  Zap,
-  type LucideIcon
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -24,43 +22,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useTranslate } from '@/i18n/use-translate'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../../../../shared/execution-host/execution-host'
 import type { HeavyQueueRow } from './resource-heavy-queue-view'
+import { QueueMenuItem } from './resource-heavy-queue-row-menu-item'
+import type { HeavyMoveHost } from './resource-heavy-job-move'
+import { RunOnHostItems, type HeavyJobMoveRequest } from './resource-heavy-queue-move-items'
 
 export type QueueMove = 'up' | 'down' | 'top' | 'bottom'
 export type ConfirmKind = 'start' | 'remove' | 'stop'
-
-function Item({
-  icon: Icon,
-  label,
-  reason,
-  destructive,
-  quiet,
-  onSelect
-}: {
-  icon: LucideIcon
-  label: string
-  /** The reason is already said once above the group; keep it in the accessible name only. */
-  quiet?: boolean
-  /** Why it is off; null when offered. Shown under the label, not only on hover. */
-  reason: string | null
-  destructive?: boolean
-  onSelect: () => void
-}): React.JSX.Element {
-  return (
-    <DropdownMenuItem
-      disabled={reason !== null}
-      variant={destructive ? 'destructive' : 'default'}
-      aria-label={reason ? `${label}. ${reason}` : undefined}
-      onSelect={onSelect}
-      className="items-start"
-    >
-      <Icon className="mt-0.5" />
-      <span className="flex min-w-0 flex-col">
-        <span>{label}</span>
-        {reason && !quiet && <span className="text-2xs text-muted-foreground">{reason}</span>}
-      </span>
-    </DropdownMenuItem>
-  )
-}
 
 /** Every row's full action list, also the only way in on a narrow card. Off actions say why. */
 export function QueueRowMenu({
@@ -69,7 +36,10 @@ export function QueueRowMenu({
   pending,
   onMove,
   onRunNext,
-  onConfirm
+  onConfirm,
+  moveSource,
+  moveTargets,
+  onMoveHost
 }: {
   hostId: string
   row: HeavyQueueRow
@@ -77,10 +47,14 @@ export function QueueRowMenu({
   onMove: (to: QueueMove) => void
   onRunNext: () => void
   onConfirm: (kind: ConfirmKind) => void
+  /** This host when its queue can move jobs, with the other hosts that can take them. */
+  moveSource: HeavyMoveHost | null
+  moveTargets: readonly HeavyMoveHost[]
+  onMoveHost: HeavyJobMoveRequest
 }): React.JSX.Element {
   const t = useTranslate()
   const { job, can } = row
-  const running = job.status === 'running'
+  const waiting = job.status === 'waiting'
   const readOnly = t(
     'resourceManager.heavyQueue.reasonReadOnly',
     "This host's queue can't be changed from here"
@@ -117,40 +91,40 @@ export function QueueRowMenu({
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" className="w-60">
-        {!running && (
+        {waiting && (
           <>
             {orderReason && (
               <div className="px-2 py-1.5 text-2xs text-muted-foreground">{orderReason}</div>
             )}
-            <Item
+            <QueueMenuItem
               icon={ArrowUp}
               label={t('resourceManager.heavyQueue.moveUp', 'Move up')}
               quiet={orderReason !== null}
               reason={moveReason(can.moveUp, first)}
               onSelect={() => onMove('up')}
             />
-            <Item
+            <QueueMenuItem
               icon={ArrowDown}
               label={t('resourceManager.heavyQueue.moveDown', 'Move down')}
               quiet={orderReason !== null}
               reason={moveReason(can.moveDown, last)}
               onSelect={() => onMove('down')}
             />
-            <Item
+            <QueueMenuItem
               icon={ArrowUpToLine}
               label={t('resourceManager.heavyQueue.runNext', 'Run next')}
               quiet={orderReason !== null}
               reason={moveReason(can.runNext, first)}
               onSelect={onRunNext}
             />
-            <Item
+            <QueueMenuItem
               icon={ArrowDownToLine}
               label={t('resourceManager.heavyQueue.moveToEnd', 'Move to end')}
               quiet={orderReason !== null}
               reason={moveReason(can.moveToEnd, last)}
               onSelect={() => onMove('bottom')}
             />
-            <Item
+            <QueueMenuItem
               icon={Zap}
               label={t('resourceManager.heavyQueue.startNow', 'Start now…')}
               quiet
@@ -160,13 +134,24 @@ export function QueueRowMenu({
             <DropdownMenuSeparator />
           </>
         )}
-        <Item
+        {moveSource && moveTargets.length > 0 && job.status !== 'moved' && (
+          <>
+            <RunOnHostItems
+              source={moveSource}
+              targets={moveTargets}
+              job={job}
+              onMove={onMoveHost}
+            />
+            <DropdownMenuSeparator />
+          </>
+        )}
+        <QueueMenuItem
           icon={Copy}
           label={t('resourceManager.sessionProcesses.copy', 'Copy command')}
           reason={null}
           onSelect={() => void window.api.ui.writeClipboardText(job.command)}
         />
-        <Item
+        <QueueMenuItem
           icon={FolderOpen}
           label={t('resourceManager.heavyQueue.openFolder', 'Open folder')}
           reason={
@@ -180,8 +165,8 @@ export function QueueRowMenu({
           onSelect={() => void window.api.shell.openPath(job.cwd, LOCAL_EXECUTION_HOST_ID)}
         />
         <DropdownMenuSeparator />
-        {running ? (
-          <Item
+        {!waiting ? (
+          <QueueMenuItem
             icon={Square}
             label={t('resourceManager.heavyQueue.stop', 'Stop…')}
             reason={
@@ -196,7 +181,7 @@ export function QueueRowMenu({
             onSelect={() => onConfirm('stop')}
           />
         ) : (
-          <Item
+          <QueueMenuItem
             icon={X}
             label={t('resourceManager.heavyQueue.remove', 'Remove from queue…')}
             reason={can.remove ? null : readOnly}

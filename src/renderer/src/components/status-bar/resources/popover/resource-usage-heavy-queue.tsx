@@ -7,25 +7,57 @@ import type { HeavyCommandQueue } from '../../../../../../shared/diagnostics/pro
 import { useHostSectionCollapsed } from './resource-host-section'
 import { buildHeavyQueueView } from './resource-heavy-queue-view'
 import { useHeavyQueueActions } from './resource-heavy-queue-actions'
-import { QueueAction, QueueRow } from './resource-heavy-queue-row'
+import { QueueAction, QueueRow, type RowMoveHosts } from './resource-heavy-queue-row'
+import {
+  executeHeavyJobMove,
+  heavyJobBlockersText,
+  type HeavyMoveHost
+} from './resource-heavy-job-move'
 
 const COLLAPSED_STORAGE_KEY = 'orca.resourceManager.heavyQueueCollapsed'
 /** The Resource Manager offers up to this many slots; a host set higher by hand keeps its number. */
 const MAX_OFFERED_SLOTS = 3
+const NO_HOSTS: readonly HeavyMoveHost[] = []
 
 /** A host's vps-heavy queue inside its card: the summary and slot controls stay visible when folded. */
 export function HostHeavyQueue({
   hostId,
   label,
-  queue
+  queue,
+  movableHosts = NO_HOSTS
 }: {
   hostId: string
   label: string
   queue: HeavyCommandQueue
+  /** Every card whose queue can move jobs, this one included. */
+  movableHosts?: readonly HeavyMoveHost[]
 }): React.JSX.Element {
   const t = useTranslate()
   const view = useMemo(() => buildHeavyQueueView(queue), [queue])
-  const { run, pending, error } = useHeavyQueueActions(hostId)
+  const { run, runTask, pending, error } = useHeavyQueueActions(hostId)
+  const source = queue.canMoveHost ? { id: hostId, label, queue } : null
+  const moveHosts: RowMoveHosts = {
+    source,
+    targets: source ? movableHosts.filter((host) => host.id !== hostId) : [],
+    onMoveHost: (pid) => (target, plan) =>
+      runTask(
+        async () => {
+          const blockers = source ? await executeHeavyJobMove(source, target, pid, plan) : []
+          if (blockers.length > 0) {
+            throw new Error(heavyJobBlockersText(blockers, t))
+          }
+        },
+        (message) =>
+          t(
+            'resourceManager.heavyQueue.moveHostFailed',
+            "Couldn't move it to {{value0}}. {{value1}}",
+            {
+              value0: target.label,
+              value1: message
+            }
+          )
+      )
+  }
   const [collapsed, toggleCollapsed] = useHostSectionCollapsed(COLLAPSED_STORAGE_KEY, hostId)
   const setSlots = (slots: number): void =>
     run({ action: 'slots', slots }, (message) =>
@@ -33,7 +65,7 @@ export function HostHeavyQueue({
         value0: message
       })
     )
-  const rows = [...view.running, ...view.waiting]
+  const rows = [...view.running, ...view.moved, ...view.waiting]
   const full = view.busy >= view.slots && view.waiting.length > 0
   const slotsLabel = t('resourceManager.heavyQueue.slots', 'Runs up to {{count}} at once', {
     count: view.slots,
@@ -136,6 +168,7 @@ export function HostHeavyQueue({
               hostLabel={label}
               pending={pending}
               run={run}
+              moveHosts={moveHosts}
             />
           ))}
         </ul>

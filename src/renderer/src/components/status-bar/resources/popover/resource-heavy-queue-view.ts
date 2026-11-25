@@ -34,6 +34,8 @@ export type HeavyQueueView = {
   extra: number
   controls: boolean
   running: HeavyQueueRow[]
+  /** Relayed to a peer: no slot here, only stop. */
+  moved: HeavyQueueRow[]
   waiting: HeavyQueueRow[]
 }
 
@@ -93,6 +95,17 @@ export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
       place: placeOf(job),
       can: { ...NO_ACTIONS, stop: queue.controls && queue.canStop === true }
     })),
+    moved: queue.jobs
+      .filter((job) => job.status === 'moved')
+      .sort((a, b) => a.queuedAt - b.queuedAt)
+      .map((job) => ({
+        job,
+        elapsedMs: Math.max(0, queue.readAt - (job.startedAt ?? job.queuedAt)),
+        elapsedFromQueue: false,
+        position: null,
+        place: placeOf(job),
+        can: { ...NO_ACTIONS, stop: queue.controls && queue.canStop === true }
+      })),
     waiting: waiting.map((job, index) => {
       const ordered = orderable.includes(job)
       return {

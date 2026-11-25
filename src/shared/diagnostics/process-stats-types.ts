@@ -1,3 +1,5 @@
+import type { HeavyQueuePeer } from './heavy-job-move-types'
+
 export type StatsSummary = {
   totalAgentsSpawned: number
   totalPRsCreated: number
@@ -97,12 +99,19 @@ export type HeavyCommandQueue = {
   controls: boolean
   /** True when the host's script can also stop a running job; absent from older hosts. */
   canStop?: boolean
+  /** Hostname the host's script reports; absent from older scripts. */
+  hostname?: string | null
+  /** ssh peers the host's script can move jobs to; absent from older scripts. */
+  peers?: HeavyQueuePeer[]
+  /** True when the host's script can move a job to a peer (`move-host`). */
+  canMoveHost?: boolean
   jobs: HeavyCommandJob[]
 }
 
 export type HeavyCommandJob = {
   pid: number
-  status: 'running' | 'waiting'
+  /** moved: this host's wrapper relays the job running on a peer; it holds no slot. */
+  status: 'running' | 'waiting' | 'moved'
   /** null while waiting and in an extra slot. */
   slot: number | null
   /** 1-based place among the waiting; null while running or when the host does not order its queue. */
@@ -119,9 +128,19 @@ export type HeavyCommandJob = {
   startedAt: number | null
   cwd: string
   command: string
+  /** The command's argv; absent from older scripts, which cannot move the job. */
+  argv?: string[]
+  /** The script's group for the job; null when it has none. */
+  group?: string | null
+  /** Hostname of the host that moved the job here; null for jobs started here. */
+  movedFrom?: string | null
+  /** The peer now running this job; set on status moved. */
+  movedTo?: HeavyJobMovedTo | null
   /** The Orca workspace holding cwd on that host; absent when none does. */
   workspace?: HeavyCommandWorkspace
 }
+
+export type HeavyJobMovedTo = { peer: string; alias: string; hostname: string | null }
 
 export type HeavyCommandWorkspace = { worktreeId: string; worktreeName: string; repoName: string }
 

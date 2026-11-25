@@ -1,3 +1,4 @@
+import React from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import type {
   HeavyCommandJob,
@@ -5,6 +6,8 @@ import type {
 } from '../../../../../../shared/diagnostics/process-stats-types'
 import type { ResourceHostSummary } from './resource-host-summary'
 import { ResourceHostCards } from './resource-usage-hosts-summary'
+import { HeavyJobMoveCheckContext } from './resource-heavy-queue-move-items'
+import type { checkHeavyJobMove } from './resource-heavy-job-move'
 
 const NOW = 1_795_450_000_000
 const MIN = 60_000
@@ -23,6 +26,7 @@ const job = (pid: number, repo: string, wt: string, fields: Partial<HeavyCommand
     startedAt: null,
     cwd: `/work/${repo}/${wt}`,
     command: 'pnpm check:changed',
+    argv: ['pnpm', 'check:changed'],
     workspace: { worktreeId: `${repo}::/work/${repo}/${wt}`, repoName: repo, worktreeName: wt },
     ...fields
   }) satisfies HeavyCommandJob
@@ -31,6 +35,10 @@ const macQueue: HeavyCommandQueue = {
   readAt: NOW,
   slots: 1,
   controls: true,
+  canStop: true,
+  canMoveHost: true,
+  hostname: 'gabriel-mac',
+  peers: [{ name: 'vps', alias: 'vps', hostname: 'vps-host' }],
   jobs: [
     job(301, 'ProOps', 'main', {
       status: 'running',
@@ -38,7 +46,12 @@ const macQueue: HeavyCommandQueue = {
       startedAt: NOW - 8 * MIN,
       command: 'xcodebuild -scheme ProOps build'
     }),
-    job(302, 't3code', 'feature-ui', { position: 1, command: 'pnpm test' })
+    job(302, 't3code', 'feature-ui', { position: 1, command: 'pnpm test' }),
+    job(303, 'Tudo-Azul', 'main', {
+      position: 2,
+      command: 'npm -w web run lint',
+      movedFrom: 'vps-host'
+    })
   ]
 }
 
@@ -46,6 +59,10 @@ const vpsQueue: HeavyCommandQueue = {
   readAt: NOW,
   slots: 2,
   controls: true,
+  canStop: true,
+  canMoveHost: true,
+  hostname: 'vps-host',
+  peers: [{ name: 'Mac', alias: 'mac', hostname: 'gabriel-mac' }],
   jobs: [
     job(401, 'Tudo-Azul', 'main', {
       status: 'running',
@@ -64,7 +81,14 @@ const vpsQueue: HeavyCommandQueue = {
       command: 'vps-heavy --group orca-check pnpm typecheck'
     }),
     job(404, 'Tudo-Azul', 'hotfix', { position: 2, command: 'npx playwright test' }),
-    job(405, 'ProOps', 'main', { position: 3, command: 'pnpm build' })
+    job(405, 'ProOps', 'main', { position: 3, command: 'pnpm build' }),
+    job(406, 'Tudo-Azul', 'main', {
+      status: 'moved',
+      queuedAt: NOW - 2 * MIN,
+      startedAt: NOW - 2 * MIN,
+      command: 'npm -w web run lint',
+      movedTo: { peer: 'Mac', alias: 'mac', hostname: 'gabriel-mac' }
+    })
   ]
 }
 
@@ -105,3 +129,60 @@ export const twoHostQueuesNarrow = defineFixture({
   width: 352,
   render: () => <ResourceHostCards hosts={hosts} />
 })
+
+// The xcodebuild job cannot run on the Linux host; every other job can move.
+const cannedCheck: typeof checkHeavyJobMove = async (_source, target, job) =>
+  job.pid === 301
+    ? { ok: false, blockers: [{ code: 'executable_missing', detail: 'xcodebuild' }] }
+    : {
+        ok: true,
+        plan: {
+          peer: { name: target.label, alias: target.id, hostname: target.queue.hostname ?? null },
+          request: {
+            remoteUrl: 'github.com/example/repo',
+            branch: 'main',
+            commit: '0'.repeat(40),
+            relativeDir: '',
+            argv: job.argv ?? [],
+            prepare: false
+          }
+        }
+      }
+
+function CardsWithCannedMoves(): React.JSX.Element {
+  return (
+    <HeavyJobMoveCheckContext.Provider value={cannedCheck}>
+      <ResourceHostCards hosts={hosts} />
+    </HeavyJobMoveCheckContext.Provider>
+  )
+}
+
+const openMenuOf = (command: string) => async (frame: HTMLElement) => {
+  const row = [...frame.querySelectorAll('li[data-queue-row]')].find((li) =>
+    li.textContent?.includes(command)
+  )
+  row
+    ?.querySelector('button[data-queue-menu]')
+    ?.dispatchEvent(
+      new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerType: 'mouse' })
+    )
+  await new Promise((resolve) => setTimeout(resolve, 150))
+}
+
+/** A waiting Linux job's menu: "Run on Mac" is offered. */
+export const runOnMacMenu = defineFixture({
+  width: 512,
+  render: () => <CardsWithCannedMoves />,
+  interact: openMenuOf('npx playwright test')
+})
+
+export const runOnMacMenuNarrow = defineFixture({ ...runOnMacMenu, width: 352 })
+
+/** The running xcodebuild job's menu: "Run on vps" is off and says why. */
+export const runOnBlockedMenu = defineFixture({
+  width: 512,
+  render: () => <CardsWithCannedMoves />,
+  interact: openMenuOf('xcodebuild -scheme ProOps build')
+})
+
+export const runOnBlockedMenuNarrow = defineFixture({ ...runOnBlockedMenu, width: 352 })

@@ -23,6 +23,7 @@ import {
   type MeterTone
 } from './resource-host-meters'
 import { HostHeavyQueue } from './resource-usage-heavy-queue'
+import type { HeavyMoveHost } from './resource-heavy-job-move'
 
 const TONE_TEXT_CLS: Record<MeterTone, string> = {
   normal: 'text-foreground',
@@ -171,7 +172,13 @@ function CountChip({
   )
 }
 
-function HostCard({ host }: { host: ResourceHostSummary }): React.JSX.Element {
+function HostCard({
+  host,
+  movableHosts
+}: {
+  host: ResourceHostSummary
+  movableHosts: readonly HeavyMoveHost[]
+}): React.JSX.Element {
   const t = useTranslate()
   const Icon = host.isLocal ? Laptop : Server
   const sampled = host.counts !== null
@@ -247,7 +254,12 @@ function HostCard({ host }: { host: ResourceHostSummary }): React.JSX.Element {
         )}
       </div>
       {host.machine?.heavyQueue && (
-        <HostHeavyQueue hostId={host.id} label={host.label} queue={host.machine.heavyQueue} />
+        <HostHeavyQueue
+          hostId={host.id}
+          label={host.label}
+          queue={host.machine.heavyQueue}
+          movableHosts={movableHosts}
+        />
       )}
     </li>
   )
@@ -260,13 +272,18 @@ export function ResourceHostCards({
   hosts: readonly ResourceHostSummary[]
 }): React.JSX.Element {
   const t = useTranslate()
+  const movableHosts = hosts.flatMap((host) =>
+    host.machine?.heavyQueue?.canMoveHost
+      ? [{ id: host.id, label: host.label, queue: host.machine.heavyQueue }]
+      : []
+  )
   return (
     <ul
       className="flex flex-col gap-2 px-3 pt-1 pb-3"
       aria-label={t('resourceManager.hosts.machines', 'Machines')}
     >
       {hosts.map((host) => (
-        <HostCard key={host.id} host={host} />
+        <HostCard key={host.id} host={host} movableHosts={movableHosts} />
       ))}
     </ul>
   )

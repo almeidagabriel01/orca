@@ -215,7 +215,8 @@ export function useProjectTargetActions(input: ProjectTargetActionsInput) {
         projectId: option?.kind === 'project' ? option.projectId : projectId,
         focusedHostScope: preferredHostId ?? workspaceHostScope,
         actionableHostIds,
-        projectRunHostIds: useAppStore.getState().settings?.projectRunHostIds
+        projectRunHostIds: useAppStore.getState().settings?.projectRunHostIds,
+        heavyRunHostDefault: useAppStore.getState().settings?.heavyRunHostDefault
       })
       if (!nextRepoId) {
         return

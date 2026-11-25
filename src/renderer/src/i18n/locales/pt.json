@@ -1526,7 +1526,13 @@
     }
   },
   "settings": {
+    "heavyRunHostDefault": {
+      "label": "Rodar trabalho pesado em",
+      "description": "Host para onde vão os novos workspaces e os comandos pesados quando o projeto não tem um Rodar em próprio. Automático continua escolhendo por projeto.",
+      "automatic": "Automático"
+    },
     "projectRunHost": {
+      "useGlobal": "Usar padrão global ({{value0}})",
       "label": "Rodar em",
       "description": "Host onde os novos workspaces deste projeto são criados e executados. Ainda dá para escolher outro host ao criar um."
     },
@@ -24774,7 +24780,38 @@
       "reasonFirst": "Já é o primeiro da fila",
       "reasonLast": "Já é o último da fila",
       "reasonRemoteFolder": "A pasta está em outra máquina",
-      "reasonCantStop": "A fila pesada deste host não sabe parar comandos; atualize-o"
+      "reasonCantStop": "A fila pesada deste host não sabe parar comandos; atualize-o",
+      "moved": "Movido",
+      "movedTo": "→ rodando em {{value0}}",
+      "movedFrom": "de {{value0}}",
+      "otherHost": "outro host",
+      "routeStays": "Fica em {{value0}}; {{value1}} não consegue rodar: {{value2}}",
+      "runOn": "Rodar em {{value0}}",
+      "moveChecking": "Verificando aquele host…",
+      "moveHostFailed": "Não foi possível mover para {{value0}}. {{value1}}",
+      "blocker": {
+        "queueUnavailable": "A fila pesada daquele host não sabe mover jobs; atualize-a",
+        "jobGone": "O job já terminou",
+        "noArgv": "Iniciado por uma fila pesada antiga que não registrou o comando",
+        "alreadyMoved": "Já foi movido uma vez",
+        "notGit": "A pasta não é um checkout git",
+        "noRemote": "O checkout não tem remote",
+        "detachedHead": "O checkout não está em uma branch",
+        "uncommittedChanges": "Há mudanças não commitadas aqui",
+        "unpushedCommits": "Há commits aqui que não foram enviados",
+        "noPeer": "Nenhum peer ssh alcança aquele host; adicione-o aos peers do heavy",
+        "projectMissing": "O projeto não está clonado lá",
+        "noCheckoutOnBranch": "Nenhum checkout na branch {{value0}} lá",
+        "commitUnreachable": "Aquele host não consegue buscar este commit",
+        "checkoutDirty": "O checkout de lá está atrasado e tem mudanças locais",
+        "checkoutDiverged": "O checkout de lá tem commits que este não tem",
+        "directoryMissing": "A pasta {{value0}} não existe lá",
+        "executableMissing": "{{value0}} não está instalado lá",
+        "scriptMissing": "O script {{value0}} não existe lá",
+        "dockerUnavailable": "O Docker não está rodando lá",
+        "hostUnreachable": "Não foi possível alcançar o host",
+        "unsupportedHost": "Aquele host roda um Orca antigo; atualize-o"
+      }
     },
     "sessionProcesses": {
       "copy": "Copiar comando",

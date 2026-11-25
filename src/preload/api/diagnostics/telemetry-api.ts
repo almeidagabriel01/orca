@@ -2,6 +2,11 @@ import type { BrowserExtensionsBannerAssignmentReply } from '../../../shared/bro
 import type { ResourceViewAdmission } from '../../../shared/diagnostics/resource-view-admission'
 import type { PerfNoticeSignals } from '../../../shared/diagnostics/perf-notice-signals'
 import type { HeavyQueueAction } from '../../../shared/rpc-contract/diagnostics-params'
+import type {
+  HeavyJobMoveSource,
+  HeavyJobTargetCheck,
+  HeavyJobTargetRequest
+} from '../../../shared/diagnostics/heavy-job-move-types'
 import type { TelemetryConsentState } from '../../../shared/telemetry/telemetry-consent-types'
 import type {
   MemorySnapshot,
@@ -46,6 +51,16 @@ export type MemoryApi = {
   ) => Promise<SessionProcessTree | null>
   /** Controls this computer's vps-heavy queue; rejects with the script's message when it refuses. */
   heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission) => Promise<void>
+  /** This computer's view of one of its heavy jobs, for moving it to another host. */
+  heavyJobMoveSource: (
+    pid: number,
+    admission?: ResourceViewAdmission
+  ) => Promise<HeavyJobMoveSource>
+  /** Whether this computer can run a job moved here; prepare fast-forwards a clean checkout. */
+  heavyJobTargetCheck: (
+    request: HeavyJobTargetRequest,
+    admission?: ResourceViewAdmission
+  ) => Promise<HeavyJobTargetCheck>
   readPerfNoticeSignals: () => Promise<PerfNoticeSignals | null>
   countHiddenBrowserPages: (hiddenForMs: number) => Promise<number>
   resourceWindowVisible: () => Promise<boolean>

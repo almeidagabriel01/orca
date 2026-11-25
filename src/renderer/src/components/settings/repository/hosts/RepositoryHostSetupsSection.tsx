@@ -26,6 +26,7 @@ import { buildSetupHostOptions, getSetupStateLabel } from './repository-host-set
 import { RepositoryHostSetupActions } from './RepositoryHostSetupActions'
 import { ProjectRunHostSetting } from './ProjectRunHostSetting'
 import {
+  getGlobalRunHostLabel,
   getProjectRunHostOptions,
   setProjectRunHost
 } from '@/lib/workspace/creation/project-run-host'
@@ -245,6 +246,7 @@ export function RepositoryHostSetupsSection({
         <ProjectRunHostSetting
           options={runHostOptions}
           value={settings?.projectRunHostIds?.[runHostProjectId] ?? null}
+          globalLabel={getGlobalRunHostLabel(settings?.heavyRunHostDefault, hostOptions, t)}
           onValueChange={(hostId) => setProjectRunHost(runHostProjectId, hostId)}
         />
       ) : null}

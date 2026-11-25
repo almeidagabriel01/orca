@@ -4,6 +4,7 @@ import {
   ArrowDownToLine,
   ArrowUp,
   ArrowUpToLine,
+  ArrowRight,
   Hourglass,
   Play,
   X,
@@ -19,6 +20,16 @@ import type { HeavyQueueRow } from './resource-heavy-queue-view'
 import { formatElapsed } from './resource-session-processes'
 import { CopyCommand } from './resource-usage-session-processes'
 import { QueueRowMenu, type ConfirmKind, type QueueMove } from './resource-heavy-queue-row-menu'
+import type { HeavyMoveHost } from './resource-heavy-job-move'
+import type { HeavyJobMoveRequest } from './resource-heavy-queue-move-items'
+import { QueueRowHostNote } from './resource-heavy-queue-host-note'
+
+/** What a row needs to offer "Run on <host>"; source is null when this host's queue can't move jobs. */
+export type RowMoveHosts = {
+  source: HeavyMoveHost | null
+  targets: readonly HeavyMoveHost[]
+  onMoveHost: (pid: number) => HeavyJobMoveRequest
+}
 
 /** A command short enough to name in a question. */
 function shortCommand(command: string): string {
@@ -65,13 +76,15 @@ function RowActions({
   row,
   pending,
   run,
-  onConfirm
+  onConfirm,
+  moveHosts
 }: {
   hostId: string
   row: HeavyQueueRow
   pending: boolean
   run: RunAction
   onConfirm: (kind: ConfirmKind) => void
+  moveHosts: RowMoveHosts
 }): React.JSX.Element {
   const t = useTranslate()
   const { pid } = row.job
@@ -131,6 +144,9 @@ function RowActions({
         onMove={move}
         onRunNext={runNext}
         onConfirm={onConfirm}
+        moveSource={moveHosts.source}
+        moveTargets={moveHosts.targets}
+        onMoveHost={moveHosts.onMoveHost(pid)}
       />
     </div>
   )
@@ -141,27 +157,32 @@ export function QueueRow({
   row,
   hostLabel,
   pending,
-  run
+  run,
+  moveHosts
 }: {
   hostId: string
   row: HeavyQueueRow
   hostLabel: string
   pending: boolean
   run: RunAction
+  moveHosts: RowMoveHosts
 }): React.JSX.Element {
   const t = useTranslate()
   const [expanded, setExpanded] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmKind | null>(null)
   const { job } = row
   const running = job.status === 'running'
-  const Icon = running ? Play : Hourglass
-  const where = running
-    ? job.extra
-      ? t('resourceManager.heavyQueue.extraSlot', 'Extra slot')
-      : job.slot !== null
-        ? t('resourceManager.heavyQueue.slot', 'Slot {{value0}}', { value0: job.slot })
-        : t('resourceManager.heavyQueue.running', 'Running')
-    : t('resourceManager.heavyQueue.position', '#{{value0}}', { value0: row.position })
+  const moved = job.status === 'moved'
+  const Icon = running ? Play : moved ? ArrowRight : Hourglass
+  const where = moved
+    ? t('resourceManager.heavyQueue.moved', 'Moved')
+    : running
+      ? job.extra
+        ? t('resourceManager.heavyQueue.extraSlot', 'Extra slot')
+        : job.slot !== null
+          ? t('resourceManager.heavyQueue.slot', 'Slot {{value0}}', { value0: job.slot })
+          : t('resourceManager.heavyQueue.running', 'Running')
+      : t('resourceManager.heavyQueue.position', '#{{value0}}', { value0: row.position })
   const elapsed = formatElapsed(row.elapsedMs)
   const confirmRun = (): void => {
     setConfirm(null)
@@ -247,6 +268,7 @@ export function QueueRow({
             pending={pending}
             run={run}
             onConfirm={setConfirm}
+            moveHosts={moveHosts}
           />
         </div>
         <div className="flex min-w-0 items-start gap-1 pl-[1.125rem] [grid-area:cmd]">
@@ -278,6 +300,7 @@ export function QueueRow({
           <CopyCommand command={job.command} />
         </div>
       </div>
+      <QueueRowHostNote hostId={hostId} hostLabel={hostLabel} job={job} />
       {confirm && (
         <div
           role="group"

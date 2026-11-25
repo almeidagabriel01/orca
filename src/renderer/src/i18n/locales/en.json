@@ -709,7 +709,13 @@
     "refreshingDetails": "Refreshing check details…"
   },
   "settings": {
+    "heavyRunHostDefault": {
+      "label": "Run heavy work on",
+      "description": "Host new workspaces and heavy commands go to when a project has no Run on host of its own. Automatic keeps choosing per project.",
+      "automatic": "Automatic"
+    },
     "projectRunHost": {
+      "useGlobal": "Use global default ({{value0}})",
       "label": "Run on",
       "description": "Host where new workspaces of this project are created and run. You can still pick another host when creating one."
     },
@@ -26654,7 +26660,38 @@
       "reasonFirst": "Already first in line",
       "reasonLast": "Already last in line",
       "reasonRemoteFolder": "The folder is on another machine",
-      "reasonCantStop": "This host's heavy queue can't stop commands; update it"
+      "reasonCantStop": "This host's heavy queue can't stop commands; update it",
+      "moved": "Moved",
+      "movedTo": "→ running on {{value0}}",
+      "movedFrom": "from {{value0}}",
+      "otherHost": "another host",
+      "routeStays": "Stays on {{value0}}; {{value1}} can’t run it: {{value2}}",
+      "runOn": "Run on {{value0}}",
+      "moveChecking": "Checking that host…",
+      "moveHostFailed": "Couldn't move it to {{value0}}. {{value1}}",
+      "blocker": {
+        "queueUnavailable": "That host's heavy queue can't move jobs; update it",
+        "jobGone": "The job already ended",
+        "noArgv": "Started by an older heavy queue that did not record the command",
+        "alreadyMoved": "Already moved once",
+        "notGit": "The folder is not a git checkout",
+        "noRemote": "The checkout has no remote",
+        "detachedHead": "The checkout is not on a branch",
+        "uncommittedChanges": "Uncommitted changes here",
+        "unpushedCommits": "Commits here are not pushed",
+        "noPeer": "No ssh peer reaches that host; add it to the heavy peers",
+        "projectMissing": "The project is not cloned there",
+        "noCheckoutOnBranch": "No checkout on branch {{value0}} there",
+        "commitUnreachable": "That host can't fetch this commit",
+        "checkoutDirty": "The checkout there is behind and has local changes",
+        "checkoutDiverged": "The checkout there has commits this one lacks",
+        "directoryMissing": "Folder {{value0}} is missing there",
+        "executableMissing": "{{value0}} is not installed there",
+        "scriptMissing": "Script {{value0}} is missing there",
+        "dockerUnavailable": "Docker is not running there",
+        "hostUnreachable": "Couldn't reach the host",
+        "unsupportedHost": "That host runs an older Orca; update it"
+      }
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"

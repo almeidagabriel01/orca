@@ -215,6 +215,48 @@ describe('parseHeavyQueueListing', () => {
     expect(parseHeavyQueueListing([])).toEqual({ jobs: [], slots: null, controls: false })
     expect(parseHeavyQueueListing({ version: 1, jobs: [] })).toBeNull()
   })
+
+  it('reads move-host fields bounded, and drops what does not fit', () => {
+    const job = { queuedAt: 1, startedAt: null, cwd: '/r', command: 'x' }
+    const listing = parseHeavyQueueListing({
+      version: 2,
+      slots: 1,
+      hostname: 'vps',
+      features: ['move-host'],
+      peers: [
+        { name: 'mac', alias: 'mac', hostname: null },
+        { name: 'bad' },
+        { name: 'x'.repeat(300), alias: 'y' }
+      ],
+      jobs: [
+        {
+          ...job,
+          pid: 1,
+          status: 'moved',
+          position: 2,
+          argv: ['pnpm', 'test'],
+          movedTo: { peer: 'mac', alias: 'mac', hostname: 'Mac.local' }
+        },
+        { ...job, pid: 2, status: 'waiting', argv: ['ok', 3], group: 'itest', movedFrom: 'mac' },
+        { ...job, pid: 3, status: 'gone' }
+      ]
+    })
+    expect(listing?.hostname).toBe('vps')
+    expect(listing?.canMoveHost).toBe(true)
+    expect(listing?.peers).toEqual([{ name: 'mac', alias: 'mac', hostname: null }])
+    expect(listing?.jobs).toMatchObject([
+      {
+        pid: 1,
+        status: 'moved',
+        position: null,
+        argv: ['pnpm', 'test'],
+        movedTo: { peer: 'mac', alias: 'mac', hostname: 'Mac.local' }
+      },
+      { pid: 2, status: 'waiting', group: 'itest', movedFrom: 'mac' }
+    ])
+    expect(listing?.jobs[1]?.argv).toBeUndefined()
+    expect(parseHeavyQueueListing({ version: 2, jobs: [] })?.canMoveHost).toBeUndefined()
+  })
 })
 
 describe('attributeHeavyQueueWorkspaces', () => {

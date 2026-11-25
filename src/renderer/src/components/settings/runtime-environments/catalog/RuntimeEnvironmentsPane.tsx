@@ -16,6 +16,7 @@ import {
 } from './runtime-environment-dialogs'
 import { RuntimeAddServerDialog } from '../pairing/runtime-add-server-dialog'
 import { RuntimeDefaultHostRow } from './runtime-default-host-row'
+import { HeavyRunHostDefaultRow } from './heavy-run-host-default-row'
 import { RuntimeInstallServerDialog } from '../managed-servers/runtime-install-server-dialog'
 import { RuntimeServerList } from '../server-rows/runtime-server-list'
 import { RuntimeServerListHeader } from '../server-rows/runtime-server-list-header'
@@ -202,6 +203,8 @@ export function RuntimeEnvironmentsPane({
         isBusy={isBusy}
         onValueChange={requestSwitch}
       />
+
+      <HeavyRunHostDefaultRow allowLocalRuntime={allowLocalRuntime} />
 
       <div className="space-y-2">
         <RuntimeServerListHeader />

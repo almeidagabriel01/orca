@@ -22,6 +22,8 @@ export function heavyQueueActionArgs(action: HeavyQueueAction): string[] {
       return ['stop', String(action.pid)]
     case 'slots':
       return ['slots', String(action.slots)]
+    case 'move-host':
+      return ['move-host', String(action.pid), action.peer, action.cwd]
   }
 }
 
@@ -32,6 +34,12 @@ export async function runHeavyQueueAction(action: HeavyQueueAction): Promise<voi
     : null
   if (!script) {
     throw new Error('heavy_queue_unavailable')
+  }
+  if (action.action === 'move-host') {
+    const queue = await sampleHeavyCommandQueue()
+    if (!queue?.peers?.some((peer) => peer.alias === action.peer)) {
+      throw new Error('heavy_queue_unknown_peer')
+    }
   }
   const result = await runProcess({
     program: script,

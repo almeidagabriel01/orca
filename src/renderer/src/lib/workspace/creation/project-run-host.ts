@@ -5,6 +5,13 @@ import { translateHostDisplayLabel } from '@/runtime/hosts/display/execution-hos
 import type { Translate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store'
 import { getRepoWorkspaceCreationTargetHint } from './project-host-workspace-target'
+import { useRuntimeStatusByEnvironmentId } from '@/store/slices/runtime-status/views/use-runtime-status-view'
+import { buildExecutionHostRegistry } from '../../../../../shared/execution-host/execution-host-registry'
+import type { ExecutionHostRegistryEntry } from '../../../../../shared/execution-host/execution-host-registry-entry'
+import { getHostDisplayLabelOverrides } from '../../../../../shared/execution-host/host-setting-overrides'
+
+/** Choice value meaning "no host saved" (global default / Automatic); never a host id. */
+export const RUN_HOST_DEFAULT_VALUE = '__default__'
 
 export type ProjectRunHostOption = { hostId: ExecutionHostId; label: string }
 
@@ -42,9 +49,46 @@ export function getRepoRunHostProjectId(
   return getRepoWorkspaceCreationTargetHint(repo, projectHostSetups).projectId
 }
 
-export function setProjectRunHost(projectId: string, hostId: ExecutionHostId): void {
-  const { settings, updateSettings } = useAppStore.getState()
-  void updateSettings({
-    projectRunHostIds: { ...settings?.projectRunHostIds, [projectId]: hostId }
+/** Hosts this client can create on: the same configured-only registry the composer resolves against. */
+export function useRunHostCandidates(): ExecutionHostRegistryEntry[] {
+  const repos = useAppStore((state) => state.repos)
+  const settings = useAppStore((state) => state.settings)
+  const sshTargetLabels = useAppStore((state) => state.sshTargetLabels)
+  const sshConnectionStates = useAppStore((state) => state.sshConnectionStates)
+  const runtimeEnvironments = useAppStore((state) => state.runtimeEnvironments)
+  const runtimeStatusByEnvironmentId = useRuntimeStatusByEnvironmentId()
+  return buildExecutionHostRegistry({
+    repos,
+    settings,
+    hostSource: 'configured-only',
+    sshTargetLabels,
+    sshConnectionStates,
+    runtimeEnvironments,
+    runtimeStatusByEnvironmentId,
+    hostLabelOverrides: getHostDisplayLabelOverrides(settings)
   })
+}
+
+/** Label of the global "Run heavy work on" host, or "Automatic" when unset. */
+export function getGlobalRunHostLabel(
+  hostId: ExecutionHostId | null | undefined,
+  hosts: readonly RunHostCandidate[],
+  t: Translate
+): string {
+  if (!hostId) {
+    return t('settings.heavyRunHostDefault.automatic', 'Automatic')
+  }
+  const host = hosts.find((candidate) => candidate.id === hostId)
+  return host ? translateHostDisplayLabel(host, t) : hostId
+}
+
+/** null clears the project's choice so it follows the global default again. */
+export function setProjectRunHost(projectId: string, hostId: ExecutionHostId | null): void {
+  const { settings, updateSettings } = useAppStore.getState()
+  const { [projectId]: _previous, ...rest } = settings?.projectRunHostIds ?? {}
+  void updateSettings({ projectRunHostIds: hostId ? { ...rest, [projectId]: hostId } : rest })
+}
+
+export function setHeavyRunHostDefault(hostId: ExecutionHostId | null): void {
+  void useAppStore.getState().updateSettings({ heavyRunHostDefault: hostId })
 }

@@ -121,6 +121,8 @@ function createWebPreloadApi(): Omit<Partial<PreloadApi>, 'settings' | 'plugins'
       // The web client reads no local host, so it has nothing to warn about.
       // Its queues live on paired servers, which take their own controls.
       heavyQueueAction: () => Promise.reject(new Error('heavy_queue_unavailable')),
+      heavyJobMoveSource: () => Promise.reject(new Error('heavy_queue_unavailable')),
+      heavyJobTargetCheck: () => Promise.reject(new Error('heavy_queue_unavailable')),
       readPerfNoticeSignals: () => Promise.resolve(null),
       countHiddenBrowserPages: () => Promise.resolve(0),
       // Browser pages have no native-window veto; document visibility owns admission.

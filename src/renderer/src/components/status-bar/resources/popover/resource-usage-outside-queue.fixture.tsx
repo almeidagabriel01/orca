@@ -2,6 +2,8 @@ import React from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import type { OutsideQueueProcessGroup } from '../../../../../../shared/diagnostics/process-stats-types'
 import { ResourceHostCards } from './resource-usage-hosts-summary'
+import { ResourceFoldAllToolbar } from './resource-host-card-fold'
+import { setAllHostSectionsCollapsed } from './resource-host-section'
 import type { ResourceHostSummary } from './resource-host-summary'
 import { localHost, vpsHost } from './resource-manager-popover-fixtures'
 
@@ -77,7 +79,10 @@ const noQueue: ResourceHostSummary = {
 }
 
 const Cards = ({ hosts }: { hosts: ResourceHostSummary[] }): React.JSX.Element => (
-  <ResourceHostCards hosts={hosts} />
+  <>
+    <ResourceFoldAllToolbar onSetAll={setAllHostSectionsCollapsed} />
+    <ResourceHostCards hosts={hosts} />
+  </>
 )
 
 export const macOverloaded = defineFixture({ width: 448, render: () => <Cards hosts={[mac]} /> })
@@ -99,12 +104,15 @@ const foldHosts = [
   { ...mac, id: 'fold-mac' },
   { ...vps, id: 'fold-vps' }
 ]
-// Folds the Mac's outside-queue section and the whole vps card, so their one-line summaries show.
+// Folds the Mac's sections (metrics, queue, outside the queue) and the whole vps card.
 const foldSome = async (frame: HTMLElement): Promise<void> => {
   const [macCard, vpsCard] = frame.querySelectorAll<HTMLElement>('li[data-host-card]')
-  macCard
-    .querySelector<HTMLButtonElement>('section:last-of-type > button[aria-expanded="true"]')
-    ?.click()
+  const [, ...macSections] = macCard.querySelectorAll<HTMLButtonElement>(
+    'button[aria-expanded="true"]:not([data-queue-command])'
+  )
+  for (const button of macSections) {
+    button.click()
+  }
   vpsCard.querySelector<HTMLButtonElement>('button[aria-expanded="true"]')?.click()
   await new Promise(requestAnimationFrame)
 }

@@ -58,6 +58,16 @@ function OutsideOrcaSection({
       )}
       expandLabel={t('resourceManager.outsideOrca.expand', 'Expand Outside Orca')}
       collapseLabel={t('resourceManager.outsideOrca.collapse', 'Collapse Outside Orca')}
+      trailing={
+        <span className="flex shrink-0 items-center gap-2">
+          <MetricPair
+            cpu={groups.reduce((sum, group) => sum + group.cpu, 0)}
+            memory={groups.reduce((sum, group) => sum + group.memory, 0)}
+            size="small"
+          />
+          <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
+        </span>
+      }
     >
       {visible.map((group) => {
         const Icon = KIND_ICON[group.kind]

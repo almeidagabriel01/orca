@@ -27,7 +27,7 @@ import { useHostSectionCollapsed } from './resource-host-section'
 import {
   HOST_CARD_COLLAPSED_STORAGE_KEY,
   HostCardChevron,
-  HostCardsFoldToolbar,
+  HostMetricsFold,
   HostCollapsedSummary
 } from './resource-host-card-fold'
 import { HostHeavyQueue } from './resource-usage-heavy-queue'
@@ -238,37 +238,39 @@ function HostCard({
         </p>
       )}
       {!collapsed && (
-        <div className="space-y-2.5 px-3 pt-2 pb-2.5">
-          {host.machine && <MachineMeters machine={host.machine} />}
-          {host.counts && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <CountChip
-                icon={SquareTerminal}
-                count={host.counts.terminals}
-                label={t('resourceManager.hosts.terminals', '{{count}} terminals', {
-                  count: host.counts.terminals,
-                  defaultValue_one: '{{count}} terminal'
-                })}
-              />
-              <CountChip
-                icon={Bot}
-                count={host.counts.agents}
-                label={t('resourceManager.hosts.agents', '{{count}} agents', {
-                  count: host.counts.agents,
-                  defaultValue_one: '{{count}} agent'
-                })}
-              />
-              <CountChip
-                icon={Play}
-                count={host.counts.commands}
-                label={t('resourceManager.hosts.commands', '{{count}} commands', {
-                  count: host.counts.commands,
-                  defaultValue_one: '{{count}} command'
-                })}
-              />
-            </div>
-          )}
-        </div>
+        <HostMetricsFold hostId={host.id} machine={host.machine} terminals={host.counts?.terminals}>
+          <div className="space-y-2.5 px-3 pt-2 pb-2.5">
+            {host.machine && <MachineMeters machine={host.machine} />}
+            {host.counts && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <CountChip
+                  icon={SquareTerminal}
+                  count={host.counts.terminals}
+                  label={t('resourceManager.hosts.terminals', '{{count}} terminals', {
+                    count: host.counts.terminals,
+                    defaultValue_one: '{{count}} terminal'
+                  })}
+                />
+                <CountChip
+                  icon={Bot}
+                  count={host.counts.agents}
+                  label={t('resourceManager.hosts.agents', '{{count}} agents', {
+                    count: host.counts.agents,
+                    defaultValue_one: '{{count}} agent'
+                  })}
+                />
+                <CountChip
+                  icon={Play}
+                  count={host.counts.commands}
+                  label={t('resourceManager.hosts.commands', '{{count}} commands', {
+                    count: host.counts.commands,
+                    defaultValue_one: '{{count}} command'
+                  })}
+                />
+              </div>
+            )}
+          </div>
+        </HostMetricsFold>
       )}
       {!collapsed && host.machine?.heavyQueue && (
         <HostHeavyQueue
@@ -315,7 +317,6 @@ export function ResourceHostCards({
   )
   return (
     <HostLabelByHostnameContext.Provider value={labelByHostname}>
-      {hosts.length > 0 && <HostCardsFoldToolbar />}
       <ul
         className="flex flex-col gap-2 px-3 pt-1 pb-3"
         aria-label={t('resourceManager.hosts.machines', 'Machines')}

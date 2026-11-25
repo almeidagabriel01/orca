@@ -1,3 +1,4 @@
+import { IDLE_PASSIVE_CLIENT_CAPABILITY } from '../../../../../shared/remote-runtime/protocol/orcad-runtime-capabilities'
 import type { RuntimeMobileSessionTabsResult } from '../../../../../shared/remote-runtime/session-graph/runtime-session-contracts'
 import { projectSessionTabAgentStatus } from './session-tab-agent-status-projection'
 import {
@@ -29,7 +30,7 @@ export function projectSessionTabsForClient(
 }
 
 /** Desktops show chat status from the status feed, never from tabs[].chatStatus; its freshness
- *  stamps alone would turn version-only frames into full desktop reconciles. Phones keep it. */
+ *  stamps alone would turn version-only frames into full desktop reconciles. Phones and passive watchers keep it. */
 export function projectSessionTabsForInventoryStream(
   snapshot: RuntimeMobileSessionTabsResult,
   clientKind: 'mobile' | 'runtime' | undefined,
@@ -39,6 +40,7 @@ export function projectSessionTabsForInventoryStream(
   const projected = projectSessionTabsForClient(snapshot, clientKind, clientCapabilities, hosts)
   if (
     clientKind === 'mobile' ||
+    clientCapabilities?.includes(IDLE_PASSIVE_CLIENT_CAPABILITY) ||
     !projected.tabs.some((tab) => tab.type === 'agent-session' && tab.chatStatus)
   ) {
     return projected

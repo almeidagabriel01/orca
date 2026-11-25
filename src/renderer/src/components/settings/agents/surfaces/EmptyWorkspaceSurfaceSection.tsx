@@ -12,7 +12,6 @@ import {
 import { useTranslate } from '@/i18n/use-translate'
 import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
 import { buildTabCreateMenuOptions } from '@/components/tab-bar/create-menu/tab-create-menu-options'
-import { TabBarCreateRowPicker } from '@/components/tab-bar/create-menu/TabBarCreateRowPicker'
 import { NewTabMenuContent } from '@/components/tab-bar/menu-fit/NewTabMenuContent'
 import { isMacOs } from '@/components/tab-bar/model/use-tab-bar-runtime-model'
 import { Button } from '../../../ui/button'
@@ -222,7 +221,14 @@ export function EmptyWorkspaceSurfaceView({
                 sideOffset={6}
                 className="w-72 max-w-[calc(100vw-1rem)]"
               >
-                <TabBarCreateRowPicker items={menuItems} checkedId={value} label={title} />
+                {/* Named rows, not an icon strip: every choice says what it opens. */}
+                {menuItems.map((item) => (
+                  <DropdownMenuItem key={item.id} variant="launch" onSelect={item.run}>
+                    {item.icon}
+                    <span className="flex-1">{item.label}</span>
+                    {value === item.id ? <Check className="size-3.5" aria-hidden="true" /> : null}
+                  </DropdownMenuItem>
+                ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="launch" onSelect={() => pick('default-agent')}>
                   <Bot className="size-3.5" />

@@ -14,6 +14,7 @@ import { prepareQuickComposerStartup } from './quick-startup-plan'
 import { buildQuickCreationRequest, type QuickSubmitOptions } from './quick-creation-request'
 import type { PendingSmartGitHubSubmitResolution } from '../linked-work-items/source-selection-decisions'
 import { resolveAgentSessionLaunchRoute } from '@/lib/agent-session/launch/routing/agent-session-launch-plan'
+import { notifyProjectChatFallback } from '@/lib/agent-session/launch/routing/project-chat-fallback-notice'
 
 export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
   const {
@@ -131,21 +132,30 @@ export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
 
       const promptDelivery = quickDraftPrompt ? 'draft' : 'auto-submit'
       // Why: the verdict is persisted on the request as data and re-entered once the worktree exists.
+      const launchWorkspace = {
+        kind: selectedRepoIsGit ? ('git-worktree' as const) : ('folder' as const),
+        repoId,
+        executionHostId: ephemeralVmRecipe
+          ? 'runtime:pending-ephemeral-vm'
+          : (workspaceRunContext?.hostId ?? selectedRepoExecutionHostId ?? undefined)
+      }
       const agentLaunchRoute = !agent
         ? 'terminal-tui'
         : (options?.launchChoice?.route ??
           resolveAgentSessionLaunchRoute(useAppStore.getState(), {
             agent,
-            workspace: {
-              kind: selectedRepoIsGit ? 'git-worktree' : 'folder',
-              repoId,
-              executionHostId: ephemeralVmRecipe
-                ? 'runtime:pending-ephemeral-vm'
-                : (workspaceRunContext?.hostId ?? selectedRepoExecutionHostId ?? undefined)
-            },
+            workspace: launchWorkspace,
             prompt: quickDraftPrompt ?? quickPrompt,
             promptDelivery
           }))
+      // A Terminal picked in the composer is the user's own choice, not a fallback.
+      if (agent && options?.launchChoice?.requestedSurface !== 'terminal') {
+        notifyProjectChatFallback(
+          useAppStore.getState(),
+          { agent, workspace: launchWorkspace },
+          agentLaunchRoute
+        )
+      }
       const structuredLaunch = agentLaunchRoute === 'structured-native-chat'
 
       const quickStartup = await prepareQuickComposerStartup({

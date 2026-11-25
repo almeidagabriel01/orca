@@ -1,6 +1,4 @@
 import { withProjectAgentLaunchDefaults } from '../../../../shared/agent-launch/choices/project-agent-launch-defaults'
-import { getRepoIdFromWorktreeId } from '../../../../shared/worktree/id'
-import { repoMatchesHostIdentity } from '@/store/repos/repo-host-identity'
 import { useAppStateValue, useAppViewExternalStore } from '@/store/retained-views/app-state-view'
 import { useCallback, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
@@ -10,6 +8,7 @@ import { lastVerifiedRuntimeStatus } from '../../../../shared/remote-runtime/hos
 import type { AppState } from '@/store/types'
 import { readRuntimeStatuses } from '@/store/slices/runtime-status/views/runtime-status-owner'
 import {
+  findLaunchProjectRepo,
   resolveAgentLaunchOwner,
   type ProspectiveWorkspace
 } from '@/lib/agent-session/launch/routing/agent-launch-route-input'
@@ -51,18 +50,7 @@ function preferencesForWorkspace(state: AppState, workspace: ProspectiveWorkspac
   return { desktop, owner, project: findLaunchProjectRepo(state, workspace, executionHostId) }
 }
 
-/** The workspace's repo row on its execution host carries the project's launch defaults. */
-export function findLaunchProjectRepo(
-  state: Pick<AppState, 'repos'>,
-  workspace: ProspectiveWorkspace,
-  executionHostId: string
-) {
-  const repoId =
-    workspace.repoId ?? (workspace.worktreeId ? getRepoIdFromWorktreeId(workspace.worktreeId) : '')
-  return workspace.kind === 'git-worktree' && repoId
-    ? (state.repos?.find((repo) => repoMatchesHostIdentity(repo, repoId, executionHostId)) ?? null)
-    : null
-}
+export { findLaunchProjectRepo }
 
 /** The current owner model map shares the existing availability fallback. */
 export function readAgentLaunchPreferencesForWorkspace(

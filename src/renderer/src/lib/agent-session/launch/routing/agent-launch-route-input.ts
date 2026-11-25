@@ -28,6 +28,9 @@ import { readHostStructuredAgents } from '@/runtime/native-chat/agent-catalogs/h
 import { lastVerifiedRuntimeStatus } from '../../../../../../shared/remote-runtime/host-status/runtime-host-status'
 import type { ProjectLaunchContext } from '../../../../../../shared/rpc-contract/preflight/preflight-params'
 import type { AppState } from '@/store/types'
+import { getRepoIdFromWorktreeId } from '../../../../../../shared/worktree/id'
+import { repoMatchesHostIdentity } from '@/store/repos/repo-host-identity'
+import { withProjectAgentLaunchDefaults } from '../../../../../../shared/agent-launch/choices/project-agent-launch-defaults'
 import {
   readRuntimeStatuses,
   type RuntimeStatuses
@@ -247,6 +250,19 @@ function hostStructuredAgentsInput(
   return agents ? { hostStructuredAgents: agents.map((row) => row.agent) } : {}
 }
 
+/** The workspace's repo row on its execution host carries the project's launch defaults. */
+export function findLaunchProjectRepo(
+  state: Pick<AppState, 'repos'>,
+  workspace: ProspectiveWorkspace,
+  executionHostId: string
+) {
+  const repoId =
+    workspace.repoId ?? (workspace.worktreeId ? getRepoIdFromWorktreeId(workspace.worktreeId) : '')
+  return workspace.kind === 'git-worktree' && repoId
+    ? (state.repos?.find((repo) => repoMatchesHostIdentity(repo, repoId, executionHostId)) ?? null)
+    : null
+}
+
 export function resolveAgentLaunchOwner(
   store: AgentLaunchRouteStore,
   workspace: ProspectiveWorkspace
@@ -277,7 +293,13 @@ export function buildAgentLaunchRouteInput(
   const { executionHostId, hostCapabilities } = resolveAgentLaunchHost(store, workspace)
   return {
     agent,
-    settings: store.settings,
+    // The project's surface on its owning host beats this app's Open agents as.
+    settings:
+      store.settings &&
+      withProjectAgentLaunchDefaults(
+        store.settings,
+        findLaunchProjectRepo(store, workspace, executionHostId)
+      ),
     preferredSurface: args.preferredSurface,
     executionHostId,
     hostCapabilities,

@@ -24,7 +24,13 @@ import {
   readDetectedAgentsForTarget
 } from '@/lib/agent-session/launch/inventory/agent-detection-target-inventory'
 import { workspaceKindForWorktreeId } from '../../../../../../shared/agent-launch/contracts/workspace-launch-kind'
-import { worktreeLaunchWorkspace } from '@/lib/agent-session/launch/routing/agent-launch-route-input'
+import {
+  findLaunchProjectRepo,
+  resolveAgentLaunchOwner,
+  worktreeLaunchWorkspace
+} from '@/lib/agent-session/launch/routing/agent-launch-route-input'
+import { withProjectAgentLaunchDefaults } from '../../../../../../shared/agent-launch/choices/project-agent-launch-defaults'
+import { notifyProjectChatFallback } from '@/lib/agent-session/launch/routing/project-chat-fallback-notice'
 import {
   chosenAgentChatUnlearned,
   agentChoiceOpensAsChat
@@ -41,16 +47,30 @@ type DefaultChatHost = {
   preferences: AgentLaunchPreferences
   /** Named in Settings, so it opens even as a terminal. */
   explicit: boolean
-  /** Chat or Terminal as chosen beside it; absent follows Open agents as. */
+  /** Chat or Terminal as chosen beside it, or by the project; absent follows Open agents as. */
   surface?: EmptyWorkspaceAgentSurface
+  /** The project named the surface, so its saved agent opens even as a terminal. */
+  projectSurface: boolean
+}
+
+function launchProject(state: AppState, worktreeId: string) {
+  const workspace = worktreeLaunchWorkspace(worktreeId)
+  // Why the owner's row: a paired host's project keeps its own defaults.
+  return findLaunchProjectRepo(
+    state,
+    workspace,
+    resolveAgentLaunchOwner(state, workspace).executionHostId
+  )
 }
 
 function agentSurface(
   state: AppState,
-  worktreeId: string
+  worktreeId: string,
+  project: ReturnType<typeof launchProject>
 ): { surface?: EmptyWorkspaceAgentSurface } {
   const surface = normalizeEmptyWorkspaceAgentSurface(
-    emptyWorkspaceSettingsFor(state, worktreeId).emptyWorkspaceAgentSurface
+    withProjectAgentLaunchDefaults(emptyWorkspaceSettingsFor(state, worktreeId), project)
+      .emptyWorkspaceAgentSurface
   )
   return surface ? { surface } : {}
 }
@@ -74,7 +94,14 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
   // Why: only a saved agent asks for a chat here; Auto must not turn catalog order into a launch (#36594).
   const saved = preferences.defaultTuiAgent === 'blank' ? null : preferences.defaultTuiAgent
   const chosen = explicit ?? saved
-  if (!chosen || (!explicit && !newAgentLaunchesMayOpenChats(state.settings))) {
+  const project = launchProject(state, worktreeId)
+  const projectSurface = project?.agentLaunchDefaults?.defaultSurface !== undefined
+  if (
+    !chosen ||
+    (!explicit &&
+      !projectSurface &&
+      !newAgentLaunchesMayOpenChats(withProjectAgentLaunchDefaults(state.settings ?? {}, project)))
+  ) {
     return undefined
   }
   // Why: an unresolved owner is an unknown host, not the local machine.
@@ -86,7 +113,8 @@ function defaultChatHost(state: AppState, worktreeId: string): DefaultChatHost |
       target,
       preferences: { ...preferences, defaultTuiAgent: chosen },
       explicit: explicit !== null,
-      ...(explicit ? agentSurface(state, worktreeId) : {})
+      projectSurface,
+      ...(explicit || projectSurface ? agentSurface(state, worktreeId, project) : {})
     }
   )
 }
@@ -155,7 +183,7 @@ export function openDefaultAgentChatInEmptyWorkspace(
   )
   // Why: a chosen agent that is gone opens the shell, never another agent nobody picked.
   if (!agent || (host.explicit && agent !== host.preferences.defaultTuiAgent)) {
-    if (host.explicit) {
+    if (host.explicit || host.projectSurface) {
       toast.message(
         translate(
           'settings.agents.emptyWorkspace.agentMissingToast',
@@ -167,17 +195,21 @@ export function openDefaultAgentChatInEmptyWorkspace(
     return null
   }
   // No user gesture: opening this empty workspace is the one action this chat serves.
-  const agentSessionLaunchPlan = planAgentSessionLaunch(state, {
-    requestId: createNonSecureContextUuid(),
+  const routeArgs = {
     agent,
     workspace: { kind: workspaceKindForWorktreeId(worktreeId), worktreeId },
-    tuiCustomization: { cwd: initialCwd },
+    tuiCustomization: { cwd: initialCwd }
+  }
+  const agentSessionLaunchPlan = planAgentSessionLaunch(state, {
+    requestId: createNonSecureContextUuid(),
+    ...routeArgs,
     ...emptyWorkspaceAgentLaunchSurface(host.surface)
   })
   // Why: an agent that can only open as a TUI here would replace the shell with a process nobody asked for.
-  if (agentSessionLaunchPlan.route === 'terminal-tui' && !host.explicit) {
+  if (agentSessionLaunchPlan.route === 'terminal-tui' && !host.explicit && !host.projectSurface) {
     return null
   }
+  notifyProjectChatFallback(state, routeArgs, agentSessionLaunchPlan.route)
   const result = launchAgentInNewTabWithOutcome({
     agent,
     worktreeId,
@@ -185,7 +217,8 @@ export function openDefaultAgentChatInEmptyWorkspace(
     launchSource: 'unknown',
     agentSessionLaunchPlan,
     pendingActivationSpawn: true,
-    onStructuredHostDeclined: () => ({ opened: seedShell() })
+    // A project that asked for chat still wants its agent: the host's "no" opens its terminal.
+    ...(host.projectSurface ? {} : { onStructuredHostDeclined: () => ({ opened: seedShell() }) })
   })
   if (!result || 'refused' in result) {
     return null

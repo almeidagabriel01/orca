@@ -2031,6 +2031,8 @@
       "permissionMixed": "Misto",
       "choiceChipTooltip": "Adicionado por {{choice}}. Remova-o para usar o padrão.",
       "choiceChipRemove": "Remover {{flag}}",
+      "projectSurfaceFallbackNoChats": "Este host não roda chats",
+      "projectSurfaceFallbackToast": "{{agent}} abriu num terminal: {{reason}}.",
       "emptyWorkspace": {
         "title": "Ao abrir um workspace sem abas",
         "description": "Qualquer item do menu +, um agente ou nada.",

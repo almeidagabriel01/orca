@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from 'react'
+import type { JSX } from 'react'
 import {
   Ban,
   Bot,
@@ -7,7 +7,8 @@ import {
   FilePlus,
   Globe,
   Smartphone,
-  TerminalSquare
+  TerminalSquare,
+  type LucideIcon
 } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { newAgentLaunchesMayOpenChats } from '@/runtime/native-chat/local-sessions/local-structured-chats'
@@ -47,11 +48,11 @@ import {
 import { rememberHostEmptyWorkspaceSettings } from '@/lib/workspace/activation/initial-surface/host-empty-workspace-settings'
 import { emptyWorkspaceSurfaceOptions } from './empty-workspace-surface-options'
 
-const MENU_ICONS: Record<EmptyWorkspaceMenuSurface, ReactNode> = {
-  'new-terminal': <TerminalSquare className="size-4" />,
-  'new-browser': <Globe className="size-4" />,
-  'new-markdown': <FilePlus className="size-4" />,
-  'new-simulator': <Smartphone className="size-4" />
+const MENU_ICONS: Record<EmptyWorkspaceMenuSurface, LucideIcon> = {
+  'new-terminal': TerminalSquare,
+  'new-browser': Globe,
+  'new-markdown': FilePlus,
+  'new-simulator': Smartphone
 }
 
 type SectionProps = {
@@ -187,10 +188,11 @@ export function EmptyWorkspaceSurfaceView({
       ? { icon: <Ban className="size-4" />, label: nothing }
       : opensAgent
         ? { icon: <Bot className="size-4" />, label: defaultAgent }
-        : (menuItems.find((item) => item.id === value) ?? {
-            icon: MENU_ICONS['new-terminal'],
-            label: value
-          })
+        : (() => {
+            const item = menuItems.find((entry) => entry.id === value)
+            const Icon = item?.icon ?? TerminalSquare
+            return { icon: <Icon className="size-4" />, label: item?.label ?? value }
+          })()
   return (
     <div id={EMPTY_WORKSPACE_SURFACE_SECTION_ID} className="scroll-mt-8">
       <SettingsGroup>
@@ -224,7 +226,7 @@ export function EmptyWorkspaceSurfaceView({
                 {/* Named rows, not an icon strip: every choice says what it opens. */}
                 {menuItems.map((item) => (
                   <DropdownMenuItem key={item.id} variant="launch" onSelect={item.run}>
-                    {item.icon}
+                    <item.icon className="size-3.5" />
                     <span className="flex-1">{item.label}</span>
                     {value === item.id ? <Check className="size-3.5" aria-hidden="true" /> : null}
                   </DropdownMenuItem>

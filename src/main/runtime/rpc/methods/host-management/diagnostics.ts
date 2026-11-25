@@ -7,10 +7,12 @@ import {
   DiagnosticsHeavyJobMoveSourceParams,
   DiagnosticsHeavyJobTargetParams,
   DiagnosticsHeavyQueueActionParams,
+  DiagnosticsHeavyQueueCountsParams,
   DiagnosticsMemoryParams,
   DiagnosticsProcessTreeParams
 } from '../../../../../shared/rpc-contract/diagnostics-params'
 import { collectSessionProcessTree } from '../../../../memory/session-process-tree'
+import { readHeavyQueueCounts } from '../../../../memory/host-heavy-queue-counts'
 import { runHeavyQueueAction } from '../../../../memory/host-heavy-command-queue-actions'
 import { collectHeavyCommandQueue } from '../../../../memory/host-heavy-command-queue'
 import {
@@ -40,6 +42,12 @@ export const DIAGNOSTICS_METHODS = [
     params: DiagnosticsProcessTreeParams,
     handler: async ({ sessionId }, { runtime }) =>
       collectSessionProcessTree(sessionId, () => runtime.getMemorySnapshot())
+  }),
+  defineMethod({
+    name: 'diagnostics.heavyQueueCounts',
+    permission: 'workspace',
+    params: DiagnosticsHeavyQueueCountsParams,
+    handler: async () => ({ counts: await readHeavyQueueCounts() })
   }),
   defineMethod({
     name: 'diagnostics.heavyQueueAction',

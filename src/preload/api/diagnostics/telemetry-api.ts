@@ -9,6 +9,7 @@ import type {
 } from '../../../shared/diagnostics/heavy-job-move-types'
 import type { TelemetryConsentState } from '../../../shared/telemetry/telemetry-consent-types'
 import type {
+  HeavyQueueCounts,
   MemorySnapshot,
   SessionProcessTree,
   HeavyCommandQueue,
@@ -64,6 +65,8 @@ export type MemoryApi = {
     request: HeavyJobTargetRequest,
     admission?: ResourceViewAdmission
   ) => Promise<HeavyJobTargetCheck>
+  /** Slot, running and waiting counts of this computer's vps-heavy queue; null without one. */
+  getHeavyQueueCounts: () => Promise<HeavyQueueCounts | null>
   readPerfNoticeSignals: () => Promise<PerfNoticeSignals | null>
   countHiddenBrowserPages: (hiddenForMs: number) => Promise<number>
   resourceWindowVisible: () => Promise<boolean>

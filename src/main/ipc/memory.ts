@@ -6,6 +6,7 @@ import type {
 import type { Store } from '../persistence/loading-store/store'
 import { collectMemorySnapshot } from '../memory/collector'
 import { collectSessionProcessTree } from '../memory/session-process-tree'
+import { readHeavyQueueCounts } from '../memory/host-heavy-queue-counts'
 import { runHeavyQueueAction } from '../memory/host-heavy-command-queue-actions'
 import { collectHeavyCommandQueue } from '../memory/host-heavy-command-queue'
 import {
@@ -80,6 +81,8 @@ export function registerMemoryHandlers(store: Store): void {
       return checkHeavyJobTarget(DiagnosticsHeavyJobTargetParams.parse(request), moveDeps)
     }
   )
+  // No admission: the renderer polls this only while the document is visible.
+  ipcMain.handle('memory:getHeavyQueueCounts', () => readHeavyQueueCounts())
   ipcMain.handle('memory:readPerfNoticeSignals', () => readPerfNoticeSignals(store))
   ipcMain.handle('memory:countHiddenBrowserPages', (_event, hiddenForMs: unknown) =>
     countHiddenBrowserPages(typeof hiddenForMs === 'number' ? hiddenForMs : 0)

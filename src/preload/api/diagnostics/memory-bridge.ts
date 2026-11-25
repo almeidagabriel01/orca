@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron'
 import type {
+  HeavyQueueCounts,
   MemorySnapshot,
   SessionProcessTree,
   HeavyCommandQueue
@@ -35,6 +36,8 @@ export const memoryApi = {
     admission?: ResourceViewAdmission
   ): Promise<HeavyJobTargetCheck> =>
     ipcRenderer.invoke('memory:heavyJobTargetCheck', request, admission),
+  getHeavyQueueCounts: (): Promise<HeavyQueueCounts | null> =>
+    ipcRenderer.invoke('memory:getHeavyQueueCounts'),
   readPerfNoticeSignals: (): Promise<PerfNoticeSignals> =>
     ipcRenderer.invoke('memory:readPerfNoticeSignals'),
   countHiddenBrowserPages: (hiddenForMs: number): Promise<number> =>

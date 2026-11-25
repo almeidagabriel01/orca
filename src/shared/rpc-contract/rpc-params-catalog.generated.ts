@@ -393,6 +393,7 @@ import {
   DiagnosticsHeavyJobMoveSourceParams,
   DiagnosticsHeavyJobTargetParams,
   DiagnosticsHeavyQueueActionParams,
+  DiagnosticsHeavyQueueCountsParams,
   DiagnosticsMemoryParams,
   DiagnosticsProcessTreeParams
 } from './diagnostics-params'
@@ -1565,6 +1566,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'diagnostics.heavyJobTargetCheck': DiagnosticsHeavyJobTargetParams,
   'diagnostics.heavyQueue': null,
   'diagnostics.heavyQueueAction': DiagnosticsHeavyQueueActionParams,
+  'diagnostics.heavyQueueCounts': DiagnosticsHeavyQueueCountsParams,
   'diagnostics.memory': DiagnosticsMemoryParams,
   'diagnostics.processTree': DiagnosticsProcessTreeParams,
   'emulator.attach': AttachParamsOfEmulatorParams,

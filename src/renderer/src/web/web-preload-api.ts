@@ -124,6 +124,7 @@ function createWebPreloadApi(): Omit<Partial<PreloadApi>, 'settings' | 'plugins'
       heavyQueueAction: () => Promise.reject(new Error('heavy_queue_unavailable')),
       heavyJobMoveSource: () => Promise.reject(new Error('heavy_queue_unavailable')),
       heavyJobTargetCheck: () => Promise.reject(new Error('heavy_queue_unavailable')),
+      getHeavyQueueCounts: () => Promise.resolve(null),
       readPerfNoticeSignals: () => Promise.resolve(null),
       countHiddenBrowserPages: () => Promise.resolve(0),
       // Browser pages have no native-window veto; document visibility owns admission.

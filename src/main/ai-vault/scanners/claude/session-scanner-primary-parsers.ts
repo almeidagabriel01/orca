@@ -193,7 +193,8 @@ export function consumeClaudeSessionRecord(
     const message = asRecord(record.message)
     addSessionContent(accumulator, 'assistant', message?.content, record.timestamp)
     const model = extractString(message?.model)
-    if (model) {
+    // `<synthetic>` marks Claude Code's own notices, not a model.
+    if (model && model !== '<synthetic>') {
       accumulator.model = model
     }
     accumulator.totalTokens += claudeUsageTotal(message?.usage)

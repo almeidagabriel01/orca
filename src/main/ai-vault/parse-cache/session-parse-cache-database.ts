@@ -63,7 +63,12 @@ const ROWS_REPAIR_SQL =
   // Grok rows (summary.json) cached before the synthetic-turn filter.
   rowsRepairSql('grok_rows_version', "rows.path GLOB '*[/\\]summary.json'") +
   // Pi rows cached before session_info names became titles.
-  rowsRepairSql('pi_title_rows_version', `instr(rows.session, '"agent":"pi"') > 0`)
+  rowsRepairSql('pi_title_rows_version', `instr(rows.session, '"agent":"pi"') > 0`) +
+  // Claude rows cached with `<synthetic>` as their model.
+  rowsRepairSql(
+    'claude_synthetic_model_rows_version',
+    `instr(rows.session, '"model":"<synthetic>"') > 0`
+  )
 // Rows hold transcript-derived preview text; keep the directory user-only.
 const PRIVATE_DIRECTORY_MODE = 0o700
 // A ~2.3 KB row fills most of a 4 KB page; 8 KB pages fit three.

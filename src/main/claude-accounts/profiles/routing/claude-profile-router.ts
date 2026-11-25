@@ -2,9 +2,9 @@ import { claudeAccountUsagePreparation } from './claude-account-usage-preparatio
 import { claudeProfileSelectionHomes } from './claude-profile-selection-homes'
 import { prepareClaudeProfileForLaunch } from './claude-profile-launch-preparation'
 import { getClaudeAgentViewService } from '../../../claude/agent-view/agent-view-service'
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { isAgentStatusHooksEnabledForAgent } from '../../../../shared/agent-hook-listener/configuration/agent-status-hooks-setting'
 import {
   CLAUDE_INJECTED_CONFIG_DIR_ENV,
@@ -13,11 +13,11 @@ import {
   CLAUDE_USER_CONFIG_DIR_ENV
 } from '../../../../shared/agent-accounts/claude/claude-profile-routing'
 import { claudeProfileMissing } from './claude-profile-launch-errors'
+import { claudeProfilePointerFor, writeClaudeProfilePointer } from './claude-profile-pointer-file'
 import { claudeChatAccountId } from './claude-chat-account-route'
 import type { GlobalSettings } from '../../../../shared/settings/global-settings-types'
 import type { ClaudeManagedAccount } from '../../../../shared/agent-accounts/managed-account-types'
 import { probeRecentClaudeCliVersion } from '../../../claude/cli-capabilities/claude-hook-event-versions'
-import { writeFileAtomically } from '../../../filesystem/atomic-file-publication'
 import { resolveClaudeCommand } from '../../../codex-cli/command'
 import {
   describeClaudeProfile,
@@ -168,12 +168,7 @@ export class ClaudeProfileRouter {
       rmSync(this.pointerPath, { force: true })
       return false
     }
-    const home = this.routedProfile()?.home ?? ''
-    // Avoid rewriting the pointer on every launch.
-    if (!existsSync(this.pointerPath) || readFileSync(this.pointerPath, 'utf8') !== home) {
-      mkdirSync(dirname(this.pointerPath), { recursive: true, mode: 0o700 })
-      writeFileAtomically(this.pointerPath, home, { mode: 0o600 })
-    }
+    writeClaudeProfilePointer(this.pointerPath, this.routedProfile()?.home ?? '')
     return true
   }
 
@@ -271,17 +266,21 @@ export class ClaudeProfileRouter {
     return report
   }
 
+  private pointerFor(choice?: string): string {
+    return claudeProfilePointerFor(this.pointerPath, choice, (id) => this.routedProfile(id)?.home)
+  }
+
   launchEnv(accountChoice?: string): ClaudeEnvPatch {
     const home = this.routedHome('checked', accountChoice)
     return {
-      [CLAUDE_PROFILE_POINTER_ENV]: this.pointerPath,
+      [CLAUDE_PROFILE_POINTER_ENV]: this.pointerFor(accountChoice),
       // Preserve the user's inherited CLAUDE_CONFIG_DIR for System default.
       ...(home ? { CLAUDE_CONFIG_DIR: home, [CLAUDE_INJECTED_CONFIG_DIR_ENV]: home } : {})
     }
   }
 
-  /** A broken account selection must not prevent opening a terminal. */
-  terminalEnv(target?: ClaudeAccountSelectionTarget): ClaudeEnvPatch {
+  /** A broken account selection must not prevent opening a terminal. `accountChoice`: the project's. */
+  terminalEnv(target?: ClaudeAccountSelectionTarget, accountChoice?: string): ClaudeEnvPatch {
     // Pass the pointer without waiting on the guest.
     if (target?.runtime === 'wsl') {
       return { [CLAUDE_PROFILE_POINTER_ENV]: `~/${wslClaudeProfilePointer(this.args.dataRoot)}` }
@@ -292,18 +291,18 @@ export class ClaudeProfileRouter {
       [CLAUDE_PROFILE_POINTER_ENV]: this.pointerPath,
       ...(userConfigDir ? { [CLAUDE_USER_CONFIG_DIR_ENV]: userConfigDir } : {})
     }
-    // Defer routing until the shell env resolves; the shell function will read the updated pointer.
-    if (!this.envResolved) {
-      return base
-    }
     try {
+      // Defer routing until the shell env resolves; the shell function will read the updated pointer.
+      if (!this.envResolved) {
+        return { ...base, [CLAUDE_PROFILE_POINTER_ENV]: this.pointerFor(accountChoice) }
+      }
       this.writePointer()
       // Refresh without delaying terminal creation.
-      const profile = this.routedProfile()
+      const profile = this.routedProfile(accountChoice)
       if (profile) {
         this.setUpInBackground(profile)
       }
-      return { ...base, ...this.launchEnv() }
+      return { ...base, ...this.launchEnv(accountChoice) }
     } catch {
       return base
     }

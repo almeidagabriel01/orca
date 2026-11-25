@@ -1,4 +1,5 @@
 import { withClaudeProfileTerminalEnv } from '../../../claude-accounts/profiles/routing/claude-profile-installed-router'
+import { projectClaudeAccountChoiceForWorktree } from '../../../claude-accounts/selection/claude-chat-account-choice'
 import type { PtySpawnResult } from '../../../providers/pty/spawn-result'
 import { LocalPtyProvider } from '../../../providers/local-pty/local-pty-provider'
 import { isValidTerminalTabId } from '../../../../shared/workspace-layout/terminal-surfaces/terminal-tab-id'
@@ -100,10 +101,12 @@ export async function prepareRuntimePtySpawn(
   ctx.expectedWslDistro = target.expectedWslDistro
   ctx.wslHoldReadAnchor = target.wslHoldReadAnchor
   ctx.codexSelectionTarget = target.codexSelectionTarget
-  args.env = withClaudeProfileTerminalEnv(args.env, ctx.codexSelectionTarget)
+  // The project's default Claude account, as new chats in it get; restored panes resume on it too.
+  const claudeAccount = projectClaudeAccountChoiceForWorktree(ctx.deps.store, args.worktreeId)
+  args.env = withClaudeProfileTerminalEnv(args.env, ctx.codexSelectionTarget, claudeAccount)
   ctx.claudeAuth =
     ctx.isClaudeLaunch && ctx.deps.prepareClaudeAuth
-      ? await ctx.deps.prepareClaudeAuth(ctx.codexSelectionTarget)
+      ? await ctx.deps.prepareClaudeAuth(ctx.codexSelectionTarget, claudeAccount)
       : null
 
   ctx.shouldPersistHostSessionBinding = args.persistHostSessionBinding === true

@@ -142,7 +142,7 @@ async function installMainWindowCoreServices(
     nativeSettings,
     runtime,
     prepareCodexRuntimeHomeForLaunch,
-    (target) => claudeRuntimeAuth.prepareForClaudeLaunch(target),
+    (...args) => claudeRuntimeAuth.prepareForClaudeLaunch(...args),
     {
       prepareCodexSessionResume: prepareCodexSessionResumeForLaunch,
       deferSshInitialization: true,

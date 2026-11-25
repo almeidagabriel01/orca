@@ -44,11 +44,13 @@ export class ClaudeRuntimeAuthService {
     })
   }
 
+  /** `accountChoice` is the launch's own account; WSL launches always follow the guest's selection. */
   prepareForClaudeLaunch(
-    target?: ClaudeAccountSelectionTarget
+    target?: ClaudeAccountSelectionTarget,
+    accountChoice?: string
   ): Promise<ClaudeRuntimeAuthPreparation> {
     const wsl = this.wslRouteFor(target)
-    return wsl ? wsl.router.prepareLaunch(wsl.distro) : this.router.prepareLaunch()
+    return wsl ? wsl.router.prepareLaunch(wsl.distro) : this.router.prepareLaunch(accountChoice)
   }
 
   async prepareForRateLimitFetch(

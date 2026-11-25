@@ -22167,7 +22167,8 @@
         "currentBadge": "当前",
         "sameBranch": "同一分支上的工作区",
         "projectMissing": "此项目尚未在该主机上设置。{{detail}}",
-        "branchMissing": "该主机上没有 {{branch}} 的工作区。请先在那里创建一个。",
+        "noWorkspaceYet": "此分支尚无工作区",
+        "createWorkspace": "在 {{host}} 上创建工作区",
         "folderSource": "文件夹工作区没有分支，无法在其他主机上继续。",
         "detachedSource": "此工作区不在任何分支上。",
         "startBlocked": "先“{{action}}”，再在 {{host}} 上开始。"

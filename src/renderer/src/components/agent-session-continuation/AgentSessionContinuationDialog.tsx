@@ -320,6 +320,8 @@ export function AgentSessionContinuationDialog({
             value={env.destinationKey}
             onChange={env.pickDestination}
             disabled={controlsDisabled}
+            creation={env.creation}
+            onCreate={env.createDestination}
           />
         ) : null}
         {env.elsewhere ? <HandoffSourceChanges {...env.sourceChanges} /> : null}

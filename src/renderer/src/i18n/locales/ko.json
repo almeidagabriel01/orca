@@ -22397,7 +22397,8 @@
         "currentBadge": "현재",
         "sameBranch": "같은 브랜치의 워크스페이스",
         "projectMissing": "이 프로젝트는 이 호스트에 설정되어 있지 않습니다. {{detail}}",
-        "branchMissing": "이 호스트에 {{branch}} 워크스페이스가 없습니다. 먼저 만들어 주세요.",
+        "noWorkspaceYet": "이 브랜치의 워크스페이스가 아직 없습니다",
+        "createWorkspace": "{{host}}에 워크스페이스 만들기",
         "folderSource": "폴더 워크스페이스에는 브랜치가 없어 다른 호스트에서 이어갈 수 없습니다.",
         "detachedSource": "이 워크스페이스는 브랜치에 있지 않습니다.",
         "startBlocked": "{{host}}에서 시작하려면 먼저 \"{{action}}\"을 실행하세요."

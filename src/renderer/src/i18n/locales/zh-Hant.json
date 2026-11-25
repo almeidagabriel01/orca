@@ -20936,7 +20936,8 @@
         "currentBadge": "目前",
         "sameBranch": "同一分支上的工作區",
         "projectMissing": "此專案尚未在該主機上設定。{{detail}}",
-        "branchMissing": "該主機上沒有 {{branch}} 的工作區。請先在那裡建立一個。",
+        "noWorkspaceYet": "此分支尚無工作區",
+        "createWorkspace": "在 {{host}} 上建立工作區",
         "folderSource": "資料夾工作區沒有分支，無法在其他主機上繼續。",
         "detachedSource": "此工作區不在任何分支上。",
         "startBlocked": "先「{{action}}」，再在 {{host}} 上開始。"

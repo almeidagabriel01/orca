@@ -21451,7 +21451,8 @@
         "currentBadge": "現在",
         "sameBranch": "同じブランチのワークスペース",
         "projectMissing": "このプロジェクトはこのホストで設定されていません。{{detail}}",
-        "branchMissing": "このホストに {{branch}} のワークスペースがありません。先に作成してください。",
+        "noWorkspaceYet": "このブランチのワークスペースはまだありません",
+        "createWorkspace": "{{host}} にワークスペースを作成",
         "folderSource": "フォルダのワークスペースにはブランチがないため、別のホストで続行できません。",
         "detachedSource": "このワークスペースはブランチ上にありません。",
         "startBlocked": "{{host}} で開始する前に「{{action}}」を実行してください。"

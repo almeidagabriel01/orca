@@ -3,6 +3,7 @@ import { buildHandoffDestinations } from '@/lib/agent-session/launch/continuatio
 import type { ProjectHostSetupOption } from '@/lib/workspace/creation/project-host-setup-options'
 import type { Worktree } from '../../../../shared/worktree/types'
 import { HandoffEnvironmentField } from './HandoffEnvironmentField'
+import type { HandoffDestinationCreation } from './use-handoff-environment'
 
 function worktree(id: string, branch: string, hostId: Worktree['hostId'], at: number): Worktree {
   return {
@@ -80,11 +81,23 @@ function destinations(macWorktrees: Worktree[], macHealth: 'local' | 'disconnect
   })
 }
 
-const frame = (list: ReturnType<typeof destinations>, value: string) => () => (
-  <div className="bg-background p-4">
-    <HandoffEnvironmentField destinations={list} value={value} onChange={() => {}} />
-  </div>
-)
+const frame =
+  (
+    list: ReturnType<typeof destinations>,
+    value: string,
+    creation: HandoffDestinationCreation | null = null
+  ) =>
+  () => (
+    <div className="bg-background p-4">
+      <HandoffEnvironmentField
+        destinations={list}
+        value={value}
+        onChange={() => {}}
+        creation={creation}
+        onCreate={() => {}}
+      />
+    </div>
+  )
 
 const macPickedList = destinations([worktree('mac::develop', 'develop', 'local', 3)])
 
@@ -105,4 +118,41 @@ export const hostOffline = defineFixture({
 export const branchMissing = defineFixture({
   width: 520,
   render: frame(macNoBranch, macNoBranch[0]!.key)
+})
+
+// The screenshot case: a Mac chat on feat/mobile-app, and vps has the project but not the branch.
+const macSource = worktree('mac::feat', 'feat/mobile-app', 'local', 6)
+const vpsNoBranch = buildHandoffDestinations({
+  source: macSource,
+  sourceHostId: 'local',
+  sourceIsFolder: false,
+  hostOptions,
+  hosts: [
+    { id: 'local', kind: 'local', health: 'local' },
+    { id: 'runtime:vps', kind: 'runtime', health: 'available' },
+    { id: 'runtime:box', kind: 'runtime', health: 'disconnected' }
+  ],
+  worktreesByRepo: { 'app-mac': [macSource], 'app-vps': [source] },
+  hostUnavailableDetail: (host) =>
+    host.health === 'disconnected' ? 'Connect this host to set up projects' : null
+})
+const vpsKey = vpsNoBranch[1]!.key
+
+export const createOnVps = defineFixture({
+  width: 520,
+  render: frame(vpsNoBranch, vpsNoBranch[0]!.key)
+})
+
+export const creatingOnVps = defineFixture({
+  width: 520,
+  render: frame(vpsNoBranch, vpsNoBranch[0]!.key, { key: vpsKey, running: true, error: null })
+})
+
+export const createOnVpsFailed = defineFixture({
+  width: 520,
+  render: frame(vpsNoBranch, vpsNoBranch[0]!.key, {
+    key: vpsKey,
+    running: false,
+    error: 'Could not refresh base ref "origin/feat/mobile-app" from "origin".'
+  })
 })

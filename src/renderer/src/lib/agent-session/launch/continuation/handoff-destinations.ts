@@ -13,7 +13,8 @@ import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-reco
 export type HandoffDestinationBlock =
   | { kind: 'host-unavailable'; detail: string }
   | { kind: 'project-missing'; detail: string }
-  | { kind: 'branch-missing' }
+  /** Creatable: the project is on that host, just not this branch; `repoId` is that host's repo. */
+  | { kind: 'branch-missing'; repoId: string }
   | { kind: 'folder-source' }
   | { kind: 'detached-source' }
 
@@ -107,7 +108,7 @@ export function buildHandoffDestinations(input: HandoffDestinationInput): Handof
           ? { kind: 'host-unavailable', detail: unavailable }
           : target
             ? null
-            : { kind: 'branch-missing' }
+            : { kind: 'branch-missing', repoId: option.repoId }
     rows.push({
       ...base,
       worktreeId: target?.id ?? null,

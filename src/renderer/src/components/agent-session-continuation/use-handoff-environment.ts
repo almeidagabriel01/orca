@@ -4,6 +4,7 @@ import type { HandoffDestination } from '@/lib/agent-session/launch/continuation
 import { retargetContinuationRequest } from '@/lib/agent-session/launch/continuation/handoff-continuation-retarget'
 import { commitAndPushHandoffSource } from '@/lib/agent-session/launch/continuation/handoff-source-publish'
 import { syncHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destination-sync'
+import { createHandoffDestinationWorkspace } from '@/lib/agent-session/launch/continuation/handoff-destination-create'
 import type { AgentSessionContinuationRequest } from '../../../../shared/agent-session/conversation-context/agent-session-continuation'
 import { useHandoffDestinations } from './use-handoff-destinations'
 import { useHandoffSourceGitState } from './use-handoff-source-git-state'
@@ -14,6 +15,7 @@ type Publish = {
   running: boolean
   error: string | null
 }
+export type HandoffDestinationCreation = { key: string; running: boolean; error: string | null }
 
 /** The dialog's Environment choice: where the new session opens, and what must be pushed first. */
 export function useHandoffEnvironment(
@@ -29,6 +31,9 @@ export function useHandoffEnvironment(
   } | null>(null)
   const [publish, setPublish] = useState<Publish | null>(null)
   const [syncError, setSyncError] = useState<Picked | null>(null)
+  const [creation, setCreation] = useState<
+    (HandoffDestinationCreation & { request: AgentSessionContinuationRequest | null }) | null
+  >(null)
 
   const current = destinations?.[0]
   const chosen =
@@ -88,6 +93,27 @@ export function useHandoffEnvironment(
     git.refresh()
   }
 
+  const creating = creation?.request === request ? creation : null
+
+  /** Creates the branch's workspace on that host (publishing first if needed), then picks it. */
+  const createDestination = async (row: HandoffDestination): Promise<void> => {
+    if (!request || row.block?.kind !== 'branch-missing' || !row.branch || creating?.running) {
+      return
+    }
+    setCreation({ request, key: row.key, running: true, error: null })
+    const result = await createHandoffDestinationWorkspace({
+      sourceWorktreeId: request.worktreeId,
+      sourceHostId: current?.hostId,
+      hostId: row.hostId,
+      repoId: row.block.repoId,
+      branch: row.branch
+    })
+    setCreation({ request, key: row.key, running: false, error: result.ok ? null : result.reason })
+    if (result.ok) {
+      setPicked({ request, key: row.key })
+    }
+  }
+
   /** Runs right before launch: fast-forwards the destination; false means do not launch. */
   const prepareDestination = async (): Promise<boolean> => {
     setSyncError(null)
@@ -112,6 +138,8 @@ export function useHandoffEnvironment(
     destinations,
     destinationKey: destination?.key ?? '',
     pickDestination: (key: string) => setPicked({ request, key }),
+    creation: creating,
+    createDestination: (row: HandoffDestination) => void createDestination(row),
     elsewhere,
     effectiveRequest,
     // Another host sees only what is pushed, so the source must be clean before starting there.

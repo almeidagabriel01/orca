@@ -23350,7 +23350,8 @@
         "currentBadge": "Geçerli",
         "sameBranch": "aynı daldaki çalışma alanı",
         "projectMissing": "Bu proje bu ana makinede kurulu değil. {{detail}}",
-        "branchMissing": "Bu ana makinede {{branch}} üzerinde çalışma alanı yok. Önce orada bir tane oluşturun.",
+        "noWorkspaceYet": "bu dalda henüz çalışma alanı yok",
+        "createWorkspace": "{{host}} üzerinde çalışma alanı oluştur",
         "folderSource": "Klasör çalışma alanının başka bir ana makinede sürdürülecek dalı yok.",
         "detachedSource": "Bu çalışma alanı bir dalda değil.",
         "startBlocked": "{{host}} üzerinde başlatmadan önce “{{action}}” yapın."

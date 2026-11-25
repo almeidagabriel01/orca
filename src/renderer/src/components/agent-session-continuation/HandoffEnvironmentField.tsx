@@ -1,5 +1,8 @@
 import { useId } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { DialogError } from '@/components/ui/dialog-parts'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
@@ -7,10 +10,14 @@ import type {
   HandoffDestination,
   HandoffDestinationBlock
 } from '@/lib/agent-session/launch/continuation/handoff-destinations'
+import type { HandoffDestinationCreation } from './use-handoff-environment'
 
 const KEY = 'components.agentSessionContinuation.environment'
 
-function blockText(t: Translate, row: HandoffDestination, block: HandoffDestinationBlock): string {
+function blockText(
+  t: Translate,
+  block: Exclude<HandoffDestinationBlock, { kind: 'branch-missing' }>
+): string {
   switch (block.kind) {
     case 'host-unavailable':
       return block.detail
@@ -18,12 +25,6 @@ function blockText(t: Translate, row: HandoffDestination, block: HandoffDestinat
       return t(`${KEY}.projectMissing`, 'This project is not set up on this host. {{detail}}', {
         detail: block.detail
       })
-    case 'branch-missing':
-      return t(
-        `${KEY}.branchMissing`,
-        'No workspace on {{branch}} on this host. Create one there first.',
-        { branch: row.branch ?? '' }
-      )
     case 'folder-source':
       return t(
         `${KEY}.folderSource`,
@@ -35,8 +36,11 @@ function blockText(t: Translate, row: HandoffDestination, block: HandoffDestinat
 }
 
 function rowDetail(t: Translate, row: HandoffDestination): string {
-  return row.kind === 'current'
-    ? t(`${KEY}.current`, 'this workspace')
+  if (row.kind === 'current') {
+    return t(`${KEY}.current`, 'this workspace')
+  }
+  return row.block?.kind === 'branch-missing'
+    ? t(`${KEY}.noWorkspaceYet`, 'no workspace on this branch yet')
     : t(`${KEY}.sameBranch`, 'workspace on the same branch')
 }
 
@@ -45,12 +49,17 @@ export function HandoffEnvironmentField({
   destinations,
   value,
   onChange,
-  disabled
+  disabled,
+  creation,
+  onCreate
 }: {
   destinations: readonly HandoffDestination[]
   value: string
   onChange: (key: string) => void
   disabled?: boolean
+  creation?: HandoffDestinationCreation | null
+  /** Creates the missing same-branch workspace on that row's host. */
+  onCreate?: (row: HandoffDestination) => void
 }): React.JSX.Element | null {
   const t = useTranslate()
   const labelId = useId()
@@ -76,7 +85,7 @@ export function HandoffEnvironmentField({
               className={cn(
                 'flex min-w-0 items-start gap-2.5 rounded-md border border-border px-3 py-2',
                 row.key === value && 'border-foreground/40 bg-accent',
-                row.block && 'opacity-60'
+                row.block && row.block.kind !== 'branch-missing' && 'opacity-60'
               )}
             >
               <RadioGroupItem
@@ -96,9 +105,29 @@ export function HandoffEnvironmentField({
                   {' · '}
                   {rowDetail(t, row)}
                 </span>
-                {row.block ? (
+                {row.block?.kind === 'branch-missing' ? (
+                  <span className="grid justify-items-start gap-1 pt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={disabled || !onCreate || Boolean(creation?.running)}
+                      onClick={() => onCreate?.(row)}
+                    >
+                      {creation?.key === row.key && creation.running ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : null}
+                      {t(`${KEY}.createWorkspace`, 'Create workspace on {{host}}', {
+                        host: row.hostLabel
+                      })}
+                    </Button>
+                    {creation?.key === row.key && creation.error ? (
+                      <DialogError>{creation.error}</DialogError>
+                    ) : null}
+                  </span>
+                ) : row.block ? (
                   <span className="text-xs break-words text-status-warning-text">
-                    {blockText(t, row, row.block)}
+                    {blockText(t, row.block)}
                   </span>
                 ) : null}
               </span>

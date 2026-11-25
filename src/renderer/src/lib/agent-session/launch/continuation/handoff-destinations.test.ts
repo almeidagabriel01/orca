@@ -70,6 +70,11 @@ describe('buildHandoffDestinations', () => {
     expect(rows[1]).toMatchObject({ worktreeId: null, block: { kind: 'branch-missing' } })
   })
 
+  it('names the destination host repo on a missing branch so it can be created there', () => {
+    const rows = build({ hostOptions: [ready('local', 'r1'), ready('runtime:mac', 'r2')] })
+    expect(rows[1].block).toEqual({ kind: 'branch-missing', repoId: 'r2' })
+  })
+
   it('blocks with the host detail when the host is disconnected', () => {
     const rows = build({
       hosts: [

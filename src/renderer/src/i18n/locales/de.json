@@ -21265,7 +21265,8 @@
         "currentBadge": "Aktuell",
         "sameBranch": "Workspace auf demselben Branch",
         "projectMissing": "Dieses Projekt ist auf diesem Host nicht eingerichtet. {{detail}}",
-        "branchMissing": "Kein Workspace auf {{branch}} auf diesem Host. Erstelle dort zuerst einen.",
+        "noWorkspaceYet": "noch kein Workspace auf diesem Branch",
+        "createWorkspace": "Workspace auf {{host}} erstellen",
         "folderSource": "Ein Ordner-Workspace hat keinen Branch, der auf einem anderen Host fortgesetzt werden könnte.",
         "detachedSource": "Dieser Workspace ist auf keinem Branch.",
         "startBlocked": "Zuerst „{{action}}“, um auf {{host}} zu starten."

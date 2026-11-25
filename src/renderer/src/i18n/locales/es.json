@@ -20970,7 +20970,8 @@
         "currentBadge": "Actual",
         "sameBranch": "workspace en la misma rama",
         "projectMissing": "Este proyecto no está configurado en este host. {{detail}}",
-        "branchMissing": "No hay workspace en {{branch}} en este host. Crea uno allí primero.",
+        "noWorkspaceYet": "todavía no hay workspace en esta rama",
+        "createWorkspace": "Crear workspace en {{host}}",
         "folderSource": "Un workspace de carpeta no tiene rama para continuar en otro host.",
         "detachedSource": "Este workspace no está en una rama.",
         "startBlocked": "Haz “{{action}}” antes de empezar en {{host}}."

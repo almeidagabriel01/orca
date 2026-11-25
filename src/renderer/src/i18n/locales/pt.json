@@ -22983,7 +22983,8 @@
         "currentBadge": "Atual",
         "sameBranch": "workspace na mesma branch",
         "projectMissing": "Este projeto não está configurado neste host. {{detail}}",
-        "branchMissing": "Não há workspace em {{branch}} neste host. Crie um lá primeiro.",
+        "noWorkspaceYet": "ainda sem workspace nesta branch",
+        "createWorkspace": "Criar workspace em {{host}}",
         "folderSource": "Um workspace de pasta não tem branch para continuar em outro host.",
         "detachedSource": "Este workspace não está em uma branch.",
         "startBlocked": "Faça “{{action}}” antes de iniciar em {{host}}."

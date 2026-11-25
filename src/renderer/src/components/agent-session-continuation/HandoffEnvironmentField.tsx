@@ -36,7 +36,8 @@ export function handoffBlockText(t: Translate, block: HandoffDestinationBlock): 
   }
 }
 
-function rowDetail(t: Translate, row: HandoffDestination): string {
+/** The row's state: this workspace, a same-branch workspace, or none there yet. */
+export function handoffRowDetail(t: Translate, row: HandoffDestination): string {
   if (row.kind === 'current') {
     return t(`${KEY}.current`, 'this workspace')
   }
@@ -104,7 +105,7 @@ export function HandoffEnvironmentField({
                 <span className="text-xs break-words text-muted-foreground">
                   <span className="font-mono text-foreground/80">{row.workspaceLabel}</span>
                   {' · '}
-                  {rowDetail(t, row)}
+                  {handoffRowDetail(t, row)}
                 </span>
                 {row.block?.kind === 'branch-missing' ? (
                   <span className="grid justify-items-start gap-1 pt-1">

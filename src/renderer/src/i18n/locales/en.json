@@ -23473,7 +23473,8 @@
         "commitAndPush": "Commit & push",
         "push": "Push",
         "defaultMessage": "chore: hand off work to {{host}}"
-      }
+      },
+      "continueOnHost": "Continue on {{host}}"
     },
     "status": {
       "bar": {

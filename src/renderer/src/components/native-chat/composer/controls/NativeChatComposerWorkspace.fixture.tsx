@@ -85,7 +85,12 @@ function workspaceFixture({
     },
     setup: () => {
       useAppStore.setState((state) => ({
-        settings: { ...getDefaultSettings('/home/fixture'), ...state.settings, machineName }
+        settings: {
+          ...getDefaultSettings('/home/fixture'),
+          ...state.settings,
+          // The footer shows the host's display name, the one Settings renames.
+          hostSettingOverrides: machineName ? { local: { displayLabel: machineName } } : {}
+        }
       }))
     },
     render: () => (
@@ -334,15 +339,6 @@ function hostSwitchFixture() {
           }
         ]
       }
-    },
-    setup: () => {
-      useAppStore.setState((state) => ({
-        settings: {
-          ...getDefaultSettings('/home/fixture'),
-          ...state.settings,
-          machineName: "Gabriel's MacBook Air"
-        }
-      }))
     },
     render: () => (
       <NativeChatHandOffContext.Provider value={HAND_OFF}>

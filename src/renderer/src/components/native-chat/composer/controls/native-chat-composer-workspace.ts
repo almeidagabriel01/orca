@@ -203,7 +203,6 @@ function createComposerMachineSelector(terminalBacked: boolean) {
       override,
       label,
       environment,
-      host === 'local' ? state.settings?.machineName : undefined,
       ...(localRuntime
         ? [
             state.projects,
@@ -228,15 +227,14 @@ function createComposerMachineSelector(terminalBacked: boolean) {
       machine =
         distro ??
         override ??
-        (host === 'local'
-          ? state.settings?.machineName
-          : (label ??
-            (host
-              ? selectExecutionHostDisplayLabel(
-                  { ...state, runtimeEnvironments: environment ? [environment] : [] },
-                  host
-                )
-              : undefined)))
+        // One host name everywhere: the same label the sidebar and the hand-off list show.
+        label ??
+        (host
+          ? selectExecutionHostDisplayLabel(
+              { ...state, runtimeEnvironments: environment ? [environment] : [] },
+              host
+            )
+          : undefined)
     }
     return machine
   }

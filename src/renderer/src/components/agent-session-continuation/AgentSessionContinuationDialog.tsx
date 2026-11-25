@@ -295,10 +295,15 @@ export function AgentSessionContinuationDialog({
       >
         <DialogHeader>
           <DialogTitle>
-            {t(
-              'components.agentSessionContinuation.dialogTitleSentence',
-              'Hand off to another agent'
-            )}
+            {/* Opened from the footer host picker: the point is the place, not another agent. */}
+            {initialEnvironmentKey && env.elsewhere
+              ? t('components.agentSessionContinuation.continueOnHost', 'Continue on {{host}}', {
+                  host: env.destinationLabel
+                })
+              : t(
+                  'components.agentSessionContinuation.dialogTitleSentence',
+                  'Hand off to another agent'
+                )}
           </DialogTitle>
           <DialogDescription size="compact">
             {sourceAgentLabel

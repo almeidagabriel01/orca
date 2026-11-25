@@ -6,7 +6,6 @@ import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
-import { usePublishedMachineName } from '@/components/machine-identity/use-published-machine-name'
 import { getWorktreeGitIdentityDisplay } from '../../../../../../shared/worktree/row-display/git-identity-display'
 import { parseExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import {
@@ -96,14 +95,11 @@ export function NativeChatComposerWorkspace({
         ? t('components.native-chat.composerWorkspace.mainCheckout', 'Main checkout')
         : t('components.native-chat.composerWorkspace.worktree', 'Worktree')
 
-  const machineName =
-    hostId === 'local' ? (
-      <LocalMachineName name={machine ?? ''} />
-    ) : (
-      <span className={FOOTER_TEXT} title={machine}>
-        {machine}
-      </span>
-    )
+  const machineName = (
+    <span className={FOOTER_TEXT} title={machine}>
+      {machine}
+    </span>
+  )
 
   const copyIdentityButton =
     identity && label ? (
@@ -224,14 +220,5 @@ export function NativeChatComposerWorkspace({
         <NativeChatAntigravityAuthChip textClassName={FOOTER_TEXT} />
       </span>
     </div>
-  )
-}
-
-function LocalMachineName({ name }: { name: string }): React.JSX.Element {
-  const published = usePublishedMachineName(name)
-  return (
-    <span className={FOOTER_TEXT} title={published ?? undefined}>
-      {published}
-    </span>
   )
 }

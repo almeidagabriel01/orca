@@ -12,7 +12,10 @@ import {
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
 import { useHandoffDestinations } from '@/components/agent-session-continuation/use-handoff-destinations'
-import { handoffBlockText } from '@/components/agent-session-continuation/HandoffEnvironmentField'
+import {
+  handoffBlockText,
+  handoffRowDetail
+} from '@/components/agent-session-continuation/HandoffEnvironmentField'
 import type { NativeChatHandOffTarget } from '../../pane/actions/use-native-chat-hand-off'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 
@@ -92,7 +95,9 @@ function HostPickerRows({
             <span className="grid min-w-0 flex-1 gap-0.5 py-0.5">
               <span className="truncate">{row.hostLabel}</span>
               <span className="line-clamp-2 text-xs font-normal text-muted-foreground">
-                {row.block ? handoffBlockText(t, row.block) : row.workspaceLabel}
+                {row.block && row.block.kind !== 'branch-missing'
+                  ? handoffBlockText(t, row.block)
+                  : handoffRowDetail(t, row)}
               </span>
             </span>
           </DropdownMenuRadioItem>

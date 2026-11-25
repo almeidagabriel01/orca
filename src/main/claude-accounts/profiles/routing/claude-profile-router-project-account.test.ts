@@ -3,10 +3,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ClaudeProfileRouter, type ClaudeProfileRouterSettings } from './claude-profile-router'
-import {
-  installClaudeProfileRouter,
-  withClaudeProfileTerminalEnv
-} from './claude-profile-installed-router'
+import { installClaudeProfileRouter } from './claude-profile-installed-router'
+import { withClaudeProfileProjectTerminalEnv } from './claude-profile-pointer-file'
 import { projectClaudeAccountChoiceForWorktree } from '../../selection/claude-chat-account-choice'
 import { CLAUDE_PROFILE_POINTER_ENV } from '../../../../shared/agent-accounts/claude/claude-profile-routing'
 
@@ -64,18 +62,21 @@ function setup() {
   return { router, store }
 }
 
+/** A host terminal pane's env for the project's `choice`. */
+const terminalEnv = (choice: string | undefined) => {
+  const env: Record<string, string> = {}
+  return withClaudeProfileProjectTerminalEnv(env, { runtime: 'host' }, choice)
+}
+
 const pointedHome = (env: Record<string, string>) =>
   readFileSync(env[CLAUDE_PROFILE_POINTER_ENV], 'utf8')
 
 describe('a terminal agent in a project with a default Claude account', () => {
-  it('runs on the project account, not the host selection', () => {
+  it('runs on the project account, not the host selection', async () => {
     const { router, store } = setup()
     const choice = projectClaudeAccountChoiceForWorktree(store, 'p::/work/p')
     expect(choice).toBe('b')
-    const env = withClaudeProfileTerminalEnv({}, { runtime: 'host' }, choice) as Record<
-      string,
-      string
-    >
+    const env = await terminalEnv(choice)
     // The pane's shell function re-reads the pointer on every `claude`, so it must name `b` too.
     expect(env.CLAUDE_CONFIG_DIR).toBe(router.accountHome('b'))
     expect(pointedHome(env)).toBe(router.accountHome('b'))
@@ -88,25 +89,19 @@ describe('a terminal agent in a project with a default Claude account', () => {
     expect(readFileSync(router.pointerPath, 'utf8')).toBe(router.accountHome('a'))
   })
 
-  it('runs on System default when the project picks it, though the host selects an account', () => {
+  it('runs on System default when the project picks it, though the host selects an account', async () => {
     const { store } = setup()
     const choice = projectClaudeAccountChoiceForWorktree(store, 'sys::/work/sys')
     expect(choice).toBe('system')
-    const env = withClaudeProfileTerminalEnv({}, { runtime: 'host' }, choice) as Record<
-      string,
-      string
-    >
+    const env = await terminalEnv(choice)
     expect(env.CLAUDE_CONFIG_DIR).toBeUndefined()
     expect(pointedHome(env)).toBe('')
   })
 
-  it('follows the host selection when the project names no account', () => {
+  it('follows the host selection when the project names no account', async () => {
     const { router, store } = setup()
     expect(projectClaudeAccountChoiceForWorktree(store, 'plain::/work/plain')).toBeUndefined()
-    const env = withClaudeProfileTerminalEnv({}, { runtime: 'host' }, undefined) as Record<
-      string,
-      string
-    >
+    const env = await terminalEnv(undefined)
     expect(env.CLAUDE_CONFIG_DIR).toBe(router.accountHome('a'))
     expect(env[CLAUDE_PROFILE_POINTER_ENV]).toBe(router.pointerPath)
   })

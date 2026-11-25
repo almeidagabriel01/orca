@@ -2,9 +2,9 @@ import { claudeAccountUsagePreparation } from './claude-account-usage-preparatio
 import { claudeProfileSelectionHomes } from './claude-profile-selection-homes'
 import { prepareClaudeProfileForLaunch } from './claude-profile-launch-preparation'
 import { getClaudeAgentViewService } from '../../../claude/agent-view/agent-view-service'
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { isAgentStatusHooksEnabledForAgent } from '../../../../shared/agent-hook-listener/configuration/agent-status-hooks-setting'
 import {
   CLAUDE_INJECTED_CONFIG_DIR_ENV,
@@ -13,11 +13,12 @@ import {
   CLAUDE_USER_CONFIG_DIR_ENV
 } from '../../../../shared/agent-accounts/claude/claude-profile-routing'
 import { claudeProfileMissing } from './claude-profile-launch-errors'
-import { claudeProfilePointerFor, writeClaudeProfilePointer } from './claude-profile-pointer-file'
+import { choicePointerPath, publishChoicePointer } from './claude-profile-pointer-file'
 import { claudeChatAccountId } from './claude-chat-account-route'
 import type { GlobalSettings } from '../../../../shared/settings/global-settings-types'
 import type { ClaudeManagedAccount } from '../../../../shared/agent-accounts/managed-account-types'
 import { probeRecentClaudeCliVersion } from '../../../claude/cli-capabilities/claude-hook-event-versions'
+import { writeFileAtomically } from '../../../filesystem/atomic-file-publication'
 import { resolveClaudeCommand } from '../../../codex-cli/command'
 import {
   describeClaudeProfile,
@@ -157,10 +158,7 @@ export class ClaudeProfileRouter {
       return
     }
     // Create missing or covered folders without a login so they can sign in separately.
-    const profile = this.selectedProfile()
-    if (profile) {
-      this.setUpInBackground(profile)
-    }
+    this.setUpInBackground(this.selectedProfile())
   }
 
   private writePointer(): boolean {
@@ -168,11 +166,19 @@ export class ClaudeProfileRouter {
       rmSync(this.pointerPath, { force: true })
       return false
     }
-    writeClaudeProfilePointer(this.pointerPath, this.routedProfile()?.home ?? '')
+    const home = this.routedProfile()?.home ?? ''
+    // Avoid rewriting the pointer on every launch.
+    if (!existsSync(this.pointerPath) || readFileSync(this.pointerPath, 'utf8') !== home) {
+      mkdirSync(dirname(this.pointerPath), { recursive: true, mode: 0o700 })
+      writeFileAtomically(this.pointerPath, home, { mode: 0o600 })
+    }
     return true
   }
 
-  private setUpInBackground(profile: ClaudeProfileDescriptor): void {
+  private setUpInBackground(profile: ClaudeProfileDescriptor | null): void {
+    if (!profile) {
+      return
+    }
     this.setUp(profile).catch((error: unknown) => {
       console.warn('[claude-profile] Account setup failed:', error)
     })
@@ -187,6 +193,7 @@ export class ClaudeProfileRouter {
     }
     // Login changes since publication can change the route.
     this.writePointer()
+    await publishChoicePointer(this, accountChoice)
     const profile = this.routedProfile(accountChoice)
     if (!profile) {
       return this.preparation(accountChoice)
@@ -266,14 +273,10 @@ export class ClaudeProfileRouter {
     return report
   }
 
-  private pointerFor(choice?: string): string {
-    return claudeProfilePointerFor(this.pointerPath, choice, (id) => this.routedProfile(id)?.home)
-  }
-
   launchEnv(accountChoice?: string): ClaudeEnvPatch {
     const home = this.routedHome('checked', accountChoice)
     return {
-      [CLAUDE_PROFILE_POINTER_ENV]: this.pointerFor(accountChoice),
+      [CLAUDE_PROFILE_POINTER_ENV]: choicePointerPath(this.pointerPath, accountChoice),
       // Preserve the user's inherited CLAUDE_CONFIG_DIR for System default.
       ...(home ? { CLAUDE_CONFIG_DIR: home, [CLAUDE_INJECTED_CONFIG_DIR_ENV]: home } : {})
     }
@@ -288,23 +291,20 @@ export class ClaudeProfileRouter {
     // Save the user's value so the shell function can restore it on System default.
     const userConfigDir = readUserClaudeConfigDirAsSet(this.env)
     const base: ClaudeEnvPatch = {
-      [CLAUDE_PROFILE_POINTER_ENV]: this.pointerPath,
+      [CLAUDE_PROFILE_POINTER_ENV]: choicePointerPath(this.pointerPath, accountChoice),
       ...(userConfigDir ? { [CLAUDE_USER_CONFIG_DIR_ENV]: userConfigDir } : {})
     }
+    // Defer routing until the shell env resolves; the shell function will read the updated pointer.
+    if (!this.envResolved) {
+      return base
+    }
     try {
-      // Defer routing until the shell env resolves; the shell function will read the updated pointer.
-      if (!this.envResolved) {
-        return { ...base, [CLAUDE_PROFILE_POINTER_ENV]: this.pointerFor(accountChoice) }
-      }
       this.writePointer()
       // Refresh without delaying terminal creation.
-      const profile = this.routedProfile(accountChoice)
-      if (profile) {
-        this.setUpInBackground(profile)
-      }
+      this.setUpInBackground(this.routedProfile(accountChoice))
       return { ...base, ...this.launchEnv(accountChoice) }
     } catch {
-      return base
+      return { ...base, [CLAUDE_PROFILE_POINTER_ENV]: this.pointerPath }
     }
   }
 

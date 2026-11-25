@@ -76,7 +76,7 @@ export function mergeAiVaultListResults(
   }
   return truncateAiVaultListResult(
     {
-      sessions: [...byId.values()].sort(
+      sessions: dropOtherMachineCopies([...byId.values()]).sort(
         (left, right) => sessionSortTime(right) - sessionSortTime(left)
       ),
       issues,
@@ -85,6 +85,17 @@ export function mergeAiVaultListResults(
     },
     depth,
     scopePaths
+  )
+}
+
+/** One row per conversation: a synced copy yields to the row from the host that recorded it. */
+function dropOtherMachineCopies(sessions: AiVaultSession[]): AiVaultSession[] {
+  const key = (session: AiVaultSession) => `${session.agent}\0${session.sessionId}`
+  const recorded = new Set(
+    sessions.filter((session) => !session.recordedOnOtherMachine && !session.subagent).map(key)
+  )
+  return sessions.filter(
+    (session) => !session.recordedOnOtherMachine || session.subagent || !recorded.has(key(session))
   )
 }
 

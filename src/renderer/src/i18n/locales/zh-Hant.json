@@ -22216,6 +22216,7 @@
   "aiVault": {
     "antigravityReferenceDescription": "使用此記錄作為參考繼續新的 Antigravity CLI 對話。",
     "searchHitSourceHost": "在 {{value0}} 上找到",
+    "recordedOnOtherMachineCopy": "在另一台電腦上記錄 · 請在那裡開啟",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "在 CLI 中繼續",

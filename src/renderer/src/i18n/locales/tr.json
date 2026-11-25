@@ -25095,6 +25095,7 @@
   "aiVault": {
     "antigravityReferenceDescription": "Bu konuşma dökümünü referans alarak yeni bir Antigravity CLI konuşmasında devam eder.",
     "searchHitSourceHost": "{{value0}} üzerinde bulundu",
+    "recordedOnOtherMachineCopy": "Başka bir bilgisayarda kaydedildi · orada açın",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "CLI'de Devam Et",

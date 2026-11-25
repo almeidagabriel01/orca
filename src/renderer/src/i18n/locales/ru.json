@@ -23298,6 +23298,7 @@
   "aiVault": {
     "antigravityReferenceDescription": "Продолжает в новом разговоре Antigravity CLI, используя эту историю как справочный материал.",
     "searchHitSourceHost": "Найдено на {{value0}}",
+    "recordedOnOtherMachineCopy": "Записано на другом компьютере · откройте там",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "Продолжить в CLI",

@@ -24750,6 +24750,7 @@
     },
     "antigravityReferenceDescription": "이 대화 기록을 참고 자료로 사용하여 새로운 Antigravity CLI 대화에서 계속합니다.",
     "searchHitSourceHost": "{{value0}}에서 찾음",
+    "recordedOnOtherMachineCopy": "다른 컴퓨터에서 기록됨 · 그곳에서 여세요",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "antigravityChatToCli": "채팅 → CLI",

@@ -1,4 +1,5 @@
 import { SubagentExpansionProvider } from './ai-vault-subagent-expansion'
+import { aiVaultOtherMachineLabel } from '../session-actions/ai-vault-session-other-machine'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type Ref } from 'react'
 import type { AgentDotState } from '@/components/agent/status/AgentStateDot'
@@ -367,9 +368,11 @@ export function AiVaultSessionVirtualList({
                   vaultScope={vaultScope}
                   searchHit={row?.type === 'session' ? searchHits?.get(row.session.id) : undefined}
                   sourceHostLabel={
-                    row?.type === 'session'
-                      ? searchHitHostLabels?.get(row.session.executionHostId)
-                      : undefined
+                    row?.type !== 'session'
+                      ? undefined
+                      : row.session.recordedOnOtherMachine
+                        ? aiVaultOtherMachineLabel()
+                        : searchHitHostLabels?.get(row.session.executionHostId)
                   }
                   buildResumeStartup={buildResumeStartup}
                   getOriginalPaneTarget={getOriginalPaneTarget}

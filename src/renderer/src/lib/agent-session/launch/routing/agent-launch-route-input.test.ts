@@ -31,6 +31,7 @@ describe('findLaunchProjectRepo', () => {
   it('finds a folder project being created on a paired host, so its blank default wins', () => {
     const vps = { id: 'repo-vps', kind: 'folder' as const, executionHostId: 'runtime:env-1' }
     const project = findLaunchProjectRepo(
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the lookup reads only id, kind and host
       { repos: [{ ...vps, agentLaunchDefaults: { defaultTuiAgent: 'blank' } }] } as never,
       { kind: 'folder', repoId: 'repo-vps', executionHostId: 'runtime:env-1' },
       'runtime:env-1'

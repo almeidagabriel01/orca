@@ -73,9 +73,7 @@ function OutsideOrcaRow({ group }: { group: OutsideOrcaProcessGroup }): React.JS
             </span>
           )}
           {group.heavy && (
-            <Badge variant="warning" className="h-3.5 px-1 py-0 text-3xs font-normal">
-              {t('resourceManager.outsideOrca.heavy', 'heavy')}
-            </Badge>
+            <Badge variant="rowWarning">{t('resourceManager.outsideOrca.heavy', 'heavy')}</Badge>
           )}
         </div>
         {meta.length > 0 && (

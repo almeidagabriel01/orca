@@ -32,6 +32,9 @@ const badgeVariants = cva(
         /** A skill, file or bot sitting inline in the chat message box, ringed while selected. */
         promptPill:
           'max-w-full border-border bg-secondary px-1.5 py-0 align-baseline text-muted-foreground data-[selected=true]:ring-1 data-[selected=true]:ring-ring data-[muted=true]:border-dashed data-[muted=true]:opacity-70',
+        /** A caution inside a dense list row, such as a heavy process. */
+        rowWarning:
+          'h-3.5 border-status-warning-border bg-status-warning-background px-1 py-0 text-3xs font-normal text-status-warning-text',
         /** Something listed but not offered yet, such as a coming-soon connector. */
         comingSoon: 'border-border font-normal text-muted-foreground',
         /** Who sent a chat message from another app, over its bubble; a button when it opens. */

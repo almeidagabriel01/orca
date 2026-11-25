@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import type React from 'react'
+import { useState } from 'react'
 import {
   ArrowDown,
   ArrowDownToLine,
@@ -24,6 +25,7 @@ import type { HeavyMoveHost } from './resource-heavy-job-move'
 import type { HeavyJobMoveRequest } from './resource-heavy-queue-move-items'
 import { QueueRowHostNote } from './resource-heavy-queue-host-note'
 import { MetricPair } from './resource-usage-metrics'
+import { MiddleEllipsisLabel } from '@/components/new-workspace/run-target/MiddleEllipsisLabel'
 
 /** What a row needs to offer "Run on <host>"; source is null when this host's queue can't move jobs. */
 export type RowMoveHosts = {
@@ -254,22 +256,13 @@ export function QueueRow({
             </Tooltip>
           )}
         </div>
-        <div className="flex min-w-0 items-start justify-between gap-2 [grid-area:place]">
+        <div className="flex min-w-0 items-center justify-between gap-2 [grid-area:place]">
           <div
             data-queue-place
-            className="min-w-0 pl-[1.125rem] text-2xs font-medium break-words text-foreground"
-            title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
+            className="flex min-w-0 flex-1 pl-[1.125rem] text-2xs font-medium text-foreground"
+            title={job.cwd}
           >
-            {job.workspace ? (
-              <PathText text={row.place} />
-            ) : (
-              <>
-                {folderName(row.place)}{' '}
-                <span className="font-normal text-muted-foreground">
-                  <PathText text={row.place} />
-                </span>
-              </>
-            )}
+            <MiddleEllipsisLabel text={row.place} />
           </div>
           {/* pr-1 lines the columns up with the sections below, whose rows pad 4px more. */}
           {job.cpu !== undefined && job.memory !== undefined && (
@@ -303,8 +296,8 @@ export function QueueRow({
                 }
                 className={cn(
                   'min-w-0 flex-1 rounded-sm text-left font-mono text-3xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  // Two lines before it cuts; a click shows all of it.
-                  expanded ? 'whitespace-pre-wrap break-words' : 'line-clamp-2 break-words'
+                  // One line before it cuts; a click shows all of it.
+                  expanded ? 'whitespace-pre-wrap break-words' : 'truncate'
                 )}
               >
                 {job.command}
@@ -360,28 +353,5 @@ export function QueueRow({
         </div>
       )}
     </li>
-  )
-}
-
-function folderName(place: string): string {
-  return place.split('/').findLast(Boolean) ?? place
-}
-
-/** Lets a path wrap only after its slashes. */
-function PathText({ text }: { text: string }): React.JSX.Element {
-  const parts = text.split('/')
-  return (
-    <>
-      {parts.map((part, index) => (
-        <React.Fragment key={index}>
-          {part}
-          {index < parts.length - 1 && (
-            <>
-              /<wbr />
-            </>
-          )}
-        </React.Fragment>
-      ))}
-    </>
   )
 }

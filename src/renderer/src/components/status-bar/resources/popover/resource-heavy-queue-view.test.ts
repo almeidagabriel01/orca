@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HeavyCommandJob } from '../../../../../../shared/diagnostics/process-stats-types'
-import { buildHeavyQueueView } from './resource-heavy-queue-view'
+import { buildHeavyQueueView, cwdName } from './resource-heavy-queue-view'
 
 const job = (pid: number, fields: Partial<HeavyCommandJob>): HeavyCommandJob => ({
   pid,
@@ -48,9 +48,27 @@ describe('buildHeavyQueueView', () => {
     expect(
       view.waiting.map((row) => [row.job.pid, row.position, row.elapsedMs, row.place])
     ).toEqual([
-      [6, 1, 80_000, 'app / fix'],
-      [1, 2, 90_000, '~/app'],
-      [3, 3, 99_000, '~/app']
+      [6, 1, 80_000, 'app · fix'],
+      [1, 2, 90_000, 'app'],
+      [3, 3, 99_000, 'app']
+    ])
+  })
+
+  it('names agent worktrees and CI runners by their layout, else by the last two folders', () => {
+    expect(
+      [
+        '/home/dev/projects/shop/.claude/worktrees/agent-ad5a/web',
+        '/home/gh-runner/actions-runner-3/_work/Org/shop',
+        '/home/gh-runner/actions-runner/_work/Org/shop',
+        '/private/tmp/rel-1370/repo',
+        '/'
+      ].map(cwdName)
+    ).toEqual([
+      'shop · agent-ad5a/web',
+      'shop · actions-runner-3',
+      'shop · actions-runner',
+      'rel-1370 · repo',
+      '/'
     ])
   })
 

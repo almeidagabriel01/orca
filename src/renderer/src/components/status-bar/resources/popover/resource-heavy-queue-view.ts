@@ -2,7 +2,6 @@ import type {
   HeavyCommandJob,
   HeavyCommandQueue
 } from '../../../../../../shared/diagnostics/process-stats-types'
-import { relativeCwd } from './resource-session-processes'
 
 export type HeavyQueueRow = {
   job: HeavyCommandJob
@@ -12,7 +11,7 @@ export type HeavyQueueRow = {
   elapsedFromQueue: boolean
   /** 1-based place in line; null while running. */
   position: number | null
-  /** The Orca workspace, else the folder with ~ for home. */
+  /** One-line name: project · workspace, from the Orca workspace or the cwd's meaningful segments. */
   place: string
   /** What the host lets this row do; all false without controls. */
   can: {
@@ -49,14 +48,30 @@ const NO_ACTIONS: HeavyQueueRow['can'] = {
   stop: false
 }
 
+const HOME_PREFIX = /^\/(?:home|Users)\/[^/]+(?=\/|$)/
+
 function placeOf(job: HeavyCommandJob): string {
   const workspace = job.workspace
-  if (!workspace) {
-    return relativeCwd(job.cwd, null) ?? job.cwd
+  if (workspace) {
+    return workspace.repoName === workspace.worktreeName
+      ? workspace.worktreeName
+      : `${workspace.repoName} · ${workspace.worktreeName}`
   }
-  return workspace.repoName === workspace.worktreeName
-    ? workspace.worktreeName
-    : `${workspace.repoName} / ${workspace.worktreeName}`
+  return cwdName(job.cwd)
+}
+
+/** A readable project · workspace for a cwd Orca does not know: agent worktrees and CI runners by their layout. */
+export function cwdName(cwd: string): string {
+  const parts = cwd.replace(HOME_PREFIX, '').split('/').filter(Boolean)
+  const claude = parts.indexOf('.claude')
+  if (claude > 0 && parts[claude + 1] === 'worktrees' && parts[claude + 2]) {
+    return `${parts[claude - 1]} · ${parts.slice(claude + 2).join('/')}`
+  }
+  const work = parts.indexOf('_work')
+  if (work > 0 && parts[work - 1].startsWith('actions-runner') && parts[work + 2]) {
+    return `${parts[work + 2]} · ${parts[work - 1]}`
+  }
+  return parts.slice(-2).join(' · ') || cwd
 }
 
 function byRunningOrder(a: HeavyCommandJob, b: HeavyCommandJob): number {

@@ -18,6 +18,7 @@ import {
 import { createStructuredAgentSessionRestartOperationQueue } from './structured-agent-session-restart-operation-queue'
 import { createStructuredAgentSessionRestartOfferRecords } from './structured-agent-session-restart-offer-records'
 import {
+  restartActionRows,
   restartRowsFor,
   type StructuredAgentSessionRestartAudience,
   type StructuredAgentSessionResumeCandidate
@@ -86,8 +87,7 @@ export function createStructuredAgentSessionRestartResume(
     adapter: deps.adapter,
     agents: deps.agents,
     movedOn: withdrawal.movedOn,
-    savedByNewerOrca: newerOrca.has,
-    workerDispatchesSettled: (record) => deps.workerDispatchesSettled?.(record) === true
+    savedByNewerOrca: newerOrca.has
   })
   const failures = createStructuredAgentSessionRestartFailureLedger({
     ...(deps.recoveryCapsule ? { capsule: deps.recoveryCapsule } : {}),
@@ -151,12 +151,9 @@ export function createStructuredAgentSessionRestartResume(
     witnesses.clear(audience)
     const markers = await readActionMarkers(sessionIds)
     await revealMarkers(markers)
-    const requested = new Set(sessionIds ?? markers.map((marker) => marker.sessionId))
-    const derived = await derive(markers, 'may-be-held')
-    retireSuperseded(derived.superseded)
-    const eligible = restartRowsFor(derived.candidates, audience).filter(
-      (candidate) => requested.has(candidate.sessionId) && candidate.recordedAt >= recordedSince
-    )
+    const { candidates: rows, superseded } = await derive(markers, 'may-be-held')
+    retireSuperseded(superseded)
+    const eligible = restartActionRows(rows, deps, audience, sessionIds, automatic, recordedSince)
     progress.skipExcluded(sessionIds ?? [], eligible)
     if (eligible.length === 0) {
       return null

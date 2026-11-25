@@ -56,6 +56,31 @@ export function restartRowsFor<T extends { agent: string }>(
   return audience ? rows.filter((row) => audience(row.agent)) : rows
 }
 
+/** The rows an action takes; an automatic one leaves a finished worker's offer to a person, since
+ *  continuing it on its own would race the newer workers its coordinator started. */
+export function restartActionRows(
+  rows: StructuredAgentSessionResumeCandidate[],
+  deps: {
+    store: { getRecord: (sessionId: string) => AgentSessionRecord | null }
+    workerDispatchesSettled?: (record: AgentSessionRecord) => boolean
+  },
+  audience: StructuredAgentSessionRestartAudience | undefined,
+  sessionIds: readonly string[] | undefined,
+  automatic: boolean,
+  recordedSince: number
+): StructuredAgentSessionResumeCandidate[] {
+  const finishedWorker = (sessionId: string): boolean => {
+    const record = deps.store.getRecord(sessionId)
+    return record !== null && deps.workerDispatchesSettled?.(record) === true
+  }
+  return restartRowsFor(rows, audience).filter(
+    (row) =>
+      (sessionIds === undefined || sessionIds.includes(row.sessionId)) &&
+      row.recordedAt >= recordedSince &&
+      !(automatic && finishedWorker(row.sessionId))
+  )
+}
+
 export type StructuredAgentSessionResumableSet = {
   candidates: StructuredAgentSessionResumeCandidate[]
   /** Retire these durable markers instead of repeatedly hiding them. */
@@ -69,8 +94,6 @@ export type StructuredAgentSessionResumeSetInput = {
   latestPrompt: (sessionId: string) => string | Promise<string>
   movedOn: (marker: AgentSessionResumeMarker) => boolean | Promise<boolean>
   savedByNewerOrca: (sessionId: string) => boolean
-  /** A worker whose Dispatches all settled; absent: no chat is one. */
-  workerDispatchesSettled?: (record: AgentSessionRecord) => boolean
   /** may-be-held relaxes ownership only, preserving all other eligibility checks. */
   leaseState?: 'must-be-released' | 'may-be-held'
 }
@@ -85,11 +108,7 @@ export async function structuredAgentSessionResumableSet(
     if (!record || !input.supportsRecord(record)) {
       continue
     }
-    // A finished worker's cut is spent: continuing it would race the workers its coordinator started since.
-    if (
-      record.providerContextBoundary?.operationId !== marker.contextClearOperationId ||
-      input.workerDispatchesSettled?.(record) === true
-    ) {
+    if (record.providerContextBoundary?.operationId !== marker.contextClearOperationId) {
       superseded.push(marker)
       continue
     }

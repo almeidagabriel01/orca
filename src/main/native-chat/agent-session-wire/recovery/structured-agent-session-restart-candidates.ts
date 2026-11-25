@@ -27,7 +27,6 @@ export function createStructuredAgentSessionRestartCandidateReader(deps: {
   agents: Pick<StructuredAgentRegistry, 'definition'>
   movedOn: (marker: AgentSessionResumeMarker) => Promise<boolean>
   savedByNewerOrca: (sessionId: string) => boolean
-  workerDispatchesSettled: (record: AgentSessionRecord) => boolean
 }): StructuredAgentSessionRestartCandidateReader {
   return (markers, leaseState) =>
     structuredAgentSessionResumableSet({
@@ -36,7 +35,6 @@ export function createStructuredAgentSessionRestartCandidateReader(deps: {
       supportsRecord: (record) => hostCanStartRecord(deps, record),
       movedOn: deps.movedOn,
       savedByNewerOrca: deps.savedByNewerOrca,
-      workerDispatchesSettled: deps.workerDispatchesSettled,
       latestPrompt: (sessionId) => {
         const session = deps.sessions.get(sessionId)
         return session

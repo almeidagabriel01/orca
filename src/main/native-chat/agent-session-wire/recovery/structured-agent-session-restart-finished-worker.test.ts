@@ -13,7 +13,9 @@ function restartResume(workerDispatchesSettled: boolean) {
   const capsule = {
     list: vi.fn(async () => [marker()]),
     listFailed: vi.fn(async () => []),
-    beginResume: vi.fn(async () => []),
+    beginResume: vi.fn(
+      async (_ids: readonly string[] | undefined, ..._rest: unknown[]): Promise<never[]> => []
+    ),
     completeResume: vi.fn(async () => {}),
     failResume: vi.fn(async () => {}),
     rollbackResume: vi.fn(async () => {}),

@@ -57,6 +57,7 @@ function setup(id: string, hostId: ProjectHostSetup['hostId'], repo: Repo): Proj
 }
 
 function seed(vpsMain: Worktree, extra: Record<string, unknown> = {}): void {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
   useAppStore.setState({
     settings: getDefaultSettings('/home/me'),
     repos: [macRepo, vpsRepo],

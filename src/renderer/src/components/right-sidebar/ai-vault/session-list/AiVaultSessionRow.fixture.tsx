@@ -8,6 +8,7 @@ import { aiVaultSessionResumeLabel } from '../session-actions/ai-vault-session-r
 import { VaultSessionRow } from './AiVaultSessionRow'
 
 // A Claude conversation synced from the Mac, listed by the VPS that holds the copy.
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const copy = {
   id: 'runtime:vps:claude:s1',
   agent: 'claude',

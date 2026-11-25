@@ -8,24 +8,28 @@ import {
 } from './ai-vault-session-resume'
 
 // The VPS holds a copy synced from the Mac; the Mac (this client) has the recorded folder as a workspace.
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const repos = [
   { id: 'repo-mac', connectionId: null },
   { id: 'repo-vps', connectionId: null, executionHostId: 'runtime:vps' }
 ] as unknown as Repo[]
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const macWorktree = {
   id: 'repo-mac::/Users/me/DEV/kit',
   repoId: 'repo-mac',
   path: '/Users/me/DEV/kit',
   displayName: 'kit'
 } as Worktree
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const vpsWorktree = {
   id: 'repo-vps::/home/me/projects/kit',
   repoId: 'repo-vps',
   path: '/home/me/projects/kit',
   displayName: 'kit',
   hostId: 'runtime:vps'
-} as Worktree
+} as unknown as Worktree
 const worktrees = [macWorktree, vpsWorktree]
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const copy = {
   id: 'runtime:vps:claude:s1',
   agent: 'claude',

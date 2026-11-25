@@ -6,18 +6,23 @@ export function OwnLoginRowTitle({
   name,
   active,
   t,
+  nameSlot,
   children
 }: {
   name: string | undefined
   active: boolean
   t: Translate
+  /** Replaces the name while it is edited, leaving the badges in place. */
+  nameSlot?: React.ReactNode
   children?: React.ReactNode
 }): React.JSX.Element {
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <span className="truncate text-sm font-medium">
-        {name ?? t('accounts.ownLogin', "This computer's login")}
-      </span>
+      {nameSlot ?? (
+        <span className="truncate text-sm font-medium">
+          {name ?? t('accounts.ownLogin', "This computer's login")}
+        </span>
+      )}
       <Badge variant="outline">{t('accounts.defaultBadge', 'default')}</Badge>
       {active ? (
         <Badge variant="outline">

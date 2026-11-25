@@ -17,6 +17,7 @@ import type { AccountsPaneSectionModel } from '../accounts-pane-types'
 import { getAccountDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
 import {
   AccountRenameButton,
+  AccountSelectArea,
   isEditingAccountName,
   renderAccountNameInput
 } from '../account-name-field'
@@ -84,87 +85,86 @@ export function renderCodexAccountRow(
       }`}
     >
       <div className="flex w-full items-center justify-between gap-3 max-md:flex-col max-md:items-start">
-        {isEditingAccountName(model, nameTarget) ? (
-          renderAccountNameInput(model, nameTarget, account, t)
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              const accountRuntimeView = getProviderAccountRuntime(account)
-              void runCodexAccountAction(
-                `select:${account.id}`,
-                () =>
-                  selectCodexProviderAccount(accountOwner, {
-                    accountId: account.id,
-                    ...accountRuntimeView
-                  }),
-                accountRuntimeView
-              )
-            }}
-            disabled={isBusy}
-            className="flex min-w-0 flex-1 flex-col gap-0.5 text-left disabled:cursor-default"
-          >
-            <div className="flex min-w-0 items-center gap-2">
+        <AccountSelectArea
+          editing={isEditingAccountName(model, nameTarget)}
+          onSelect={() => {
+            const accountRuntimeView = getProviderAccountRuntime(account)
+            void runCodexAccountAction(
+              `select:${account.id}`,
+              () =>
+                selectCodexProviderAccount(accountOwner, {
+                  accountId: account.id,
+                  ...accountRuntimeView
+                }),
+              accountRuntimeView
+            )
+          }}
+          disabled={isBusy}
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            {isEditingAccountName(model, nameTarget) ? (
+              renderAccountNameInput(model, nameTarget, account, t)
+            ) : (
               <span className="truncate text-sm font-medium">
                 {getAccountDisplayName(account) ?? account.email}
               </span>
+            )}
+            <Badge
+              variant="outline"
+              className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/70"
+            >
+              {getCodexAccountRuntimeLabel(account, accountRuntime.label)}
+            </Badge>
+            {isActive ? (
               <Badge
                 variant="outline"
-                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/70"
+                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
               >
-                {getCodexAccountRuntimeLabel(account, accountRuntime.label)}
+                {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
               </Badge>
-              {isActive ? (
-                <Badge
-                  variant="outline"
-                  className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
-                >
-                  {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
-                </Badge>
-              ) : null}
-              {needsReauthentication ? (
-                <Badge
-                  variant="destructive"
-                  className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
-                >
-                  {t('auto.components.settings.AccountsPane.589eba1eee', 'Needs re-auth')}
-                </Badge>
-              ) : null}
-            </div>
-            <div
-              className={`flex min-w-0 items-center gap-1.5 text-[11px] max-sm:flex-wrap ${
-                needsReauthentication ? 'text-destructive' : 'text-muted-foreground'
-              }`}
-            >
-              {accountDetail ? (
-                <>
-                  <span className="min-w-0 break-words">{accountDetail}</span>
-                  <span className="shrink-0 opacity-50">•</span>
-                </>
-              ) : null}
-              {plan ? (
-                <>
-                  <span className="shrink-0">{plan}</span>
-                  <span className="shrink-0 opacity-50">•</span>
-                </>
-              ) : null}
-              <span className="min-w-0 truncate">{account.email}</span>
-              <span className="shrink-0 opacity-50">•</span>
-              {needsReauthentication ? (
-                <span className="truncate">
-                  {t(
-                    'auto.components.settings.AccountsPane.3d245ef7d9',
-                    'Codex reported this sign-in is out of date'
-                  )}
-                </span>
-              ) : null}
-              {needsReauthentication ? <span className="shrink-0 opacity-50">•</span> : null}
-              <span className="shrink-0">
-                {formatAccountTimestamp(account.lastAuthenticatedAt, intlLocale)}
+            ) : null}
+            {needsReauthentication ? (
+              <Badge
+                variant="destructive"
+                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
+              >
+                {t('auto.components.settings.AccountsPane.589eba1eee', 'Needs re-auth')}
+              </Badge>
+            ) : null}
+          </div>
+          <div
+            className={`flex min-w-0 items-center gap-1.5 text-[11px] max-sm:flex-wrap ${
+              needsReauthentication ? 'text-destructive' : 'text-muted-foreground'
+            }`}
+          >
+            {accountDetail ? (
+              <>
+                <span className="min-w-0 break-words">{accountDetail}</span>
+                <span className="shrink-0 opacity-50">•</span>
+              </>
+            ) : null}
+            {plan ? (
+              <>
+                <span className="shrink-0">{plan}</span>
+                <span className="shrink-0 opacity-50">•</span>
+              </>
+            ) : null}
+            <span className="min-w-0 truncate">{account.email}</span>
+            <span className="shrink-0 opacity-50">•</span>
+            {needsReauthentication ? (
+              <span className="truncate">
+                {t(
+                  'auto.components.settings.AccountsPane.3d245ef7d9',
+                  'Codex reported this sign-in is out of date'
+                )}
               </span>
-            </div>
-          </button>
-        )}
+            ) : null}
+            {needsReauthentication ? <span className="shrink-0 opacity-50">•</span> : null}
+            <span className="shrink-0">
+              {formatAccountTimestamp(account.lastAuthenticatedAt, intlLocale)}
+            </span>
+          </div>
+        </AccountSelectArea>
 
         <div className="flex shrink-0 items-center justify-end gap-1 max-md:w-full max-md:flex-wrap">
           {/* Keep maintenance actions lighter so account selection remains primary in dense lists. */}

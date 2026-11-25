@@ -30,12 +30,7 @@ import {
   getAccountDisplayName,
   SYSTEM_DEFAULT_ACCOUNT_NAME_KEY
 } from '../../../../../../shared/agent-accounts/managed-account-display-names'
-import {
-  AccountRenameButton,
-  isEditingAccountName,
-  renderAccountNameInput
-} from '../account-name-field'
-import { OwnLoginRowTitle } from '../own-login-row-title'
+import { OwnLoginCard } from '../own-login-card'
 
 export function renderClaudeAccountsSection(
   model: AccountsPaneSectionModel,
@@ -200,65 +195,43 @@ export function renderClaudeAccountsSection(
           ) : null}
 
           <div className="space-y-2">
-            <div className="flex items-center gap-1">
-              {isEditingAccountName(model, systemNameTarget) ? (
-                renderAccountNameInput(
-                  model,
-                  systemNameTarget,
-                  { displayName: systemDefaultName, email: systemDefaultEmail },
-                  t
+            <OwnLoginCard
+              model={model}
+              target={systemNameTarget}
+              account={{ displayName: systemDefaultName, email: systemDefaultEmail }}
+              name={getAccountDisplayName({
+                displayName: systemDefaultName,
+                email: systemDefaultEmail
+              })}
+              active={systemClaudeActive}
+              t={t}
+              cardClassName={
+                systemClaudeActive
+                  ? 'border-foreground/20 bg-accent/15'
+                  : 'border-border/70 hover:border-border hover:bg-accent/8'
+              }
+              disabled={claudeAction !== 'idle' || accountRuntimeUnavailable}
+              canRename={accountRuntime.runtime === 'host'}
+              onSelect={() =>
+                void runClaudeAccountAction('select:system', () =>
+                  selectClaudeProviderAccount(accountOwner, {
+                    accountId: null,
+                    runtime: accountRuntime.runtime,
+                    wslDistro: accountRuntime.wslDistro
+                  })
                 )
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void runClaudeAccountAction('select:system', () =>
-                      selectClaudeProviderAccount(accountOwner, {
-                        accountId: null,
-                        runtime: accountRuntime.runtime,
-                        wslDistro: accountRuntime.wslDistro
-                      })
-                    )
-                  }
-                  disabled={claudeAction !== 'idle' || accountRuntimeUnavailable}
-                  className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
-                    systemClaudeActive
-                      ? 'border-foreground/20 bg-accent/15'
-                      : 'border-border/70 hover:border-border hover:bg-accent/8'
-                  } disabled:cursor-default disabled:opacity-100`}
-                >
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <OwnLoginRowTitle
-                      name={getAccountDisplayName({
-                        displayName: systemDefaultName,
-                        email: systemDefaultEmail
-                      })}
-                      active={systemClaudeActive}
-                      t={t}
-                    />
-                    <span className="truncate text-[11px] text-muted-foreground">
-                      {systemDefaultEmail ? `${systemDefaultEmail} • ` : null}
-                      {t(
-                        'auto.components.settings.AccountsPane.e05d0ff737',
-                        "Uses {{value0}}'s Claude login.",
-                        { value0: accountRuntimeSentenceLabel }
-                      )}
-                    </span>
-                  </div>
-                </button>
-              )}
-              {accountRuntime.runtime === 'host' ? (
-                <AccountRenameButton
-                  t={t}
-                  pending={model.renamingAccountKeys.has(
-                    `claude:${SYSTEM_DEFAULT_ACCOUNT_NAME_KEY}`
+              }
+              detail={
+                <span className="truncate text-[11px] text-muted-foreground">
+                  {systemDefaultEmail ? `${systemDefaultEmail} • ` : null}
+                  {t(
+                    'auto.components.settings.AccountsPane.e05d0ff737',
+                    "Uses {{value0}}'s Claude login.",
+                    { value0: accountRuntimeSentenceLabel }
                   )}
-                  onRename={() =>
-                    model.setEditingNameKey(`claude:${SYSTEM_DEFAULT_ACCOUNT_NAME_KEY}`)
-                  }
-                />
-              ) : null}
-            </div>
+                </span>
+              }
+            />
             {systemDefaultIsSaved ? (
               <div className="flex items-start justify-between gap-2">
                 <p className="text-xs text-muted-foreground">

@@ -2462,6 +2462,31 @@
       "keywordProfile": "browser profile",
       "keywordSignIn": "sign in"
     },
+    "agentSessionContinuation": {
+      "environment": {
+        "branchMissing": "No workspace on {{branch}} on this host. Create one there first.",
+        "current": "this workspace",
+        "currentBadge": "Current",
+        "detachedSource": "This workspace is not on a branch.",
+        "folderSource": "A folder workspace has no branch to continue on another host.",
+        "label": "Environment",
+        "projectMissing": "This project is not set up on this host. {{detail}}",
+        "sameBranch": "workspace on the same branch"
+      },
+      "sourceChanges": {
+        "and": "{{first}} and {{second}}",
+        "checking": "Checking changes in {{host}}…",
+        "clean": "Everything on {{branch}} is pushed.",
+        "messageLabel": "Commit message",
+        "onlyPushed": "The other environment only sees what is pushed.",
+        "push": "Push",
+        "summary": "{{host}} has {{changes}} on {{branch}}.",
+        "uncommittedFiles_one": "{{count}} uncommitted file",
+        "uncommittedFiles_other": "{{count}} uncommitted files",
+        "unpushedCommits_one": "{{count}} commit not pushed",
+        "unpushedCommits_other": "{{count}} commits not pushed"
+      }
+    },
     "native-chat": {
       "approval": {
         "allow": "Allow",

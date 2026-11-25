@@ -23379,7 +23379,8 @@
         "onlyPushed": "Diğer ortam yalnızca gönderilenleri görür.",
         "messageLabel": "Commit mesajı",
         "commitAndPush": "Commit et ve gönder",
-        "push": "Gönder"
+        "push": "Gönder",
+        "defaultMessage": "chore: işi {{host}} ortamına devret"
       }
     },
     "status": {

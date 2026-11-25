@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { translate } from '@/i18n/i18n'
+import { useTranslate } from '@/i18n/use-translate'
 import type { HandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import { retargetContinuationRequest } from '@/lib/agent-session/launch/continuation/handoff-continuation-retarget'
 import { commitAndPushHandoffSource } from '@/lib/agent-session/launch/continuation/handoff-source-publish'
@@ -20,6 +20,7 @@ export function useHandoffEnvironment(
   open: boolean,
   request: AgentSessionContinuationRequest | null
 ) {
+  const t = useTranslate()
   const destinations = useHandoffDestinations(open ? request?.worktreeId : undefined)
   const [picked, setPicked] = useState<Picked | null>(null)
   const [message, setMessage] = useState<{
@@ -44,20 +45,22 @@ export function useHandoffEnvironment(
   })
 
   // The request the agent picker detects against and the launch uses: the destination's workspace.
+  const destinationWorktreeId = destination?.worktreeId
+  const destinationWorktreePath = destination?.worktreePath
   const effectiveRequest = useMemo(
     () =>
-      request && elsewhere && destination?.worktreeId && destination.worktreePath
+      request && elsewhere && destinationWorktreeId && destinationWorktreePath
         ? retargetContinuationRequest(request, {
-            worktreeId: destination.worktreeId,
-            worktreePath: destination.worktreePath,
+            worktreeId: destinationWorktreeId,
+            worktreePath: destinationWorktreePath,
             sameHost: false
           })
         : request,
-    [request, elsewhere, destination?.worktreeId, destination?.worktreePath]
+    [request, elsewhere, destinationWorktreeId, destinationWorktreePath]
   )
 
   const defaultMessage = destination
-    ? translate(
+    ? t(
         'components.agentSessionContinuation.sourceChanges.defaultMessage',
         'chore: hand off work to {{host}}',
         { host: destination.hostLabel }

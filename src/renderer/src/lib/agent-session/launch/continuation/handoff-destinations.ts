@@ -7,6 +7,7 @@ import type { ExecutionHostRegistryEntry } from '../../../../../../shared/execut
 import type { Worktree } from '../../../../../../shared/worktree/types'
 import { branchName } from '@/lib/source-control/branches/branch-name'
 import type { ProjectHostSetupOption } from '@/lib/workspace/creation/project-host-setup-options'
+import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
 
 /** Why a destination cannot be picked; the dialog spells each one out next to its row. */
 export type HandoffDestinationBlock =
@@ -89,7 +90,7 @@ export function buildHandoffDestinations(input: HandoffDestinationInput): Handof
     }
     // A repo id can be shared across hosts; legacy rows without a host belong to the setup's.
     const target = sourceBranch
-      ? (input.worktreesByRepo[option.repoId] ?? []).find(
+      ? (selectWorktreesByRepo(input)[option.repoId] ?? []).find(
           (worktree) =>
             !worktree.isArchived &&
             worktreeOwnerHostId(worktree, option.hostId) === option.hostId &&

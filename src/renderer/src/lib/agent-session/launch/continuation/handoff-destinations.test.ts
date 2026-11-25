@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
-import type { Worktree } from '../../../../../../shared/worktree/types'
 import type { ProjectHostSetupOption } from '@/lib/workspace/creation/project-host-setup-options'
+import { makeWorktree } from '@/store/slices/worktrees/worktree.test-fixture'
 import { buildHandoffDestinations, type HandoffDestinationInput } from './handoff-destinations'
 
 const ready = (hostId: ExecutionHostId, repoId: string): ProjectHostSetupOption => ({
@@ -25,8 +25,8 @@ const needsSetup = (hostId: ExecutionHostId): ProjectHostSetupOption => ({
   attention: false,
   canSetLocation: true
 })
-const wt = (id: string, repoId: string, branch: string, hostId?: ExecutionHostId): Worktree =>
-  ({ id, repoId, branch, hostId, path: `/p/${id}`, displayName: id, isArchived: false }) as Worktree
+const wt = (id: string, repoId: string, branch: string, hostId?: ExecutionHostId) =>
+  makeWorktree({ id, repoId, branch, hostId, path: `/p/${id}`, displayName: id })
 
 function build(overrides: Partial<HandoffDestinationInput>) {
   return buildHandoffDestinations({

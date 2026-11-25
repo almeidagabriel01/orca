@@ -21290,7 +21290,8 @@
         "onlyPushed": "Die andere Umgebung sieht nur, was gepusht ist.",
         "messageLabel": "Commit-Nachricht",
         "commitAndPush": "Committen und pushen",
-        "push": "Pushen"
+        "push": "Pushen",
+        "defaultMessage": "chore: Arbeit an {{host}} übergeben"
       }
     },
     "status": {

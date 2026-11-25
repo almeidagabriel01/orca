@@ -21476,7 +21476,8 @@
         "onlyPushed": "もう一方の環境にはプッシュ済みの内容だけが見えます。",
         "messageLabel": "コミットメッセージ",
         "commitAndPush": "コミットしてプッシュ",
-        "push": "プッシュ"
+        "push": "プッシュ",
+        "defaultMessage": "chore: 作業を {{host}} に引き継ぐ"
       }
     },
     "terminalPane": {

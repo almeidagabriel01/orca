@@ -21315,14 +21315,17 @@
         "clean": "Tout sur {{branch}} est poussé.",
         "uncommittedFiles_one": "{{count}} fichier non commité",
         "uncommittedFiles_other": "{{count}} fichiers non commités",
+        "uncommittedFiles_many": "{{count}} fichiers non commités",
         "unpushedCommits_one": "{{count}} commit non poussé",
         "unpushedCommits_other": "{{count}} commits non poussés",
+        "unpushedCommits_many": "{{count}} commits non poussés",
         "and": "{{first}} et {{second}}",
         "summary": "{{host}} a {{changes}} sur {{branch}}.",
         "onlyPushed": "L’autre environnement ne voit que ce qui est poussé.",
         "messageLabel": "Message de commit",
         "commitAndPush": "Commit et push",
-        "push": "Push"
+        "push": "Push",
+        "defaultMessage": "chore: transférer le travail vers {{host}}"
       }
     },
     "status": {

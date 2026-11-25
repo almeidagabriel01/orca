@@ -23480,7 +23480,8 @@
         "onlyPushed": "The other environment only sees what is pushed.",
         "messageLabel": "Commit message",
         "commitAndPush": "Commit & push",
-        "push": "Push"
+        "push": "Push",
+        "defaultMessage": "chore: hand off work to {{host}}"
       }
     },
     "status": {
@@ -26643,15 +26644,9 @@
       "metrics": "Metrics"
     },
     "outsideOrca": {
-      "title": "Outside Orca · {{value0}}",
-      "tooltip": "Apps, containers and commands Orca did not start, grouped. CPU is a share of one core, so it can pass 100% on multi-core machines.",
       "kernel": "Kernel",
-      "processCount": "×{{value0}}",
       "showLess": "Show less",
-      "showMore": "Show {{count}} more",
-      "expand": "Expand Outside Orca",
-      "collapse": "Collapse Outside Orca",
-      "via": "via {{value0}}"
+      "showMore": "Show {{count}} more"
     },
     "heavyQueue": {
       "title": "Heavy command queue · {{value0}}",

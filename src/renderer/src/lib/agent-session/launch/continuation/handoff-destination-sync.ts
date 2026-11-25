@@ -11,10 +11,10 @@ import { handoffGitContext, type HandoffGitResult } from './handoff-source-publi
 /** Fetch, then fast-forward only; every refusal comes back as a readable reason. */
 export async function syncHandoffDestination(input: {
   worktreeId: string
-  executionHostId?: string
+  executionHostId?: ExecutionHostId
   expectedBranch: string
 }): Promise<HandoffGitResult> {
-  const hostId = input.executionHostId as ExecutionHostId | undefined
+  const hostId = input.executionHostId
   try {
     const worktree = useAppStore.getState().getKnownWorktreeById(input.worktreeId, hostId)
     const current = worktree?.branch ? branchName(worktree.branch) : null

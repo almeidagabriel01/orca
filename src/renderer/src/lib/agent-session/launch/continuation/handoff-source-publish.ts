@@ -40,12 +40,12 @@ const NOTHING_TO_COMMIT = /nothing (added )?to commit|no changes added to commit
 /** Stage everything not ignored, commit, then push (publishing when the branch has no upstream). */
 export async function commitAndPushHandoffSource(input: {
   worktreeId: string
-  executionHostId?: string
+  executionHostId?: ExecutionHostId
   message: string
   commit: boolean
 }): Promise<HandoffGitResult> {
   try {
-    const context = handoffGitContext(input.worktreeId, input.executionHostId as ExecutionHostId)
+    const context = handoffGitContext(input.worktreeId, input.executionHostId)
     if (input.commit) {
       await stageRuntimeGitWorktreeScope(context, 'all')
       const result = await commitRuntimeGit(context, input.message)

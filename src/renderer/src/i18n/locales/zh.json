@@ -22196,7 +22196,8 @@
         "onlyPushed": "另一个环境只能看到已推送的内容。",
         "messageLabel": "提交信息",
         "commitAndPush": "提交并推送",
-        "push": "推送"
+        "push": "推送",
+        "defaultMessage": "chore: 将工作交接到 {{host}}"
       }
     },
     "terminalPane": {

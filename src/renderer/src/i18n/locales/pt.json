@@ -23000,14 +23000,17 @@
         "clean": "Tudo em {{branch}} já foi enviado.",
         "uncommittedFiles_one": "{{count}} arquivo não commitado",
         "uncommittedFiles_other": "{{count}} arquivos não commitados",
+        "uncommittedFiles_many": "{{count}} arquivos não commitados",
         "unpushedCommits_one": "{{count}} commit não enviado",
         "unpushedCommits_other": "{{count}} commits não enviados",
+        "unpushedCommits_many": "{{count}} commits não enviados",
         "and": "{{first}} e {{second}}",
         "summary": "{{host}} tem {{changes}} em {{branch}}.",
         "onlyPushed": "O outro ambiente só vê o que foi enviado.",
         "messageLabel": "Mensagem do commit",
         "commitAndPush": "Commit e push",
-        "push": "Push"
+        "push": "Push",
+        "defaultMessage": "chore: passar o trabalho para {{host}}"
       }
     },
     "status": {
@@ -24789,15 +24792,9 @@
       "tooltip": "Chat do {{agent}}, incluindo os processos que rodam sob ele"
     },
     "outsideOrca": {
-      "collapse": "Recolher Fora do Orca",
-      "expand": "Expandir Fora do Orca",
       "kernel": "Kernel",
-      "processCount": "×{{value0}}",
       "showLess": "Mostrar menos",
-      "showMore": "Mostrar mais {{count}}",
-      "title": "Fora do Orca · {{value0}}",
-      "tooltip": "Apps, containers e comandos que o Orca não iniciou, agrupados. A CPU é a fatia de um núcleo, então pode passar de 100% em máquinas com vários núcleos.",
-      "via": "via {{value0}}"
+      "showMore": "Mostrar mais {{count}}"
     },
     "owner": {
       "agents": "Agentes",

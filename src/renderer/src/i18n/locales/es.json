@@ -20988,14 +20988,17 @@
         "clean": "Todo en {{branch}} está enviado.",
         "uncommittedFiles_one": "{{count}} archivo sin confirmar",
         "uncommittedFiles_other": "{{count}} archivos sin confirmar",
+        "uncommittedFiles_many": "{{count}} archivos sin confirmar",
         "unpushedCommits_one": "{{count}} commit sin enviar",
         "unpushedCommits_other": "{{count}} commits sin enviar",
+        "unpushedCommits_many": "{{count}} commits sin enviar",
         "and": "{{first}} y {{second}}",
         "summary": "{{host}} tiene {{changes}} en {{branch}}.",
         "onlyPushed": "El otro entorno solo ve lo que está enviado.",
         "messageLabel": "Mensaje del commit",
         "commitAndPush": "Commit y push",
-        "push": "Push"
+        "push": "Push",
+        "defaultMessage": "chore: pasar el trabajo a {{host}}"
       }
     },
     "terminalPane": {

@@ -20961,7 +20961,8 @@
         "onlyPushed": "另一個環境只能看到已推送的內容。",
         "messageLabel": "提交訊息",
         "commitAndPush": "提交並推送",
-        "push": "推送"
+        "push": "推送",
+        "defaultMessage": "chore: 將工作交接到 {{host}}"
       }
     },
     "status": {

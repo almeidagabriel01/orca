@@ -62,10 +62,12 @@ export function HandoffSourceChanges({
   }
   const { uncommitted, unpushed, branch } = state
   const files = t(`${KEY}.uncommittedFiles`, '{{count}} uncommitted files', {
-    count: uncommitted
+    count: uncommitted,
+    defaultValue_one: '{{count}} uncommitted file'
   })
   const commits = t(`${KEY}.unpushedCommits`, '{{count}} commits not pushed', {
-    count: unpushed
+    count: unpushed,
+    defaultValue_one: '{{count}} commit not pushed'
   })
   const changes =
     uncommitted > 0 && unpushed > 0

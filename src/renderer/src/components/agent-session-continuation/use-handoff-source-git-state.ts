@@ -66,7 +66,10 @@ export function useHandoffSourceGitState(input: {
           signal: controller.signal
         })
         if (status.readError) {
-          throw new Error(status.readError)
+          if (!controller.signal.aborted) {
+            setState({ kind: 'unavailable', reason: status.readError })
+          }
+          return
         }
         const upstream = status.upstreamStatus ?? (await getRuntimeGitUpstreamStatus(context))
         if (controller.signal.aborted) {

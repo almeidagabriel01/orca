@@ -68,42 +68,43 @@ export function HandoffEnvironmentField({
         onValueChange={onChange}
         disabled={disabled}
         layout="rows"
-        className="gap-1.5"
       >
-        {destinations.map((row) => (
-          <label
-            key={row.key}
-            className={cn(
-              'flex min-w-0 items-start gap-2.5 rounded-md border border-border px-3 py-2',
-              row.key === value && 'border-foreground/40 bg-accent',
-              row.block && 'opacity-60'
-            )}
-          >
-            <RadioGroupItem
-              value={row.key}
-              disabled={disabled || row.block !== null}
-              className="mt-0.5"
-            />
-            <span className="grid min-w-0 flex-1 gap-0.5">
-              <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[13px] font-medium">
-                {row.hostLabel}
-                {row.kind === 'current' ? (
-                  <Badge variant="hostContext">{t(`${KEY}.currentBadge`, 'Current')}</Badge>
+        <div className="grid min-w-0 gap-1.5">
+          {destinations.map((row) => (
+            <label
+              key={row.key}
+              className={cn(
+                'flex min-w-0 items-start gap-2.5 rounded-md border border-border px-3 py-2',
+                row.key === value && 'border-foreground/40 bg-accent',
+                row.block && 'opacity-60'
+              )}
+            >
+              <RadioGroupItem
+                value={row.key}
+                disabled={disabled || row.block !== null}
+                className="mt-0.5"
+              />
+              <span className="grid min-w-0 flex-1 gap-0.5">
+                <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[13px] font-medium">
+                  {row.hostLabel}
+                  {row.kind === 'current' ? (
+                    <Badge variant="hostContext">{t(`${KEY}.currentBadge`, 'Current')}</Badge>
+                  ) : null}
+                </span>
+                <span className="text-xs break-words text-muted-foreground">
+                  <span className="font-mono text-foreground/80">{row.workspaceLabel}</span>
+                  {' · '}
+                  {rowDetail(t, row)}
+                </span>
+                {row.block ? (
+                  <span className="text-xs break-words text-status-warning-text">
+                    {blockText(t, row, row.block)}
+                  </span>
                 ) : null}
               </span>
-              <span className="text-xs break-words text-muted-foreground">
-                <span className="font-mono text-foreground/80">{row.workspaceLabel}</span>
-                {' · '}
-                {rowDetail(t, row)}
-              </span>
-              {row.block ? (
-                <span className="text-xs break-words text-status-warning-text">
-                  {blockText(t, row, row.block)}
-                </span>
-              ) : null}
-            </span>
-          </label>
-        ))}
+            </label>
+          ))}
+        </div>
       </RadioGroup>
     </div>
   )

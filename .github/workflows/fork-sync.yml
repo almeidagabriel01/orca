@@ -7,7 +7,7 @@ name: Fork upstream sync
 # See docs/fork-releases.md.
 
 on:
-  # Has never fired in this fork so far; installed apps dispatch the sync (docs/fork-releases.md).
+  # Fires hourly (GitHub may delay it); installed apps also dispatch the sync (docs/fork-releases.md).
   schedule:
     - cron: '41 * * * *'
   workflow_dispatch:
@@ -49,21 +49,14 @@ jobs:
             echo "Re-enabled \`fork-release.yml\`, which was \`$state\`." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ env.FORK_BRANCH }}
-          fetch-depth: 0
-          # GITHUB_TOKEN may not push commits that touch .github/workflows, and upstream changes them
-          # often; FORK_SYNC_TOKEN (contents + workflows write) can.
-          token: ${{ secrets.FORK_SYNC_TOKEN || github.token }}
-
+      # Why before checkout: most hours have no new release, and a full-history checkout takes minutes.
       - name: Find a newer upstream release
         id: upstream
         run: |
           set -euo pipefail
           tag="$(gh release view --repo "$UPSTREAM_REPO" --json tagName --jq .tagName)"
           upstream="${tag#v}"
-          current="$(node -p 'require("./package.json").version')"
+          current="$(gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$FORK_BRANCH" --jq .content | base64 -d | jq -r .version)"
           base="${current%%-fork.*}"
           newer="$(node -e 'const [a, b] = process.argv.slice(1).map((v) => v.split(".").map(Number)); console.log(a[0] - b[0] || a[1] - b[1] || a[2] - b[2])' "$upstream" "$base")"
           echo "upstream=$upstream" >> "$GITHUB_OUTPUT"
@@ -73,18 +66,33 @@ jobs:
             exit 0
           fi
           echo "newer=true" >> "$GITHUB_OUTPUT"
+          echo "Upstream $tag is newer than fork base $base."
+
+      - uses: actions/checkout@v6
+        if: steps.upstream.outputs.newer == 'true'
+        with:
+          ref: ${{ env.FORK_BRANCH }}
+          fetch-depth: 0
+          # GITHUB_TOKEN may not push commits that touch .github/workflows, and upstream changes them
+          # often; FORK_SYNC_TOKEN (contents + workflows write) can.
+          token: ${{ secrets.FORK_SYNC_TOKEN || github.token }}
+
+      - name: Fetch upstream main
+        id: fetch
+        if: steps.upstream.outputs.newer == 'true'
+        run: |
+          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git"
           git fetch --no-tags upstream main
           echo "commit=$(git rev-parse upstream/main)" >> "$GITHUB_OUTPUT"
-          echo "Upstream $tag is newer than fork base $base."
 
       # The fork's own work may wait on release/fork-next before it reaches fork-main; a sync that
       # released without it would replace installed builds with ones missing those features.
       - name: Require fork work to be in fork-main
         id: forkwork
-        if: steps.upstream.outputs.newer == 'true'
+        if: steps.fetch.outcome == 'success'
         run: |
           set -euo pipefail
           if git fetch --no-tags origin release/fork-next 2>/dev/null &&
@@ -194,7 +202,7 @@ jobs:
         if: failure() && steps.upstream.outputs.newer == 'true'
         env:
           UPSTREAM: ${{ steps.upstream.outputs.upstream }}
-          COMMIT: ${{ steps.upstream.outputs.commit }}
+          COMMIT: ${{ steps.fetch.outputs.commit }}
           CONFLICTS: ${{ steps.merge.outputs.conflicts }}
           FORKWORK: ${{ steps.forkwork.outcome }}
           MERGE: ${{ steps.merge.outcome }}

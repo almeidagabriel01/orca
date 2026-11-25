@@ -63,13 +63,15 @@ remote, which `gh` would otherwise pick.
 Every run also disables any active workflow other than `fork-release.yml` and `fork-sync.yml`,
 since workflows that arrive from upstream start out enabled.
 
-Schedules run only on the default branch, so `fork-main` must be the default branch. As of
-2026-11-23 the hourly schedule has never fired in this fork, although `fork-main` is the default
-branch, Actions are on and the workflow reads `active`. Changing the `cron` line and disabling and
-enabling the workflow did not help. GitHub turns schedules off by default in forks of public repos,
-and the Actions tab may offer a switch the API does not show. Until a scheduled run appears in
-`gh run list --workflow fork-sync.yml --event schedule`, syncs start when an installed app checks
-for updates, or by hand.
+Schedules run only on the default branch, so `fork-main` must be the default branch. GitHub runs
+the hourly schedule only on a best-effort basis here: on 2026-11-24 it fired twice in 22 hours. So
+the VPS also dispatches the sync every hour with a systemd user timer (`fork-sync-dispatch.timer`,
+running `gh workflow run fork-sync.yml -R almeidagabriel01/orca --ref fork-main`), and an installed
+app with `gh` signed in dispatches it when it sees a new upstream release. The concurrency group
+queues overlapping runs.
+
+A run with no newer upstream release exits in seconds: it compares versions through the API before
+checking anything out, and the full-history checkout runs only when there is something to merge.
 
 Each sync first re-enables `fork-release.yml` if anything disabled it, and says so in the run summary.
 

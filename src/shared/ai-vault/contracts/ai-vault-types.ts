@@ -128,6 +128,8 @@ export type AiVaultSession = {
   cwd: string | null
   /** Host-proven spellings of `cwd` for matching scopes and resume targets; launch paths remain separate. */
   cwdAliases?: string[]
+  /** A copy synced from the machine that recorded it; it resumes only there. */
+  recordedOnOtherMachine?: true
   branch: string | null
   model: string | null
   filePath: string

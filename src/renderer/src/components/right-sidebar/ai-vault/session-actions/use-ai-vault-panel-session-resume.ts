@@ -19,6 +19,13 @@ import {
 } from '../session-list/ai-vault-session-worktree'
 import { withAiVaultCurrentWorktreeStatus } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-worktree'
 
+// A synced copy resumes only on the computer that recorded it; when connected, that computer's row replaces it.
+const OTHER_MACHINE_RESUME_STATE = { blocked: true, worktreeId: null, usesSessionWorktree: false }
+const OTHER_MACHINE_RESUME_ACTIONS = {
+  worktree: { worktreeId: null, disabled: true },
+  newTab: { worktreeId: null, disabled: true }
+}
+
 export function useAiVaultPanelSessionResume(args: {
   sessions: readonly AiVaultSession[]
   repos: readonly Repo[]
@@ -53,16 +60,20 @@ export function useAiVaultPanelSessionResume(args: {
   )
   const getSessionResumeState = useCallback(
     (session: AiVaultSession) =>
-      resolveAiVaultHistorySessionResumeState(getSessionRowResumeArgs(session)),
+      session.recordedOnOtherMachine
+        ? OTHER_MACHINE_RESUME_STATE
+        : resolveAiVaultHistorySessionResumeState(getSessionRowResumeArgs(session)),
     [getSessionRowResumeArgs]
   )
   const getSessionResumeActions = useCallback(
     (session: AiVaultSession) =>
-      resolveAiVaultSessionResumeActions({
-        ...getSessionRowResumeArgs(session),
-        sessionFilePath: session.filePath,
-        sessionExecutionHostId: session.executionHostId
-      }),
+      session.recordedOnOtherMachine
+        ? OTHER_MACHINE_RESUME_ACTIONS
+        : resolveAiVaultSessionResumeActions({
+            ...getSessionRowResumeArgs(session),
+            sessionFilePath: session.filePath,
+            sessionExecutionHostId: session.executionHostId
+          }),
     [getSessionRowResumeArgs]
   )
   // Chat resume must preserve the session’s workspace: Claude finds transcripts through launch-cwd-derived paths.
@@ -70,13 +81,15 @@ export function useAiVaultPanelSessionResume(args: {
   const chatProgramFactsVersion = useChatProgramFactsVersion()
   const getSessionResumeInChat = useCallback(
     (session: AiVaultSession): AiVaultResumeInChatEligibility =>
-      // Eligibility reads the store and host agent caches outside its arguments; these track them.
-      recomputeOn([launchRoute, chatProgramFactsVersion], () =>
-        resolveAiVaultHistoryRowResume({
-          ...getSessionRowResumeArgs(session),
-          settings: launchRoute.settings
-        })
-      ).resumeInChat,
+      session.recordedOnOtherMachine
+        ? { available: false, reason: 'remote' }
+        : // Eligibility reads the store and host agent caches outside its arguments; these track them.
+          recomputeOn([launchRoute, chatProgramFactsVersion], () =>
+            resolveAiVaultHistoryRowResume({
+              ...getSessionRowResumeArgs(session),
+              settings: launchRoute.settings
+            })
+          ).resumeInChat,
     [getSessionRowResumeArgs, launchRoute, chatProgramFactsVersion]
   )
   return {

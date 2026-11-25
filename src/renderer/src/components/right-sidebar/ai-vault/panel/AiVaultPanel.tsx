@@ -240,8 +240,8 @@ export default function AiVaultPanel({
     roomRows: useAiVaultGroupRoomRows()
   })
   const searchHitHostLabels = useMemo(
-    () => (searching ? aiVaultSearchHitHostLabels(filteredSessions, hostScopeOptions, t) : null),
-    [filteredSessions, hostScopeOptions, searching, t]
+    () => aiVaultSearchHitHostLabels(filteredSessions, hostScopeOptions, t),
+    [filteredSessions, hostScopeOptions, t]
   )
 
   useAiVaultPanelHandle(ref, {

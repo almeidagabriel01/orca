@@ -22935,6 +22935,7 @@
     },
     "antigravityReferenceDescription": "Continue dans une nouvelle conversation Antigravity CLI en utilisant cette transcription comme référence.",
     "searchHitSourceHost": "Trouvée sur {{value0}}",
+    "recordedOnOtherMachineCopy": "Enregistrée sur un autre ordinateur · ouvrez-la là-bas",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "Continuer en CLI",

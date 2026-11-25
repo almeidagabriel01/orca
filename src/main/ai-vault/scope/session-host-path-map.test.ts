@@ -8,7 +8,12 @@ import {
   resolveAdoptedTranscriptFolder
 } from '../../native-chat/agent-session-journal/history-import/adopted-transcript-source'
 import { hostPathsForRecordedCwd, readSessionHostPathMap } from './session-host-path-map'
-import { resolveAiVaultScopeRealPaths } from './session-scope-real-paths'
+import {
+  attachAiVaultScopeCwdAliases,
+  resolveAiVaultScopeRealPaths
+} from './session-scope-real-paths'
+import { mergeAiVaultListResults } from '../listing/session-list-results'
+import type { AiVaultSession } from '../../../shared/ai-vault/contracts/ai-vault-types'
 
 const OTHER_HOST_APP = '/Users/u/dev/app'
 let dir: string
@@ -79,5 +84,34 @@ describe('session host path map', () => {
     await expect(
       assertAdoptedSourceIdentity(source, { sessionId: id, cwd: OTHER_HOST_APP })
     ).resolves.toBeUndefined()
+  })
+
+  it('lists a synced conversation once, from the computer that recorded it', async () => {
+    const row = (executionHostId: 'local' | 'runtime:other', cwd: string) =>
+      ({
+        id: `${executionHostId}:claude:s1:/t/s1.jsonl`,
+        executionHostId,
+        agent: 'claude',
+        sessionId: 's1',
+        cwd,
+        filePath: '/t/s1.jsonl',
+        modifiedAt: '2026-11-25T16:00:00.000Z',
+        subagent: null
+      }) as unknown as AiVaultSession
+    const scope = await resolveAiVaultScopeRealPaths([workspace])
+    const result = (sessions: AiVaultSession[]) => ({ sessions, issues: [], scannedAt: '' })
+    // This host lists the other computer's transcript as a copy; its own sessions stay unmarked.
+    const copy = attachAiVaultScopeCwdAliases(result([row('local', OTHER_HOST_APP)]), scope)
+      .sessions[0]
+    expect(copy.recordedOnOtherMachine).toBe(true)
+    expect(
+      attachAiVaultScopeCwdAliases(result([row('local', workspace)]), scope).sessions[0]
+        .recordedOnOtherMachine
+    ).toBeUndefined()
+    const original = row('runtime:other', OTHER_HOST_APP)
+    const merged = mergeAiVaultListResults([result([copy]), result([original])], undefined, true)
+    expect(merged.sessions).toEqual([original])
+    // With the recording computer offline, the copy is all there is.
+    expect(mergeAiVaultListResults([result([copy])], undefined, true).sessions).toEqual([copy])
   })
 })

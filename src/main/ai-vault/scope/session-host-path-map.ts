@@ -10,6 +10,8 @@ export type AiVaultScopeLink = {
   realPath: string
   /** realPath is a parent whose every direct child (one worktree each) maps to scopePath. */
   anyChild?: boolean
+  /** From session-path-map.json: realPath is another machine's folder, not a link on this host. */
+  otherMachine?: true
 }
 
 const SESSION_HOST_PATH_MAP_FILE = 'session-path-map.json'
@@ -48,7 +50,12 @@ export async function readSessionHostPathMap(filePath?: string): Promise<AiVault
       const anyChild = spelling.endsWith('/*')
       const realPath = anyChild ? spelling.slice(0, -2) : spelling
       if (isAbsolute(realPath) && !realPath.includes('*')) {
-        links.push({ scopePath: local, realPath, ...(anyChild ? { anyChild } : {}) })
+        links.push({
+          scopePath: local,
+          realPath,
+          otherMachine: true,
+          ...(anyChild ? { anyChild } : {})
+        })
       }
     }
   }

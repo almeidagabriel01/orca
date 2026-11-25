@@ -59,7 +59,8 @@ export function attachAiVaultScopeCwdAliases(
   if (scope.links.length === 0) {
     return result
   }
-  const aliasesByCwd = new Map<string, string[]>()
+  const hostLinks = scope.links.filter((link) => !link.otherMachine)
+  const aliasesByCwd = new Map<string, { aliases: string[]; otherMachine: boolean }>()
   let changed = false
   const sessions: AiVaultSession[] = []
   for (const session of result.sessions) {
@@ -69,17 +70,25 @@ export function attachAiVaultScopeCwdAliases(
       sessions.push(session)
       continue
     }
-    let aliases = aliasesByCwd.get(cwd)
-    if (!aliases) {
-      aliases = hostPathsForRecordedCwd(cwd, scope.links)
-      aliasesByCwd.set(cwd, aliases)
+    let match = aliasesByCwd.get(cwd)
+    if (!match) {
+      const aliases = hostPathsForRecordedCwd(cwd, scope.links)
+      // Only the path map places it here: the transcript was synced from the machine that recorded it.
+      const otherMachine =
+        aliases.length > 0 && hostPathsForRecordedCwd(cwd, hostLinks).length === 0
+      match = { aliases, otherMachine }
+      aliasesByCwd.set(cwd, match)
     }
-    if (aliases.length === 0) {
+    if (match.aliases.length === 0) {
       sessions.push(session)
       continue
     }
     changed = true
-    sessions.push({ ...session, cwdAliases: aliases })
+    sessions.push({
+      ...session,
+      cwdAliases: match.aliases,
+      ...(match.otherMachine ? { recordedOnOtherMachine: true as const } : {})
+    })
   }
   return changed ? { ...result, sessions } : result
 }

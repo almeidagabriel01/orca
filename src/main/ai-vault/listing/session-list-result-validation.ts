@@ -63,6 +63,7 @@ const aiVaultSessionSchema = z.object({
     .max(AI_VAULT_SCOPE_PATHS_MAX_COUNT)
     .optional()
     .catch(undefined),
+  recordedOnOtherMachine: z.literal(true).optional().catch(undefined),
   branch: z.string().nullable(),
   model: z.string().nullable(),
   filePath: z.string(),

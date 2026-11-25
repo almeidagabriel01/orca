@@ -22551,6 +22551,7 @@
   "aiVault": {
     "antigravityReferenceDescription": "Setzt die Unterhaltung in einer neuen Antigravity-CLI-Unterhaltung mit diesem Protokoll als Referenz fort.",
     "searchHitSourceHost": "Auf {{value0}} gefunden",
+    "recordedOnOtherMachineCopy": "Auf einem anderen Computer aufgezeichnet · dort öffnen",
     "antigravityIdeToCli": "IDE → CLI",
     "antigravity2ToCli": "2.0 → CLI",
     "continueInCli": "In CLI fortsetzen",

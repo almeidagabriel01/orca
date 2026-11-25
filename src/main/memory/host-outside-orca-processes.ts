@@ -3,8 +3,10 @@ import { runProcess } from '@orca/process-host'
 import {
   OUTSIDE_HEAVY_CPU_PERCENT,
   OUTSIDE_HEAVY_MEMORY_BYTES,
+  type HeavyCommandJob,
   type HeavyCommandWorkspace,
-  type OutsideOrcaProcessGroup
+  type OutsideOrcaProcessGroup,
+  type OutsideQueueSlot
 } from '../../shared/diagnostics/process-stats-types'
 import { createSlowSample } from './host-machine-totals'
 import { collectSubtree, executableBasename, type ProcIndex, type ProcRow } from './process-index'
@@ -12,8 +14,8 @@ import { isInterpreter, scriptLabelOf } from './process-script-label'
 
 export type ProcessDetail = { command: string | null; cwd: string | null }
 
-/** A sweep row outside Orca's app, terminals and agents; queued rows run in a vps-heavy job. */
-export type OutsideRow = ProcRow & { queued: boolean }
+/** A sweep row outside Orca's app, terminals and agents; queued names the vps-heavy job it runs in. */
+export type OutsideRow = ProcRow & { queued: OutsideQueueSlot | null }
 
 // Why both metrics: the renderer re-sorts by CPU or memory, so one ranking would drop the other's leaders.
 const TOP_GROUPS_PER_METRIC = 25
@@ -26,6 +28,10 @@ const CONTAINER_ID = /(?:docker|containerd|libpod|crio|kubepods)\S*?([0-9a-f]{64
 // Orca's systemd units keep detached and reparented children; PTY scopes hold what users run, the rest is the app.
 const ORCA_CGROUP_LEAF = /orca[^/,]*(?:,|$)/i
 const ORCA_PTY_CGROUP_LEAF = /orca_pty[^/,]*(?:,|$)/i
+
+// The OS's own processes: macOS system paths (a parenthesised name is one ps could not read), Linux root system units.
+const DARWIN_SYSTEM_COMMAND = /^(?:\/System\/|\/usr\/libexec\/|\/usr\/sbin\/|\/sbin\/|\(.*\)$)/
+const LINUX_SYSTEM_UNIT = /(?:^|:)\/(?:init\.scope|system\.slice\/)/
 
 export const weightOf = (cpu: number, memory: number): number => cpu / 100 + memory / 1024 ** 3
 
@@ -45,13 +51,32 @@ function subtreesOf(
   return pids
 }
 
+/** Root pids of queue work and their jobs: a held slot's work runs under its watched pid, not the holder. */
+export function heavyQueueRoots(
+  jobs: readonly Pick<HeavyCommandJob, 'pid' | 'watch' | 'slot' | 'command'>[]
+): Map<number, OutsideQueueSlot> {
+  const roots = new Map<number, OutsideQueueSlot>()
+  for (const job of jobs) {
+    const slot = { slot: job.slot, command: job.command }
+    for (const pid of job.watch ? [job.pid, job.watch] : [job.pid]) {
+      roots.set(pid, slot)
+    }
+  }
+  return roots
+}
+
+/** Linux rows in a system unit; only root-owned ones among them are the OS's. */
+export function inLinuxSystemUnit(row: ProcRow): boolean {
+  return LINUX_SYSTEM_UNIT.test(splitLinuxCommand(row.command ?? '').cgroup)
+}
+
 /** Every row outside Orca's app, terminals and agents, tagged; null when the sweep carried no command columns. */
 export function listOutsideRows(
   index: Pick<ProcIndex, 'byPid' | 'childrenOf'>,
   roots: {
     appRootPids: Iterable<number | null | undefined>
     sessionRootPids: Iterable<number>
-    queuePids: Iterable<number>
+    queue: ReadonlyMap<number, OutsideQueueSlot>
   },
   platform: NodeJS.Platform
 ): OutsideRow[] | null {
@@ -73,11 +98,16 @@ export function listOutsideRows(
   const session = subtreesOf(index, sessionRoots)
   // Sessions descend from the daemon, so the app's walk stops at them.
   const app = subtreesOf(index, appRoots, session)
-  const queued = subtreesOf(index, roots.queuePids)
+  const queued = new Map<number, OutsideQueueSlot>()
+  for (const [root, slot] of roots.queue) {
+    for (const pid of collectSubtree(index, root)) {
+      queued.set(pid, slot)
+    }
+  }
   const rows: OutsideRow[] = []
   for (const row of index.byPid.values()) {
     if (row.command !== undefined && !app.has(row.pid) && !session.has(row.pid)) {
-      rows.push({ ...row, queued: queued.has(row.pid) })
+      rows.push({ ...row, queued: queued.get(row.pid) ?? null })
     }
   }
   return rows
@@ -144,9 +174,13 @@ export type GroupContext = {
   containerNames: ReadonlyMap<string, string> | null
   workspaceOf: (cwd: string) => HeavyCommandWorkspace | null
   home: string
+  /** Linux pids owned by root; macOS tells its system processes by path. */
+  rootOwned: ReadonlySet<number>
 }
 
 type GroupDraft = OutsideOrcaProcessGroup & {
+  /** Every process is the OS's own, so the group is never marked heavy. */
+  system: boolean
   unqueued: { cpu: number; memory: number }
   heaviest: { weight: number; cwd: string } | null
 }
@@ -197,6 +231,7 @@ export function groupOutsideRows(
       cpu: 0,
       memory: 0,
       processCount: 0,
+      system: true,
       unqueued: { cpu: 0, memory: 0 },
       heaviest: null
     }
@@ -204,11 +239,18 @@ export function groupOutsideRows(
     group.cpu += row.cpu
     group.memory += row.memory
     group.processCount++
+    group.system &&=
+      base.kind === 'command' &&
+      (ctx.platform === 'darwin'
+        ? DARWIN_SYSTEM_COMMAND.test(comm)
+        : inLinuxSystemUnit(row) && ctx.rootOwned.has(row.pid))
     // One launchd_sim per booted device.
     if (isSimulator && executableBasename(comm) === 'launchd_sim') {
       group.devices = (group.devices ?? 0) + 1
     }
-    if (!row.queued) {
+    if (row.queued) {
+      group.queue ??= row.queued
+    } else {
       group.unqueued.cpu += row.cpu
       group.unqueued.memory += row.memory
       const weight = weightOf(row.cpu, row.memory)
@@ -219,6 +261,7 @@ export function groupOutsideRows(
   }
   const isHeavy = (g: GroupDraft): boolean =>
     g.kind !== 'kernel' &&
+    !g.system &&
     (g.unqueued.cpu >= OUTSIDE_HEAVY_CPU_PERCENT || g.unqueued.memory >= OUTSIDE_HEAVY_MEMORY_BYTES)
   const heavy = new Set([...groups.values()].filter(isHeavy))
   const all = [...groups.values()]
@@ -228,7 +271,7 @@ export function groupOutsideRows(
     ...heavy
   ])
   return [...kept].map((draft) => {
-    const { unqueued: _unqueued, heaviest, ...group } = draft
+    const { system: _system, unqueued: _unqueued, heaviest, ...group } = draft
     if (!heavy.has(draft)) {
       return group
     }

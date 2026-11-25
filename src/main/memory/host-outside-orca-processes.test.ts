@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { buildProcessIndex, type ProcRow } from './process-index'
+import { parseHeavyQueueJob } from './host-heavy-command-queue'
 import {
   groupOutsideRows,
+  heavyQueueRoots,
   listOutsideRows,
   parseDockerContainerNames,
   type ProcessDetail
@@ -23,7 +25,8 @@ const ctx = (rows: ProcRow[], platform: NodeJS.Platform) => ({
   containerNames: parseDockerContainerNames(`${HARVEY} harvey-harvey-1\n`),
   workspaceOf: (cwd: string) =>
     cwd === '/repo/wt' ? { worktreeId: 'w1', worktreeName: 'wt', repoName: 'repo' } : null,
-  home: '/Users/me'
+  home: '/Users/me',
+  rootOwned: new Set([1, 700])
 })
 
 describe('one outside list per host', () => {
@@ -46,7 +49,11 @@ describe('one outside list per host', () => {
     const index = buildProcessIndex(rows, null, 'rss')
     const outside = listOutsideRows(
       index,
-      { appRootPids: [100, null], sessionRootPids: [200], queuePids: [300] },
+      {
+        appRootPids: [100, null],
+        sessionRootPids: [200],
+        queue: new Map([[300, { slot: 1, command: 'make' }]])
+      },
       'darwin'
     )
     const details = new Map<number, ProcessDetail>([[400, { command: chrome, cwd: '/repo/wt' }]])
@@ -61,6 +68,7 @@ describe('one outside list per host', () => {
     expect(groups.reduce((sum, g) => sum + g.cpu, 0)).toBe(0 + 0 + 400 + 60 + 40)
     expect(byName['node vitest']).toBeUndefined()
     expect(byName.cc).not.toHaveProperty('heavy')
+    expect(byName.cc.queue).toEqual({ slot: 1, command: 'make' })
     expect(byName['Google Chrome']).toMatchObject({
       heavy: true,
       processCount: 2,
@@ -85,7 +93,7 @@ describe('one outside list per host', () => {
     const index = buildProcessIndex(rows, null, 'rss')
     const outside = listOutsideRows(
       index,
-      { appRootPids: [], sessionRootPids: [], queuePids: [] },
+      { appRootPids: [], sessionRootPids: [], queue: new Map() },
       'linux'
     )
     expect(outside?.map((r) => r.pid)).toEqual([2, 40, 200])
@@ -96,10 +104,57 @@ describe('one outside list per host', () => {
     ])
   })
 
+  it('never marks the OS or a runner job holding a slot', () => {
+    const pad = ' '.repeat(40)
+    const runner = '0::/system.slice/actions.runner.x.service'
+    const rows = [
+      row(1, 0, 0, 1, `0::/init.scope${pad}systemd`),
+      row(700, 1, 99, GB, `0::/system.slice/docker.service${pad}dockerd`),
+      row(710, 1, 1, 1, `${runner}${pad}Runner.Worker`),
+      row(711, 710, 120, 1, `${runner}${pad}npm ci`),
+      row(720, 1, 80, 1, `0::/system.slice/postgresql.service${pad}postgres`),
+      row(800, 1, 0, 1, `0::/user.slice/session-1.scope${pad}python3`)
+    ]
+    const hold = parseHeavyQueueJob({
+      pid: 800,
+      status: 'running',
+      slot: 2,
+      queuedAt: 1_795_612_620,
+      cwd: '/w',
+      command: 'GitHub Actions · repo · ci/build',
+      hold: true,
+      watch: 710
+    })
+    const outside = listOutsideRows(
+      buildProcessIndex(rows, null, 'rss'),
+      { appRootPids: [], sessionRootPids: [], queue: heavyQueueRoots(hold ? [hold] : []) },
+      'linux'
+    )
+    const groups = groupOutsideRows(outside ?? [], new Map(), ctx(rows, 'linux'))
+    expect(groups.filter((g) => g.heavy).map((g) => g.name)).toEqual(['postgres'])
+    expect(groups.find((g) => g.name === 'npm ci')?.queue).toEqual({
+      slot: 2,
+      command: 'GitHub Actions · repo · ci/build'
+    })
+
+    const mac = [
+      row(1, 0, 90, GB, '/System/Library/PrivateFrameworks/SkyLight.framework/WindowServer'),
+      row(2, 1, 50, 1, '(pairedsyncd)'),
+      row(3, 1, 50, 1, '/opt/homebrew/bin/node')
+    ]
+    const macRows = listOutsideRows(
+      buildProcessIndex(mac, null, 'rss'),
+      { appRootPids: [], sessionRootPids: [], queue: new Map() },
+      'darwin'
+    )
+    const macGroups = groupOutsideRows(macRows ?? [], new Map(), ctx(mac, 'darwin'))
+    expect(macGroups.filter((g) => g.heavy).map((g) => g.name)).toEqual(['node'])
+  })
+
   it('reports nothing when the sweep had no command columns', () => {
     const index = buildProcessIndex([{ pid: 1, ppid: 0, cpu: 0, memory: 1 }], null, 'rss')
     expect(
-      listOutsideRows(index, { appRootPids: [], sessionRootPids: [], queuePids: [] }, 'linux')
+      listOutsideRows(index, { appRootPids: [], sessionRootPids: [], queue: new Map() }, 'linux')
     ).toBeNull()
   })
 })

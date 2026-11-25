@@ -81,6 +81,7 @@ export function parseHeavyQueueJob(value: unknown): HeavyCommandJob | null {
     startedAt: running && isEpochSeconds(startedAt) ? startedAt * 1000 : null,
     cwd,
     command,
+    ...(value.hold === true && isPositiveInteger(value.watch) ? { watch: value.watch } : {}),
     ...parseHeavyJobMoveFields(value)
   }
 }

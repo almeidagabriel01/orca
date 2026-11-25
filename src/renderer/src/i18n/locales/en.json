@@ -26626,6 +26626,8 @@
       "expand": "Expand Outside Orca",
       "collapse": "Collapse Outside Orca",
       "heavy": "heavy",
+      "queued": "queued",
+      "queueSlot": "slot {{value0}} · {{value1}}",
       "via": "via {{value0}}"
     },
     "heavyQueue": {

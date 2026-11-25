@@ -49,6 +49,13 @@ function OutsideOrcaRow({ group }: { group: OutsideOrcaProcessGroup }): React.JS
     ? `${group.workspace.repoName} / ${group.workspace.worktreeName}`
     : group.folder
   const meta = [
+    group.queue &&
+      (group.queue.slot === null
+        ? group.queue.command
+        : t('resourceManager.outsideOrca.queueSlot', 'slot {{value0}} · {{value1}}', {
+            value0: group.queue.slot,
+            value1: group.queue.command
+          })),
     group.launcher &&
       t('resourceManager.outsideOrca.via', 'via {{value0}}', { value0: group.launcher }),
     where
@@ -71,6 +78,11 @@ function OutsideOrcaRow({ group }: { group: OutsideOrcaProcessGroup }): React.JS
             <span className="shrink-0 tabular-nums text-muted-foreground/60">
               {t('resourceManager.outsideOrca.processCount', '×{{value0}}', { value0: count })}
             </span>
+          )}
+          {group.queue && (
+            <Badge variant="referenceLabel">
+              {t('resourceManager.outsideOrca.queued', 'queued')}
+            </Badge>
           )}
           {group.heavy && (
             <Badge variant="rowWarning">{t('resourceManager.outsideOrca.heavy', 'heavy')}</Badge>

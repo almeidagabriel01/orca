@@ -1,3 +1,4 @@
+import { stat } from 'node:fs/promises'
 import os from 'node:os'
 import type { HeavyCommandQueue, HostMemory } from '../../shared/diagnostics/process-stats-types'
 import { createWorkspaceForPath } from './host-heavy-command-queue'
@@ -5,9 +6,12 @@ import {
   ancestorsOf,
   containerIdOf,
   groupOutsideRows,
+  heavyQueueRoots,
+  inLinuxSystemUnit,
   listOutsideRows,
   sampleContainerNames,
   weightOf,
+  type OutsideRow,
   type ProcessDetail
 } from './host-outside-orca-processes'
 import { getLocalDaemonPid } from './local-daemon-pid'
@@ -58,6 +62,26 @@ async function readCachedDetails(
   return details
 }
 
+/** Linux system-unit pids owned by root; /proc/<pid> belongs to the process's user. */
+async function readRootOwned(
+  rows: readonly OutsideRow[],
+  platform: NodeJS.Platform
+): Promise<Set<number>> {
+  if (platform !== 'linux') {
+    return new Set()
+  }
+  const pids = rows.filter(inLinuxSystemUnit).map((row) => row.pid)
+  const owners = await Promise.all(
+    pids.map((pid) =>
+      stat(`/proc/${pid}`).then(
+        (s) => s.uid,
+        () => null
+      )
+    )
+  )
+  return new Set(pids.filter((_, i) => owners[i] === 0))
+}
+
 /** What runs outside Orca, heavy work the queue did not start marked; absent when the sweep cannot tell. */
 export async function collectHostOutsideProcesses(
   index: ProcIndex,
@@ -80,7 +104,7 @@ export async function collectHostOutsideProcesses(
         ...sessions.claimed,
         ...sessions.agentTrees.map((tree) => tree.pid)
       ],
-      queuePids: heavyQueue?.jobs.map((job) => job.pid) ?? []
+      queue: heavyQueueRoots(heavyQueue?.jobs ?? [])
     },
     platform
   )
@@ -97,9 +121,10 @@ export async function collectHostOutsideProcesses(
       pids.add(ancestor.pid)
     }
   }
-  const [details, containerNames] = await Promise.all([
+  const [details, containerNames, rootOwned] = await Promise.all([
     readCachedDetails([...pids].slice(0, MAX_DETAIL_PIDS), platform),
-    rows.some((row) => containerIdOf(row, platform)) ? sampleContainerNames() : null
+    rows.some((row) => containerIdOf(row, platform)) ? sampleContainerNames() : null,
+    readRootOwned(rows, platform)
   ])
   return {
     outsideOrca: groupOutsideRows(rows, details, {
@@ -107,7 +132,8 @@ export async function collectHostOutsideProcesses(
       platform,
       containerNames,
       workspaceOf: createWorkspaceForPath(store),
-      home: os.homedir()
+      home: os.homedir(),
+      rootOwned
     })
   }
 }

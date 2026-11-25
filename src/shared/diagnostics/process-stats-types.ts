@@ -138,6 +138,8 @@ export type HeavyCommandJob = {
   movedTo?: HeavyJobMovedTo | null
   /** The Orca workspace holding cwd on that host; absent when none does. */
   workspace?: HeavyCommandWorkspace
+  /** A slot held for another process (a CI runner job): its tree is the job's work; the job pid has no children. */
+  watch?: number
 }
 
 export type HeavyJobMovedTo = { peer: string; alias: string; hostname: string | null }
@@ -147,6 +149,8 @@ export type HeavyCommandWorkspace = { worktreeId: string; worktreeName: string; 
 /** A group outside Orca is heavy past either mark, counting only what the queue did not start. */
 export const OUTSIDE_HEAVY_CPU_PERCENT = 25
 export const OUTSIDE_HEAVY_MEMORY_BYTES = 1024 ** 3
+
+export type OutsideQueueSlot = { slot: number | null; command: string }
 
 /** Processes folded by macOS app bundle, Linux container, or command name; cpu is percent of one core. */
 export type OutsideOrcaProcessGroup = {
@@ -159,6 +163,8 @@ export type OutsideOrcaProcessGroup = {
   devices?: number
   /** Tool that launched the group when it is another process, e.g. "lighthouse" for Chrome. */
   launcher?: string
+  /** The queue job some of its processes run in; slot is null while that job waits. */
+  queue?: OutsideQueueSlot
   /** What the queue did not start passes the heavy threshold. */
   heavy?: true
   /** Heavy groups: the Orca workspace holding the group's cwd (or its parent's); absent when none does. */

@@ -54,7 +54,7 @@ export async function assertAdoptedSourceIdentity(
   }
   // Create resolves a sub-folder conversation's source to that folder, so the import matches exactly.
   if (
-    (await adoptedSourceFolder(source.workspaceCwd, actual.cwd, signal, agent)) !==
+    (await adoptedSourceFolder(source.workspaceCwd, actual.cwd, signal, agent, true)) !==
     source.workspaceCwd
   ) {
     throw otherFolderRefusal()
@@ -71,12 +71,14 @@ function otherFolderRefusal() {
 
 /** The folder a conversation recorded in `cwd` resumes in under this workspace: the workspace
  *  itself, the sub-folder it was saved in (Session History lists those under the workspace too),
- *  or null for another folder. */
+ *  or null for another folder. `otherMachine` admits a transcript synced from another machine;
+ *  only an already-adopted chat's import passes it. */
 async function adoptedSourceFolder(
   workspaceCwd: string,
   recordedCwd: string,
   signal?: AbortSignal,
-  agent?: AgentType
+  agent?: AgentType,
+  otherMachine = false
 ): Promise<string | null> {
   const cwd = recordedCwd.trim()
   if (
@@ -92,7 +94,7 @@ async function adoptedSourceFolder(
   if (inside) {
     return join(workspaceCwd, inside)
   }
-  const mapped = nested ? await mappedSourceFolder(workspaceCwd, cwd) : null
+  const mapped = nested && otherMachine ? await mappedSourceFolder(workspaceCwd, cwd) : null
   if (mapped) {
     return mapped
   }
@@ -244,7 +246,8 @@ export function adoptionChecksFolder(agent: AgentType): boolean {
 /** The folder an adopted conversation resumes in: the workspace, or the sub-folder it was saved in.
  *  Read from the transcript's opening records only; refuses another folder and leaves any other
  *  outcome, including which conversation the file holds, to the full import. Hermes moves a
- *  conversation into whatever folder loads it, so another folder resumes in the workspace. */
+ *  conversation into whatever folder loads it, so another folder resumes in the workspace.
+ *  A transcript synced from another machine is refused: a conversation never changes host here. */
 type AdoptedTranscriptFolderInput = {
   agent: AgentType
   filePath: string

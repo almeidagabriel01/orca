@@ -3,7 +3,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { setAppEnvironment } from '../../../shared/app-lifecycle/app-environment'
-import { resolveAdoptedTranscriptFolder } from '../../native-chat/agent-session-journal/history-import/adopted-transcript-source'
+import {
+  assertAdoptedSourceIdentity,
+  resolveAdoptedTranscriptFolder
+} from '../../native-chat/agent-session-journal/history-import/adopted-transcript-source'
 import { hostPathsForRecordedCwd, readSessionHostPathMap } from './session-host-path-map'
 import { resolveAiVaultScopeRealPaths } from './session-scope-real-paths'
 
@@ -55,7 +58,7 @@ describe('session host path map', () => {
     expect(scope.scanScopePaths).toEqual([workspace, OTHER_HOST_APP])
   })
 
-  it('adopts a transcript recorded on another machine into the mapped workspace', async () => {
+  it('never adopts a transcript recorded on another machine, but keeps importing an adopted one', async () => {
     const id = '11111111-2222-4333-8444-555555555555'
     const transcript = (cwd: string) => {
       const filePath = join(dir, `${id}.jsonl`)
@@ -63,15 +66,18 @@ describe('session host path map', () => {
         () => filePath
       )
     }
+    const source = { providerSessionId: id, workspaceCwd: workspace }
     const adopt = async (cwd: string) =>
-      resolveAdoptedTranscriptFolder({
-        agent: 'claude',
-        filePath: await transcript(cwd),
-        source: { providerSessionId: id, workspaceCwd: workspace }
-      })
-    await expect(adopt(OTHER_HOST_APP)).resolves.toBe(workspace)
-    await expect(adopt(`${OTHER_HOST_APP}/src`)).resolves.toBe(join(workspace, 'src'))
-    // A sub-folder that only exists on the other machine resumes in the workspace.
-    await expect(adopt(`${OTHER_HOST_APP}/.claude/worktrees/x`)).resolves.toBe(workspace)
+      resolveAdoptedTranscriptFolder({ agent: 'claude', filePath: await transcript(cwd), source })
+    await expect(adopt(workspace)).resolves.toBe(workspace)
+    await expect(adopt(OTHER_HOST_APP)).rejects.toMatchObject({
+      refusal: { details: { otherFolder: true } }
+    })
+    await expect(adopt(`${OTHER_HOST_APP}/src`)).rejects.toMatchObject({
+      refusal: { details: { otherFolder: true } }
+    })
+    await expect(
+      assertAdoptedSourceIdentity(source, { sessionId: id, cwd: OTHER_HOST_APP })
+    ).resolves.toBeUndefined()
   })
 })

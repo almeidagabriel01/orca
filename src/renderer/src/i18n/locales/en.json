@@ -26739,6 +26739,11 @@
       "titleNoQueue": "Outside Orca",
       "caption": "Processes the queue did not start, heavy ones first. CPU is a share of one core.",
       "via": "via {{value0}}"
+    },
+    "heavyQueueChip": {
+      "summary": "{{running}} of {{slots}} slots running, {{waiting}} waiting",
+      "offline": "Couldn't be reached",
+      "aria": "{{host}}: {{text}}"
     }
   },
   "browserExtensions": {

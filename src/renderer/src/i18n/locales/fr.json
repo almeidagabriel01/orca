@@ -23414,7 +23414,12 @@
     "chatRow": {
       "tooltip": "Chat {{agent}}, y compris les processus qui s’exécutent en dessous"
     },
-    "sharedAgentProcesses": "Processus d’agent partagés"
+    "sharedAgentProcesses": "Processus d’agent partagés",
+    "heavyQueueChip": {
+      "summary": "{{running}} sur {{slots}} emplacements utilisés, {{waiting}} en attente",
+      "offline": "Connexion impossible",
+      "aria": "{{host}} : {{text}}"
+    }
   },
   "csv": {
     "detectingDelimiter": "Détection du délimiteur…",

@@ -24795,7 +24795,12 @@
       "otherTerminals": "Outros terminais",
       "privateBytes": "Comprometido pelo Orca, agentes e terminais"
     },
-    "sharedAgentProcesses": "Processos de agente compartilhados"
+    "sharedAgentProcesses": "Processos de agente compartilhados",
+    "heavyQueueChip": {
+      "summary": "{{running}} de {{slots}} vagas em uso, {{waiting}} aguardando",
+      "offline": "Não foi possível conectar",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "browserTab": {
     "agentDriving": "Um agente está usando esta página",

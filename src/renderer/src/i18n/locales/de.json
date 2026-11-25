@@ -23705,7 +23705,12 @@
     "chatRow": {
       "tooltip": "{{agent}}-Chat einschließlich der darunter laufenden Prozesse"
     },
-    "sharedAgentProcesses": "Gemeinsame Agentenprozesse"
+    "sharedAgentProcesses": "Gemeinsame Agentenprozesse",
+    "heavyQueueChip": {
+      "summary": "{{running}} von {{slots}} Plätzen belegt, {{waiting}} wartend",
+      "offline": "Nicht erreichbar",
+      "aria": "{{host}}: {{text}}"
+    }
   },
   "browserExtensions": {
     "permission": {

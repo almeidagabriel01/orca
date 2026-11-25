@@ -20937,7 +20937,32 @@
       "modeLatestStatus": "最新狀態（建議）",
       "modeFullTranscript": "完整記錄",
       "modeFullCost": "速度較慢，且會使用較多的方案額度或 API 點數。",
-      "startSessionSentence": "開始工作階段"
+      "startSessionSentence": "開始工作階段",
+      "environment": {
+        "label": "環境",
+        "current": "此工作區",
+        "currentBadge": "目前",
+        "sameBranch": "同一分支上的工作區",
+        "projectMissing": "此專案尚未在該主機上設定。{{detail}}",
+        "branchMissing": "該主機上沒有 {{branch}} 的工作區。請先在那裡建立一個。",
+        "folderSource": "資料夾工作區沒有分支，無法在其他主機上繼續。",
+        "detachedSource": "此工作區不在任何分支上。",
+        "startBlocked": "先「{{action}}」，再在 {{host}} 上開始。"
+      },
+      "sourceChanges": {
+        "checking": "正在檢查 {{host}} 上的變更…",
+        "clean": "{{branch}} 上的所有內容皆已推送。",
+        "uncommittedFiles_one": "{{count}} 個未提交的檔案",
+        "uncommittedFiles_other": "{{count}} 個未提交的檔案",
+        "unpushedCommits_one": "{{count}} 個未推送的提交",
+        "unpushedCommits_other": "{{count}} 個未推送的提交",
+        "and": "{{first}}和{{second}}",
+        "summary": "{{host}} 的 {{branch}} 上有{{changes}}。",
+        "onlyPushed": "另一個環境只能看到已推送的內容。",
+        "messageLabel": "提交訊息",
+        "commitAndPush": "提交並推送",
+        "push": "推送"
+      }
     },
     "status": {
       "bar": {

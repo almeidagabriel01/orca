@@ -22004,7 +22004,36 @@
       "modeLatestStatus": "Последнее состояние (рекомендуется)",
       "modeFullTranscript": "Полная расшифровка",
       "modeFullCost": "Медленнее и расходует больше лимита тарифа или кредитов API.",
-      "startSessionSentence": "Начать сеанс"
+      "startSessionSentence": "Начать сеанс",
+      "environment": {
+        "label": "Среда",
+        "current": "этот воркспейс",
+        "currentBadge": "Текущая",
+        "sameBranch": "воркспейс на той же ветке",
+        "projectMissing": "Этот проект не настроен на этом хосте. {{detail}}",
+        "branchMissing": "На этом хосте нет воркспейса на {{branch}}. Сначала создайте его там.",
+        "folderSource": "У воркспейса-папки нет ветки, чтобы продолжить на другом хосте.",
+        "detachedSource": "Этот воркспейс не на ветке.",
+        "startBlocked": "Сначала нажмите «{{action}}», чтобы начать на {{host}}."
+      },
+      "sourceChanges": {
+        "checking": "Проверка изменений на {{host}}…",
+        "clean": "Всё на {{branch}} отправлено.",
+        "uncommittedFiles_one": "{{count}} незакоммиченный файл",
+        "uncommittedFiles_few": "{{count}} незакоммиченных файла",
+        "uncommittedFiles_many": "{{count}} незакоммиченных файлов",
+        "uncommittedFiles_other": "{{count}} незакоммиченных файла",
+        "unpushedCommits_one": "{{count}} неотправленный коммит",
+        "unpushedCommits_few": "{{count}} неотправленных коммита",
+        "unpushedCommits_many": "{{count}} неотправленных коммитов",
+        "unpushedCommits_other": "{{count}} неотправленных коммита",
+        "and": "{{first}} и {{second}}",
+        "summary": "На {{host}} в {{branch}}: {{changes}}.",
+        "onlyPushed": "Другая среда видит только отправленное.",
+        "messageLabel": "Сообщение коммита",
+        "commitAndPush": "Закоммитить и отправить",
+        "push": "Отправить"
+      }
     },
     "status": {
       "bar": {

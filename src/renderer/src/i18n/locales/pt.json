@@ -22983,7 +22983,32 @@
       "modeLatestStatus": "Status mais recente (recomendado)",
       "modeFullTranscript": "Transcrição completa",
       "modeFullCost": "Mais lento e consome mais do seu plano ou créditos de API.",
-      "startSessionSentence": "Iniciar sessão"
+      "startSessionSentence": "Iniciar sessão",
+      "environment": {
+        "label": "Ambiente",
+        "current": "este workspace",
+        "currentBadge": "Atual",
+        "sameBranch": "workspace na mesma branch",
+        "projectMissing": "Este projeto não está configurado neste host. {{detail}}",
+        "branchMissing": "Não há workspace em {{branch}} neste host. Crie um lá primeiro.",
+        "folderSource": "Um workspace de pasta não tem branch para continuar em outro host.",
+        "detachedSource": "Este workspace não está em uma branch.",
+        "startBlocked": "Faça “{{action}}” antes de iniciar em {{host}}."
+      },
+      "sourceChanges": {
+        "checking": "Verificando alterações em {{host}}…",
+        "clean": "Tudo em {{branch}} já foi enviado.",
+        "uncommittedFiles_one": "{{count}} arquivo não commitado",
+        "uncommittedFiles_other": "{{count}} arquivos não commitados",
+        "unpushedCommits_one": "{{count}} commit não enviado",
+        "unpushedCommits_other": "{{count}} commits não enviados",
+        "and": "{{first}} e {{second}}",
+        "summary": "{{host}} tem {{changes}} em {{branch}}.",
+        "onlyPushed": "O outro ambiente só vê o que foi enviado.",
+        "messageLabel": "Mensagem do commit",
+        "commitAndPush": "Commit e push",
+        "push": "Push"
+      }
     },
     "status": {
       "bar": {

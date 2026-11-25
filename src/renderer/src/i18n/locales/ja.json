@@ -21452,7 +21452,32 @@
       "modeLatestStatus": "最新の状況（推奨）",
       "modeFullTranscript": "完全なトランスクリプト",
       "modeFullCost": "時間がかかり、プランや API クレジットを多く消費します。",
-      "startSessionSentence": "セッションを開始"
+      "startSessionSentence": "セッションを開始",
+      "environment": {
+        "label": "環境",
+        "current": "このワークスペース",
+        "currentBadge": "現在",
+        "sameBranch": "同じブランチのワークスペース",
+        "projectMissing": "このプロジェクトはこのホストで設定されていません。{{detail}}",
+        "branchMissing": "このホストに {{branch}} のワークスペースがありません。先に作成してください。",
+        "folderSource": "フォルダのワークスペースにはブランチがないため、別のホストで続行できません。",
+        "detachedSource": "このワークスペースはブランチ上にありません。",
+        "startBlocked": "{{host}} で開始する前に「{{action}}」を実行してください。"
+      },
+      "sourceChanges": {
+        "checking": "{{host}} の変更を確認中…",
+        "clean": "{{branch}} はすべてプッシュ済みです。",
+        "uncommittedFiles_one": "未コミットのファイル {{count}} 件",
+        "uncommittedFiles_other": "未コミットのファイル {{count}} 件",
+        "unpushedCommits_one": "未プッシュのコミット {{count}} 件",
+        "unpushedCommits_other": "未プッシュのコミット {{count}} 件",
+        "and": "{{first}}と{{second}}",
+        "summary": "{{host}} の {{branch}} に{{changes}}があります。",
+        "onlyPushed": "もう一方の環境にはプッシュ済みの内容だけが見えます。",
+        "messageLabel": "コミットメッセージ",
+        "commitAndPush": "コミットしてプッシュ",
+        "push": "プッシュ"
+      }
     },
     "terminalPane": {
       "TerminalContextMenu": {

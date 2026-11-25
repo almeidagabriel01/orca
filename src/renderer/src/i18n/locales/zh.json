@@ -22172,7 +22172,32 @@
       "modeLatestStatus": "最新状态（推荐）",
       "modeFullTranscript": "完整记录",
       "modeFullCost": "速度较慢，并会消耗更多套餐额度或 API 额度。",
-      "startSessionSentence": "开始会话"
+      "startSessionSentence": "开始会话",
+      "environment": {
+        "label": "环境",
+        "current": "此工作区",
+        "currentBadge": "当前",
+        "sameBranch": "同一分支上的工作区",
+        "projectMissing": "此项目尚未在该主机上设置。{{detail}}",
+        "branchMissing": "该主机上没有 {{branch}} 的工作区。请先在那里创建一个。",
+        "folderSource": "文件夹工作区没有分支，无法在其他主机上继续。",
+        "detachedSource": "此工作区不在任何分支上。",
+        "startBlocked": "先“{{action}}”，再在 {{host}} 上开始。"
+      },
+      "sourceChanges": {
+        "checking": "正在检查 {{host}} 上的更改…",
+        "clean": "{{branch}} 上的所有内容均已推送。",
+        "uncommittedFiles_one": "{{count}} 个未提交的文件",
+        "uncommittedFiles_other": "{{count}} 个未提交的文件",
+        "unpushedCommits_one": "{{count}} 个未推送的提交",
+        "unpushedCommits_other": "{{count}} 个未推送的提交",
+        "and": "{{first}}和{{second}}",
+        "summary": "{{host}} 的 {{branch}} 上有{{changes}}。",
+        "onlyPushed": "另一个环境只能看到已推送的内容。",
+        "messageLabel": "提交信息",
+        "commitAndPush": "提交并推送",
+        "push": "推送"
+      }
     },
     "terminalPane": {
       "TerminalContextMenu": {

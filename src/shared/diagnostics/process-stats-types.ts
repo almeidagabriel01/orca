@@ -88,6 +88,13 @@ export type HostMemory = {
   heavyQueue?: HeavyCommandQueue
 }
 
+/** Just the counts of a host's vps-heavy queue, cheap enough for the status bar to poll. */
+export type HeavyQueueCounts = {
+  slots: number
+  running: number
+  waiting: number
+}
+
 /** Commands waiting for or holding one of the host's vps-heavy slots. */
 export type HeavyCommandQueue = {
   /** Host epoch ms of the read; job times compare with it, never with the reader's clock. */

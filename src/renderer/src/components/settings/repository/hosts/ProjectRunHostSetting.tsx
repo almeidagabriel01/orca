@@ -1,15 +1,25 @@
 import React from 'react'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Monitor, Server } from 'lucide-react'
+import { SettingsSearchableSelect } from '../../form-controls/SettingsSearchableSelect'
 import { useTranslate } from '@/i18n/use-translate'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import {
+  LOCAL_EXECUTION_HOST_ID,
+  type ExecutionHostId
+} from '../../../../../../shared/execution-host/execution-host'
+import { useAppStore } from '@/store'
+import type { ProjectHostSetup } from '../../../../../../shared/project/project-types'
 import {
   RUN_HOST_DEFAULT_VALUE,
+  getGlobalRunHostLabel,
+  getProjectRunHostOptions,
+  setProjectRunHost,
+  useRunHostCandidates,
   type ProjectRunHostOption
 } from '@/lib/workspace/creation/project-run-host'
 
 export type RunHostChoiceOption = ProjectRunHostOption & { disabled?: boolean }
 
-/** Settings row: a default choice (null) plus one segment per host. */
+/** Settings row: a dropdown with a default choice (null) plus one entry per host. */
 export function RunHostChoiceSetting({
   title,
   description,
@@ -25,18 +35,37 @@ export function RunHostChoiceSetting({
   value: ExecutionHostId | null
   onValueChange: (hostId: ExecutionHostId | null) => void
 }): React.JSX.Element {
+  const t = useTranslate()
   return (
-    <div className="@container">
-      <div className="flex flex-col gap-3 @lg:grid @lg:grid-cols-[minmax(0,1fr)_auto] @lg:items-center @lg:gap-8">
-        <div className="min-w-0 space-y-0.5">
-          <p className="text-sm font-medium">{title}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
-        </div>
-        <ToggleGroup
-          type="single"
+    <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-3">
+      <div className="min-w-0 flex-1 basis-64 space-y-0.5">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <div className="w-64 max-w-full shrink-0 [&>button]:w-full">
+        <SettingsSearchableSelect
+          ariaLabel={title}
           value={value ?? RUN_HOST_DEFAULT_VALUE}
+          groups={[
+            {
+              key: 'run-hosts',
+              options: [
+                { value: RUN_HOST_DEFAULT_VALUE, label: defaultLabel },
+                ...options.map((option) => ({
+                  value: option.hostId,
+                  label: option.label,
+                  icon:
+                    option.hostId === LOCAL_EXECUTION_HOST_ID ? (
+                      <Monitor className="size-4" />
+                    ) : (
+                      <Server className="size-4" />
+                    ),
+                  disabled: option.disabled
+                }))
+              ]
+            }
+          ]}
           onValueChange={(next) => {
-            // '' = the active segment clicked again; keep the current choice.
             if (next === RUN_HOST_DEFAULT_VALUE) {
               onValueChange(null)
               return
@@ -46,25 +75,11 @@ export function RunHostChoiceSetting({
               onValueChange(option.hostId)
             }
           }}
-          variant="outline"
-          size="sm"
-          className="h-auto max-w-full flex-wrap justify-start self-start @lg:justify-end @lg:self-auto"
-          aria-label={title}
-        >
-          <ToggleGroupItem value={RUN_HOST_DEFAULT_VALUE} className="h-8 min-w-0">
-            <span className="max-w-56 truncate">{defaultLabel}</span>
-          </ToggleGroupItem>
-          {options.map((option) => (
-            <ToggleGroupItem
-              key={option.hostId}
-              value={option.hostId}
-              disabled={option.disabled}
-              className="h-8 min-w-0"
-            >
-              <span className="max-w-40 truncate">{option.label}</span>
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+          searchPlaceholder={t(
+            'auto.components.settings.SettingsSearchableSelect.searchHosts',
+            'Search hosts…'
+          )}
+        />
       </div>
     </div>
   )
@@ -99,6 +114,28 @@ export function ProjectRunHostSetting({
       options={options}
       value={value}
       onValueChange={onValueChange}
+    />
+  )
+}
+
+/** Project settings "Run on", fed by the same heavy-run host list as the project menu. */
+export function ProjectRunHostRow({
+  projectId,
+  projectHostSetups
+}: {
+  projectId: string
+  projectHostSetups: readonly ProjectHostSetup[]
+}): React.JSX.Element | null {
+  const t = useTranslate()
+  const hosts = useRunHostCandidates()
+  const value = useAppStore((state) => state.settings?.projectRunHostIds?.[projectId] ?? null)
+  const globalHostId = useAppStore((state) => state.settings?.heavyRunHostDefault)
+  return (
+    <ProjectRunHostSetting
+      options={getProjectRunHostOptions(projectId, projectHostSetups, hosts, t)}
+      value={value}
+      globalLabel={getGlobalRunHostLabel(globalHostId, hosts, t)}
+      onValueChange={(hostId) => setProjectRunHost(projectId, hostId)}
     />
   )
 }

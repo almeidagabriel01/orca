@@ -8,6 +8,7 @@ import { parseHeavyCommandQueue } from '../../host-connections/heavy-command-que
 import {
   findMovePeer,
   heavyJobBlockerText,
+  heavyMoveTargets,
   type HeavyJobMovePlan,
   type HeavyMoveHost
 } from './resource-heavy-job-move'
@@ -45,6 +46,16 @@ const host = (id: string, jobs: HeavyCommandJob[], fields: Partial<HeavyCommandQ
   ({ id, label: id.toUpperCase(), queue: queue(jobs, fields) }) satisfies HeavyMoveHost
 
 describe('heavy job move', () => {
+  it('offers one target per other machine, never the source machine paired twice', () => {
+    const hosts = [
+      host('local', [], { hostname: 'mac' }),
+      host('env-vps', [], { hostname: 'vps' }),
+      host('env-vps-ip', [], { hostname: 'vps' })
+    ]
+    expect(heavyMoveTargets('local', hosts).map((h) => h.id)).toEqual(['env-vps'])
+    expect(heavyMoveTargets('env-vps', hosts).map((h) => h.id)).toEqual(['local'])
+  })
+
   it('picks the source peer whose verified hostname is the target', () => {
     const source = queue([], {
       peers: [

@@ -24,12 +24,7 @@ import { useTranslate } from '@/i18n/use-translate'
 import { translateExecutionHostLabel } from '@/runtime/hosts/display/execution-host-label'
 import { buildSetupHostOptions, getSetupStateLabel } from './repository-host-setup-options'
 import { RepositoryHostSetupActions } from './RepositoryHostSetupActions'
-import { ProjectRunHostSetting } from './ProjectRunHostSetting'
-import {
-  getGlobalRunHostLabel,
-  getProjectRunHostOptions,
-  setProjectRunHost
-} from '@/lib/workspace/creation/project-run-host'
+import { ProjectRunHostRow } from './ProjectRunHostSetting'
 import {
   selectRuntimeAwareSshStatus,
   selectRuntimeAwareSshTargetLabel
@@ -154,9 +149,6 @@ export function RepositoryHostSetupsSection({
   )
   const hostOptionById = new Map(hostOptions.map((option) => [option.id, option]))
   const runHostProjectId = selectedProjectHostSetup?.projectId
-  const runHostOptions = runHostProjectId
-    ? getProjectRunHostOptions(runHostProjectId, projectHostSetupProjection.setups, hostOptions, t)
-    : []
   const [deletingSetupId, setDeletingSetupId] = useState<string | null>(null)
   // Split clones share project IDs but need independent selections.
   const selectionKey = settingsSelectionKey ?? selectedProjectHostSetup?.projectId
@@ -243,11 +235,9 @@ export function RepositoryHostSetupsSection({
         </p>
       </div>
       {runHostProjectId ? (
-        <ProjectRunHostSetting
-          options={runHostOptions}
-          value={settings?.projectRunHostIds?.[runHostProjectId] ?? null}
-          globalLabel={getGlobalRunHostLabel(settings?.heavyRunHostDefault, hostOptions, t)}
-          onValueChange={(hostId) => setProjectRunHost(runHostProjectId, hostId)}
+        <ProjectRunHostRow
+          projectId={runHostProjectId}
+          projectHostSetups={projectHostSetupProjection.setups}
         />
       ) : null}
       <div className="divide-y divide-border rounded-md border border-border">

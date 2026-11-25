@@ -2,11 +2,12 @@ import type { ExecutionHostId } from '../../../../../shared/execution-host/execu
 import type { ProjectHostSetup } from '../../../../../shared/project/project-types'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import { translateHostDisplayLabel } from '@/runtime/hosts/display/execution-host-label'
+import { useMemo } from 'react'
 import type { Translate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store'
 import { getRepoWorkspaceCreationTargetHint } from './project-host-workspace-target'
 import { useRuntimeStatusByEnvironmentId } from '@/store/slices/runtime-status/views/use-runtime-status-view'
-import { buildExecutionHostRegistry } from '../../../../../shared/execution-host/execution-host-registry'
+import { buildHeavyRunHostRegistry } from '../../../../../shared/execution-host/heavy-run-hosts'
 import type { ExecutionHostRegistryEntry } from '../../../../../shared/execution-host/execution-host-registry-entry'
 import { getHostDisplayLabelOverrides } from '../../../../../shared/execution-host/host-setting-overrides'
 
@@ -49,7 +50,7 @@ export function getRepoRunHostProjectId(
   return getRepoWorkspaceCreationTargetHint(repo, projectHostSetups).projectId
 }
 
-/** Hosts this client can create on: the same configured-only registry the composer resolves against. */
+/** Hosts that run the heavy queue: this computer and paired Orca servers, never SSH aliases. */
 export function useRunHostCandidates(): ExecutionHostRegistryEntry[] {
   const repos = useAppStore((state) => state.repos)
   const settings = useAppStore((state) => state.settings)
@@ -57,16 +58,27 @@ export function useRunHostCandidates(): ExecutionHostRegistryEntry[] {
   const sshConnectionStates = useAppStore((state) => state.sshConnectionStates)
   const runtimeEnvironments = useAppStore((state) => state.runtimeEnvironments)
   const runtimeStatusByEnvironmentId = useRuntimeStatusByEnvironmentId()
-  return buildExecutionHostRegistry({
-    repos,
-    settings,
-    hostSource: 'configured-only',
-    sshTargetLabels,
-    sshConnectionStates,
-    runtimeEnvironments,
-    runtimeStatusByEnvironmentId,
-    hostLabelOverrides: getHostDisplayLabelOverrides(settings)
-  })
+  return useMemo(
+    () =>
+      buildHeavyRunHostRegistry({
+        repos,
+        settings,
+        hostSource: 'configured-only',
+        sshTargetLabels,
+        sshConnectionStates,
+        runtimeEnvironments,
+        runtimeStatusByEnvironmentId,
+        hostLabelOverrides: getHostDisplayLabelOverrides(settings)
+      }),
+    [
+      repos,
+      settings,
+      sshTargetLabels,
+      sshConnectionStates,
+      runtimeEnvironments,
+      runtimeStatusByEnvironmentId
+    ]
+  )
 }
 
 /** Label of the global "Run heavy work on" host, or "Automatic" when unset. */

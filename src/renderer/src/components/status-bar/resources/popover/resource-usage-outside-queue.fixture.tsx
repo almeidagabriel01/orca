@@ -126,3 +126,19 @@ export const foldedNarrow = defineFixture({
   render: () => <Cards hosts={foldHosts} />,
   interact: foldSome
 })
+
+const collapseAll = async (frame: HTMLElement): Promise<void> => {
+  ;[...frame.querySelectorAll<HTMLButtonElement>('button')]
+    .find((button) => button.textContent === 'Collapse all')
+    ?.click()
+  await new Promise(requestAnimationFrame)
+}
+const allFoldHosts = [
+  { ...mac, id: 'all-fold-mac' },
+  { ...vps, id: 'all-fold-vps' }
+]
+export const allFolded = defineFixture({
+  width: 448,
+  render: () => <Cards hosts={allFoldHosts} />,
+  interact: collapseAll
+})

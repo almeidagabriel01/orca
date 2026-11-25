@@ -64,8 +64,8 @@ export function AccountNameInput({
     onDone(save ? accountNameToSave(draft, saved) : null)
   }
   return (
-    // The name's slot; -my-1 absorbs the compact input's extra height so the card does not grow.
-    <div className="-my-1 w-40 max-w-full min-w-0 font-medium">
+    // The name's slot; no negative margin, so the email line keeps its usual gap below the input.
+    <div className="w-40 max-w-full min-w-0 font-medium">
       <Input
         density="compact"
         autoFocus

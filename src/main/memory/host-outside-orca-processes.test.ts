@@ -3,8 +3,7 @@ import { buildProcessIndex, type ProcRow } from './process-index'
 import { parseHeavyQueueJob } from './host-heavy-command-queue'
 import {
   groupOutsideRows,
-  heavyQueueRoots,
-  listOutsideRows,
+  partitionHostRows,
   parseDockerContainerNames,
   type ProcessDetail
 } from './host-outside-orca-processes'
@@ -29,8 +28,11 @@ const ctx = (rows: ProcRow[], platform: NodeJS.Platform) => ({
   rootOwned: new Set([1, 700])
 })
 
-describe('one outside list per host', () => {
-  it('counts every process outside Orca once and marks heavy work the queue did not start', () => {
+const names = (groups: readonly { name: string }[]) => groups.map((g) => g.name).sort()
+const none = { appRootPids: [], sessionRootPids: [], jobs: [] }
+
+describe('outside lists per host', () => {
+  it('puts every process in exactly one place', () => {
     const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     const rows = [
       row(1, 0, 0, 1, '/sbin/launchd'),
@@ -38,77 +40,63 @@ describe('one outside list per host', () => {
       row(101, 100, 300, GB, '/Applications/Orca.app/Contents/Frameworks/Orca Helper.app/x'),
       row(200, 100, 0, 1, '/bin/zsh'),
       row(201, 200, 400, GB, '/usr/local/bin/node'),
-      row(202, 200, 1, 1, '/usr/bin/git'),
-      row(300, 1, 0, 1, '/usr/bin/vps-heavy'),
+      row(210, 200, 0, 1, '/usr/local/bin/vps-heavy'),
+      row(211, 210, 300, GB, '/usr/bin/cc'),
+      row(300, 1, 0, 1, '/usr/local/bin/vps-heavy'),
       row(301, 300, 400, 2 * GB, '/usr/bin/cc'),
       row(400, 1, 30, GB, chrome),
       row(401, 400, 30, GB, `${chrome} Helper.app/Contents/MacOS/Helper`),
       row(500, 1, 0, 1, '/Library/Developer/CoreSimulator/Profiles/launchd_sim'),
-      row(501, 500, 40, 200, '/x/CoreSimulator/Devices/A/x.simruntime/SpringBoard')
+      row(501, 500, 40, 200, '/x/CoreSimulator/Devices/A/x.simruntime/SpringBoard'),
+      row(600, 1, 90, 1, '/System/Library/PrivateFrameworks/SkyLight.framework/WindowServer'),
+      row(601, 1, 2, 1, '/Applications/Notes.app/Contents/MacOS/Notes')
     ]
     const index = buildProcessIndex(rows, null, 'rss')
-    const outside = listOutsideRows(
+    const partition = partitionHostRows(
       index,
-      {
-        appRootPids: [100, null],
-        sessionRootPids: [200],
-        queue: new Map([[300, { slot: 1, command: 'make' }]])
-      },
+      { appRootPids: [100, null], sessionRootPids: [200], jobs: [{ pid: 300 }, { pid: 210 }] },
       'darwin'
     )
     const details = new Map<number, ProcessDetail>([[400, { command: chrome, cwd: '/repo/wt' }]])
-    const groups = groupOutsideRows(outside ?? [], details, ctx(rows, 'darwin'))
-    const byName = Object.fromEntries(groups.map((g) => [g.name, g]))
+    const { outsideQueue, outsideOrca } = groupOutsideRows(
+      partition?.outside ?? [],
+      details,
+      ctx(rows, 'darwin')
+    )
 
-    // Orca's app, terminals and agents stay out; everything else is listed exactly once.
-    expect(outside?.map((r) => r.pid).sort((a, b) => a - b)).toEqual([
-      1, 300, 301, 400, 401, 500, 501
-    ])
-    expect(groups.reduce((sum, g) => sum + g.processCount, 0)).toBe(outside!.length)
-    expect(groups.reduce((sum, g) => sum + g.cpu, 0)).toBe(0 + 0 + 400 + 60 + 40)
-    expect(byName['node vitest']).toBeUndefined()
-    expect(byName.cc).not.toHaveProperty('heavy')
-    expect(byName.cc.queue).toEqual({ slot: 1, command: 'make' })
-    expect(byName['Google Chrome']).toMatchObject({
-      heavy: true,
+    // App 100-101 and session 200-201 drop out; queue jobs win over the terminal that started them.
+    const places = [...(partition?.jobs.values() ?? []), ...outsideQueue, ...outsideOrca].reduce(
+      (sum, g) => sum + g.processCount,
+      0
+    )
+    expect(places).toBe(rows.length - 4)
+    expect(partition?.jobs.get(300)).toEqual({ cpu: 400, memory: 2 * GB + 1, processCount: 2 })
+    expect(partition?.jobs.get(210)).toEqual({ cpu: 300, memory: GB + 1, processCount: 2 })
+    expect(names(outsideQueue)).toEqual(['Google Chrome', 'iOS Simulator'])
+    expect(names(outsideOrca)).toEqual(['Notes', 'WindowServer', 'launchd'])
+    expect(outsideQueue.find((g) => g.name === 'Google Chrome')).toMatchObject({
       processCount: 2,
       cpu: 60,
       workspace: { worktreeName: 'wt' }
     })
-    expect(byName['iOS Simulator']).toMatchObject({ heavy: true, processCount: 2, devices: 1 })
-    expect(byName.Orca).toBeUndefined()
+    expect(outsideQueue.find((g) => g.name === 'iOS Simulator')).toMatchObject({
+      processCount: 2,
+      devices: 1
+    })
   })
 
-  it('leaves out Linux PTY scopes and every other Orca unit', () => {
+  it('gives a held runner slot its watched tree, and keeps Linux system units and Orca out', () => {
     const pad = ' '.repeat(40)
+    const runner = '0::/system.slice/actions.runner.x.service'
     const rows = [
+      row(1, 0, 0, 1, `0::/init.scope${pad}systemd`),
       row(2, 0, 0, 0, `-${pad}kthreadd`),
       row(40, 2, 90, 0, `-${pad}kworker/0:1`),
       row(200, 1, 2, GB, `0::/system.slice/docker-${HARVEY}.scope${pad}python`),
       row(400, 1, 0, 1, `0::/user.slice/orca_pty_orca_daemon_x_2.scope${pad}bash`),
       row(401, 400, 99, 1, `0::/user.slice/app.slice/app-Chrome-401.scope${pad}chrome`),
       row(450, 1, 99, GB, `0::/user.slice/app.slice/orca-serve.service${pad}node`),
-      row(460, 1, 99, GB, `0::/user.slice/app.slice/app-orca-460.scope${pad}orca-ide`)
-    ]
-    const index = buildProcessIndex(rows, null, 'rss')
-    const outside = listOutsideRows(
-      index,
-      { appRootPids: [], sessionRootPids: [], queue: new Map() },
-      'linux'
-    )
-    expect(outside?.map((r) => r.pid)).toEqual([2, 40, 200])
-    const groups = groupOutsideRows(outside ?? [], new Map(), ctx(rows, 'linux'))
-    expect(groups.map((g) => [g.name, g.kind, g.heavy])).toEqual([
-      ['kernel', 'kernel', undefined],
-      ['harvey-harvey-1', 'container', true]
-    ])
-  })
-
-  it('never marks the OS or a runner job holding a slot', () => {
-    const pad = ' '.repeat(40)
-    const runner = '0::/system.slice/actions.runner.x.service'
-    const rows = [
-      row(1, 0, 0, 1, `0::/init.scope${pad}systemd`),
+      row(460, 1, 99, GB, `0::/user.slice/app.slice/app-orca-460.scope${pad}orca-ide`),
       row(700, 1, 99, GB, `0::/system.slice/docker.service${pad}dockerd`),
       row(710, 1, 1, 1, `${runner}${pad}Runner.Worker`),
       row(711, 710, 120, 1, `${runner}${pad}npm ci`),
@@ -125,37 +113,24 @@ describe('one outside list per host', () => {
       hold: true,
       watch: 710
     })
-    const outside = listOutsideRows(
+    const partition = partitionHostRows(
       buildProcessIndex(rows, null, 'rss'),
-      { appRootPids: [], sessionRootPids: [], queue: heavyQueueRoots(hold ? [hold] : []) },
+      { ...none, jobs: hold ? [hold] : [] },
       'linux'
     )
-    const groups = groupOutsideRows(outside ?? [], new Map(), ctx(rows, 'linux'))
-    expect(groups.filter((g) => g.heavy).map((g) => g.name)).toEqual(['postgres'])
-    expect(groups.find((g) => g.name === 'npm ci')?.queue).toEqual({
-      slot: 2,
-      command: 'GitHub Actions · repo · ci/build'
-    })
-
-    const mac = [
-      row(1, 0, 90, GB, '/System/Library/PrivateFrameworks/SkyLight.framework/WindowServer'),
-      row(2, 1, 50, 1, '(pairedsyncd)'),
-      row(3, 1, 50, 1, '/opt/homebrew/bin/node')
-    ]
-    const macRows = listOutsideRows(
-      buildProcessIndex(mac, null, 'rss'),
-      { appRootPids: [], sessionRootPids: [], queue: new Map() },
-      'darwin'
+    expect(partition?.jobs.get(800)).toEqual({ cpu: 121, memory: 3, processCount: 3 })
+    const { outsideQueue, outsideOrca } = groupOutsideRows(
+      partition?.outside ?? [],
+      new Map(),
+      ctx(rows, 'linux')
     )
-    const macGroups = groupOutsideRows(macRows ?? [], new Map(), ctx(mac, 'darwin'))
-    expect(macGroups.filter((g) => g.heavy).map((g) => g.name)).toEqual(['node'])
+    expect(names(outsideQueue)).toEqual(['harvey-harvey-1', 'postgres'])
+    expect(names(outsideOrca)).toEqual(['dockerd', 'kernel', 'systemd'])
   })
 
   it('reports nothing when the sweep had no command columns', () => {
     const index = buildProcessIndex([{ pid: 1, ppid: 0, cpu: 0, memory: 1 }], null, 'rss')
-    expect(
-      listOutsideRows(index, { appRootPids: [], sessionRootPids: [], queue: new Map() }, 'linux')
-    ).toBeNull()
+    expect(partitionHostRows(index, none, 'linux')).toBeNull()
   })
 })
 

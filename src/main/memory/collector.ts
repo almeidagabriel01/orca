@@ -301,7 +301,7 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     app: { ...appBuckets, history: readAppMemoryHistory() },
     worktrees,
     ...(asPaired ? {} : { agentProcesses }),
-    host: { ...host, ...outside, ...(heavyQueue && { heavyQueue }) },
+    host: { ...host, ...(heavyQueue && { heavyQueue }), ...outside },
     processMemoryMetric: processIndex.memoryMetric,
     ...snapshotCommitFields(
       hasPrivateMemory,

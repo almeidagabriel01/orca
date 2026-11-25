@@ -93,6 +93,8 @@ function parseJob(value: unknown): HeavyCommandJob | null {
   const group = boundedString(value.group, MAX_NAME_CHARS)
   const movedFrom = boundedString(value.movedFrom, MAX_NAME_CHARS)
   const movedTo = status === 'moved' ? parseMovedTo(value.movedTo) : null
+  const cpu = finiteNumber(value.cpu)
+  const memory = finiteNumber(value.memory)
   return {
     pid,
     status,
@@ -109,7 +111,8 @@ function parseJob(value: unknown): HeavyCommandJob | null {
     ...(group ? { group } : {}),
     ...(movedFrom ? { movedFrom } : {}),
     ...(movedTo ? { movedTo } : {}),
-    ...(workspace ? { workspace } : {})
+    ...(workspace ? { workspace } : {}),
+    ...(cpu !== null && cpu >= 0 && memory !== null && memory >= 0 ? { cpu, memory } : {})
   }
 }
 

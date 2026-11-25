@@ -58,9 +58,6 @@ export function parseOutsideOrcaGroups(value: unknown): OutsideOrcaProcessGroup[
     const launcher = boundedText(row.launcher)
     const workspace = parseWorkspace(row.workspace)
     const folder = boundedText(row.folder)
-    const queue = isRecord(row.queue) ? row.queue : null
-    const queueCommand = queue ? boundedText(queue.command) : undefined
-    const queueSlot = queue ? finiteNumber(queue.slot) : null
     groups.push({
       name,
       kind: row.kind,
@@ -69,17 +66,8 @@ export function parseOutsideOrcaGroups(value: unknown): OutsideOrcaProcessGroup[
       processCount: Math.floor(processCount),
       ...(devices !== null && devices >= 1 ? { devices: Math.floor(devices) } : {}),
       ...(launcher ? { launcher } : {}),
-      ...(row.heavy === true ? { heavy: true } : {}),
       ...(workspace ? { workspace } : {}),
-      ...(folder ? { folder } : {}),
-      ...(queueCommand
-        ? {
-            queue: {
-              slot: queueSlot !== null && queueSlot >= 1 ? Math.floor(queueSlot) : null,
-              command: queueCommand
-            }
-          }
-        : {})
+      ...(folder ? { folder } : {})
     })
   }
   return groups

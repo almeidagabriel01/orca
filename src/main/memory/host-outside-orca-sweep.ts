@@ -6,17 +6,15 @@ import {
   ancestorsOf,
   containerIdOf,
   groupOutsideRows,
-  heavyQueueRoots,
   inLinuxSystemUnit,
-  listOutsideRows,
+  partitionHostRows,
   sampleContainerNames,
   weightOf,
-  type OutsideRow,
   type ProcessDetail
 } from './host-outside-orca-processes'
 import { getLocalDaemonPid } from './local-daemon-pid'
 import type { MemorySnapshotStore } from './memory-snapshot-buckets'
-import type { ProcIndex } from './process-index'
+import type { ProcIndex, ProcRow } from './process-index'
 import type { PtyRegistration } from './pty-registry'
 import { readProcessDetails } from './session-process-tree'
 
@@ -64,7 +62,7 @@ async function readCachedDetails(
 
 /** Linux system-unit pids owned by root; /proc/<pid> belongs to the process's user. */
 async function readRootOwned(
-  rows: readonly OutsideRow[],
+  rows: readonly ProcRow[],
   platform: NodeJS.Platform
 ): Promise<Set<number>> {
   if (platform !== 'linux') {
@@ -82,7 +80,7 @@ async function readRootOwned(
   return new Set(pids.filter((_, i) => owners[i] === 0))
 }
 
-/** What runs outside Orca, heavy work the queue did not start marked; absent when the sweep cannot tell. */
+/** What runs outside Orca, heavy work the queue did not start apart, and what each queue job's tree uses. */
 export async function collectHostOutsideProcesses(
   index: ProcIndex,
   store: MemorySnapshotStore,
@@ -93,8 +91,8 @@ export async function collectHostOutsideProcesses(
     agentTrees: readonly { pid: number }[]
   },
   platform: NodeJS.Platform = os.platform()
-): Promise<Pick<HostMemory, 'outsideOrca'>> {
-  const rows = listOutsideRows(
+): Promise<Pick<HostMemory, 'outsideOrca' | 'outsideQueue' | 'heavyQueue'>> {
+  const partition = partitionHostRows(
     index,
     {
       // Electron helpers descend from main; the detached daemon needs its own root.
@@ -104,12 +102,22 @@ export async function collectHostOutsideProcesses(
         ...sessions.claimed,
         ...sessions.agentTrees.map((tree) => tree.pid)
       ],
-      queue: heavyQueueRoots(heavyQueue?.jobs ?? [])
+      jobs: heavyQueue?.jobs ?? []
     },
     platform
   )
-  if (!rows) {
+  if (!partition) {
     return {}
+  }
+  const rows = partition.outside
+  const measuredQueue = heavyQueue && {
+    heavyQueue: {
+      ...heavyQueue,
+      jobs: heavyQueue.jobs.map((job) => {
+        const usage = partition.jobs.get(job.pid)
+        return usage ? { ...job, cpu: usage.cpu, memory: usage.memory } : job
+      })
+    }
   }
   const pids = new Set<number>()
   for (const row of rows
@@ -127,13 +135,14 @@ export async function collectHostOutsideProcesses(
     readRootOwned(rows, platform)
   ])
   return {
-    outsideOrca: groupOutsideRows(rows, details, {
+    ...groupOutsideRows(rows, details, {
       index,
       platform,
       containerNames,
       workspaceOf: createWorkspaceForPath(store),
       home: os.homedir(),
       rootOwned
-    })
+    }),
+    ...measuredQueue
   }
 }

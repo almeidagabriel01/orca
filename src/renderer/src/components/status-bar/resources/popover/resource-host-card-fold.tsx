@@ -52,7 +52,7 @@ export function HostCollapsedSummary({
   if (!machine) {
     return null
   }
-  const heavyOutside = machine.outsideOrca?.filter((group) => group.heavy).length
+  const heavyOutside = machine.outsideQueue?.length
   const parts = [
     machine.cpuPercent === null
       ? null

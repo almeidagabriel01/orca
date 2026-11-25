@@ -1,13 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { AppWindow, Box, Cpu, SquareTerminal } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
-import {
-  OUTSIDE_HEAVY_CPU_PERCENT,
-  OUTSIDE_HEAVY_MEMORY_BYTES,
-  type OutsideOrcaProcessGroup
-} from '../../../../../../shared/diagnostics/process-stats-types'
+import type { OutsideOrcaProcessGroup } from '../../../../../../shared/diagnostics/process-stats-types'
 import type { SortOption } from './resource-usage-resource-tree'
 import { MetricPair, ROW_TRAILING_GUTTER_CLS } from './resource-usage-metrics'
 import type { ResourceHostSummary } from './resource-host-summary'
@@ -24,19 +18,16 @@ const KIND_ICON = {
   kernel: Cpu
 } as const
 
-// Heavy groups lead whatever the sort, so "Show more" never hides one.
 function sortGroups(
   groups: readonly OutsideOrcaProcessGroup[],
   sortOption: SortOption
 ): OutsideOrcaProcessGroup[] {
-  return [...groups].sort(
-    (a, b) =>
-      Number(Boolean(b.heavy)) - Number(Boolean(a.heavy)) ||
-      (sortOption === 'name'
-        ? a.name.localeCompare(b.name)
-        : sortOption === 'cpu'
-          ? b.cpu - a.cpu || b.memory - a.memory
-          : b.memory - a.memory || b.cpu - a.cpu)
+  return [...groups].sort((a, b) =>
+    sortOption === 'name'
+      ? a.name.localeCompare(b.name)
+      : sortOption === 'cpu'
+        ? b.cpu - a.cpu || b.memory - a.memory
+        : b.memory - a.memory || b.cpu - a.cpu
   )
 }
 
@@ -45,68 +36,27 @@ function OutsideOrcaRow({ group }: { group: OutsideOrcaProcessGroup }): React.JS
   const Icon = KIND_ICON[group.kind]
   const name =
     group.kind === 'kernel' ? t('resourceManager.outsideOrca.kernel', 'Kernel') : group.name
-  const where = group.workspace
-    ? `${group.workspace.repoName} / ${group.workspace.worktreeName}`
-    : group.folder
-  const meta = [
-    group.queue &&
-      (group.queue.slot === null
-        ? group.queue.command
-        : t('resourceManager.outsideOrca.queueSlot', 'slot {{value0}} · {{value1}}', {
-            value0: group.queue.slot,
-            value1: group.queue.command
-          })),
-    group.launcher &&
-      t('resourceManager.outsideOrca.via', 'via {{value0}}', { value0: group.launcher }),
-    where
-  ].filter(Boolean)
   const count = group.devices ?? group.processCount
   return (
     <div className="flex items-start justify-between gap-x-2 gap-y-0.5 px-3 py-1 pl-6 @max-[22rem]/outside:flex-col">
       <div className="min-w-0 flex-1 text-2xs">
         <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
           <Icon className="size-3 shrink-0 text-muted-foreground" aria-hidden />
-          <span
-            className={cn(
-              'min-w-0 break-words',
-              group.heavy ? 'text-foreground' : 'text-muted-foreground'
-            )}
-          >
-            {name}
-          </span>
+          <span className="min-w-0 break-words text-muted-foreground">{name}</span>
           {count > 1 && (
             <span className="shrink-0 tabular-nums text-muted-foreground/60">
               {t('resourceManager.outsideOrca.processCount', '×{{value0}}', { value0: count })}
             </span>
           )}
-          {group.queue && (
-            <Badge variant="referenceLabel">
-              {t('resourceManager.outsideOrca.queued', 'queued')}
-            </Badge>
-          )}
-          {group.heavy && (
-            <Badge variant="rowWarning">{t('resourceManager.outsideOrca.heavy', 'heavy')}</Badge>
-          )}
         </div>
-        {meta.length > 0 && (
-          <div className="break-words pl-[1.125rem] text-muted-foreground">{meta.join(' · ')}</div>
+        {group.launcher && (
+          <div className="break-words pl-[1.125rem] text-muted-foreground">
+            {t('resourceManager.outsideOrca.via', 'via {{value0}}', { value0: group.launcher })}
+          </div>
         )}
       </div>
       <div className="flex shrink-0 items-center gap-2 @max-[22rem]/outside:pl-[1.125rem]">
-        {/* Why the host's marks on heavy rows: the badge and the coloured value then agree. */}
-        <MetricPair
-          cpu={group.cpu}
-          memory={group.memory}
-          size="small"
-          flagHeavy={
-            group.heavy
-              ? {
-                  cpu: group.cpu >= OUTSIDE_HEAVY_CPU_PERCENT,
-                  memory: group.memory >= OUTSIDE_HEAVY_MEMORY_BYTES
-                }
-              : true
-          }
-        />
+        <MetricPair cpu={group.cpu} memory={group.memory} size="small" flagHeavy />
         <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
       </div>
     </div>
@@ -127,8 +77,7 @@ function OutsideOrcaSection({
   const t = useTranslate()
   const [expanded, setExpanded] = useState(false)
   const outside = useMemo(() => sortGroups(groups, sortOption), [groups, sortOption])
-  const shown = Math.max(DEFAULT_VISIBLE_GROUPS, outside.filter((group) => group.heavy).length)
-  const visible = expanded ? outside : outside.slice(0, shown)
+  const visible = expanded ? outside : outside.slice(0, DEFAULT_VISIBLE_GROUPS)
   const rowKey = (group: OutsideOrcaProcessGroup): string =>
     `${group.kind}:${group.name}:${group.launcher ?? ''}`
   return (
@@ -158,7 +107,7 @@ function OutsideOrcaSection({
           <OutsideOrcaRow key={rowKey(group)} group={group} />
         ))}
       </div>
-      {outside.length > shown ? (
+      {outside.length > DEFAULT_VISIBLE_GROUPS ? (
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}

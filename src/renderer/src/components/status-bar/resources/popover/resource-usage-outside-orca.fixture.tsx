@@ -12,10 +12,8 @@ const group = (
   name: string,
   cpu: number,
   memory: number,
-  processCount = 1,
-  extra: Partial<OutsideOrcaProcessGroup> = {}
-): OutsideOrcaProcessGroup => ({ kind, name, cpu, memory, processCount, ...extra })
-const workspace = { worktreeId: 'w1', worktreeName: 'checkout-flow', repoName: 'storefront' }
+  processCount = 1
+): OutsideOrcaProcessGroup => ({ kind, name, cpu, memory, processCount })
 
 const machine = (outsideOrca: OutsideOrcaProcessGroup[] | null): HostMachineTotals => ({
   cpuPercent: 31,
@@ -35,15 +33,9 @@ const hosts: ResourceHostSummary[] = [
     isLocal: true,
     orca: { cpu: 18.4, memory: 1.2 * GIB },
     machine: machine([
-      group('app', 'Google Chrome', 64.2, 3.4 * GIB, 27, { heavy: true }),
-      group('app', 'Google Chrome', 88, 1.3 * GIB, 9, { heavy: true, launcher: 'lighthouse' }),
+      group('app', 'Google Chrome', 64.2, 3.4 * GIB, 27),
       group('app', 'Slack', 8.1, 812 * MIB, 6),
-      group('app', 'Docker', 22.7, 2.1 * GIB, 9, { heavy: true }),
-      group('app', 'iOS Simulator', 41, 4.5 * GIB, 212, { heavy: true }),
-      group('command', 'xcodebuild', 380.4, 1.6 * GIB, 14, {
-        heavy: true,
-        workspace
-      }),
+      group('app', 'Docker', 22.7, 2.1 * GIB, 9),
       group('command', 'WindowServer', 14.3, 410 * MIB),
       group('app', 'Spotify', 3.2, 380 * MIB, 4),
       group('command', 'mds_stores', 11.5, 96 * MIB, 2),
@@ -51,7 +43,7 @@ const hosts: ResourceHostSummary[] = [
       group('command', 'kernel_task', 9.8, 52 * MIB),
       group('app', 'Finder', 0.4, 140 * MIB),
       group('command', 'node', 1.2, 230 * MIB, 3),
-      group('command', 'node vitest', 212, 940 * MIB, 6, { heavy: true, folder: 'api' }),
+      { ...group('app', 'Google Chrome', 4.1, 610 * MIB, 6), launcher: 'lighthouse' },
       group('command', 'launchd', 0.1, 24 * MIB)
     ]),
     counts: { terminals: 5, agents: 2, commands: 1 },
@@ -63,7 +55,7 @@ const hosts: ResourceHostSummary[] = [
     isLocal: false,
     orca: { cpu: 3.1, memory: 412 * MIB },
     machine: machine([
-      group('container', 'harvey-harvey-1', 12.6, 1.2 * GIB, 5, { heavy: true }),
+      group('container', 'harvey-harvey-1', 12.6, 840 * MIB, 5),
       group('container', 'google-maps-scraper-kit-1', 4.3, 610 * MIB, 14),
       group('command', 'dockerd', 0.8, 64 * MIB),
       group('command', 'postgres', 2.1, 180 * MIB, 7),

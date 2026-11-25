@@ -32,6 +32,8 @@ export type HostMachineTotals = {
   loadAverage: [number, number, number] | null
   /** What runs outside Orca; null when the host does not report it. */
   outsideOrca: OutsideOrcaProcessGroup[] | null
+  /** Heavy groups the queue did not start; null when the host does not report them. */
+  outsideQueue?: OutsideOrcaProcessGroup[] | null
   /** The host's vps-heavy queue; null when it has none. */
   heavyQueue: HeavyCommandQueue | null
 }
@@ -185,6 +187,7 @@ export function parseHostMachineTotals(value: unknown): HostMachineTotals {
     disk: usedOfTotal(host.diskUsed, host.diskTotal),
     loadAverage: isLoadAverage(load) ? load : null,
     outsideOrca: parseOutsideOrcaGroups(host.outsideOrca),
+    outsideQueue: parseOutsideOrcaGroups(host.outsideQueue),
     heavyQueue: parseHeavyCommandQueue(host.heavyQueue)
   }
 }

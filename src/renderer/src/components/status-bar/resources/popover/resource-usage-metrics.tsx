@@ -122,15 +122,12 @@ export function MetricPair({
   cpu: Metric
   memory: Metric
   size?: 'base' | 'small'
-  /** Marks a single process's value past the heavy mark, or the values a caller names; totals leave it off. */
-  flagHeavy?: boolean | { cpu: boolean; memory: boolean }
+  /** Marks a single process's value past the heavy mark; totals leave it off. */
+  flagHeavy?: boolean
 }): React.JSX.Element {
   const textCls = size === 'small' ? 'text-2xs' : 'text-xs'
   const muted = cpu === null && memory === null
   const heavyCls = 'font-medium text-status-warning-text'
-  const heavyCpu = typeof flagHeavy === 'object' ? flagHeavy.cpu : flagHeavy && isHeavyCpu(cpu)
-  const heavyMemory =
-    typeof flagHeavy === 'object' ? flagHeavy.memory : flagHeavy && isHeavyMemory(memory)
   return (
     <div
       className={cn(
@@ -139,8 +136,10 @@ export function MetricPair({
         muted ? 'text-muted-foreground/50' : 'text-muted-foreground'
       )}
     >
-      <span className={cn(CPU_COLUMN_CLS, heavyCpu && heavyCls)}>{formatMetricCpu(cpu)}</span>
-      <span className={cn(MEM_COLUMN_CLS, heavyMemory && heavyCls)}>
+      <span className={cn(CPU_COLUMN_CLS, flagHeavy && isHeavyCpu(cpu) && heavyCls)}>
+        {formatMetricCpu(cpu)}
+      </span>
+      <span className={cn(MEM_COLUMN_CLS, flagHeavy && isHeavyMemory(memory) && heavyCls)}>
         {formatMetricMemory(memory)}
       </span>
     </div>

@@ -84,8 +84,10 @@ export type HostMemory = {
   diskUsed?: number
   /** 1, 5 and 15 minute load averages; absent on Windows. */
   loadAverage?: number[]
-  /** Top groups by CPU and by memory outside Orca's process trees, plus every heavy group; absent on Windows and older hosts. */
+  /** Top groups by CPU and by memory outside Orca, the queue and outsideQueue; absent on Windows and older hosts. */
   outsideOrca?: OutsideOrcaProcessGroup[]
+  /** Heavy groups outside Orca that the queue did not start, the OS's own left out; absent on Windows and older hosts. */
+  outsideQueue?: OutsideOrcaProcessGroup[]
   /** The vps-heavy command queue; absent on hosts without one, on Windows and on older hosts. */
   heavyQueue?: HeavyCommandQueue
 }
@@ -140,17 +142,14 @@ export type HeavyCommandJob = {
   workspace?: HeavyCommandWorkspace
   /** A slot held for another process (a CI runner job): its tree is the job's work; the job pid has no children. */
   watch?: number
+  /** What the job's tree uses now, cpu as percent of one core; absent where the host does not measure it. */
+  cpu?: number
+  memory?: number
 }
 
 export type HeavyJobMovedTo = { peer: string; alias: string; hostname: string | null }
 
 export type HeavyCommandWorkspace = { worktreeId: string; worktreeName: string; repoName: string }
-
-/** A group outside Orca is heavy past either mark, counting only what the queue did not start. */
-export const OUTSIDE_HEAVY_CPU_PERCENT = 25
-export const OUTSIDE_HEAVY_MEMORY_BYTES = 1024 ** 3
-
-export type OutsideQueueSlot = { slot: number | null; command: string }
 
 /** Processes folded by macOS app bundle, Linux container, or command name; cpu is percent of one core. */
 export type OutsideOrcaProcessGroup = {
@@ -163,13 +162,9 @@ export type OutsideOrcaProcessGroup = {
   devices?: number
   /** Tool that launched the group when it is another process, e.g. "lighthouse" for Chrome. */
   launcher?: string
-  /** The queue job some of its processes run in; slot is null while that job waits. */
-  queue?: OutsideQueueSlot
-  /** What the queue did not start passes the heavy threshold. */
-  heavy?: true
-  /** Heavy groups: the Orca workspace holding the group's cwd (or its parent's); absent when none does. */
+  /** outsideQueue groups: the Orca workspace holding the group's cwd (or its parent's); absent when none does. */
   workspace?: HeavyCommandWorkspace
-  /** Heavy groups: last segment of that cwd when no workspace holds it; absent for / and the home directory. */
+  /** outsideQueue groups: last segment of that cwd when no workspace holds it; absent for / and the home directory. */
   folder?: string
 }
 

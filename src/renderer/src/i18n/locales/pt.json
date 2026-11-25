@@ -24765,10 +24765,7 @@
     "outsideOrca": {
       "collapse": "Recolher Fora do Orca",
       "expand": "Expandir Fora do Orca",
-      "heavy": "pesado",
       "kernel": "Kernel",
-      "queueSlot": "vaga {{value0}} · {{value1}}",
-      "queued": "na fila",
       "processCount": "×{{value0}}",
       "showLess": "Mostrar menos",
       "showMore": "Mostrar mais {{count}}",

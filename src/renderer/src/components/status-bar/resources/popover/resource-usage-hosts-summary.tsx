@@ -30,6 +30,7 @@ import {
   HostCollapsedSummary
 } from './resource-host-card-fold'
 import { HostHeavyQueue } from './resource-usage-heavy-queue'
+import { HostOutsideQueue } from './resource-usage-outside-queue'
 import type { HeavyMoveHost } from './resource-heavy-job-move'
 import { HostLabelByHostnameContext } from './resource-heavy-queue-host-note'
 
@@ -277,7 +278,15 @@ function HostCard({
           label={host.label}
           queue={host.machine.heavyQueue}
           movableHosts={movableHosts}
-          outsideCount={host.machine.outsideOrca?.filter((group) => group.heavy).length}
+          outsideCount={host.machine.outsideQueue?.length}
+        />
+      )}
+      {!collapsed && host.machine?.outsideQueue && (
+        <HostOutsideQueue
+          hostId={host.id}
+          label={host.label}
+          groups={host.machine.outsideQueue}
+          hasQueue={Boolean(host.machine.heavyQueue)}
         />
       )}
     </li>

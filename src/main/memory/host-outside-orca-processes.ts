@@ -1,12 +1,9 @@
 import path from 'node:path'
 import { runProcess } from '@orca/process-host'
-import {
-  OUTSIDE_HEAVY_CPU_PERCENT,
-  OUTSIDE_HEAVY_MEMORY_BYTES,
-  type HeavyCommandJob,
-  type HeavyCommandWorkspace,
-  type OutsideOrcaProcessGroup,
-  type OutsideQueueSlot
+import type {
+  HeavyCommandJob,
+  HeavyCommandWorkspace,
+  OutsideOrcaProcessGroup
 } from '../../shared/diagnostics/process-stats-types'
 import { createSlowSample } from './host-machine-totals'
 import { collectSubtree, executableBasename, type ProcIndex, type ProcRow } from './process-index'
@@ -14,9 +11,16 @@ import { isInterpreter, scriptLabelOf } from './process-script-label'
 
 export type ProcessDetail = { command: string | null; cwd: string | null }
 
-/** A sweep row outside Orca's app, terminals and agents; queued names the vps-heavy job it runs in. */
-export type OutsideRow = ProcRow & { queued: OutsideQueueSlot | null }
+/** Each sweep row lands in one place: Orca's app (dropped), a queue job, an Orca session (dropped), or outside. */
+export type HostRowPartition = {
+  outside: ProcRow[]
+  /** By job pid: what its tree uses; a held slot's tree is its watched pid's. */
+  jobs: Map<number, { cpu: number; memory: number; processCount: number }>
+}
 
+// A group the queue did not start is heavy past either mark.
+export const HEAVY_CPU_PERCENT = 25
+export const HEAVY_MEMORY_BYTES = 1024 ** 3
 // Why both metrics: the renderer re-sorts by CPU or memory, so one ranking would drop the other's leaders.
 const TOP_GROUPS_PER_METRIC = 25
 const MAX_GROUP_NAME_CHARS = 64
@@ -51,35 +55,21 @@ function subtreesOf(
   return pids
 }
 
-/** Root pids of queue work and their jobs: a held slot's work runs under its watched pid, not the holder. */
-export function heavyQueueRoots(
-  jobs: readonly Pick<HeavyCommandJob, 'pid' | 'watch' | 'slot' | 'command'>[]
-): Map<number, OutsideQueueSlot> {
-  const roots = new Map<number, OutsideQueueSlot>()
-  for (const job of jobs) {
-    const slot = { slot: job.slot, command: job.command }
-    for (const pid of job.watch ? [job.pid, job.watch] : [job.pid]) {
-      roots.set(pid, slot)
-    }
-  }
-  return roots
-}
-
 /** Linux rows in a system unit; only root-owned ones among them are the OS's. */
 export function inLinuxSystemUnit(row: ProcRow): boolean {
   return LINUX_SYSTEM_UNIT.test(splitLinuxCommand(row.command ?? '').cgroup)
 }
 
-/** Every row outside Orca's app, terminals and agents, tagged; null when the sweep carried no command columns. */
-export function listOutsideRows(
+/** Splits a sweep; null when it carried no command columns. */
+export function partitionHostRows(
   index: Pick<ProcIndex, 'byPid' | 'childrenOf'>,
   roots: {
     appRootPids: Iterable<number | null | undefined>
     sessionRootPids: Iterable<number>
-    queue: ReadonlyMap<number, OutsideQueueSlot>
+    jobs: readonly Pick<HeavyCommandJob, 'pid' | 'watch'>[]
   },
   platform: NodeJS.Platform
-): OutsideRow[] | null {
+): HostRowPartition | null {
   const appRoots = [...roots.appRootPids]
   const sessionRoots = [...roots.sessionRootPids]
   let hasCommands = false
@@ -98,19 +88,29 @@ export function listOutsideRows(
   const session = subtreesOf(index, sessionRoots)
   // Sessions descend from the daemon, so the app's walk stops at them.
   const app = subtreesOf(index, appRoots, session)
-  const queued = new Map<number, OutsideQueueSlot>()
-  for (const [root, slot] of roots.queue) {
-    for (const pid of collectSubtree(index, root)) {
-      queued.set(pid, slot)
+  const taken = new Set(app)
+  const jobs: HostRowPartition['jobs'] = new Map()
+  for (const job of roots.jobs) {
+    const usage = { cpu: 0, memory: 0, processCount: 0 }
+    jobs.set(job.pid, usage)
+    // A queue job wins over the terminal it was started from; it runs in its slot.
+    for (const pid of subtreesOf(index, job.watch ? [job.pid, job.watch] : [job.pid], taken)) {
+      const row = index.byPid.get(pid)
+      if (row) {
+        taken.add(pid)
+        usage.cpu += row.cpu
+        usage.memory += row.memory
+        usage.processCount++
+      }
     }
   }
-  const rows: OutsideRow[] = []
+  const outside: ProcRow[] = []
   for (const row of index.byPid.values()) {
-    if (row.command !== undefined && !app.has(row.pid) && !session.has(row.pid)) {
-      rows.push({ ...row, queued: queued.get(row.pid) ?? null })
+    if (row.command !== undefined && !taken.has(row.pid) && !session.has(row.pid)) {
+      outside.push(row)
     }
   }
-  return rows
+  return { outside, jobs }
 }
 
 export function splitLinuxCommand(command: string): { cgroup: string; comm: string } {
@@ -181,16 +181,15 @@ export type GroupContext = {
 type GroupDraft = OutsideOrcaProcessGroup & {
   /** Every process is the OS's own, so the group is never marked heavy. */
   system: boolean
-  unqueued: { cpu: number; memory: number }
   heaviest: { weight: number; cwd: string } | null
 }
 
-/** Folds every row into exactly one group; heavy marks what the queue did not start. */
+/** Folds every outside row into exactly one group; heavy groups that are not the OS's go outside the queue. */
 export function groupOutsideRows(
-  rows: readonly OutsideRow[],
+  rows: readonly ProcRow[],
   details: ReadonlyMap<number, ProcessDetail>,
   ctx: GroupContext
-): OutsideOrcaProcessGroup[] {
+): { outsideQueue: OutsideOrcaProcessGroup[]; outsideOrca: OutsideOrcaProcessGroup[] } {
   const usableCwd = (cwd: string | null | undefined): string | null =>
     cwd && cwd !== '/' && cwd !== ctx.home ? cwd : null
   const groups = new Map<string, GroupDraft>()
@@ -232,7 +231,6 @@ export function groupOutsideRows(
       memory: 0,
       processCount: 0,
       system: true,
-      unqueued: { cpu: 0, memory: 0 },
       heaviest: null
     }
     groups.set(key, group)
@@ -248,41 +246,34 @@ export function groupOutsideRows(
     if (isSimulator && executableBasename(comm) === 'launchd_sim') {
       group.devices = (group.devices ?? 0) + 1
     }
-    if (row.queued) {
-      group.queue ??= row.queued
-    } else {
-      group.unqueued.cpu += row.cpu
-      group.unqueued.memory += row.memory
-      const weight = weightOf(row.cpu, row.memory)
-      if (cwd && (!group.heaviest || weight > group.heaviest.weight)) {
-        group.heaviest = { weight, cwd }
-      }
+    const weight = weightOf(row.cpu, row.memory)
+    if (cwd && (!group.heaviest || weight > group.heaviest.weight)) {
+      group.heaviest = { weight, cwd }
     }
   }
   const isHeavy = (g: GroupDraft): boolean =>
     g.kind !== 'kernel' &&
     !g.system &&
-    (g.unqueued.cpu >= OUTSIDE_HEAVY_CPU_PERCENT || g.unqueued.memory >= OUTSIDE_HEAVY_MEMORY_BYTES)
-  const heavy = new Set([...groups.values()].filter(isHeavy))
+    (g.cpu >= HEAVY_CPU_PERCENT || g.memory >= HEAVY_MEMORY_BYTES)
   const all = [...groups.values()]
-  const kept = new Set([
-    ...[...all].sort((a, b) => b.cpu - a.cpu).slice(0, TOP_GROUPS_PER_METRIC),
-    ...[...all].sort((a, b) => b.memory - a.memory).slice(0, TOP_GROUPS_PER_METRIC),
-    ...heavy
-  ])
-  return [...kept].map((draft) => {
-    const { system: _system, unqueued: _unqueued, heaviest, ...group } = draft
-    if (!heavy.has(draft)) {
-      return group
-    }
+  const strip = ({ system: _system, heaviest: _heaviest, ...group }: GroupDraft) => group
+  const outsideQueue = all.filter(isHeavy).map((draft) => {
+    const { heaviest } = draft
     const workspace = heaviest ? ctx.workspaceOf(heaviest.cwd) : null
     const folder = heaviest ? path.basename(heaviest.cwd).slice(0, MAX_FOLDER_CHARS) : ''
-    return {
-      ...group,
-      heavy: true,
-      ...(workspace ? { workspace } : folder ? { folder } : {})
-    }
+    return { ...strip(draft), ...(workspace ? { workspace } : folder ? { folder } : {}) }
   })
+  const rest = all.filter((g) => !isHeavy(g))
+  const outsideOrca = new Set([
+    ...[...rest].sort((a, b) => b.cpu - a.cpu).slice(0, TOP_GROUPS_PER_METRIC),
+    ...[...rest].sort((a, b) => b.memory - a.memory).slice(0, TOP_GROUPS_PER_METRIC)
+  ])
+  return {
+    outsideQueue: outsideQueue.sort(
+      (a, b) => weightOf(b.cpu, b.memory) - weightOf(a.cpu, a.memory)
+    ),
+    outsideOrca: [...outsideOrca].map(strip)
+  }
 }
 
 /** Parses `docker ps --no-trunc --format '{{.ID}} {{.Names}}'`. */

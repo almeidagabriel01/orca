@@ -23,6 +23,7 @@ import { QueueRowMenu, type ConfirmKind, type QueueMove } from './resource-heavy
 import type { HeavyMoveHost } from './resource-heavy-job-move'
 import type { HeavyJobMoveRequest } from './resource-heavy-queue-move-items'
 import { QueueRowHostNote } from './resource-heavy-queue-host-note'
+import { MetricPair } from './resource-usage-metrics'
 
 /** What a row needs to offer "Run on <host>"; source is null when this host's queue can't move jobs. */
 export type RowMoveHosts = {
@@ -253,20 +254,28 @@ export function QueueRow({
             </Tooltip>
           )}
         </div>
-        <div
-          data-queue-place
-          className="min-w-0 pl-[1.125rem] text-2xs font-medium break-words text-foreground [grid-area:place]"
-          title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
-        >
-          {job.workspace ? (
-            <PathText text={row.place} />
-          ) : (
-            <>
-              {folderName(row.place)}{' '}
-              <span className="font-normal text-muted-foreground">
-                <PathText text={row.place} />
-              </span>
-            </>
+        <div className="flex min-w-0 items-start justify-between gap-2 [grid-area:place]">
+          <div
+            data-queue-place
+            className="min-w-0 pl-[1.125rem] text-2xs font-medium break-words text-foreground"
+            title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
+          >
+            {job.workspace ? (
+              <PathText text={row.place} />
+            ) : (
+              <>
+                {folderName(row.place)}{' '}
+                <span className="font-normal text-muted-foreground">
+                  <PathText text={row.place} />
+                </span>
+              </>
+            )}
+          </div>
+          {/* pr-1 lines the columns up with the sections below, whose rows pad 4px more. */}
+          {job.cpu !== undefined && job.memory !== undefined && (
+            <div className="pr-1">
+              <MetricPair cpu={job.cpu} memory={job.memory} size="small" flagHeavy />
+            </div>
           )}
         </div>
         <div className="[grid-area:actions]">

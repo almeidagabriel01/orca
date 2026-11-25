@@ -120,6 +120,14 @@ export function buildHandoffDestinations(input: HandoffDestinationInput): Handof
   return rows
 }
 
+/** The row a hand-off starts at for `key`; a blocked or unknown key falls back to the current row. */
+export function resolveHandoffDestination(
+  destinations: readonly HandoffDestination[] | null | undefined,
+  key: string | undefined
+): HandoffDestination | undefined {
+  return destinations?.find((row) => row.key === key && !row.block) ?? destinations?.[0]
+}
+
 // Same precedence as findWorktreeById: the paired runtime serving the row wins over the stamped host.
 function worktreeOwnerHostId(
   worktree: Pick<Worktree, 'hostId' | 'runtimeOwnerEnvironmentId'>,

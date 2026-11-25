@@ -10,15 +10,16 @@ import type {
   HandoffDestination,
   HandoffDestinationBlock
 } from '@/lib/agent-session/launch/continuation/handoff-destinations'
-import type { HandoffDestinationCreation } from './use-handoff-environment'
+import { HandoffSourceChanges } from './HandoffSourceChanges'
+import type { HandoffDestinationCreation, HandoffEnvironment } from './use-handoff-environment'
 
 const KEY = 'components.agentSessionContinuation.environment'
 
-function blockText(
-  t: Translate,
-  block: Exclude<HandoffDestinationBlock, { kind: 'branch-missing' }>
-): string {
+/** Why a row cannot be picked as is, as its row spells it out. */
+export function handoffBlockText(t: Translate, block: HandoffDestinationBlock): string {
   switch (block.kind) {
+    case 'branch-missing':
+      return t(`${KEY}.noWorkspaceYet`, 'no workspace on this branch yet')
     case 'host-unavailable':
       return block.detail
     case 'project-missing':
@@ -127,7 +128,7 @@ export function HandoffEnvironmentField({
                   </span>
                 ) : row.block ? (
                   <span className="text-xs break-words text-status-warning-text">
-                    {blockText(t, row.block)}
+                    {handoffBlockText(t, row.block)}
                   </span>
                 ) : null}
               </span>
@@ -136,5 +137,31 @@ export function HandoffEnvironmentField({
         </div>
       </RadioGroup>
     </div>
+  )
+}
+
+/** The dialog's environment block: picker, source changes to publish, and the destination error. */
+export function HandoffEnvironmentSection({
+  env,
+  disabled
+}: {
+  env: HandoffEnvironment
+  disabled: boolean
+}): React.JSX.Element {
+  return (
+    <>
+      {env.destinations ? (
+        <HandoffEnvironmentField
+          destinations={env.destinations}
+          value={env.destinationKey}
+          onChange={env.pickDestination}
+          disabled={disabled}
+          creation={env.creation}
+          onCreate={env.createDestination}
+        />
+      ) : null}
+      {env.elsewhere ? <HandoffSourceChanges {...env.sourceChanges} /> : null}
+      {env.destinationError ? <DialogError>{env.destinationError}</DialogError> : null}
+    </>
   )
 }

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslate } from '@/i18n/use-translate'
-import type { HandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destinations'
+import { resolveHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import { retargetContinuationRequest } from '@/lib/agent-session/launch/continuation/handoff-continuation-retarget'
 import { commitAndPushHandoffSource } from '@/lib/agent-session/launch/continuation/handoff-source-publish'
 import { syncHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destination-sync'
@@ -18,9 +18,13 @@ type Publish = {
 export type HandoffDestinationCreation = { key: string; running: boolean; error: string | null }
 
 /** The dialog's Environment choice: where the new session opens, and what must be pushed first. */
+export type HandoffEnvironment = ReturnType<typeof useHandoffEnvironment>
+
 export function useHandoffEnvironment(
   open: boolean,
-  request: AgentSessionContinuationRequest | null
+  request: AgentSessionContinuationRequest | null,
+  /** The destination key preselected until the user picks one. */
+  initialKey?: string
 ) {
   const t = useTranslate()
   const destinations = useHandoffDestinations(open ? request?.worktreeId : undefined)
@@ -36,11 +40,10 @@ export function useHandoffEnvironment(
   >(null)
 
   const current = destinations?.[0]
-  const chosen =
-    picked?.request === request
-      ? destinations?.find((row) => row.key === picked.key && !row.block)
-      : undefined
-  const destination: HandoffDestination | undefined = chosen ?? current
+  const destination = resolveHandoffDestination(
+    destinations,
+    picked?.request === request ? picked.key : initialKey
+  )
   const elsewhere = Boolean(destination && current && destination.key !== current.key)
 
   const git = useHandoffSourceGitState({
@@ -52,17 +55,14 @@ export function useHandoffEnvironment(
   // The request the agent picker detects against and the launch uses: the destination's workspace.
   const destinationWorktreeId = destination?.worktreeId
   const destinationWorktreePath = destination?.worktreePath
-  const effectiveRequest = useMemo(
-    () =>
-      request && elsewhere && destinationWorktreeId && destinationWorktreePath
-        ? retargetContinuationRequest(request, {
-            worktreeId: destinationWorktreeId,
-            worktreePath: destinationWorktreePath,
-            sameHost: false
-          })
-        : request,
-    [request, elsewhere, destinationWorktreeId, destinationWorktreePath]
-  )
+  const effectiveRequest =
+    request && elsewhere && destinationWorktreeId && destinationWorktreePath
+      ? retargetContinuationRequest(request, {
+          worktreeId: destinationWorktreeId,
+          worktreePath: destinationWorktreePath,
+          sameHost: false
+        })
+      : request
 
   const defaultMessage = destination
     ? t(

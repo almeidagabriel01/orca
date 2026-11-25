@@ -5,6 +5,10 @@ import { getDefaultSettings } from '../../../../../../shared/orca-profiles/const
 import { NativeChatComposerWorkspace } from './NativeChatComposerWorkspace'
 import { nativeChatAppearanceStyle } from '../../appearance/native-chat-appearance-style'
 import { useAppStore } from '@/store'
+import { NativeChatHandOffContext } from '../../pane/actions/use-native-chat-hand-off'
+import { createCompatibleRuntimeStatusResponse } from '@/runtime/rpc/testing/runtime-compatibility-test-fixture'
+import type { ProjectHostSetup } from '../../../../../../shared/project/project-types'
+import type { PublicKnownRuntimeEnvironment } from '../../../../../../shared/remote-runtime/host-catalog/runtime-environments'
 
 function workspaceFixture({
   branch = 'master',
@@ -235,3 +239,129 @@ export const narrowLongFolder = workspaceFixture({
   width: 260,
   folderName: 'quarterly-planning-notes-and-research-for-the-design-team'
 })
+
+const HAND_OFF = { openTo: () => {}, disabled: false }
+
+// The same project on this computer and a paired server, each with a `feat/mobile-app` workspace.
+function hostSwitchFixture() {
+  const vps = 'runtime:vps' as const
+  const macRepo: Repo = {
+    id: 'app-mac',
+    path: '/Users/me/app',
+    displayName: 'app',
+    badgeColor: '',
+    addedAt: 1,
+    kind: 'git',
+    executionHostId: 'local'
+  }
+  const vpsRepo: Repo = { ...macRepo, id: 'app-vps', path: '/srv/app', executionHostId: vps }
+  const macCheckout: Worktree = {
+    id: `${macRepo.id}::${macRepo.path}`,
+    repoId: macRepo.id,
+    projectId: 'p',
+    hostId: 'local',
+    path: macRepo.path,
+    displayName: 'app',
+    branch: 'refs/heads/feat/mobile-app',
+    head: 'a1b2c3d4e5f6',
+    isBare: false,
+    isMainWorktree: true,
+    comment: '',
+    linkedIssue: null,
+    linkedPR: null,
+    linkedLinearIssue: null,
+    isArchived: false,
+    isUnread: false,
+    isPinned: false,
+    sortOrder: 0,
+    lastActivityAt: 1
+  }
+  const vpsCheckout: Worktree = {
+    ...macCheckout,
+    id: `${vpsRepo.id}::${vpsRepo.path}`,
+    repoId: vpsRepo.id,
+    hostId: vps,
+    path: vpsRepo.path
+  }
+  const setup = (hostId: 'local' | typeof vps, target: Repo): ProjectHostSetup => ({
+    id: `setup-${target.id}`,
+    projectId: 'p',
+    hostId,
+    repoId: target.id,
+    path: target.path,
+    displayName: 'app',
+    executionHostId: hostId,
+    setupState: 'ready',
+    setupMethod: 'cloned',
+    createdAt: 1,
+    updatedAt: 1
+  })
+  const environment: PublicKnownRuntimeEnvironment = {
+    id: 'vps',
+    name: 'vps',
+    createdAt: 1,
+    updatedAt: 1,
+    lastUsedAt: null,
+    runtimeId: null,
+    endpoints: [],
+    preferredEndpointId: 'vps'
+  }
+  return defineFixture({
+    width: 640,
+    store: {
+      repos: [macRepo, vpsRepo],
+      projectHostSetups: [setup('local', macRepo), setup(vps, vpsRepo)],
+      worktreesByRepo: { [macRepo.id]: [macCheckout], [vpsRepo.id]: [vpsCheckout] },
+      runtimeEnvironments: [environment],
+      runtimeStatusByEnvironmentId: new Map([
+        ['vps', { status: createCompatibleRuntimeStatusResponse('vps').result, checkedAt: 1 }]
+      ]),
+      unifiedTabsByWorktree: {
+        [macCheckout.id]: [
+          {
+            id: 'composer-preview-tab',
+            entityId: 'composer-preview-session',
+            contentType: 'agent-session',
+            agentSessionAgent: 'codex',
+            worktreeId: macCheckout.id,
+            groupId: 'preview',
+            executionHostId: 'local',
+            label: 'Chat',
+            customLabel: null,
+            color: null,
+            sortOrder: 0,
+            createdAt: 1
+          }
+        ]
+      }
+    },
+    setup: () => {
+      useAppStore.setState((state) => ({
+        settings: {
+          ...getDefaultSettings('/home/fixture'),
+          ...state.settings,
+          machineName: "Gabriel's MacBook Air"
+        }
+      }))
+    },
+    render: () => (
+      <NativeChatHandOffContext.Provider value={HAND_OFF}>
+        <div className="native-chat-appearance bg-background pt-40 pb-3">
+          <NativeChatComposerWorkspace terminalTabId="composer-preview-tab" />
+        </div>
+      </NativeChatHandOffContext.Provider>
+    ),
+    interact: async (frame) => {
+      const trigger = frame.querySelector<HTMLButtonElement>(
+        '[aria-label="Hand off to another environment"]'
+      )
+      if (!trigger) {
+        throw new Error('The footer host must be a selector when the chat can hand off')
+      }
+      trigger.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }))
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+  })
+}
+
+export const hostSwitch = hostSwitchFixture()

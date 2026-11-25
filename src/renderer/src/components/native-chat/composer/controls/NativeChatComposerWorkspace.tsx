@@ -14,6 +14,8 @@ import {
   type NativeChatComposerWorkspaceTarget
 } from './native-chat-composer-workspace'
 import { NativeChatComposerBranchPicker } from './NativeChatComposerBranchPicker'
+import { NativeChatComposerHostPicker } from './NativeChatComposerHostPicker'
+import { useNativeChatHandOffContext } from '../../pane/actions/use-native-chat-hand-off'
 import { NativeChatSlackMirrorItem } from '../../slack-mirror/NativeChatSlackMirrorItem'
 import { NativeChatAntigravityAuthChip } from '../../antigravity-auth/NativeChatAntigravityAuthChip'
 
@@ -59,6 +61,7 @@ export function NativeChatComposerWorkspace({
     head
   } = useAppStore(useShallow(selector))
 
+  const handOff = useNativeChatHandOffContext()
   const identity = getWorktreeGitIdentityDisplay({ branch, head })
   const label =
     identity?.kind === 'branch'
@@ -93,6 +96,15 @@ export function NativeChatComposerWorkspace({
         ? t('components.native-chat.composerWorkspace.mainCheckout', 'Main checkout')
         : t('components.native-chat.composerWorkspace.worktree', 'Worktree')
 
+  const machineName =
+    hostId === 'local' ? (
+      <LocalMachineName name={machine ?? ''} />
+    ) : (
+      <span className={FOOTER_TEXT} title={machine}>
+        {machine}
+      </span>
+    )
+
   const copyIdentityButton =
     identity && label ? (
       <Tooltip>
@@ -125,24 +137,28 @@ export function NativeChatComposerWorkspace({
 
   return (
     <div className="@container mt-1 flex h-5.5 shrink-0 min-w-0 items-center gap-1.5 px-3 text-2xs text-chat-foreground-faint">
-      {hostId && (
-        <span
-          className={
-            identity
-              ? 'hidden min-w-0 max-w-40 shrink items-center gap-1 @lg:flex'
-              : 'hidden min-w-0 max-w-40 shrink items-center gap-1 @sm:flex'
-          }
-        >
-          <Server className="size-3 shrink-0" aria-hidden />
-          {hostId === 'local' ? (
-            <LocalMachineName name={machine ?? ''} />
-          ) : (
-            <span className={FOOTER_TEXT} title={machine}>
-              {machine}
-            </span>
-          )}
-        </span>
-      )}
+      {hostId &&
+        (handOff && rowWorktreeId ? (
+          <NativeChatComposerHostPicker
+            worktreeId={rowWorktreeId}
+            hostId={hostId}
+            handOff={handOff}
+            className={identity ? 'hidden max-w-44 @lg:flex' : 'hidden max-w-44 @sm:flex'}
+          >
+            {machineName}
+          </NativeChatComposerHostPicker>
+        ) : (
+          <span
+            className={
+              identity
+                ? 'hidden min-w-0 max-w-40 shrink items-center gap-1 @lg:flex'
+                : 'hidden min-w-0 max-w-40 shrink items-center gap-1 @sm:flex'
+            }
+          >
+            <Server className="size-3 shrink-0" aria-hidden />
+            {machineName}
+          </span>
+        ))}
       {checkout && (
         <Tooltip>
           <TooltipTrigger asChild>

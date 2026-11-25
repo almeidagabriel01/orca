@@ -39,8 +39,8 @@ import {
 } from '../../../../shared/agent-session/conversation-context/agent-session-continuation'
 import { launchAgentSessionContinuation } from '@/lib/agent-session/launch/continuation/launch-agent-session-continuation'
 import { useAppStore } from '@/store'
-import { HandoffEnvironmentField } from './HandoffEnvironmentField'
-import { HandoffSourceChanges, HandoffStartReason } from './HandoffSourceChanges'
+import { HandoffEnvironmentSection } from './HandoffEnvironmentField'
+import { HandoffStartReason } from './HandoffSourceChanges'
 import { useHandoffEnvironment } from './use-handoff-environment'
 import { isTuiAgentEnabled } from '../../../../shared/agent-launch/catalog/tui-agent-selection'
 import type { TuiAgent } from '../../../../shared/agent-launch/catalog/tui-agent'
@@ -53,6 +53,7 @@ type AgentSessionContinuationDialogProps = {
   open: boolean
   request: AgentSessionContinuationRequest | null
   onOpenChange: (open: boolean) => void
+  initialEnvironmentKey?: string
   /** Fires after the new session launched, so a host can step aside for the new tab. */
   onStarted?: () => void
 }
@@ -63,10 +64,11 @@ export function AgentSessionContinuationDialog({
   open,
   request,
   onOpenChange,
+  initialEnvironmentKey,
   onStarted
 }: AgentSessionContinuationDialogProps): React.JSX.Element {
   const t = useTranslate()
-  const env = useHandoffEnvironment(open, request)
+  const env = useHandoffEnvironment(open, request, initialEnvironmentKey)
   // The destination's request: agents are detected and launched where the session will run.
   const target = env.effectiveRequest
   const workspace = target ? worktreeLaunchWorkspace(target.worktreeId) : null
@@ -314,18 +316,7 @@ export function AgentSessionContinuationDialog({
         </DialogHeader>
 
         {/* Where it runs comes first: the agent list below is detected on that host. */}
-        {env.destinations ? (
-          <HandoffEnvironmentField
-            destinations={env.destinations}
-            value={env.destinationKey}
-            onChange={env.pickDestination}
-            disabled={controlsDisabled}
-            creation={env.creation}
-            onCreate={env.createDestination}
-          />
-        ) : null}
-        {env.elsewhere ? <HandoffSourceChanges {...env.sourceChanges} /> : null}
-        {env.destinationError ? <DialogError>{env.destinationError}</DialogError> : null}
+        <HandoffEnvironmentSection env={env} disabled={controlsDisabled} />
 
         <div
           className="grid min-w-0 gap-1.5 outline-none"

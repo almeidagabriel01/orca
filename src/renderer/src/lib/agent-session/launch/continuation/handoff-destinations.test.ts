@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import type { ProjectHostSetupOption } from '@/lib/workspace/creation/project-host-setup-options'
 import { makeWorktree } from '@/store/slices/worktrees/worktree.test-fixture'
-import { buildHandoffDestinations, type HandoffDestinationInput } from './handoff-destinations'
+import {
+  buildHandoffDestinations,
+  resolveHandoffDestination,
+  type HandoffDestinationInput
+} from './handoff-destinations'
 
 const ready = (hostId: ExecutionHostId, repoId: string): ProjectHostSetupOption => ({
   id: `setup-${hostId}`,
@@ -97,5 +101,22 @@ describe('buildHandoffDestinations', () => {
       source: { id: 'src', path: '/local/src', branch: '', displayName: 'src' }
     })
     expect(detached[1].block).toEqual({ kind: 'detached-source' })
+  })
+})
+
+describe('resolveHandoffDestination', () => {
+  const rows = build({
+    hostOptions: [ready('local', 'r1'), ready('runtime:mac', 'r1'), needsSetup('runtime:vps')],
+    worktreesByRepo: {
+      r1: [wt('src', 'r1', 'refs/heads/feat/x', 'local'), wt('twin', 'r1', 'feat/x', 'runtime:mac')]
+    }
+  })
+
+  it('preselects an open host and falls back to the current row for blocked or unknown keys', () => {
+    expect(resolveHandoffDestination(rows, 'host:runtime:mac')?.worktreeId).toBe('twin')
+    expect(resolveHandoffDestination(rows, 'host:runtime:vps')?.key).toBe('current:src')
+    expect(resolveHandoffDestination(rows, 'host:gone')?.key).toBe('current:src')
+    expect(resolveHandoffDestination(rows, undefined)?.key).toBe('current:src')
+    expect(resolveHandoffDestination(null, 'host:runtime:mac')).toBeUndefined()
   })
 })

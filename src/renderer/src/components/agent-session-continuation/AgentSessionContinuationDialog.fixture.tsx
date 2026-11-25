@@ -142,8 +142,9 @@ async function pickRadio(index: number): Promise<void> {
 const vpsAgents: TuiAgent[] = ['codex', 'claude', 'gemini']
 const vpsInventoryKey = getRuntimeAgentInventoryKey('vps', vpsDevelop.id)
 
-/** `pushed`: after Commit & push, the Mac copy is clean and Start opens on the vps. */
-function toServer(pushed: boolean) {
+/** `pushed`: after Commit & push, the Mac copy is clean and Start opens on the vps.
+ * `preselected`: opened from the composer's host menu, so the vps row starts picked. */
+function toServer(pushed: boolean, preselected = false) {
   return defineFixture({
     width: 640,
     store: {
@@ -187,7 +188,7 @@ function toServer(pushed: boolean) {
         behind: 0
       })
     },
-    interact: () => pickRadio(1),
+    interact: preselected ? undefined : () => pickRadio(1),
     render: () => (
       <div className="h-[760px] bg-background">
         <AgentSessionContinuationDialog
@@ -197,6 +198,7 @@ function toServer(pushed: boolean) {
             worktreeId: macDevelop.id,
             workspacePath: macDevelop.path
           }}
+          initialEnvironmentKey={preselected ? `host:${VPS}` : undefined}
           onOpenChange={() => {}}
         />
       </div>
@@ -206,3 +208,4 @@ function toServer(pushed: boolean) {
 
 export const handoffToServer = toServer(false)
 export const handoffToServerPushed = toServer(true)
+export const handoffToServerPreselected = toServer(false, true)

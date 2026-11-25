@@ -4,7 +4,10 @@ import {
   useNativeChatCrewSource
 } from '../orchestration-crew/use-native-chat-crew'
 import { NativeChatUsageLimitActionsProvider } from './usage/NativeChatUsageLimitActions'
-import { useNativeChatHandOff } from './pane/actions/use-native-chat-hand-off'
+import {
+  NativeChatHandOffContext,
+  useNativeChatHandOff
+} from './pane/actions/use-native-chat-hand-off'
 import { useNativeChatStructuredPaneNotices } from '@/components/native-chat/messages/notices/use-native-chat-structured-pane-notices'
 import { useRef, useState } from 'react'
 import { structuredAgentSessionPaneKey } from '../../../../shared/agent-session/view/structured-agent-session-projection'
@@ -153,13 +156,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
   // Final read refusal replaces the pane because no existing action can succeed.
   const viewState = selectNativeChatViewState(session, { readRetries: readFailure?.final !== true })
   const imageRuntimeContext = useNativeChatImageRuntimeContext(props.tabId)
-  const handOff = useNativeChatHandOff({
-    pane: props,
-    directory: fileLinkContext,
-    messages: controller.messages,
-    epoch: controller.epoch,
-    focusComposer
-  })
+  const handOff = useNativeChatHandOff(props, fileLinkContext, controller, focusComposer)
   const paneCommands = useStructuredNativeChatPaneCommands({
     pane: props,
     handOff,
@@ -389,22 +386,24 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
               )}
               {subagents.statusBar}
               {composerShown ? (
-                <NativeChatComposer
-                  ref={composerRef}
-                  terminalTabId={props.tabId}
-                  paneKey={paneKey}
-                  draftScopeKey={structuredAgentSessionDraftScopeKey(props.sessionId)}
-                  targetPtyId={null}
-                  agent={props.agent}
-                  {...bot.stopControls.composer}
-                  unavailableHint={install.unavailableHint}
-                  steerHead={
-                    bot.stopControls.stopping ? undefined : submits.queuedMessages.steerHead
-                  }
-                  structuredTransport={transport}
-                  notices={notices}
-                  recallSource={{ messages: session.messages, withoutImageMarkers: true }}
-                />
+                <NativeChatHandOffContext.Provider value={handOff.footer}>
+                  <NativeChatComposer
+                    ref={composerRef}
+                    terminalTabId={props.tabId}
+                    paneKey={paneKey}
+                    draftScopeKey={structuredAgentSessionDraftScopeKey(props.sessionId)}
+                    targetPtyId={null}
+                    agent={props.agent}
+                    {...bot.stopControls.composer}
+                    unavailableHint={install.unavailableHint}
+                    steerHead={
+                      bot.stopControls.stopping ? undefined : submits.queuedMessages.steerHead
+                    }
+                    structuredTransport={transport}
+                    notices={notices}
+                    recallSource={{ messages: session.messages, withoutImageMarkers: true }}
+                  />
+                </NativeChatHandOffContext.Provider>
               ) : null}
             </NativeChatDock>
             {handOff.dialog}

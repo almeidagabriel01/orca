@@ -1,7 +1,15 @@
 import { toast } from 'sonner'
 import { translate } from '@/i18n/i18n'
 import { withTimeout } from '../../../../../../shared/concurrency/promise-timeout-fallback'
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 import type { ReactNode } from 'react'
 import { useAppStore } from '@/store/index'
 import { structuredChatTabById } from '@/lib/agent-session/tab-identity/structured-chat-tab-index'
@@ -27,24 +35,32 @@ export type NativeChatHandOff = {
   /** Drops a pending or open hand-off, e.g. when the conversation it describes moves on. */
   reset: () => void
   dialog: ReactNode
+  /** What the composer footer's host selector needs; null when the chat cannot hand off. */
+  footer: NativeChatHandOffTarget | null
 }
 
-export function useNativeChatHandOff({
-  pane,
-  directory,
-  messages,
-  epoch,
-  focusComposer
-}: {
+/** The chat's hand-off as the composer footer's host selector uses it; null where the chat has none. */
+export type NativeChatHandOffTarget = {
+  /** Opens the hand-off with this Environment row (a `HandoffDestination` key) preselected. */
+  openTo: (environmentKey: string) => void
+  disabled: boolean
+}
+
+export const NativeChatHandOffContext = createContext<NativeChatHandOffTarget | null>(null)
+
+export function useNativeChatHandOffContext(): NativeChatHandOffTarget | null {
+  return useContext(NativeChatHandOffContext)
+}
+
+export function useNativeChatHandOff(
   pane: Pick<
     NativeChatStructuredViewProps,
     'tabId' | 'groupId' | 'sessionId' | 'target' | 'agent' | 'isVisible'
-  >
-  directory: NativeChatFileLinkContext | null
-  messages: readonly NativeChatMessage[]
-  epoch: string | null
+  >,
+  directory: NativeChatFileLinkContext | null,
+  { messages, epoch }: { messages: readonly NativeChatMessage[]; epoch: string | null },
   focusComposer: () => void
-}): NativeChatHandOff {
+): NativeChatHandOff {
   const intentKey = JSON.stringify([
     executionHostIdForStructuredTarget(pane.target),
     pane.sessionId,
@@ -54,7 +70,7 @@ export function useNativeChatHandOff({
     directory
   ])
   const operationSerial = useRef(0)
-  type Attempt = { key: string; operation: number } & (
+  type Attempt = { key: string; operation: number; environmentKey?: string } & (
     | { phase: 'preparing' }
     | { phase: 'prepared'; request: AgentSessionContinuationRequest }
   )
@@ -87,104 +103,122 @@ export function useNativeChatHandOff({
     directory.runtimeEnvironmentId ===
       (pane.target.kind === 'environment' ? pane.target.environmentId : null)
   )
-  const prepare = useCallback(async (): Promise<void> => {
-    if (!available || !directory || !epoch || !isTuiAgent(pane.agent)) {
-      return
-    }
-    if (active.current) {
-      return
-    }
-    const current: Attempt = {
-      key: intentKey,
-      operation: ++operationSerial.current,
-      phase: 'preparing'
-    }
-    active.current = current
-    setAttempt(current)
-    const context = await withTimeout(
-      (async () => {
-        if (
-          !(await supportsStructuredAgentSessionContinuationContext(pane.target)) ||
-          active.current !== current ||
-          current.phase !== 'preparing'
-        ) {
-          return null
-        }
-        return callStructuredAgentSession<AgentSessionContinuationContext>(
-          pane.target,
-          'agentSession.continuationContext',
-          {
-            sessionId: pane.sessionId,
-            workspaceId: directory.worktreeId,
-            expectedCursor: { epoch, sequence: 0 }
-          }
-        )
-      })(),
-      30_000,
-      null
-    )
-    if (active.current !== current || current.phase !== 'preparing') {
-      return
-    }
-    if (context?.status === 'superseded') {
-      retire()
-      return
-    }
-    const saved = context?.status === 'current' && typeof context.capturedText === 'string'
-    const transcriptPath = saved ? context.transcriptPath : undefined
-    const source = {
-      sourceKind: 'chat' as const,
-      sourceAgent: pane.agent,
-      sourceTitle: chatTab?.customLabel?.trim() || conversationName || chatTab?.label,
-      // The folder the chat runs in, which its transcript's relative paths name.
-      sourceWorkingDirectory: directory.pathBase ?? directory.worktreePath,
-      transcriptPath,
-      capturedText: saved ? (context.capturedText ?? '') : buildAgentSessionHandoffContext(messages)
-    }
-    if (buildAgentSessionContinuationPrompt(source, 'focused')) {
-      const prepared: Attempt = {
-        ...current,
-        phase: 'prepared',
-        request: {
-          source,
-          worktreeId: directory.worktreeId,
-          workspacePath: directory.worktreePath,
-          initialCwd: directory.worktreePath,
-          groupId: pane.groupId,
-          launchSource: 'native_chat'
-        }
+  const prepare = useCallback(
+    async (environmentKey?: string): Promise<void> => {
+      if (!available || !directory || !epoch || !isTuiAgent(pane.agent)) {
+        return
       }
-      active.current = prepared
-      setAttempt(prepared)
-    } else {
-      retire()
-      toast.error(
-        translate(
-          'components.agentSessionContinuation.noContext',
-          'No session context is available to continue in a new session.'
-        )
+      if (active.current) {
+        return
+      }
+      const current: Attempt = {
+        key: intentKey,
+        operation: ++operationSerial.current,
+        environmentKey,
+        phase: 'preparing'
+      }
+      active.current = current
+      setAttempt(current)
+      const context = await withTimeout(
+        (async () => {
+          if (
+            !(await supportsStructuredAgentSessionContinuationContext(pane.target)) ||
+            active.current !== current ||
+            current.phase !== 'preparing'
+          ) {
+            return null
+          }
+          return callStructuredAgentSession<AgentSessionContinuationContext>(
+            pane.target,
+            'agentSession.continuationContext',
+            {
+              sessionId: pane.sessionId,
+              workspaceId: directory.worktreeId,
+              expectedCursor: { epoch, sequence: 0 }
+            }
+          )
+        })(),
+        30_000,
+        null
       )
-      focusComposer()
-    }
-  }, [
-    available,
-    intentKey,
-    retire,
-    epoch,
-    focusComposer,
-    directory,
-    pane.agent,
-    pane.groupId,
-    pane.sessionId,
-    pane.target,
-    chatTab,
-    conversationName,
-    messages
-  ])
+      if (active.current !== current || current.phase !== 'preparing') {
+        return
+      }
+      if (context?.status === 'superseded') {
+        retire()
+        return
+      }
+      const saved = context?.status === 'current' && typeof context.capturedText === 'string'
+      const transcriptPath = saved ? context.transcriptPath : undefined
+      const source = {
+        sourceKind: 'chat' as const,
+        sourceAgent: pane.agent,
+        sourceTitle: chatTab?.customLabel?.trim() || conversationName || chatTab?.label,
+        // The folder the chat runs in, which its transcript's relative paths name.
+        sourceWorkingDirectory: directory.pathBase ?? directory.worktreePath,
+        transcriptPath,
+        capturedText: saved
+          ? (context.capturedText ?? '')
+          : buildAgentSessionHandoffContext(messages)
+      }
+      if (buildAgentSessionContinuationPrompt(source, 'focused')) {
+        const prepared: Attempt = {
+          ...current,
+          phase: 'prepared',
+          request: {
+            source,
+            worktreeId: directory.worktreeId,
+            workspacePath: directory.worktreePath,
+            initialCwd: directory.worktreePath,
+            groupId: pane.groupId,
+            launchSource: 'native_chat'
+          }
+        }
+        active.current = prepared
+        setAttempt(prepared)
+      } else {
+        retire()
+        toast.error(
+          translate(
+            'components.agentSessionContinuation.noContext',
+            'No session context is available to continue in a new session.'
+          )
+        )
+        focusComposer()
+      }
+    },
+    [
+      available,
+      intentKey,
+      retire,
+      epoch,
+      focusComposer,
+      directory,
+      pane.agent,
+      pane.groupId,
+      pane.sessionId,
+      pane.target,
+      chatTab,
+      conversationName,
+      messages
+    ]
+  )
   const open = useCallback(() => {
     void prepare()
   }, [prepare])
+  const openTo = useCallback(
+    (environmentKey: string) => {
+      void prepare(environmentKey)
+    },
+    [prepare]
+  )
+  const busy = currentAttempt !== null
+  const footer = useMemo(
+    () => (available ? { openTo, disabled: busy } : null),
+    [available, openTo, busy]
+  )
   return {
+    footer,
     available,
     preparing: currentAttempt?.phase === 'preparing',
     open,
@@ -194,6 +228,7 @@ export function useNativeChatHandOff({
         key={currentAttempt.operation}
         open
         request={request}
+        initialEnvironmentKey={currentAttempt.environmentKey}
         onOpenChange={(isOpen) => {
           if (!isOpen && active.current === currentAttempt) {
             retire()

@@ -22464,7 +22464,8 @@
         "detachedCommit": "Commit {{head}} (not a branch)",
         "mainCheckout": "Main checkout",
         "turnWorking": "This chat's agent is working. Switch branches after its turn finishes.",
-        "worktree": "Worktree"
+        "worktree": "Worktree",
+        "handOffEnvironment": "Hand off to another environment"
       },
       "creationChatNotOpened": "Your worktree is ready, but the chat could not open. Retry to open it with your message.",
       "fork": {

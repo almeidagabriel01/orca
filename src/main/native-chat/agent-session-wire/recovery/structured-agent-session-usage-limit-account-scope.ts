@@ -29,7 +29,7 @@ export type UsageLimitAccountScope = {
 /** What attributing a chat to an account reads from the host. */
 export type UsageLimitAccountAttributionHost = Pick<
   StructuredAgentSessionHostDeps,
-  'launchAccountHome' | 'usageLimitAutoContinue'
+  'launchAccountHome' | 'launchAccountChoice' | 'usageLimitAutoContinue'
 > & { store: Pick<AgentSessionRecordStore, 'getRecord'> }
 
 /** What a chat's attribution was computed under: the sources' witness and the launch the record

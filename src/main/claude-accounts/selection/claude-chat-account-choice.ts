@@ -5,6 +5,7 @@ import {
 import { projectAgentAccountChoice } from '../../../shared/agent-launch/choices/project-agent-launch-defaults'
 import { getRepoIdFromWorktreeId } from '../../../shared/worktree/id'
 import type { Repo } from '../../../shared/repository/repo-types'
+import type { AgentSessionRecord } from '../../../shared/agent-session/lifecycle/agent-session-record'
 import type { ClaudeProfileRouter } from '../profiles/routing/claude-profile-router'
 import { getClaudeProfileRouter } from '../profiles/routing/claude-profile-installed-router'
 import { CLAUDE_CHAT_ACCOUNT_MISSING_MESSAGE } from '../profiles/routing/claude-profile-launch-errors'
@@ -51,12 +52,29 @@ export function projectClaudeAccountChoice(
   return usableChatAccountChoice(agent, projectAgentAccountChoice(repo, agent))
 }
 
+export type ProjectRepoLookup = {
+  getRepo(id: string): Pick<Repo, 'agentLaunchDefaults'> | undefined
+}
+
 /** `projectClaudeAccountChoice` for a terminal, which knows only its worktree id. */
 export function projectClaudeAccountChoiceForWorktree(
-  store: { getRepo(id: string): Pick<Repo, 'agentLaunchDefaults'> | undefined } | undefined,
-  worktreeId: string | undefined
+  store: ProjectRepoLookup | undefined,
+  worktreeId: string | undefined,
+  agent = 'claude'
 ): string | undefined {
   return worktreeId && store
-    ? projectClaudeAccountChoice(store.getRepo(getRepoIdFromWorktreeId(worktreeId)))
+    ? projectClaudeAccountChoice(store.getRepo(getRepoIdFromWorktreeId(worktreeId)), agent)
     : undefined
+}
+
+/** The account a chat launches on now: its own pick, else its project's default, else the host's.
+ *  Read at each launch, so chats saved without an account follow a default set later. */
+export function chatLaunchAccountChoice(
+  store: ProjectRepoLookup | undefined,
+  record: Pick<AgentSessionRecord, 'accountChoice' | 'provider' | 'location'>
+): string | undefined {
+  return (
+    record.accountChoice ??
+    projectClaudeAccountChoiceForWorktree(store, record.location.workspaceId, record.provider)
+  )
 }

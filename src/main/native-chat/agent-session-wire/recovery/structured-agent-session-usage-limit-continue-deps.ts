@@ -4,7 +4,10 @@ import type { sendStructuredAgentSessionTurn } from '../operations/structured-ag
 import type { UsageLimitCutReads } from './structured-agent-session-usage-limit-cold-cuts'
 
 export type UsageLimitContinueDeps = UsageLimitCutReads & {
-  host: Pick<HostDeps, 'usageLimitAutoContinue' | 'logger' | 'launchAccountHome'> & {
+  host: Pick<
+    HostDeps,
+    'usageLimitAutoContinue' | 'logger' | 'launchAccountHome' | 'launchAccountChoice'
+  > & {
     store: Pick<
       AgentSessionRecordStore,
       | 'listVisibleSessionIds'

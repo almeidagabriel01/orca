@@ -16,7 +16,9 @@ export async function chatNamingAgentTarget(
   record: AgentSessionRecord,
   cwd: string,
   resolveEnvironment: (agent: string) => Promise<Record<string, string>>,
-  settings: Parameters<typeof resolveTuiAgentLaunchEnv>[1]
+  settings: Parameters<typeof resolveTuiAgentLaunchEnv>[1],
+  /** The chat's account now (`chatLaunchAccountChoice`). */
+  accountChoice = record.accountChoice
 ): Promise<CommitMessageGenerationTarget> {
   let env = await resolveEnvironment(record.provider)
   const spec = acpLaunchSpecFor(record.provider)
@@ -40,7 +42,7 @@ export async function chatNamingAgentTarget(
       getClaudeProfileRouter(),
       env,
       home.path,
-      record.accountChoice
+      accountChoice
     )
     const patch = claudeConfigDirEnvPatch(path, { env })
     return { kind: 'local', cwd, env: { CLAUDE_CONFIG_DIR: undefined, ...env, ...patch } }

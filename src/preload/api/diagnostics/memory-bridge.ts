@@ -1,7 +1,8 @@
 import { ipcRenderer } from 'electron'
 import type {
   MemorySnapshot,
-  SessionProcessTree
+  SessionProcessTree,
+  HeavyCommandQueue
 } from '../../../shared/diagnostics/process-stats-types'
 import type { PreloadApi } from '../../api-types'
 import type { PerfNoticeSignals } from '../../../shared/diagnostics/perf-notice-signals'
@@ -24,6 +25,7 @@ export const memoryApi = {
     ipcRenderer.invoke('memory:getProcessTree', sessionId, admission),
   heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission): Promise<void> =>
     ipcRenderer.invoke('memory:heavyQueueAction', action, admission),
+  heavyQueue: (): Promise<HeavyCommandQueue | null> => ipcRenderer.invoke('memory:heavyQueue'),
   heavyJobMoveSource: (
     pid: number,
     admission?: ResourceViewAdmission

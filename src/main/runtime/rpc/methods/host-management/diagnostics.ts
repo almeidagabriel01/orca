@@ -12,6 +12,7 @@ import {
 } from '../../../../../shared/rpc-contract/diagnostics-params'
 import { collectSessionProcessTree } from '../../../../memory/session-process-tree'
 import { runHeavyQueueAction } from '../../../../memory/host-heavy-command-queue-actions'
+import { collectHeavyCommandQueue } from '../../../../memory/host-heavy-command-queue'
 import {
   checkHeavyJobTarget,
   createHeavyJobMoveDeps,
@@ -48,6 +49,12 @@ export const DIAGNOSTICS_METHODS = [
       await runHeavyQueueAction(action)
       return { ok: true }
     }
+  }),
+  defineMethod({
+    name: 'diagnostics.heavyQueue',
+    permission: 'workspace',
+    params: null,
+    handler: async (_params, { runtime }) => collectHeavyCommandQueue(runtime.requireStore())
   }),
   defineMethod({
     name: 'diagnostics.heavyJobMoveSource',

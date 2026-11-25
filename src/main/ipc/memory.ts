@@ -7,6 +7,7 @@ import type { Store } from '../persistence/loading-store/store'
 import { collectMemorySnapshot } from '../memory/collector'
 import { collectSessionProcessTree } from '../memory/session-process-tree'
 import { runHeavyQueueAction } from '../memory/host-heavy-command-queue-actions'
+import { collectHeavyCommandQueue } from '../memory/host-heavy-command-queue'
 import {
   DiagnosticsHeavyJobMoveSourceParams,
   DiagnosticsHeavyJobTargetParams,
@@ -59,6 +60,8 @@ export function registerMemoryHandlers(store: Store): void {
       return runHeavyQueueAction(DiagnosticsHeavyQueueActionParams.parse(action))
     }
   )
+  // Why no admission: the run-host router reads it with the Resource Manager closed.
+  ipcMain.handle('memory:heavyQueue', () => collectHeavyCommandQueue(store))
   const moveDeps = createHeavyJobMoveDeps(() => localRepos(store.getRepos()))
   ipcMain.handle(
     'memory:heavyJobMoveSource',

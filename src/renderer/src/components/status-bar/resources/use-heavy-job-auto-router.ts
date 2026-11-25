@@ -8,10 +8,16 @@ import {
   toRuntimeExecutionHostId,
   type ExecutionHostId
 } from '../../../../../shared/execution-host/execution-host'
-import { getEffectiveRunHostId } from '../../../../../shared/execution-host/project-run-host-preference'
-import type { Repo } from '../../../../../shared/repository/repo-types'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import type { ResourceHostSummary } from './popover/resource-host-summary'
+import {
+  getEffectiveRunHostId,
+  hasRunHostPreference
+} from '../../../../../shared/execution-host/project-run-host-preference'
+import { folderWorkspaceToWorktree } from '../../../../../shared/folder-workspaces/folder-workspace-worktree'
+import {
+  selectFolderWorkspaces,
+  selectWorktreesByRepo
+} from '../../../store/workspaces/catalog/workspace-record-fields'
+import { getIndexedAllWorktrees } from '../../../store/slices/worktrees/listing/worktree-catalog-index'
 import {
   checkHeavyJobMove,
   executeHeavyJobMove,
@@ -30,25 +36,22 @@ function executionHostIdOf(cardId: string): ExecutionHostId {
 
 /**
  * Moves waiting heavy jobs to the project's (or the global) "Run on" host, once per job.
- * Runs off the Resource Manager's host samples, so it acts while those are polled.
+ * Repos and worktrees are read when the queues arrive, so no store churn reruns it.
  */
-export function useHeavyJobAutoRouter(
-  hostSummaries: readonly ResourceHostSummary[],
-  repos: readonly Repo[],
-  worktrees: readonly Worktree[]
-): void {
+export function useHeavyJobAutoRouter(hosts: readonly HeavyMoveHost[]): void {
   const settings = useAppStore((s) => s.settings)
-  const projectHostSetups = useAppStore((s) => getProjectHostSetupProjectionFromState(s).setups)
 
   useEffect(() => {
-    const hosts: HeavyMoveHost[] = hostSummaries.flatMap((host) =>
-      host.machine?.heavyQueue
-        ? [{ id: host.id, label: host.label, queue: host.machine.heavyQueue }]
-        : []
-    )
-    if (hosts.length < 2 || (!settings?.heavyRunHostDefault && !settings?.projectRunHostIds)) {
+    if (hosts.length < 2 || !hasRunHostPreference(settings)) {
       return
     }
+    const state = useAppStore.getState()
+    const projectHostSetups = getProjectHostSetupProjectionFromState(state).setups
+    const repos = state.repos
+    const worktrees = [
+      ...getIndexedAllWorktrees(selectWorktreesByRepo(state)),
+      ...selectFolderWorkspaces(state).map(folderWorkspaceToWorktree)
+    ]
     const executionHostIds = hosts.map((host) => executionHostIdOf(host.id))
     const routes = pickHeavyJobRoutes(hosts, triedHeavyJobRoutes, (host, job) => {
       const worktreeId = job.workspace?.worktreeId
@@ -74,5 +77,5 @@ export function useHeavyJobAutoRouter(
         errorText: (error) => extractIpcErrorMessage(error, '')
       })
     }
-  }, [hostSummaries, repos, worktrees, settings, projectHostSetups])
+  }, [hosts, settings])
 }

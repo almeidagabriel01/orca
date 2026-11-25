@@ -1556,6 +1556,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'desktopBrowserBridge.resultChunk': DesktopBrowserBridgeResultChunkParams,
   'diagnostics.heavyJobMoveSource': DiagnosticsHeavyJobMoveSourceParams,
   'diagnostics.heavyJobTargetCheck': DiagnosticsHeavyJobTargetParams,
+  'diagnostics.heavyQueue': null,
   'diagnostics.heavyQueueAction': DiagnosticsHeavyQueueActionParams,
   'diagnostics.memory': DiagnosticsMemoryParams,
   'diagnostics.processTree': DiagnosticsProcessTreeParams,

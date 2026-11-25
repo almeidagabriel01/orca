@@ -39,6 +39,7 @@ import {
   selectAppRootSurfaceTelemetryOptedIn,
   selectAppRootSurfaceVoiceEnabled
 } from './root-surfaces/app-root-surface-settings'
+import { HeavyJobAutoRouterHost } from '../components/status-bar/resources/HeavyJobAutoRouterHost'
 import type { FloatingWorkspacePanelState } from '../components/floating-terminal/workspace/use-floating-workspace-panel'
 import type { OnboardingGate } from './startup/use-onboarding-and-feature-tips'
 
@@ -180,6 +181,7 @@ export const AppRootSurfaces = memo(function AppRootSurfaces(props: {
           </OverlayBoundary>
         </Suspense>
       ) : null}
+      <HeavyJobAutoRouterHost />
       {/* Keep Create in the entry bundle so a stale lazy chunk cannot strand users. */}
       {activeModal === 'new-workspace-composer' ? (
         <ModalBoundary boundaryId="modal.new-workspace-composer" resetKey>

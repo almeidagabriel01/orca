@@ -36,7 +36,6 @@ import { useResourceViewVisible } from './use-resource-view-visible'
 import { useResourcePtyActions } from './pty/use-resource-pty-actions'
 import { RESOURCE_POLL_MS, useResourceMemorySnapshot } from './use-resource-memory-snapshot'
 import { trackResourceManagerOpen } from './resource-manager-open-request'
-import { useHeavyJobAutoRouter } from './use-heavy-job-auto-router'
 
 let lastSelectedResourceTab: 'resources' | 'ptys' = 'resources'
 
@@ -233,7 +232,6 @@ export function useResourceUsageStatusController() {
     snapshot,
     spaceScanReady
   })
-  useHeavyJobAutoRouter(derived.hostSummaries, repos, allWorktrees)
   const actions = useResourceUsageActions({
     setCollapsedRepos,
     setCollapsedWorktrees,

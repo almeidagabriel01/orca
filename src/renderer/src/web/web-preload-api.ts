@@ -120,6 +120,7 @@ function createWebPreloadApi(): Omit<Partial<PreloadApi>, 'settings' | 'plugins'
       getProcessTree: () => Promise.resolve(null),
       // The web client reads no local host, so it has nothing to warn about.
       // Its queues live on paired servers, which take their own controls.
+      heavyQueue: () => Promise.resolve(null),
       heavyQueueAction: () => Promise.reject(new Error('heavy_queue_unavailable')),
       heavyJobMoveSource: () => Promise.reject(new Error('heavy_queue_unavailable')),
       heavyJobTargetCheck: () => Promise.reject(new Error('heavy_queue_unavailable')),

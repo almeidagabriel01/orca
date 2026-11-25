@@ -11,6 +11,7 @@ import type { TelemetryConsentState } from '../../../shared/telemetry/telemetry-
 import type {
   MemorySnapshot,
   SessionProcessTree,
+  HeavyCommandQueue,
   StatsSummary
 } from '../../../shared/diagnostics/process-stats-types'
 
@@ -51,6 +52,8 @@ export type MemoryApi = {
   ) => Promise<SessionProcessTree | null>
   /** Controls this computer's vps-heavy queue; rejects with the script's message when it refuses. */
   heavyQueueAction: (action: HeavyQueueAction, admission?: ResourceViewAdmission) => Promise<void>
+  /** This computer's vps-heavy queue, jobs named by workspace; null without one. */
+  heavyQueue: () => Promise<HeavyCommandQueue | null>
   /** This computer's view of one of its heavy jobs, for moving it to another host. */
   heavyJobMoveSource: (
     pid: number,

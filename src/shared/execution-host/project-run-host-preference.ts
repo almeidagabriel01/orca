@@ -85,3 +85,10 @@ export function effectiveRunHostSetupFilter(
   const hostId = projectId ? getEffectiveRunHostId(settings, projectId, readyHostIds)?.hostId : null
   return hostId ? (setup) => setup.projectId === projectId && setup.hostId === hostId : null
 }
+
+/** Whether any "Run on" preference is saved; a cleared project leaves an empty map behind. */
+export function hasRunHostPreference(settings: RunHostPreferenceInput | null | undefined): boolean {
+  return Boolean(
+    settings?.heavyRunHostDefault || Object.values(settings?.projectRunHostIds ?? {}).some(Boolean)
+  )
+}

@@ -147,6 +147,7 @@ export function useHandoffEnvironment(
     effectiveRequest,
     // Another host sees only what is pushed, and needs the branch's workspace before starting there.
     startBlocked: elsewhere && (git.state.kind !== 'clean' || !destination?.worktreeId),
+    awaitingWorkspace: elsewhere && !destination?.worktreeId,
     destinationLabel: destination?.hostLabel ?? '',
     sourceChanges: {
       state: git.state,

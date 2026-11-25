@@ -200,14 +200,7 @@ export function AgentSessionContinuationDialog({
   }, [starting])
 
   const handleStart = async (): Promise<void> => {
-    if (
-      !request ||
-      detecting ||
-      !selectedAgent ||
-      starting ||
-      !selection.ready ||
-      !selection.choice
-    ) {
+    if (!request || startDisabled || !selectedAgent || !selection.choice) {
       return
     }
     const prompt = target && buildAgentSessionContinuationPrompt(target.source, contextMode)
@@ -265,23 +258,29 @@ export function AgentSessionContinuationDialog({
 
   const agentStatus = preparing
     ? t('components.agentSessionContinuation.preparingContext', 'Preparing saved chat context…')
-    : detecting
+    : env.awaitingWorkspace
       ? t(
-          'components.agentSessionContinuation.detectingAgents',
-          'Detecting Agents on this workspace host…'
+          'components.agentSessionContinuation.createWorkspaceToStart',
+          'Create the workspace on {{host}} to start there.',
+          { host: env.destinationLabel }
         )
-      : destinationModel.state === 'settled' && rows.length === 0 && !detectionFailed
-        ? onlySourceFamilyOffered && sourceAgentLabel
-          ? t(
-              'components.agentSessionContinuation.onlySourceFamilyDetected',
-              'Only Agents sharing the usage limit with {{agent}} are available on this workspace host. Enable or install a different Agent.',
-              { agent: sourceAgentLabel }
-            )
-          : t(
-              'components.agentSessionContinuation.noAgents',
-              'No enabled agents were detected on this workspace host.'
-            )
-        : null
+      : detecting
+        ? t(
+            'components.agentSessionContinuation.detectingAgents',
+            'Detecting Agents on this workspace host…'
+          )
+        : destinationModel.state === 'settled' && rows.length === 0 && !detectionFailed
+          ? onlySourceFamilyOffered && sourceAgentLabel
+            ? t(
+                'components.agentSessionContinuation.onlySourceFamilyDetected',
+                'Only Agents sharing the usage limit with {{agent}} are available on this workspace host. Enable or install a different Agent.',
+                { agent: sourceAgentLabel }
+              )
+            : t(
+                'components.agentSessionContinuation.noAgents',
+                'No enabled agents were detected on this workspace host.'
+              )
+          : null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -335,11 +334,11 @@ export function AgentSessionContinuationDialog({
           </label>
           <AgentLaunchPicker
             draftScope={draftScope}
-            disabled={controlsDisabled}
+            disabled={controlsDisabled || env.awaitingWorkspace}
             model={destinationModel}
             worktreeId={target?.worktreeId}
-            agent={selectedAgent}
-            cli={selection.cli}
+            agent={env.awaitingWorkspace ? (request?.source.sourceAgent ?? null) : selectedAgent}
+            cli={env.awaitingWorkspace ? undefined : selection.cli}
             value={currentPick?.draft}
             onPick={(agent, draft, entry) =>
               setPick({ request, agent, surface: draft?.surface, draft, entry })

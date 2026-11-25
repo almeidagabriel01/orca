@@ -23474,7 +23474,8 @@
         "push": "Push",
         "defaultMessage": "chore: hand off work to {{host}}"
       },
-      "continueOnHost": "Continue on {{host}}"
+      "continueOnHost": "Continue on {{host}}",
+      "createWorkspaceToStart": "Create the workspace on {{host}} to start there."
     },
     "status": {
       "bar": {

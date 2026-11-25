@@ -5,7 +5,8 @@ import path from 'node:path'
 import { runProcess } from '@orca/process-host'
 import type {
   HeavyCommandJob,
-  HeavyCommandQueue
+  HeavyCommandQueue,
+  HeavyCommandWorkspace
 } from '../../shared/diagnostics/process-stats-types'
 import { parseHeavyJobMoveFields, parseHeavyQueueMoveFields } from './heavy-queue-move-fields'
 import {
@@ -272,6 +273,27 @@ function listLocalWorkspaceRoots(store: MemorySnapshotStore): { id: string; path
   return [...roots].map(([id, rootPath]) => ({ id, path: rootPath }))
 }
 
+/** Maps a local path to the workspace holding it, named the way this host names its resource rows. */
+export function createWorkspaceForPath(
+  store: MemorySnapshotStore
+): (cwd: string) => HeavyCommandWorkspace | null {
+  let roots: { id: string; path: string }[] | null = null
+  const projectGroupName = createProjectGroupNameLookup(store)
+  return (cwd) => {
+    roots ??= listLocalWorkspaceRoots(store)
+    const worktreeId = findResolvedWorktreeIdForPath(roots, cwd)
+    if (!worktreeId) {
+      return null
+    }
+    const { worktreeName, repoName } = resolveWorktreeMemoryNames(
+      worktreeId,
+      store,
+      projectGroupName
+    )
+    return { worktreeId, worktreeName, repoName }
+  }
+}
+
 /** Names each job's workspace the way this host names its resource rows. */
 export function attributeHeavyQueueWorkspaces(
   queue: HeavyCommandQueue,
@@ -280,21 +302,12 @@ export function attributeHeavyQueueWorkspaces(
   if (queue.jobs.length === 0) {
     return queue
   }
-  const roots = listLocalWorkspaceRoots(store)
-  const projectGroupName = createProjectGroupNameLookup(store)
+  const workspaceOf = createWorkspaceForPath(store)
   return {
     ...queue,
     jobs: queue.jobs.map((job) => {
-      const worktreeId = findResolvedWorktreeIdForPath(roots, job.cwd)
-      if (!worktreeId) {
-        return job
-      }
-      const { worktreeName, repoName } = resolveWorktreeMemoryNames(
-        worktreeId,
-        store,
-        projectGroupName
-      )
-      return { ...job, workspace: { worktreeId, worktreeName, repoName } }
+      const workspace = workspaceOf(job.cwd)
+      return workspace ? { ...job, workspace } : job
     })
   }
 }

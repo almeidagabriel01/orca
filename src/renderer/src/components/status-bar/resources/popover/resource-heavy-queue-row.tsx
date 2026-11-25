@@ -252,13 +252,12 @@ export function QueueRow({
               </TooltipContent>
             </Tooltip>
           )}
-          {/* Why rtl: a long path loses its start (…/apps/web), never the folder that names it. */}
           <span
             data-queue-place
-            className="min-w-0 flex-1 truncate text-left font-medium text-foreground [direction:rtl]"
+            className="min-w-0 flex-1 text-left font-medium text-foreground [overflow-wrap:anywhere]"
             title={row.place === job.cwd ? job.cwd : `${row.place}\n${job.cwd}`}
           >
-            <bdi dir="ltr">{row.place}</bdi>
+            {row.place}
           </span>
         </div>
         <div className="[grid-area:actions]">

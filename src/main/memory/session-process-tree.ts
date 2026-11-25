@@ -78,7 +78,7 @@ export async function collectSessionProcessTree(
   }
 }
 
-function readProcessDetails(
+export function readProcessDetails(
   pids: number[],
   platform: NodeJS.Platform
 ): Promise<Map<number, ProcessDetails>> {

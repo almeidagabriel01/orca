@@ -7,12 +7,14 @@ import {
 import type {
   ChatAgentMemory,
   HeavyCommandQueue,
+  HostMemory,
   OutsideOrcaProcessGroup,
   SessionMemory,
   UsageValues,
   WorktreeMemory
 } from '../../../../../shared/diagnostics/process-stats-types'
 import type { RuntimeHostResourceSample } from '../resources/workspace-attribution/resource-usage-merge-types'
+import { parseOutsideQueueGroups } from './outside-queue-parse'
 import { parseHeavyCommandQueue } from './heavy-command-queue-parse'
 import { finiteNumber, isRecord } from './host-snapshot-value-guards'
 
@@ -33,6 +35,7 @@ export type HostMachineTotals = {
   outsideOrca: OutsideOrcaProcessGroup[] | null
   /** The host's vps-heavy queue; null when it has none. */
   heavyQueue: HeavyCommandQueue | null
+  outsideQueue?: HostMemory['outsideQueue'] | null
 }
 
 export type RuntimeHostResourceResult =
@@ -184,17 +187,12 @@ export function parseHostMachineTotals(value: unknown): HostMachineTotals {
     disk: usedOfTotal(host.diskUsed, host.diskTotal),
     loadAverage: isLoadAverage(load) ? load : null,
     outsideOrca: parseOutsideOrcaGroups(host.outsideOrca),
-    heavyQueue: parseHeavyCommandQueue(host.heavyQueue)
+    heavyQueue: parseHeavyCommandQueue(host.heavyQueue),
+    outsideQueue: parseOutsideQueueGroups(host.outsideQueue)
   }
 }
 
-const OUTSIDE_ORCA_KINDS: readonly unknown[] = [
-  'app',
-  'container',
-  'command',
-  'kernel'
-] satisfies OutsideOrcaProcessGroup['kind'][]
-
+const OUTSIDE_ORCA_KINDS: readonly unknown[] = ['app', 'container', 'command', 'kernel']
 function isOutsideOrcaKind(value: unknown): value is OutsideOrcaProcessGroup['kind'] {
   return OUTSIDE_ORCA_KINDS.includes(value)
 }

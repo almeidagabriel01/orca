@@ -24,13 +24,15 @@ export function HostHeavyQueue({
   hostId,
   label,
   queue,
-  movableHosts = NO_HOSTS
+  movableHosts = NO_HOSTS,
+  outsideCount = 0
 }: {
   hostId: string
   label: string
   queue: HeavyCommandQueue
   /** Every card whose queue can move jobs, this one included. */
   movableHosts?: readonly HeavyMoveHost[]
+  outsideCount?: number
 }): React.JSX.Element {
   const t = useTranslate()
   const view = useMemo(() => buildHeavyQueueView(queue), [queue])
@@ -175,7 +177,16 @@ export function HostHeavyQueue({
       )}
       {!collapsed && rows.length === 0 && (
         <p className="px-3 pb-2 text-2xs text-muted-foreground">
-          {t('resourceManager.heavyQueue.empty', 'Nothing running or waiting.')}
+          {outsideCount > 0
+            ? t(
+                'resourceManager.heavyQueue.emptyOutside',
+                'Nothing queued. {{count}} heavy processes run outside the queue.',
+                {
+                  count: outsideCount,
+                  defaultValue_one: 'Nothing queued. 1 heavy process runs outside the queue.'
+                }
+              )
+            : t('resourceManager.heavyQueue.empty', 'Nothing running or waiting.')}
         </p>
       )}
       {error && (

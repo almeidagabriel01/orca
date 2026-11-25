@@ -52,7 +52,7 @@ export function listOutsideOrcaRows(
   return hasCommands ? rows : null
 }
 
-function splitLinuxCommand(command: string): { cgroup: string; comm: string } {
+export function splitLinuxCommand(command: string): { cgroup: string; comm: string } {
   const [cgroup, ...comm] = command.split(/\s+/)
   return { cgroup, comm: comm.join(' ') }
 }
@@ -63,7 +63,7 @@ export function containerIdOf(row: ProcRow, platform: NodeJS.Platform): string |
     : null
 }
 
-function groupOf(
+export function groupOf(
   row: ProcRow,
   platform: NodeJS.Platform,
   containerNames: ReadonlyMap<string, string> | null
@@ -126,7 +126,7 @@ export function parseDockerContainerNames(stdout: string): Map<string, string> {
 }
 
 // Why cached: the cgroup carries only the id; one docker call per TTL names every container.
-const sampleContainerNames = createSlowSample<Map<string, string>>(async () => {
+export const sampleContainerNames = createSlowSample<Map<string, string>>(async () => {
   const result = await runProcess({
     program: 'docker',
     args: ['ps', '--no-trunc', '--format', '{{.ID}} {{.Names}}'],

@@ -12,8 +12,8 @@ import { collectHostMemory } from './host-memory'
 import { getLocalDaemonPid } from './local-daemon-pid'
 import { enumerateHostProcesses } from './host-process-index'
 import { claimProcessTree, claimPtyProcessTrees } from './pty-process-trees'
-import { collectOutsideOrcaProcesses } from './host-outside-orca-processes'
 import { collectHeavyCommandQueue } from './host-heavy-command-queue'
+import { collectHostOutsideProcesses } from './host-outside-queue-processes'
 import {
   agentRegistrationMark,
   hasAgentProcessRegistrations,
@@ -165,13 +165,11 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     rows: claimProcessTree(processIndex, root.pid, claimed, true)
   }))
   rememberSessionProcessRows(ptyTrees, agentTrees, Date.now())
-  // Electron helpers descend from main; the detached daemon, systemd-scoped PTYs and claimed agent rows need their own roots.
-  const outsideOrca = await collectOutsideOrcaProcesses(processIndex, [
-    process.pid,
-    getLocalDaemonPid(),
-    ...ptys.map((pty) => pty.pid),
-    ...claimed
-  ])
+  const outside = await collectHostOutsideProcesses(processIndex, store, heavyQueue, {
+    ptys,
+    claimed,
+    agentTrees
+  })
 
   const orphan = createEmptyWorktreeMemoryBucket(
     ORPHAN_WORKTREE_ID,
@@ -302,7 +300,7 @@ async function runSnapshot(store: MemorySnapshotStore): Promise<MemorySnapshot> 
     app: { ...appBuckets, history: readAppMemoryHistory() },
     worktrees,
     ...(asPaired ? {} : { agentProcesses }),
-    host: { ...host, ...(outsideOrca && { outsideOrca }), ...(heavyQueue && { heavyQueue }) },
+    host: { ...host, ...outside, ...(heavyQueue && { heavyQueue }) },
     processMemoryMetric: processIndex.memoryMetric,
     ...snapshotCommitFields(
       hasPrivateMemory,

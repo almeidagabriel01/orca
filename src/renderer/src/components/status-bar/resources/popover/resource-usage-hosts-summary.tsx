@@ -22,6 +22,7 @@ import {
   usedPercent,
   type MeterTone
 } from './resource-host-meters'
+import { HostOutsideQueue } from './resource-usage-outside-queue'
 import { HostHeavyQueue } from './resource-usage-heavy-queue'
 import type { HeavyMoveHost } from './resource-heavy-job-move'
 import { HostLabelByHostnameContext } from './resource-heavy-queue-host-note'
@@ -260,6 +261,14 @@ function HostCard({
           label={host.label}
           queue={host.machine.heavyQueue}
           movableHosts={movableHosts}
+          outsideCount={host.machine.outsideQueue?.length}
+        />
+      )}
+      {host.machine?.outsideQueue && (
+        <HostOutsideQueue
+          label={host.label}
+          groups={host.machine.outsideQueue}
+          hasQueue={Boolean(host.machine.heavyQueue)}
         />
       )}
     </li>

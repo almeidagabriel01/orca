@@ -49,7 +49,12 @@ export async function readSessionHostPathMap(filePath?: string): Promise<AiVault
     for (const spelling of foreign) {
       const anyChild = spelling.endsWith('/*')
       const realPath = anyChild ? spelling.slice(0, -2) : spelling
-      if (isAbsolute(realPath) && !realPath.includes('*')) {
+      // A spelling of the local folder itself names no other machine.
+      if (
+        isAbsolute(realPath) &&
+        !realPath.includes('*') &&
+        relativePathInsideRoot(local, realPath) !== ''
+      ) {
         links.push({
           scopePath: local,
           realPath,

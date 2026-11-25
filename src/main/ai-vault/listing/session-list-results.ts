@@ -91,11 +91,21 @@ export function mergeAiVaultListResults(
 /** One row per conversation: a synced copy yields to the row from the host that recorded it. */
 function dropOtherMachineCopies(sessions: AiVaultSession[]): AiVaultSession[] {
   const key = (session: AiVaultSession) => `${session.agent}\0${session.sessionId}`
-  const recorded = new Set(
-    sessions.filter((session) => !session.recordedOnOtherMachine && !session.subagent).map(key)
-  )
+  const recordingHosts = new Map<string, Set<string>>()
+  for (const session of sessions) {
+    if (!session.recordedOnOtherMachine && !session.subagent) {
+      const hosts = recordingHosts.get(key(session)) ?? new Set<string>()
+      recordingHosts.set(key(session), hosts.add(session.executionHostId))
+    }
+  }
+  // Only a row from another host proves the copy's recording host answered.
   return sessions.filter(
-    (session) => !session.recordedOnOtherMachine || session.subagent || !recorded.has(key(session))
+    (session) =>
+      !session.recordedOnOtherMachine ||
+      session.subagent ||
+      ![...(recordingHosts.get(key(session)) ?? [])].some(
+        (host) => host !== session.executionHostId
+      )
   )
 }
 

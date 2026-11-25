@@ -37,7 +37,7 @@ export function getRepositoryAgentDefaultsSearchEntry(t: Translate = translate) 
     title: t('settings.projectAgentDefaults.title', 'Agent defaults'),
     description: t(
       'settings.projectAgentDefaults.description',
-      'Default agent, model and account for new work in this project. Unset choices inherit this host’s defaults.'
+      'Default agent, whether it opens as chat or terminal, model and account for new work in this project. Unset choices inherit this host’s defaults.'
     ),
     keywords: [
       t(
@@ -295,6 +295,7 @@ function RepositoryAgentDefaultsEditor({
           <Button
             variant="ghost"
             size="sm"
+            className="-ml-3"
             disabled={disabled || !defaults}
             onClick={() => void save(undefined)}
           >

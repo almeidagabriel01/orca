@@ -2054,7 +2054,7 @@
     },
     "projectAgentDefaults": {
       "title": "Agent defaults",
-      "description": "Default agent, model and account for new work in this project. Unset choices inherit this host’s defaults.",
+      "description": "Default agent, whether it opens as chat or terminal, model and account for new work in this project. Unset choices inherit this host’s defaults.",
       "inherit": "Use host default",
       "agent": "Default agent",
       "blank": "Blank terminal",

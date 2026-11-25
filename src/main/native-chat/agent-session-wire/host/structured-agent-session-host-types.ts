@@ -213,6 +213,8 @@ export type StructuredAgentSessionHostDeps = {
   hasOpenDispatch?: (
     record: Pick<AgentSessionRecord, 'sessionId' | 'location' | 'conversationCommand'>
   ) => boolean
+  /** A worker chat whose every Dispatch settled; its restart cut is never continued. Absent: none. */
+  workerDispatchesSettled?: (record: Pick<AgentSessionRecord, 'sessionId'>) => boolean
   /** Explicit switch admission also includes direct chat assignments, even at rest. */
   hasOwedSwitchWork?: (record: AgentSessionRecord) => boolean
   /** Read-only custody for an agent's queued mail; absent: always owed. */

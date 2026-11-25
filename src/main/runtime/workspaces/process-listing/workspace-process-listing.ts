@@ -45,6 +45,7 @@ import { LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host/execu
 import { chatWorkerTurnStopReporter } from '../../orchestration/workers/turn-stops/chat-worker-turn-stops'
 import { buildWorktreeListingPage } from '../catalog/worktree-listing-host-scope'
 import {
+  structuredWorkerDispatchesSettled,
   structuredWorkerOpenTaskTitle,
   structuredWorkerOwesWork
 } from '../../orchestration/terminal-authority/structured-sessions/structured-worker-custody'
@@ -312,7 +313,10 @@ export abstract class OrcaRuntimeWithGetWorktreePs extends RuntimeChatWorkerEven
           }),
         // Re-read dispatch ownership each sweep; absence of a database cannot keep the worker alive.
         hasOpenDispatch: (record) =>
-          structuredWorkerOwesWork(this.getOrchestrationDbIfAvailable?.() ?? null, record)
+          structuredWorkerOwesWork(this.getOrchestrationDbIfAvailable?.() ?? null, record),
+        // Opens the database if only a file exists: launch continuation runs before anything else reads it.
+        workerDispatchesSettled: (record) =>
+          structuredWorkerDispatchesSettled(this.getExistingOrchestrationDb(), record)
       }
     }).then(() => this.backfillBotBackgroundChats())
     // Starts watches not yet running once the host has served: a failed first start or a teardown retries here.

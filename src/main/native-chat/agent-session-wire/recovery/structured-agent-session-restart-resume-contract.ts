@@ -1,3 +1,4 @@
+import type { StructuredAgentSessionHostDeps } from '../host/structured-agent-session-host-types'
 import type { AgentSessionOrcaStopCause } from '../../../../shared/agent-session/lifecycle/stopping/agent-session-orca-stop'
 import type { AgentSessionResumeTrigger } from '../../../../shared/agent-session/lifecycle/resume/agent-session-resume-marker'
 import type { createInterruptedContinuation } from './structured-agent-session-interrupted-continuation'
@@ -8,6 +9,17 @@ import type {
   StructuredAgentSessionResumeCandidate,
   StructuredAgentSessionResumeFailure
 } from './structured-agent-session-restart-resume-set'
+
+export type StructuredAgentSessionRestartResumeDeps = Pick<
+  StructuredAgentSessionHostDeps,
+  | 'store'
+  | 'adapter'
+  | 'recoveryCapsule'
+  | 'logger'
+  | 'agents'
+  | 'journalDatabase'
+  | 'workerDispatchesSettled'
+>
 
 export type StructuredAgentSessionRestartCut = {
   cause: AgentSessionOrcaStopCause

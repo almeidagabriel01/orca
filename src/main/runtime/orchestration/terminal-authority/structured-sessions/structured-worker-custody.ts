@@ -134,6 +134,34 @@ export function structuredWorkerOwesWork(
   )
 }
 
+/** A chat worker with Dispatch history whose every Dispatch settled (done, failed, stopped, abandoned):
+ *  a restart cut of its turn is spent work. A plain chat, or an unreadable database, is not settled. */
+export function structuredWorkerDispatchesSettled(
+  db: OrchestrationDb | null,
+  record: Pick<AgentSessionConversationView, 'sessionId'>
+): boolean {
+  if (!db) {
+    return false
+  }
+  try {
+    const row: unknown = db.db
+      .prepare(
+        `SELECT MAX(status IN ('pending', 'dispatched')) AS open FROM dispatch_contexts
+          WHERE process_incarnation = ?`
+      )
+      .get(
+        structuredWorkerProcessIncarnation(
+          isOrcaSessionId(record.sessionId)
+            ? canonicalOrcaSessionId(record.sessionId)
+            : record.sessionId
+        )
+      )
+    return typeof row === 'object' && row !== null && 'open' in row && row.open === 0
+  } catch {
+    return false
+  }
+}
+
 /** The first task this worker still owes, which names its chat. */
 export function structuredWorkerOpenTaskTitle(
   db: OrchestrationDb | null,

@@ -69,6 +69,8 @@ export type StructuredAgentSessionResumeSetInput = {
   latestPrompt: (sessionId: string) => string | Promise<string>
   movedOn: (marker: AgentSessionResumeMarker) => boolean | Promise<boolean>
   savedByNewerOrca: (sessionId: string) => boolean
+  /** A worker whose Dispatches all settled; absent: no chat is one. */
+  workerDispatchesSettled?: (record: AgentSessionRecord) => boolean
   /** may-be-held relaxes ownership only, preserving all other eligibility checks. */
   leaseState?: 'must-be-released' | 'may-be-held'
 }
@@ -83,7 +85,11 @@ export async function structuredAgentSessionResumableSet(
     if (!record || !input.supportsRecord(record)) {
       continue
     }
-    if (record.providerContextBoundary?.operationId !== marker.contextClearOperationId) {
+    // A finished worker's cut is spent: continuing it would race the workers its coordinator started since.
+    if (
+      record.providerContextBoundary?.operationId !== marker.contextClearOperationId ||
+      input.workerDispatchesSettled?.(record) === true
+    ) {
       superseded.push(marker)
       continue
     }

@@ -26,7 +26,10 @@ import {
   resumeStructuredAgentSessionsFromRestart,
   StructuredAgentSessionResumeAdmission
 } from './structured-agent-session-restart-resume-runner'
-import type { StructuredAgentSessionRestartResume } from './structured-agent-session-restart-resume-contract'
+import type {
+  StructuredAgentSessionRestartResume,
+  StructuredAgentSessionRestartResumeDeps
+} from './structured-agent-session-restart-resume-contract'
 import {
   continuationDeps,
   startStructuredAgentSessionContinuation,
@@ -46,16 +49,12 @@ import {
   unstartedRestartRefusals
 } from './structured-agent-session-restart-action-result'
 import { structuredAgentSessionConversationFence } from '../host/structured-agent-session-provider-child'
-import type { StructuredAgentSessionHostDeps } from '../host/structured-agent-session-host-types'
 import { createRestartOfferDismissals } from './structured-agent-session-restart-dismissals'
 
 type LiveSession = StructuredAgentSessionRestartOfferSession
 
 export function createStructuredAgentSessionRestartResume(
-  deps: Pick<
-    StructuredAgentSessionHostDeps,
-    'store' | 'adapter' | 'recoveryCapsule' | 'logger' | 'agents' | 'journalDatabase'
-  >,
+  deps: StructuredAgentSessionRestartResumeDeps,
   sessions: ReadonlyMap<string, LiveSession>,
   surfaces: StructuredAgentSessionRestartResumeSurfaces
 ): StructuredAgentSessionRestartResume {
@@ -87,7 +86,8 @@ export function createStructuredAgentSessionRestartResume(
     adapter: deps.adapter,
     agents: deps.agents,
     movedOn: withdrawal.movedOn,
-    savedByNewerOrca: newerOrca.has
+    savedByNewerOrca: newerOrca.has,
+    workerDispatchesSettled: (record) => deps.workerDispatchesSettled?.(record) === true
   })
   const failures = createStructuredAgentSessionRestartFailureLedger({
     ...(deps.recoveryCapsule ? { capsule: deps.recoveryCapsule } : {}),

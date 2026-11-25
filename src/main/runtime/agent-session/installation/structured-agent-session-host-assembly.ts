@@ -98,6 +98,9 @@ export async function installOnJournal(
       : {}),
     ...(deps.turnContext ? { turnContext: deps.turnContext } : {}),
     ...(deps.hasOpenDispatch ? { hasOpenDispatch: deps.hasOpenDispatch } : {}),
+    ...(deps.workerDispatchesSettled
+      ? { workerDispatchesSettled: deps.workerDispatchesSettled }
+      : {}),
     ...(deps.quietTurnEnd ? { quietTurnEnd: deps.quietTurnEnd } : {}),
     ...(deps.isBotHome ? { isBotHome: deps.isBotHome } : {}),
     ...(deps.queuedAgentMessageOwed ? { queuedAgentMessageOwed: deps.queuedAgentMessageOwed } : {}),

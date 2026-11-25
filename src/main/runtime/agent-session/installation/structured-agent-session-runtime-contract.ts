@@ -106,6 +106,8 @@ export type StructuredAgentSessionRuntimeDeps = StructuredAgentSessionTransportO
   turnContext?: StructuredAgentSessionHostDeps['turnContext']
   /** See `StructuredAgentSessionHostDeps.hasOpenDispatch`. */
   hasOpenDispatch?: StructuredAgentSessionHostDeps['hasOpenDispatch']
+  /** See `StructuredAgentSessionHostDeps.workerDispatchesSettled`. */
+  workerDispatchesSettled?: StructuredAgentSessionHostDeps['workerDispatchesSettled']
   /** See `StructuredAgentSessionHostDeps.queuedAgentMessageOwed`. */
   queuedAgentMessageOwed?: StructuredAgentSessionHostDeps['queuedAgentMessageOwed']
   resolveCodexAccountKind?: (home: string) => AgentSessionAccountKind | undefined

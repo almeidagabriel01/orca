@@ -24504,6 +24504,10 @@
           "resets": "resets {{when}}"
         }
       }
+    },
+    "agent-session-continuation": {
+      "createWorkspaceFetchFailed": "Couldn't fetch {{value0}} from GitHub. Check the connection and try again.",
+      "createWorkspaceFailed": "Couldn't create the {{value0}} workspace on this host. Try again."
     }
   },
   "dashboardPopout": {

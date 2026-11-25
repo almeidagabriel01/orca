@@ -1,3 +1,4 @@
+import { translate } from '@/i18n/i18n'
 import { getRuntimeGitUpstreamStatus } from '@/runtime/source-control/git/runtime-git-sync-client'
 import { useAppStore } from '@/store/index'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
@@ -73,6 +74,23 @@ export async function createHandoffDestinationWorkspace(input: {
       )
     return { ok: true }
   } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : String(error) }
+    const detail = error instanceof Error ? error.message : String(error)
+    console.error('[handoff] create destination workspace failed:', detail)
+    return { ok: false, reason: handoffCreateFailureMessage(input.branch, detail) }
   }
+}
+
+/** The user sees a plain sentence; the git detail stays in the log. */
+export function handoffCreateFailureMessage(branch: string, detail: string): string {
+  return /fetch|base ref|remote/i.test(detail)
+    ? translate(
+        'components.agent-session-continuation.createWorkspaceFetchFailed',
+        "Couldn't fetch {{value0}} from GitHub. Check the connection and try again.",
+        { value0: branch }
+      )
+    : translate(
+        'components.agent-session-continuation.createWorkspaceFailed',
+        "Couldn't create the {{value0}} workspace on this host. Try again.",
+        { value0: branch }
+      )
 }

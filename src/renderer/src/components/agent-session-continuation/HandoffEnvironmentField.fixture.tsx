@@ -153,6 +153,6 @@ export const createOnVpsFailed = defineFixture({
   render: frame(vpsNoBranch, vpsNoBranch[0]!.key, {
     key: vpsKey,
     running: false,
-    error: 'Could not refresh base ref "origin/feat/mobile-app" from "origin".'
+    error: "Couldn't fetch feat/mobile-app from GitHub. Check the connection and try again."
   })
 })

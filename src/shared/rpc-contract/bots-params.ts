@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- Why: upstream keeps the bot update contract and its apply step in one file; the fork's agentAccount field tips it past 300. ponytail: split applyBotUpdates out if upstream grows it further. */
 import { botTidyUp, patchTidyUp, TIDY_UP_EVERY_CHOICES } from '../bots/bot-tidy-up'
 import * as z from 'zod'
 import { BOT_IMPORT_REPLY_MAX, BotImportFromSchema } from '../bots/bot-import'
@@ -288,7 +289,8 @@ export type BotCreateParams = z.infer<typeof BotCreate>
 export type BotUpdateParams = z.infer<typeof BotUpdate>
 /** What the host itself may change: an update, or the Google toggle, which only google.bot.set sets. */
 export type BotHostUpdates = BotUpdateParams['updates'] &
-  Pick<Bot, 'google' | 'acceptedOffers' | 'handedPairedWorkspaces' | 'itemsSeen'> & {
+  Pick<Bot, 'google' | 'googleAccounts'> &
+  Pick<Bot, 'acceptedOffers' | 'handedPairedWorkspaces' | 'itemsSeen'> & {
     /** Host-only: a wait of this bot's was cancelled. */
     cancelledWait?: BotCancelledWait
   }

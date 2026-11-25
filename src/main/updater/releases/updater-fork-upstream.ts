@@ -1,6 +1,6 @@
 import { net } from 'electron'
 import { compareVersions, isPrereleaseVersion, isValidVersion } from './updater-fallback'
-import { FETCH_TIMEOUT_MS, requestGitHubReleaseHead } from './updater-release-readiness'
+import { FETCH_TIMEOUT_MS, requestReleaseHead } from './updater-release-readiness'
 import { resolveReleaseApiToken } from './updater-release-api-token'
 import { FORK_RELEASE_REPO, UPSTREAM_RELEASE_REPO } from '../../../shared/updater/fork-release-repo'
 import type {
@@ -26,7 +26,7 @@ export function getForkReleasePageUrl(version: string): string {
 
 async function fetchUpstreamLatestVersion(): Promise<string | null> {
   const latestUrl = `https://github.com/${UPSTREAM_RELEASE_REPO}/releases/latest`
-  const response = await requestGitHubReleaseHead(latestUrl)
+  const response = await requestReleaseHead(latestUrl)
   if (!response?.redirectUrl) {
     return null
   }

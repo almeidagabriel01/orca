@@ -11,7 +11,7 @@ import { getActiveCodexAccountIdForRateLimitTarget } from '../../accounts/usage/
 import { getCodexAccountDisplayDetail } from '../../../../src/shared/agent-accounts/codex-account-display-label'
 
 export type HomeUsageCard = {
-  /** The managed account's id, or null for the agent's own login (System default). */
+  /** The managed account's id, or null for the agent's own login on the host. */
   accountId: string | null
   email: string | null
   displayName?: string
@@ -20,7 +20,7 @@ export type HomeUsageCard = {
   active: boolean
   limits: ProviderRateLimits | null
   fetching: boolean
-  /** System default shows meters only once its login has reported quota. */
+  /** The host's own login shows meters only once it has reported quota. */
   metered: boolean
 }
 
@@ -57,7 +57,7 @@ function managedAccounts(snapshot: AccountsSnapshot, provider: ProviderKey) {
       }))
 }
 
-/** One card per login on the provider, active first; an unselected System default shows once the host has its reading. */
+/** One card per login on the provider, active first; an unselected own login shows once the host has its reading. */
 export function selectHomeUsageCards(
   snapshot: AccountsSnapshot,
   provider: ProviderKey
@@ -67,9 +67,14 @@ export function selectHomeUsageCards(
   const cards: HomeUsageCard[] = []
   const systemDefault = getSystemDefaultProviderUsage(snapshot, provider, activeId)
   if (activeId === null || hasActiveProviderUsage(systemDefault.limits)) {
+    const own = snapshot[provider]
     cards.push({
       accountId: null,
-      email: null,
+      email:
+        (provider === 'claude'
+          ? snapshot.claude.systemDefaultEmail
+          : snapshot.codex.systemDefault?.email) ?? null,
+      displayName: own.systemDefaultDisplayName,
       subtitle: null,
       active: activeId === null,
       limits: systemDefault.limits,

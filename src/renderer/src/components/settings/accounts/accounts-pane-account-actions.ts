@@ -7,6 +7,7 @@ import type {
   CodexRateLimitAccountsState
 } from '../../../../../shared/agent-accounts/managed-account-types'
 import { toast } from 'sonner'
+import { getSystemDefaultDisplayName } from '../../../../../shared/agent-accounts/managed-account-display-names'
 import { translate } from '@/i18n/i18n'
 import {
   markLiveCodexSessionsForRestart,
@@ -104,11 +105,13 @@ export function createCodexAccountActionRunner(
         void markLiveCodexSessionsForRestart({
           previousAccountLabel: resolveCodexRestartPromptAccountLabel(
             codexAccounts.accounts,
-            previousActiveAccountId
+            previousActiveAccountId,
+            getSystemDefaultDisplayName(codexAccounts)
           ),
           nextAccountLabel: resolveCodexRestartPromptAccountLabel(
             next.accounts,
-            nextActiveAccountId
+            nextActiveAccountId,
+            getSystemDefaultDisplayName(next)
           ),
           // Emails can repeat; use IDs to detect returning to the launch account.
           previousAccountId: previousActiveAccountId ?? null,

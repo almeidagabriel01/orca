@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MANAGED_ACCOUNT_DISPLAY_NAME_MAX_LENGTH } from '../../agent-accounts/managed-account-display-names'
 
 export const ManagedDataAccountProviderParams = z.object({
   provider: z.enum(['opencode', 'devin'])
@@ -12,6 +13,10 @@ export const SelectDataAccountParams = ManagedDataAccountProviderParams.extend({
 })
 export const RemoveDataAccountParams = ManagedDataAccountProviderParams.extend({
   accountId: z.uuid()
+})
+export const RenameDataAccountParams = ManagedDataAccountProviderParams.extend({
+  accountId: z.uuid(),
+  label: z.string().trim().min(1).max(120)
 })
 
 export const CodexResetTarget = z.discriminatedUnion('runtime', [
@@ -58,6 +63,29 @@ export const RemoveAccountParams = z.object({
 export const RenameAccountParams = z.object({
   accountId: z.string().min(1, 'Missing accountId'),
   displayName: z.string().nullable()
+})
+
+const AccountNameProvider = z.string().regex(/^[a-z0-9-]{1,64}$/, 'Unknown provider')
+
+/** Names any login by its identity; blank or null clears it. */
+export const SetAccountNameParams = z.object({
+  provider: AccountNameProvider,
+  email: z.string().trim().min(1, 'Missing email').max(320),
+  organization: z.string().max(256).nullish(),
+  name: z.string().nullable()
+})
+
+/** Another host's names; at most a few hundred logins, so the bound is generous. */
+export const MergeAccountNamesParams = z.object({
+  names: z
+    .record(
+      z.string().min(1).max(700),
+      z.object({
+        name: z.string().max(MANAGED_ACCOUNT_DISPLAY_NAME_MAX_LENGTH).nullable(),
+        updatedAt: z.number().nonnegative()
+      })
+    )
+    .refine((names) => Object.keys(names).length <= 5_000, 'Too many account names')
 })
 
 export const CodexResetExpectedScope = z

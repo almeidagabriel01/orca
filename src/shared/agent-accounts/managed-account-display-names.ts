@@ -1,6 +1,6 @@
 export type ManagedAccountNameProvider = 'claude' | 'codex'
 
-/** User-chosen account names by saved account id; kept apart from account records so a rename never reads as a launch change. */
+/** Legacy: names by saved account id, read once to migrate them to `accountNames` (identity-keyed). */
 export type ManagedAccountDisplayNames = Partial<
   Record<ManagedAccountNameProvider, Record<string, string>>
 >
@@ -28,33 +28,32 @@ export function normalizeManagedAccountDisplayName(
   return trimmed
 }
 
-export function getManagedAccountDisplayName(
-  names: ManagedAccountDisplayNames | null | undefined,
-  provider: ManagedAccountNameProvider,
-  accountId: string
-): string | undefined {
-  const name = names?.[provider]?.[accountId]
-  return typeof name === 'string' && name.trim() ? name : undefined
+/** Rename target for the provider's own sign-in (System default); saved accounts use their id. */
+export const SYSTEM_DEFAULT_ACCOUNT_NAME_KEY = 'system'
+
+/** The one name every surface shows for an account: the user's name for it, else the email's local part. */
+export function getAccountDisplayName(account: {
+  displayName?: string | null
+  email?: string | null
+}): string | undefined {
+  return account.displayName?.trim() || account.email?.trim().split('@')[0] || undefined
 }
 
-/** The next names map, or null when nothing changes (so callers skip the write). */
-export function withManagedAccountDisplayName(
-  names: ManagedAccountDisplayNames | null | undefined,
-  provider: ManagedAccountNameProvider,
-  accountId: string,
-  displayName: string | null
-): ManagedAccountDisplayNames | null {
-  const current = names?.[provider] ?? {}
-  if ((current[accountId] ?? null) === displayName) {
-    return null
-  }
-  const next = { ...current }
-  if (displayName === null) {
-    delete next[accountId]
-  } else {
-    next[accountId] = displayName
-  }
-  return { ...names, [provider]: next }
+/** System default's name: the host-set nickname, else its email's local part; undefined lets callers say "System default". */
+export function getSystemDefaultDisplayName(
+  state:
+    | {
+        systemDefaultDisplayName?: string
+        systemDefaultEmail?: string
+        systemDefault?: { email?: string | null }
+      }
+    | null
+    | undefined
+): string | undefined {
+  return getAccountDisplayName({
+    displayName: state?.systemDefaultDisplayName,
+    email: state?.systemDefaultEmail ?? state?.systemDefault?.email
+  })
 }
 
 type NamedAccount = { email: string; displayName?: string | null }
@@ -68,37 +67,8 @@ export function getManagedAccountLookupNames(
   return accounts.map(({ id, email, displayName }) => ({ id, names: [email, displayName] }))
 }
 
-/** Two-line rows: the name leads and the email sits on the second line. */
-export function getManagedAccountPrimaryLabel(account: NamedAccount): string {
-  return account.displayName?.trim() || account.email
-}
-
 /** One-line labels keep the sign-in email beside a name so a re-pointed account can't pass as another. */
 export function getManagedAccountInlineLabel(account: NamedAccount): string {
   const name = account.displayName?.trim()
   return name && name !== account.email ? `${name} (${account.email})` : account.email
-}
-
-/** Applies a host's saved names to its account list; returns the same list when nothing differs. */
-export function withManagedAccountDisplayNames<
-  State extends { accounts: readonly { id: string; displayName?: string }[] }
->(
-  state: State,
-  names: ManagedAccountDisplayNames | null | undefined,
-  provider: ManagedAccountNameProvider
-): State {
-  if (!names) {
-    return state
-  }
-  let changed = false
-  const accounts = state.accounts.map((account) => {
-    const displayName = getManagedAccountDisplayName(names, provider, account.id)
-    if (displayName === account.displayName) {
-      return account
-    }
-    changed = true
-    const { displayName: _previous, ...rest } = account
-    return displayName ? { ...rest, displayName } : rest
-  })
-  return changed ? { ...state, accounts } : state
 }

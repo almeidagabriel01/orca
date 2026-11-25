@@ -53,6 +53,7 @@ import {
   removeAgentAccount,
   selectAgentAccount
 } from './account-selection'
+import { renameAgentAccount } from './account-rename'
 import type { AntigravityAccountState } from '../../shared/agent-accounts/antigravity/antigravity-account-types'
 
 type AccountsListSnapshot = {
@@ -305,5 +306,9 @@ export const ACCOUNT_HANDLERS: Record<string, CommandHandler> = {
   'account rm': async (ctx) => {
     rejectAccountRemoteSelectionFlags(ctx, 'orca account rm')
     await removeAgentAccount(ctx)
+  },
+  'account rename': async (ctx) => {
+    rejectAccountRemoteSelectionFlags(ctx, 'orca account rename')
+    await renameAgentAccount(ctx)
   }
 }

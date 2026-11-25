@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, rmSync } from 'node:fs'
 import { join, resolve, sep } from 'node:path'
-import { z } from 'zod'
 import { getAppEnvironment } from '../../shared/app-lifecycle/app-environment'
 import { writeSecureFile } from '../../shared/secure-storage/secure-file'
 import type {
@@ -10,6 +9,7 @@ import type {
 } from '../../shared/agent-accounts/managed-account-types'
 import { captureDataAccountCredentials } from './credential-capture'
 import { ManagedDataAccountProfileRemoval } from './profile-removal'
+import { stateSchema } from './managed-data-account-state'
 import {
   captureManagedDataAccountOriginalEnvironment,
   restoreManagedDataAccountEnvironment
@@ -19,20 +19,6 @@ const MAX_INLINE_AUTH_BASELINES = 64
 const MAX_INLINE_AUTH_BYTES = 64 * 1024
 
 type InlineAuthBaseline = { value: string; selections: Set<string> }
-
-const stateSchema = z.object({
-  accounts: z
-    .array(
-      z.object({
-        id: z.uuid(),
-        label: z.string().min(1).max(120),
-        integrations: z.array(z.string()).max(64),
-        createdAt: z.number()
-      })
-    )
-    .max(64),
-  activeAccountId: z.uuid().nullable()
-})
 
 export class ManagedDataAccountService {
   private pending: Promise<unknown> = Promise.resolve()
@@ -129,6 +115,21 @@ export class ManagedDataAccountService {
       const activeAccountId =
         accountId === null ? null : this.requireAccount(provider, accountId).id
       return this.persist(provider, { ...state, activeAccountId })
+    })
+  }
+
+  /** The label is the account's only name, so it cannot be cleared. */
+  rename(
+    provider: ManagedDataAccountProvider,
+    accountId: string,
+    label: string
+  ): Promise<ManagedDataAccountsState> {
+    return this.mutate(async () => {
+      const state = this.list(provider)
+      const { id } = this.requireAccount(provider, accountId)
+      // The state schema refuses a blank or over-long label before anything is written.
+      const accounts = state.accounts.map((a) => (a.id === id ? { ...a, label: label.trim() } : a))
+      return this.persist(provider, { ...state, accounts })
     })
   }
 

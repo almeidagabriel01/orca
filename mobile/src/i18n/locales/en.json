@@ -407,7 +407,6 @@
       "invalidSnapshot": "Invalid accounts snapshot from host",
       "hostNotFound": "Host not found",
       "switchFailed": "Could not switch account",
-      "default": "System default",
       "agentLogin": "Use the agent's own login",
       "sessionWindow": "5h",
       "weeklyWindow": "7d",
@@ -432,7 +431,8 @@
     },
     "usage": {
       "percentLeft": "{{value}}% left"
-    }
+    },
+    "ownLogin": "This computer's login"
   },
   "agentHistory": {
     "sessionHistoryList": {
@@ -8360,9 +8360,6 @@
             "cabdc2a9e0": "Claude sign-in credentials could not be read.",
             "a7517cccb6": "Claude usage is unavailable right now.",
             "8418ec448d": "{{value0}} usage could not be refreshed. Agent sessions may still be signed in."
-          },
-          "StatusBar": {
-            "c676918adc": "System default"
           }
         }
       }

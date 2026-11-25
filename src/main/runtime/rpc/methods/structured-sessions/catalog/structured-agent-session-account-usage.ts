@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { readCodexAuthIdentity } from '../../../../../codex-accounts/credentials/codex-auth-identity'
 import {
   supportsSessionAccountUsage,
   type AgentSessionAccountUsage
@@ -8,7 +11,11 @@ import { requireLegacyAgentSessionAccountHome } from '../../../../../../shared/a
 import type { RateLimitState } from '../../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { normalizeRuntimePathForComparison } from '../../../../../../shared/file-access/cross-platform-path'
 import { buildCodexResetCreditExpectedScope } from '../../../../../../shared/agent-accounts/codex/codex-reset-credit-scope'
-import { getManagedAccountDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
+import {
+  resolveAccountName,
+  type AccountIdentity
+} from '../../../../../../shared/agent-accounts/account-names'
+import { managedAccountIdentity } from '../../../../../../shared/agent-accounts/account-name-identity'
 import { getSystemCodexHomePath } from '../../../../../codex/configuration/homes/codex-home-paths'
 import { getSelectedCodexAccountIdForTarget } from '../../../../../codex-accounts/account-management/runtime-selection'
 import {
@@ -23,6 +30,15 @@ import '../../../../../../shared/rpc-contract/structured-agent-session/structure
 import '../../../../../../shared/rpc-contract/structured-agent-session/structured-agent-session-rename-params'
 import '../../../../../../shared/rpc-contract/structured-agent-session/structured-agent-session-queued-edit-params'
 
+/** The host's own Codex login, read off the main thread; empty when unreadable. */
+async function readSystemCodexIdentity(): Promise<AccountIdentity> {
+  const contents = await readFile(join(getSystemCodexHomePath(), 'auth.json'), 'utf-8').catch(
+    () => null
+  )
+  const identity = contents ? readCodexAuthIdentity(contents) : null
+  return { email: identity?.email, organization: identity?.workspaceAccountId }
+}
+
 export function sessionAccountUsageOffer(
   record: AgentSessionRecord,
   settings: Partial<
@@ -31,10 +47,12 @@ export function sessionAccountUsageOffer(
       | 'codexManagedAccounts'
       | 'activeCodexManagedAccountId'
       | 'activeCodexManagedAccountIdsByRuntime'
-      | 'managedAccountDisplayNames'
+      | 'accountNames'
     >
   >,
-  state: RateLimitState | undefined
+  state: RateLimitState | undefined,
+  /** The system login the chat runs on, when it runs on no saved account. */
+  systemIdentity: AccountIdentity = {}
 ) {
   const home = normalizeRuntimePathForComparison(
     requireLegacyAgentSessionAccountHome(record.accountHome).path
@@ -59,14 +77,16 @@ export function sessionAccountUsageOffer(
     ? buildCodexResetCreditExpectedScope({ target, account, limits: state.codex })
     : null
   const credits = scope ? state?.codex?.rateLimitResetCredits : undefined
-  const displayName = account
-    ? getManagedAccountDisplayName(settings.managedAccountDisplayNames, 'codex', account.id)
-    : undefined
+  const displayName = resolveAccountName(
+    settings.accountNames,
+    'codex',
+    account ? managedAccountIdentity(account) : systemIdentity
+  )
   return {
     account: account
       ? { kind: 'managed' as const, email: account.email, ...(displayName ? { displayName } : {}) }
       : home === normalizeRuntimePathForComparison(getSystemCodexHomePath())
-        ? { kind: 'system' as const }
+        ? { kind: 'system' as const, ...(displayName ? { displayName } : {}) }
         : null,
     ...(scope && credits
       ? {
@@ -116,7 +136,8 @@ export const STRUCTURED_AGENT_SESSION_ACCOUNT_USAGE_METHODS = [
         const offer = sessionAccountUsageOffer(
           record,
           ctx.runtime.requireStore().getSettings(),
-          await ctx.runtime.getUsageRateLimits()?.getState()
+          await ctx.runtime.getUsageRateLimits()?.getState(),
+          await readSystemCodexIdentity()
         )
         return {
           status: 'ok',

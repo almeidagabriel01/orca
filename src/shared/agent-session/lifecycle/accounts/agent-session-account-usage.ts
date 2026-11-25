@@ -7,7 +7,7 @@ import type { CodexResetCreditExpectedScope } from '../../../agent-accounts/code
 export type AgentSessionUsageAccount =
   // displayName is absent from hosts older than account names.
   | { kind: 'managed'; email: string; displayName?: string }
-  | { kind: 'system' }
+  | { kind: 'system'; displayName?: string }
   // An Orca-shared home may hold a different account now; only a live chat knows its email.
   | { kind: 'shared'; email?: string }
 

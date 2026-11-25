@@ -1398,7 +1398,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Predeterminado del sistema",
             "9f0b1c2d3e": "Cuenta de Codex"
           }
         }
@@ -4269,7 +4268,6 @@
             "11e2354daf": "Uso de Claude",
             "3dd7ddfae1": "Abrir detalles de Claude y cambiar de cuenta",
             "59c6e7b4e0": "Las sesiones visibles se reinician ahora. Las demás se reinician cuando su worktree se activa.",
-            "c676918adc": "Predeterminado del sistema",
             "3325d996cb": "Actualizar rate limits",
             "cd9d7b40ff": "Reiniciar {{value0}} sesiones",
             "6cd6650b4c": "Reiniciar sesión",
@@ -7203,17 +7201,14 @@
           "3d245ef7d9": "Codex informó que este inicio de sesión no está actualizado",
           "589eba1eee": "Necesita volver a autenticarse",
           "e74831fb6b": "Activo",
-          "b4c9450319": "No hay cuentas de Codex gestionadas para {{value0}}. Orca usará el inicio de sesión predeterminado de Codex del sistema de ese entorno hasta que agregues una aquí.",
           "93c47b333a": "Necesita iniciar sesión",
-          "f2a265f8c7": "Predeterminado del sistema",
           "c0a52abfc5": "Mostrando cuentas para {{value0}}. Las nuevas cuentas se agregan allí.",
           "94d351af4a": "Cuentas",
           "d0d53b7eb0": "Administra qué cuenta de Codex usa Orca para obtener rate limits en vivo.",
           "340d6f7a85": "Cada cuenta mantiene su propio contexto de inicio de sesión local en Orca. La autenticación de la cuenta permanece en este dispositivo.",
           "cedfab35ab": "Opcional. Orca puede usar tu inicio de sesión normal de Codex; agrega cuentas solo si quieres cambiar rápido en Orca.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "No hay cuentas de Claude gestionadas para {{value0}}. Orca usará el inicio de sesión predeterminado de Claude del sistema de ese entorno hasta que agregues una aquí.",
-          "fcc4093fc1": "Usa tu inicio de sesión actual de Codex de {{value0}}.",
+          "fcc4093fc1": "Usa el inicio de sesión de Codex de {{value0}}.",
           "72b36ea174": "Opcional. Orca puede usar tu inicio de sesión normal de Claude; agrega cuentas solo si quieres cambiar rápido sin mover sesiones de chat.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Error al actualizar la cuenta de Claude.",
@@ -7230,7 +7225,7 @@
           "fd62f37c24": "Codex informó que este inicio de sesión de {{value0}} está desactualizado.",
           "e4a28e8894": "Codex informó que el inicio de sesión de {{value0}} debe renovarse. Inicia sesión de nuevo antes de iniciar nuevas sesiones de Codex.",
           "75ca9b718e": "Codex informó que la cuenta activa requiere un inicio de sesión nuevo. Reautentícala antes de iniciar nuevas sesiones de Codex.",
-          "e05d0ff737": "Usa tu inicio de sesión actual de Claude de {{value0}}.",
+          "e05d0ff737": "Usa el inicio de sesión de Claude de {{value0}}.",
           "2f24f244a4": "La cookie de MiniMax es obligatoria.",
           "8e6f0cb1d8": "La cookie de MiniMax no se guardó.",
           "8d61637a77": "Cookie de MiniMax guardada.",
@@ -7268,8 +7263,6 @@
           "accountScopePrefix": "Alcance de la cuenta",
           "accountScopeRemoteServerUnnamed": "Servidor remoto",
           "remoteScopeAuthContext": "Cada cuenta mantiene su propio contexto de inicio de sesión en {{value0}}.",
-          "remoteEmptyClaudeAccounts": "No hay cuentas de Claude administradas en {{value0}}. Usa su inicio de sesión de Claude predeterminado del sistema; agrega cuentas en ese servidor.",
-          "remoteEmptyCodexAccounts": "No hay cuentas de Codex administradas en {{value0}}. Usa su inicio de sesión de Codex predeterminado del sistema; agrega cuentas en ese servidor.",
           "codexSystemDefaultCustomProvider": "Proveedor personalizado — no se registra el uso.",
           "codexSystemDefaultNeedsSignIn": "No se encontró ningún inicio de sesión de Codex para {{value0}}.",
           "codexConfigSyncMissingSource": "Codex todavía usa la configuración que sincronizó por última vez porque falta {{value0}}. Restaure ese archivo para reanudar la sincronización.",
@@ -15681,7 +15674,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Seguimiento no configurado",
-                  "cc39a87288": "Conectado · Sistema predeterminado",
                   "00087eecb2": "Conectado · {{value0}}"
                 }
               },
@@ -22335,7 +22327,6 @@
       "add": "Copiar comando de configuración",
       "refresh": "Actualizar cuentas",
       "upgrade": "Si las cuentas no aparecen, actualiza o reinicia el host de Orca.",
-      "system": "Predeterminada del sistema",
       "active": "Activa",
       "select": "Seleccionar",
       "remove": "Eliminar",
@@ -22409,10 +22400,7 @@
       "added": "Cuenta agregada. Selecciónala para usarla en el próximo Claude que inicies.",
       "nextLaunch": "{{value0}} → {{value1}}. El próximo terminal de Claude que inicies usará esta cuenta. Los terminales de Claude en ejecución conservan su cuenta.",
       "profileSwitching": "El cambio se aplica al próximo Claude que inicies en cualquier pestaña. Las sesiones en ejecución conservan su cuenta.",
-      "systemDefault": "Predeterminado del sistema",
       "unnamedAccount": "Cuenta de Claude",
-      "systemDefaultNamed": "Predeterminado del sistema: {{value0}}",
-      "systemDefaultIsSaved": "Predeterminado del sistema ha iniciado sesión como {{value0}}, que también es una cuenta guardada. Puede que una versión anterior de Orca haya copiado ese inicio de sesión allí. Si no es tu propio inicio de sesión, selecciona Predeterminado del sistema y ejecuta claude /login.",
       "systemDefaultIsSavedDismiss": "Descartar",
       "signInRequired": "Inicia sesión de nuevo para usar esta cuenta",
       "signInAgain": "Iniciar sesión de nuevo",
@@ -22925,10 +22913,8 @@
       "dismiss": "Descartar"
     },
     "claudeOldTerminalBanner": {
-      "title": "Esta terminal se abrió antes de la actualización de cuentas de Claude de Orca, así que claude aquí usa el inicio de sesión de Predeterminado del sistema.",
       "dialogTitle": "Por qué claude aquí no usa la cuenta seleccionada",
-      "dialogDescription": "Ahora Orca guarda cada cuenta de Claude en su propia carpeta, y claude en una terminal nueva sigue la cuenta que selecciones.",
-      "dialogCause": "Las terminales abiertas antes de esta actualización no lo hacen, así que claude aquí inicia sesión con el inicio de sesión de Predeterminado del sistema. Abre una terminal nueva para usar la cuenta seleccionada."
+      "dialogDescription": "Ahora Orca guarda cada cuenta de Claude en su propia carpeta, y claude en una terminal nueva sigue la cuenta que selecciones."
     },
     "fileDrop": {
       "copyUploadedPaths": "Copiar rutas",

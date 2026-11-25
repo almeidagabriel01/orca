@@ -161,6 +161,9 @@ export const AccountsSnapshotSchema = z
       .object({
         accounts: z.array(ClaudeAccountSummarySchema),
         activeAccountId: AccountIdSchema.nullable(),
+        // Why catch: a name the phone can't read must not reject the whole roster.
+        systemDefaultEmail: z.string().optional().catch(undefined),
+        systemDefaultDisplayName: z.string().optional().catch(undefined),
         activeAccountIdsByRuntime: RuntimeSelectionSchema.optional()
       })
       .passthrough(),
@@ -168,6 +171,12 @@ export const AccountsSnapshotSchema = z
       .object({
         accounts: z.array(CodexAccountSummarySchema),
         activeAccountId: AccountIdSchema.nullable(),
+        systemDefault: z
+          .object({ email: z.string().nullable().optional() })
+          .passthrough()
+          .optional()
+          .catch(undefined),
+        systemDefaultDisplayName: z.string().optional().catch(undefined),
         activeAccountIdsByRuntime: RuntimeSelectionSchema.optional()
       })
       .passthrough(),

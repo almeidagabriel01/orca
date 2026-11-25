@@ -190,7 +190,7 @@ function antigravityAccounts(ctx: HandlerContext): ProviderAccounts {
   }
 }
 
-function providerAccounts(ctx: HandlerContext, agent: AccountAgent): ProviderAccounts {
+export function providerAccounts(ctx: HandlerContext, agent: AccountAgent): ProviderAccounts {
   switch (agent) {
     case 'claude':
       return claudeAccounts(ctx)
@@ -210,7 +210,7 @@ function isAccountAgent(value: string): value is AccountAgent {
 
 // Why required: switching or removing an account decides which subscription is billed,
 // so the provider is never guessed.
-function readAgentFlag(ctx: HandlerContext): AccountAgent {
+export function readAgentFlag(ctx: HandlerContext): AccountAgent {
   const agent = ctx.flags.get('agent')
   if (typeof agent !== 'string') {
     throw new RuntimeClientError('invalid_argument', AGENT_FLAG_HINT)
@@ -224,7 +224,7 @@ function readAgentFlag(ctx: HandlerContext): AccountAgent {
   return agent
 }
 
-function readAccountFlag(ctx: HandlerContext): string {
+export function readAccountFlag(ctx: HandlerContext): string {
   const account = ctx.flags.get('account')
   if (typeof account !== 'string' || !account.trim()) {
     throw new RuntimeClientError('invalid_argument', ACCOUNT_FLAG_HINT)

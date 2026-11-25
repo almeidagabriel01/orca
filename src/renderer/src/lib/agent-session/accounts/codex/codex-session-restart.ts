@@ -1,14 +1,11 @@
-import { getManagedAccountInlineLabel } from '../../../../../../shared/agent-accounts/managed-account-display-names'
 import { useAppStore } from '@/store/index'
 import {
   confirmRuntimeTerminalForegroundProcess,
   inspectRuntimeTerminalProcess
 } from '@/runtime/hosted-terminals/inspection/runtime-terminal-process-inspection'
 import { translate } from '@/i18n/i18n'
-import {
-  getCodexAccountDisplayLabel,
-  normalizeCodexAccountEmail
-} from '../../../../../../shared/agent-accounts/codex-account-display-label'
+import { getCodexAccountDisplayLabel } from '../../../../../../shared/agent-accounts/codex-account-display-label'
+import { getSystemDefaultDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
 import { isShellProcess } from '../../../../../../shared/agent-status/process/shell-process-detection'
 import {
   isCodexForegroundProcess,
@@ -260,26 +257,24 @@ export function resolveCodexRestartPromptAccountLabel(
     displayName?: string
     workspaceLabel?: string | null
   }[],
-  accountId: string | null | undefined
+  accountId: string | null | undefined,
+  /** The host's own login's name (see getSystemDefaultDisplayName). */
+  ownLoginName?: string
 ): string {
   if (accountId == null) {
-    return translate('auto.lib.codex.session.restart.4bd4a3a9c7', 'System default')
+    return ownLoginName ?? translate('accounts.ownLogin', "This computer's login")
   }
   const account = accounts.find((entry) => entry.id === accountId)
   if (!account) {
     return translate('auto.lib.codex.session.restart.9f0b1c2d3e', 'Codex account')
   }
-  const email = normalizeCodexAccountEmail(account.email)
-  const sharesEmail = accounts.some(
-    (entry) => entry.id !== account.id && normalizeCodexAccountEmail(entry.email) === email
-  )
-  return sharesEmail
-    ? getCodexAccountDisplayLabel(account, accounts)
-    : getManagedAccountInlineLabel(account)
+  return getCodexAccountDisplayLabel(account, accounts)
 }
 
 async function createCodexAccountLabelResolver(): Promise<(accountId: string | null) => string> {
   // Known account IDs still support prompts when roster/email lookup fails.
   const accounts = await window.api.codexAccounts.list().catch(() => null)
-  return (accountId) => resolveCodexRestartPromptAccountLabel(accounts?.accounts ?? [], accountId)
+  const ownLoginName = getSystemDefaultDisplayName(accounts)
+  return (accountId) =>
+    resolveCodexRestartPromptAccountLabel(accounts?.accounts ?? [], accountId, ownLoginName)
 }

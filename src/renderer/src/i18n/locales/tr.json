@@ -1978,10 +1978,6 @@
       "info": "Otomatik güncellemeler hakkında",
       "saveFailed": "Otomatik güncelleme ayarı kaydedilemedi."
     },
-    "accounts": {
-      "codexRemoveHome": "Orca, bu hesaba ait Codex klasörünü {{host}} üzerinden siler. Kayıtlı oturum açma bilgileri ve MCP oturumları da silinir. Bu işlem geri alınamaz. Bu hesap seçiliyse bir sonraki Codex oturumu sistem varsayılanıyla açılır.",
-      "claudeRemoveProfile": "Orca, bu hesaba ait Claude klasörünü ve klasörde saklanan oturum açma bilgilerini {{host}} üzerinden siler. Sistem varsayılanı oturumu ve onunla paylaşılan sohbet geçmişi korunur. Bu hesap seçiliyse bir sonraki Claude oturumu sistem varsayılanıyla açılır."
-    },
     "openInApp": {
       "preset": {
         "devinDesktop": "Devin Desktop",
@@ -2821,7 +2817,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Sistem varsayılanı",
             "9f0b1c2d3e": "Codex hesabı"
           }
         }
@@ -5841,7 +5836,6 @@
             "11e2354daf": "Claude kullanım çalışma zamanı",
             "3dd7ddfae1": "Claude ayrıntılarını ve hesap değiştiriciyi aç",
             "59c6e7b4e0": "Görünür oturumlar şimdi yeniden başlar. Diğerleri, worktree'leri etkin hale geldiğinde yeniden başlar.",
-            "c676918adc": "Sistem varsayılanı",
             "3325d996cb": "Hız sınırlarını yenile",
             "cd9d7b40ff": "{{value0}} Oturumu Yeniden Başlat",
             "6cd6650b4c": "Oturumu Yeniden Başlat",
@@ -8771,17 +8765,14 @@
           "3d245ef7d9": "Codex, bu girişin güncel olmadığını bildirdi",
           "589eba1eee": "Yeniden kimlik doğrulama gerekli",
           "e74831fb6b": "Etkin",
-          "b4c9450319": "{{value0}} için yönetilen Codex hesabı yok. Siz burada bir hesap ekleyene kadar Orca, o ortamın sistem varsayılan Codex girişini kullanacak.",
           "93c47b333a": "Giriş gerekli",
-          "f2a265f8c7": "Sistem varsayılanı",
           "c0a52abfc5": "{{value0}} için hesaplar gösteriliyor. Yeni hesaplar oraya eklenir.",
           "94d351af4a": "Hesaplar",
           "d0d53b7eb0": "Orca'nın canlı oran sınırı verilerini almak için hangi Codex hesabını kullanacağını yönetin.",
           "340d6f7a85": "Her hesap, Orca içinde kendi yerel giriş bağlamını korur. Hesap kimlik doğrulaması bu cihazda kalır.",
           "cedfab35ab": "İsteğe bağlı. Orca, normal Codex girişinizi kullanabilir; hesapları yalnızca Orca içinde hızlı geçiş yapmak istiyorsanız ekleyin.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "{{value0}} için yönetilen Claude hesabı yok. Siz burada bir hesap ekleyene kadar Orca, o ortamın sistem varsayılan Claude girişini kullanacak.",
-          "fcc4093fc1": "Mevcut {{value0}} Codex girişinizi kullanın.",
+          "fcc4093fc1": "{{value0}} üzerindeki Codex girişini kullanır.",
           "72b36ea174": "İsteğe bağlı. Orca, normal Claude girişinizi kullanabilir; hesapları yalnızca sohbet oturumlarını taşımadan hızlı geçiş yapmak istiyorsanız ekleyin.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Claude hesabı güncellemesi başarısız oldu.",
@@ -8798,7 +8789,7 @@
           "fd62f37c24": "Codex, bu {{value0}} girişinin güncel olmadığını bildirdi.",
           "e4a28e8894": "Codex, {{value0}} girişinin yeni bir oturum açma gerektirdiğini bildirdi. Yeni Codex oturumları başlatmadan önce tekrar giriş yapın.",
           "75ca9b718e": "Codex, etkin hesabın yeni bir oturum açma gerektirdiğini bildirdi. Yeni Codex oturumları başlatmadan önce yeniden kimlik doğrulaması yapın.",
-          "e05d0ff737": "Mevcut {{value0}} Claude girişinizi kullanın.",
+          "e05d0ff737": "{{value0}} üzerindeki Claude girişini kullanır.",
           "2f24f244a4": "MiniMax çerezi gereklidir.",
           "8e6f0cb1d8": "MiniMax çerezi kaydedilmedi.",
           "8d61637a77": "MiniMax çerezi kaydedildi.",
@@ -8836,8 +8827,6 @@
           "accountScopePrefix": "Hesap kapsamı",
           "accountScopeRemoteServerUnnamed": "Uzak sunucu",
           "remoteScopeAuthContext": "Her hesap, {{value0}} üzerinde kendi giriş bağlamını korur.",
-          "remoteEmptyClaudeAccounts": "{{value0}} üzerinde yönetilen Claude hesabı yok. Sistem varsayılan Claude girişini kullanır; hesapları o sunucuda ekleyin.",
-          "remoteEmptyCodexAccounts": "{{value0}} üzerinde yönetilen Codex hesabı yok. Sistem varsayılan Codex girişini kullanır; hesapları o sunucuda ekleyin.",
           "codexSystemDefaultCustomProvider": "Özel sağlayıcı, kullanım izlenmiyor.",
           "codexSystemDefaultNeedsSignIn": "{{value0}} için Codex girişi bulunamadı.",
           "codexConfigSyncMissingSource": "{{value0}} eksik olduğu için Codex hâlâ son senkronize ettiği ayarları kullanıyor. Senkronizasyonu sürdürmek için o dosyayı geri yükleyin.",
@@ -17460,7 +17449,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "İzleme kurulmadı",
-                  "cc39a87288": "Bağlandı · Sistem varsayılanı",
                   "00087eecb2": "Bağlandı · {{value0}}"
                 }
               }
@@ -25215,10 +25203,8 @@
       "failed": "Bölme yeni bir sekmeye taşınamadı."
     },
     "claudeOldTerminalBanner": {
-      "title": "Bu terminal Orca'nın Claude hesap güncellemesinden önce açıldı, bu nedenle buradaki claude, Sistem varsayılanı hesabının oturumunu kullanır.",
       "dialogTitle": "Buradaki claude neden seçili hesabı kullanmıyor?",
-      "dialogDescription": "Orca artık her Claude hesabını ayrı bir klasörde tutuyor ve yeni bir terminaldeki claude, seçtiğiniz hesabı kullanıyor.",
-      "dialogCause": "Bu güncellemeden önce açılan terminaller seçili hesabı kullanmaz; buradaki claude, Sistem varsayılanı hesabıyla oturum açar. Seçili hesabı kullanmak için yeni bir terminal açın."
+      "dialogDescription": "Orca artık her Claude hesabını ayrı bir klasörde tutuyor ve yeni bir terminaldeki claude, seçtiğiniz hesabı kullanıyor."
     },
     "claudeDiffPanelNotice": {
       "title": "Claude Code, geniş terminallerde sohbetin yanında kendi diff panelini açabilir. Bu panel Orca'ya değil, Claude'a aittir.",
@@ -25482,10 +25468,7 @@
       "added": "Hesap eklendi. Başlatacağınız bir sonraki Claude'da kullanmak için bu hesabı seçin.",
       "nextLaunch": "{{value0}} → {{value1}}. Başlatacağınız bir sonraki Claude bu hesabı kullanır. Çalışan oturumlar mevcut hesaplarını korur.",
       "profileSwitching": "Hesap değişikliği, herhangi bir sekmede başlatacağınız bir sonraki Claude için geçerli olur.",
-      "systemDefault": "Sistem varsayılanı",
       "unnamedAccount": "Claude hesabı",
-      "systemDefaultNamed": "Sistem varsayılanı: {{value0}}",
-      "systemDefaultIsSaved": "Sistem varsayılanında, kayıtlı hesaplarınız arasında da bulunan {{value0}} ile oturum açılmış. Önceki bir Orca sürümü bu oturumu oraya kopyalamış olabilir. Bu sizin hesabınız değilse Sistem varsayılanı seçeneğini seçip claude /login komutunu çalıştırın.",
       "systemDefaultIsSavedDismiss": "Kapat",
       "signInRequired": "Bu hesabı kullanmak için yeniden oturum açın",
       "signInAgain": "Yeniden oturum aç",
@@ -25565,7 +25548,6 @@
       "add": "Kurulum komutunu kopyala",
       "refresh": "Hesapları yenile",
       "upgrade": "Hesaplar görünmüyorsa Orca ana makinesini güncelleyin veya yeniden başlatın.",
-      "system": "Sistem varsayılanı",
       "active": "Etkin",
       "select": "Seç",
       "remove": "Kaldır",
@@ -25596,12 +25578,7 @@
     "remoteScopeAccountsAddHere": "{{value0}} tarafından yönetilen hesaplar gösteriliyor. Yeni hesaplar için oturum orada açılır; işlemi bu cihazın tarayıcısında tamamlarsınız.",
     "rename": {
       "action": "Yeniden adlandır",
-      "title": "Hesabı yeniden adlandır",
-      "description": "Yalnızca Orca’da görünen ad değişir. {{email}} adresinin görünmesi için bu alanı boş bırakın.",
       "label": "Görünen Ad",
-      "reset": "Varsayılana sıfırla",
-      "cancel": "İptal",
-      "save": "Kaydet",
       "unsupportedHost": "Bu ayarı orada değiştirmek için {{host}} üzerindeki Orca'yı güncelleyin."
     }
   },

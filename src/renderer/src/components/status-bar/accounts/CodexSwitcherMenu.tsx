@@ -132,6 +132,7 @@ function CodexSwitcherForOwner({
       label={target.name}
       detail={target.detail}
       active={target.active}
+      isDefault={target.active}
       key={`${selectedGroup?.key}:${target.id ?? 'system'}`}
       onSelect={(event) => {
         // Why: keep the menu open so the follow-up "restart live Codex tabs" prompt stays in this interaction.
@@ -198,8 +199,7 @@ function CodexSwitcherForOwner({
       }
       accountLabel={
         rosterKnown
-          ? (activeTarget?.label ??
-            t('auto.components.status.bar.StatusBar.c676918adc', 'System default'))
+          ? (activeTarget?.label ?? t('accounts.ownLogin', "This computer's login"))
           : undefined
       }
       panelFooter={

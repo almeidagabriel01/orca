@@ -49,6 +49,17 @@ export function claudeRowUsageId(target: ClaudeStatusSwitchTarget): string | nul
   return target.id ? (target.usageAccountId ?? target.id) : claudeInactiveUsageId(target)
 }
 
+/** The host's own login by its name; a WSL distro's has no name this desktop knows. */
+export function getOwnLoginLabel(
+  name: string | undefined,
+  target: CodexStatusRuntimeTarget
+): string {
+  return (
+    (target.runtime === 'host' ? name : undefined) ??
+    translate('accounts.ownLogin', "This computer's login")
+  )
+}
+
 export type ClaudeStatusSwitchGroup = {
   key: string
   label: string

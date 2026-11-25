@@ -1,13 +1,25 @@
 import { Check } from 'lucide-react'
 import React from 'react'
+import { Badge } from '@/components/ui/badge'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useTranslate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
+
+/** Marks the account the computer uses now, beside its name in an account picker. */
+export function AccountDefaultBadge(): React.JSX.Element {
+  const t = useTranslate()
+  return (
+    <Badge variant="referenceLabel" className="shrink-0">
+      {t('accounts.defaultBadge', 'default')}
+    </Badge>
+  )
+}
 
 export function AccountSwitchRowItem({
   label,
   detail,
   active,
+  isDefault = false,
   children,
   action,
   className,
@@ -17,6 +29,8 @@ export function AccountSwitchRowItem({
   /** Secondary line, e.g. workspace or the ID that tells same-email accounts apart. */
   detail?: string | null
   active: boolean
+  /** Badges the account the computer uses now. */
+  isDefault?: boolean
   /** Usage shown in the fixed-width right column so rows line up. */
   children?: React.ReactNode
   /** Rendered beside the item, not inside it, so its own menu item stays separately focusable. */
@@ -43,7 +57,10 @@ export function AccountSwitchRowItem({
           ) : null}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate">{label}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate">{label}</span>
+            {isDefault ? <AccountDefaultBadge /> : null}
+          </span>
           {detail ? (
             <span className="truncate text-2xs text-muted-foreground">{detail}</span>
           ) : null}

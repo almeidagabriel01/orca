@@ -9,6 +9,7 @@ import {
   AddDataAccountParams,
   SelectDataAccountParams,
   RemoveDataAccountParams,
+  RenameDataAccountParams,
   AccountsUnsubscribeParams,
   BeginClaudeSignInParams,
   FinishClaudeSignInParams,
@@ -130,6 +131,13 @@ const ACCOUNT_METHOD_DEFINITIONS = [
     params: RemoveDataAccountParams,
     handler: async (params, { runtime }) =>
       runtime.removeDataAccount(params.provider, params.accountId)
+  }),
+  defineMethod({
+    name: 'accounts.renameData',
+    permission: 'accounts-admin',
+    params: RenameDataAccountParams,
+    handler: async (params, { runtime }) =>
+      runtime.renameDataAccount(params.provider, params.accountId, params.label)
   }),
   defineMethod({
     name: 'accounts.list',

@@ -156,7 +156,7 @@ it.each(['claude', 'codex'] as const)(
       }),
       { button: 0, ctrlKey: false }
     )
-    const row = await screen.findByRole('menuitem', { name: /inactive@example.com/ })
+    const row = await screen.findByRole('menuitem', { name: /inactive/ })
     expect(await within(row).findByRole('img', { name: /17/ })).toBeDefined()
     expect(within(row).queryByRole('img', { name: /99/ })).toBeNull()
     expect(screen.queryByRole('radiogroup')).toBeNull()

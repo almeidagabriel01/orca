@@ -1,6 +1,6 @@
 import { Loader2, RefreshCw, Trash2 } from 'lucide-react'
 import type { ClaudeRateLimitAccountsState } from '../../../../../../shared/agent-accounts/managed-account-types'
-import { getManagedAccountPrimaryLabel } from '../../../../../../shared/agent-accounts/managed-account-display-names'
+import { getAccountDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
 import { selectClaudeProviderAccount } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
@@ -23,7 +23,11 @@ import {
   ClaudeSignInLinkMenu,
   withCopiedClaudeLink
 } from './claude-sign-in-link-menu'
-import { AccountRenameButton, renameTargetFor } from '../account-rename-button'
+import {
+  AccountRenameButton,
+  isEditingAccountName,
+  renderAccountNameInput
+} from '../account-name-field'
 import { getObservedAccountPlan } from '@/lib/provider-accounts/observed-account-plans'
 
 export function renderClaudeAccountRow(
@@ -44,8 +48,9 @@ export function renderClaudeAccountRow(
     renamingAccountKeys,
     runClaudeAccountAction,
     setRemoveClaudeTarget,
-    setRenameTarget
+    setEditingNameKey
   } = model
+  const nameTarget = { provider: 'claude' as const, id: account.id }
   const isActive = providerAccountIsActiveInView(
     account,
     claudeAccounts,
@@ -55,10 +60,10 @@ export function renderClaudeAccountRow(
   const isReauthing = claudeAction === `reauth:${account.id}`
   const isBusy = claudeAction !== 'idle' || accountRuntimeUnavailable
   const accountRuntimeView = getProviderAccountRuntime(account)
-  const accountLabel = getManagedAccountPrimaryLabel(account)
+  const accountLabel = getAccountDisplayName(account) ?? account.email
   const plan = getObservedAccountPlan(claudeAccountPlans, account.id, accountRuntimeView)
-  // A named row keeps its sign-in email visible, most of all when it needs signing in.
-  const namedEmail = account.displayName ? account.email : null
+  // The name leads; the sign-in email stays visible, most of all when it needs signing in.
+  const namedEmail = account.email
   const reauthenticate = (copyLink: boolean): Promise<void> =>
     runClaudeAccountAction(
       `reauth:${account.id}`,
@@ -86,61 +91,65 @@ export function renderClaudeAccountRow(
       }`}
     >
       <div className="flex w-full items-center justify-between gap-3 max-md:flex-col max-md:items-start">
-        <button
-          type="button"
-          onClick={() => {
-            void runClaudeAccountAction(
-              `select:${account.id}`,
-              () =>
-                selectClaudeProviderAccount(accountOwner, {
-                  accountId: account.id,
-                  ...accountRuntimeView
-                }),
-              accountRuntimeView
-            )
-          }}
-          disabled={isBusy || account.needsSignIn}
-          className="flex min-w-0 flex-1 flex-col gap-0.5 text-left disabled:cursor-default"
-        >
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="truncate text-sm font-medium">{accountLabel}</span>
-            <Badge
-              variant="outline"
-              className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/70"
-            >
-              {getClaudeAccountRuntimeLabel(account, accountRuntime.label)}
-            </Badge>
-            {isActive ? (
+        {isEditingAccountName(model, nameTarget) ? (
+          renderAccountNameInput(model, nameTarget, account, t)
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              void runClaudeAccountAction(
+                `select:${account.id}`,
+                () =>
+                  selectClaudeProviderAccount(accountOwner, {
+                    accountId: account.id,
+                    ...accountRuntimeView
+                  }),
+                accountRuntimeView
+              )
+            }}
+            disabled={isBusy || account.needsSignIn}
+            className="flex min-w-0 flex-1 flex-col gap-0.5 text-left disabled:cursor-default"
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate text-sm font-medium">{accountLabel}</span>
               <Badge
                 variant="outline"
-                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
+                className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/70"
               >
-                {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
+                {getClaudeAccountRuntimeLabel(account, accountRuntime.label)}
               </Badge>
-            ) : null}
-          </div>
-          <span className="truncate text-[11px] text-muted-foreground">
-            {joinAccountDetails(
-              account.needsSignIn
-                ? [
-                    namedEmail,
-                    t('accounts.claude.signInRequired', 'Sign in again to use this account')
-                  ]
-                : [
-                    account.organizationName,
-                    plan,
-                    namedEmail,
-                    formatAccountTimestamp(account.lastAuthenticatedAt, intlLocale)
-                  ]
-            )}
-          </span>
-        </button>
+              {isActive ? (
+                <Badge
+                  variant="outline"
+                  className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
+                >
+                  {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
+                </Badge>
+              ) : null}
+            </div>
+            <span className="truncate text-[11px] text-muted-foreground">
+              {joinAccountDetails(
+                account.needsSignIn
+                  ? [
+                      namedEmail,
+                      t('accounts.claude.signInRequired', 'Sign in again to use this account')
+                    ]
+                  : [
+                      account.organizationName,
+                      plan,
+                      namedEmail,
+                      formatAccountTimestamp(account.lastAuthenticatedAt, intlLocale)
+                    ]
+              )}
+            </span>
+          </button>
+        )}
         <div className="flex shrink-0 items-center justify-end gap-1 max-md:w-full max-md:flex-wrap">
           <AccountRenameButton
             t={t}
             disabled={claudeAction === `remove:${account.id}`}
             pending={renamingAccountKeys.has(`claude:${account.id}`)}
-            onRename={() => setRenameTarget(renameTargetFor('claude', account, accountRuntimeView))}
+            onRename={() => setEditingNameKey(`claude:${account.id}`)}
           />
           <ButtonGroup>
             <Button

@@ -1994,7 +1994,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Systemstandard",
             "9f0b1c2d3e": "Codex-Konto"
           }
         }
@@ -4834,7 +4833,6 @@
             "11e2354daf": "Claude-Nutzung: Laufzeitumgebung",
             "3dd7ddfae1": "Claude-Details und Kontowechsel öffnen",
             "59c6e7b4e0": "Sichtbare Sitzungen werden jetzt neu gestartet. Andere werden neu gestartet, sobald ihr Worktree aktiv wird.",
-            "c676918adc": "Systemstandard",
             "3325d996cb": "Ratenlimits aktualisieren",
             "cd9d7b40ff": "{{value0}} Sitzungen neu starten",
             "6cd6650b4c": "Sitzung neu starten",
@@ -7669,17 +7667,14 @@
           "3d245ef7d9": "Codex meldet, dass diese Anmeldung nicht mehr aktuell ist",
           "589eba1eee": "Erneute Authentifizierung nötig",
           "e74831fb6b": "Aktiv",
-          "b4c9450319": "Keine verwalteten Codex-Konten für {{value0}}. Orca verwendet die systemweite Standardanmeldung für Codex dieser Umgebung, bis hier ein Konto hinzugefügt wird.",
           "93c47b333a": "Anmeldung erforderlich",
-          "f2a265f8c7": "Systemstandard",
           "c0a52abfc5": "Konten für {{value0}} werden angezeigt. Neue Konten werden dort hinzugefügt.",
           "94d351af4a": "Konten",
           "d0d53b7eb0": "Verwalten, welches Codex-Konto Orca zum Abrufen aktueller Ratenlimits verwendet.",
           "340d6f7a85": "Jedes Konto behält seinen eigenen lokalen Anmeldekontext in Orca. Die Authentifizierungsdaten des Kontos bleiben auf diesem Gerät.",
           "cedfab35ab": "Optional. Orca kann die reguläre Codex-Anmeldung verwenden; Konten nur hinzufügen, wenn ein schneller Wechsel in Orca gewünscht ist.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "Keine verwalteten Claude-Konten für {{value0}}. Orca verwendet die systemweite Standardanmeldung für Claude dieser Umgebung, bis hier ein Konto hinzugefügt wird.",
-          "fcc4093fc1": "Aktuelle Codex-Anmeldung für {{value0}} verwenden.",
+          "fcc4093fc1": "Verwendet die Codex-Anmeldung von {{value0}}.",
           "72b36ea174": "Optional. Orca kann die reguläre Claude-Anmeldung verwenden; Konten nur hinzufügen, wenn ein schneller Wechsel ohne Verschieben von Chatsitzungen gewünscht ist.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Claude-Konto konnte nicht aktualisiert werden.",
@@ -7696,7 +7691,7 @@
           "fd62f37c24": "Codex meldet, dass die Anmeldung von {{value0}} nicht mehr aktuell ist.",
           "e4a28e8894": "Codex meldet, dass für {{value0}} eine erneute Anmeldung erforderlich ist. Vor dem Start neuer Codex-Sitzungen erneut anmelden.",
           "75ca9b718e": "Codex meldet, dass für das aktive Konto eine erneute Anmeldung erforderlich ist. Vor dem Start neuer Codex-Sitzungen erneut authentifizieren.",
-          "e05d0ff737": "Aktuelle Claude-Anmeldung für {{value0}} verwenden.",
+          "e05d0ff737": "Verwendet die Claude-Anmeldung von {{value0}}.",
           "2f24f244a4": "Ein MiniMax-Cookie ist erforderlich.",
           "8e6f0cb1d8": "MiniMax-Cookie wurde nicht gespeichert.",
           "8d61637a77": "MiniMax-Cookie gespeichert.",
@@ -7734,8 +7729,6 @@
           "accountScopePrefix": "Kontogeltungsbereich",
           "accountScopeRemoteServerUnnamed": "Remote-Server",
           "remoteScopeAuthContext": "Jedes Konto behält seinen eigenen Anmeldekontext auf {{value0}}.",
-          "remoteEmptyClaudeAccounts": "Keine verwalteten Claude-Konten auf {{value0}}. Der Server verwendet seine systemweite Standardanmeldung für Claude; Konten auf diesem Server hinzufügen.",
-          "remoteEmptyCodexAccounts": "Keine verwalteten Codex-Konten auf {{value0}}. Der Server verwendet seine systemweite Standardanmeldung für Codex; Konten auf diesem Server hinzufügen.",
           "codexSystemDefaultCustomProvider": "Benutzerdefinierter Anbieter — keine Nutzung erfasst.",
           "codexSystemDefaultNeedsSignIn": "Keine Codex-Anmeldung für {{value0}} gefunden.",
           "codexConfigSyncMissingSource": "Codex verwendet weiterhin die zuletzt synchronisierten Einstellungen, da {{value0}} fehlt. Diese Datei wiederherstellen, um die Synchronisierung fortzusetzen.",
@@ -16088,7 +16081,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Nutzungserfassung nicht eingerichtet",
-                  "cc39a87288": "Verbunden · Systemstandard",
                   "00087eecb2": "Verbunden · {{value0}}"
                 }
               }
@@ -22668,10 +22660,8 @@
       "failed": "Der Bereich konnte nicht in einen neuen Tab verschoben werden."
     },
     "claudeOldTerminalBanner": {
-      "title": "Dieses Terminal wurde vor Orcas Update für Claude-Konten geöffnet. Daher verwendet claude hier die Anmeldung von „Systemstandard“.",
       "dialogTitle": "Warum claude hier nicht das ausgewählte Konto verwendet",
-      "dialogDescription": "Orca speichert jedes Claude-Konto jetzt in einem eigenen Ordner. In einem neuen Terminal verwendet claude das ausgewählte Konto.",
-      "dialogCause": "Bei Terminals, die vor diesem Update geöffnet wurden, gilt das nicht. Daher meldet sich claude hier mit den Anmeldedaten von „Systemstandard“ an. Ein neues Terminal öffnen, um das ausgewählte Konto zu verwenden."
+      "dialogDescription": "Orca speichert jedes Claude-Konto jetzt in einem eigenen Ordner. In einem neuen Terminal verwendet claude das ausgewählte Konto."
     },
     "claudeDiffPanelNotice": {
       "title": "Claude Code kann in breiten Terminals ein eigenes Diff-Panel neben dem Chat öffnen. Dieses Panel gehört zu Claude, nicht zu Orca.",
@@ -22854,10 +22844,7 @@
       "added": "Konto hinzugefügt. Das Konto auswählen, um es beim nächsten Start von Claude zu verwenden.",
       "nextLaunch": "{{value0}} → {{value1}}. Beim nächsten Start verwendet Claude dieses Konto. Laufende Sitzungen behalten ihr Konto.",
       "profileSwitching": "Der Wechsel gilt für den nächsten Start von Claude in einem beliebigen Tab.",
-      "systemDefault": "Systemstandard",
       "unnamedAccount": "Claude-Konto",
-      "systemDefaultNamed": "Systemstandard: {{value0}}",
-      "systemDefaultIsSaved": "Der Systemstandard ist als {{value0}} angemeldet; dieses Konto ist auch gespeichert. Eine frühere Orca-Version hat diese Anmeldung möglicherweise dorthin kopiert. Falls dies nicht die eigene Anmeldung ist, „Systemstandard“ auswählen und claude /login ausführen.",
       "systemDefaultIsSavedDismiss": "Ausblenden",
       "signInRequired": "Erneute Anmeldung erforderlich, um dieses Konto zu verwenden",
       "signInAgain": "Erneut anmelden",
@@ -22937,7 +22924,6 @@
       "add": "Einrichtungsbefehl kopieren",
       "refresh": "Konten aktualisieren",
       "upgrade": "Falls keine Konten angezeigt werden, den Orca-Host aktualisieren oder neu starten.",
-      "system": "Systemstandard",
       "active": "Aktiv",
       "select": "Auswählen",
       "remove": "Entfernen",

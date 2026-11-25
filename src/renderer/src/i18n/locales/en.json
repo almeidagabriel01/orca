@@ -1291,10 +1291,6 @@
     },
     "followSymlinkedDirectories": "Follow symlinked directories",
     "followSymlinkedDirectoriesDescription": "Search linked folders in Quick Open and expand local linked folders in File Explorer.",
-    "accounts": {
-      "codexRemoveHome": "Orca deletes this account's Codex folder on {{host}}, including its sign-in and MCP logins. This cannot be undone. If it is selected, the next Codex you start uses System default.",
-      "claudeRemoveProfile": "Orca deletes this account's own Claude folder and the sign-in saved in it on {{host}}. Your System default login and chat history shared with it stay. If it is selected, the next Claude you start uses System default."
-    },
     "sourceControl": {
       "gitOperationInAnotherWorkspace": "Git operation running elsewhere",
       "remoteOperationInAnotherWorkspace": "Another workspace is running a Git operation, such as push, pull, or force push. Wait for it to finish before using this action, so the two operations don't overlap.",
@@ -2082,6 +2078,10 @@
     },
     "artifacts": {
       "teamDisabled": "Artifact sharing is turned off by your team."
+    },
+    "accounts": {
+      "codexRemoveHomeOwnLogin": "Orca deletes this account's Codex folder on {{host}}, including its sign-in and MCP logins. This cannot be undone. If it is selected, the next Codex you start uses {{host}}'s own Codex login.",
+      "claudeRemoveProfileOwnLogin": "Orca deletes this account's own Claude folder and the sign-in saved in it on {{host}}, keeping {{host}}'s own Claude login and the chat history shared with it. If it is selected, the next Claude you start uses that login."
     }
   },
   "menu": {
@@ -2872,7 +2872,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "System default",
             "9f0b1c2d3e": "Codex account"
           }
         }
@@ -5895,7 +5894,6 @@
             "11e2354daf": "Claude usage runtime",
             "3dd7ddfae1": "Open Claude details and account switcher",
             "59c6e7b4e0": "Visible sessions restart now. Others restart when their worktree becomes active.",
-            "c676918adc": "System default",
             "3325d996cb": "Refresh rate limits",
             "cd9d7b40ff": "Restart {{value0}} Sessions",
             "6cd6650b4c": "Restart Session",
@@ -8822,17 +8820,14 @@
           "3d245ef7d9": "Codex reported this sign-in is out of date",
           "589eba1eee": "Needs re-auth",
           "e74831fb6b": "Active",
-          "b4c9450319": "No managed Codex accounts for {{value0}}. Orca will use that environment's system default Codex login until you add one here.",
           "93c47b333a": "Needs sign-in",
-          "f2a265f8c7": "System default",
           "c0a52abfc5": "Showing accounts for {{value0}}. New accounts are added there.",
           "94d351af4a": "Accounts",
           "d0d53b7eb0": "Manage which Codex account Orca uses for live rate limit fetching.",
           "340d6f7a85": "Each account keeps its own local sign-in context in Orca. Account auth stays on this device.",
           "cedfab35ab": "Optional. Orca can use your normal Codex login; add accounts only if you want quick switching in Orca.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "No managed Claude accounts for {{value0}}. Orca will use that environment's system default Claude login until you add one here.",
-          "fcc4093fc1": "Use your current {{value0}} Codex login.",
+          "fcc4093fc1": "Uses {{value0}}'s Codex login.",
           "72b36ea174": "Optional. Orca can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Claude account update failed.",
@@ -8849,7 +8844,7 @@
           "fd62f37c24": "Codex reported this {{value0}} login is out of date.",
           "e4a28e8894": "Codex reported that the {{value0}} login needs a fresh sign-in. Sign in again before starting new Codex sessions.",
           "75ca9b718e": "Codex reported that the active account needs a fresh sign-in. Re-authenticate it before starting new Codex sessions.",
-          "e05d0ff737": "Use your current {{value0}} Claude login.",
+          "e05d0ff737": "Uses {{value0}}'s Claude login.",
           "2f24f244a4": "MiniMax cookie is required.",
           "8e6f0cb1d8": "MiniMax cookie was not saved.",
           "8d61637a77": "MiniMax cookie saved.",
@@ -8887,8 +8882,6 @@
           "accountScopePrefix": "Account scope",
           "accountScopeRemoteServerUnnamed": "Remote server",
           "remoteScopeAuthContext": "Each account keeps its own sign-in context on {{value0}}.",
-          "remoteEmptyClaudeAccounts": "No managed Claude accounts on {{value0}}. It uses its system default Claude login; add accounts on that server.",
-          "remoteEmptyCodexAccounts": "No managed Codex accounts on {{value0}}. It uses its system default Codex login; add accounts on that server.",
           "codexSystemDefaultCustomProvider": "Custom provider — no usage tracked.",
           "codexSystemDefaultNeedsSignIn": "No Codex sign-in was found for {{value0}}.",
           "codexConfigSyncMissingSource": "Codex is still using the settings it last synced because {{value0}} is missing. Restore that file to resume syncing.",
@@ -8938,7 +8931,11 @@
           "4d274a02f0": "OpenCode Go session cookie",
           "4d41177f74": "MiniMax session cookie",
           "7e9977b560": "Add account",
-          "109431f707": "OpenCode Go workspace id"
+          "109431f707": "OpenCode Go workspace id",
+          "remoteEmptyClaudeOwnLogin": "No managed Claude accounts on {{value0}}. It uses its own Claude login; add accounts on that server.",
+          "remoteEmptyCodexOwnLogin": "No managed Codex accounts on {{value0}}. It uses its own Codex login; add accounts on that server.",
+          "emptyClaudeOwnLogin": "No managed Claude accounts for {{value0}}. Orca will use that environment's own Claude login until you add one here.",
+          "emptyCodexOwnLogin": "No managed Codex accounts for {{value0}}. Orca will use that environment's own Codex login until you add one here."
         },
         "AdvancedPane": {
           "40b29e0bf3": "Restart",
@@ -17518,7 +17515,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Tracking not set up",
-                  "cc39a87288": "Connected · System default",
                   "00087eecb2": "Connected · {{value0}}"
                 }
               }
@@ -22918,11 +22914,10 @@
         "label": "Message box and prompts"
       },
       "account": {
-        "systemDefault": "System default",
         "followHost": "Selected account",
         "title": "Account",
         "locked": "This chat keeps the account it started on.",
-        "hint": "The account this chat runs on. Other chats keep the selected account.",
+        "hint": "The account this chat runs on. Other chats use the default.",
         "changeFailed": "Couldn't change the account."
       },
       "googleOffer": {
@@ -23023,12 +23018,6 @@
         "stopAndSwitchBody": "This stops the current turn and continues the chat on {{target}}.",
         "switchButton": "Switch account or agent",
         "inUse": "In use",
-        "followHost": "Follow the host",
-        "followHostNow": "Uses the host's selected account, now {{account}}",
-        "followHostHint": "Uses the host's selected account",
-        "systemDefault": "System default",
-        "systemDefaultLogin": "The host's own Claude login, {{email}}",
-        "systemDefaultLoginUnnamed": "The host's own Claude login",
         "usageWindow": "{{window}} · {{usage}}",
         "windowWeek": "week",
         "limitedUntil": "Limited until {{time}}",
@@ -25382,10 +25371,10 @@
       "failed": "Couldn't move the pane to a new tab."
     },
     "claudeOldTerminalBanner": {
-      "title": "This terminal was opened before Orca's Claude account update, so claude here uses System default's login.",
       "dialogTitle": "Why claude here doesn't use the selected account",
       "dialogDescription": "Orca now keeps each Claude account in its own folder, and claude in a new terminal follows the account you select.",
-      "dialogCause": "Terminals opened before this update don't, so claude here signs in with System default's login. Open a new terminal to use the selected account."
+      "titleOwnLogin": "This terminal was opened before Orca's Claude account update, so claude here uses this computer's own Claude login.",
+      "dialogCauseOwnLogin": "Terminals opened before this update don't, so claude here signs in with this computer's own Claude login. Open a new terminal to use the selected account."
     },
     "claudeDiffPanelNotice": {
       "title": "Claude Code can open its own diff panel beside the chat in wide terminals. That panel is Claude's, not Orca's.",
@@ -25518,6 +25507,8 @@
     "addTypedPathCode": "Add <path/>"
   },
   "accounts": {
+    "defaultBadge": "default",
+    "ownLogin": "This computer's login",
     "wslAccountNotApplied": {
       "title": "Account selection not applied in {{distro}}",
       "description": "Agents there use the distro's default Claude and Codex accounts until Orca in WSL is updated."
@@ -25641,10 +25632,7 @@
       "added": "Account added. Select it to use it for the next Claude you start.",
       "nextLaunch": "{{value0}} → {{value1}}. The next Claude terminal you start uses it. Running Claude terminals keep their account.",
       "profileSwitching": "Switching applies to the next Claude you start in any tab.",
-      "systemDefault": "System default",
       "unnamedAccount": "Claude account",
-      "systemDefaultNamed": "System default: {{value0}}",
-      "systemDefaultIsSaved": "System default is signed in as {{value0}}, which is also a saved account. An earlier Orca version may have copied that login there. If it is not your own login, select System default and run claude /login.",
       "systemDefaultIsSavedDismiss": "Dismiss",
       "signInRequired": "Sign in again to use this account",
       "signInAgain": "Sign in again",
@@ -25711,7 +25699,8 @@
         "about": "About Claude usage polling"
       },
       "organizationSuffix": "Organization ···{{suffix}}",
-      "personalOrganization": "Personal"
+      "personalOrganization": "Personal",
+      "ownLoginIsSaved": "This computer's Claude login is signed in as {{value0}}, which is also a saved account. An earlier Orca version may have copied that login there. If it is not your own login, select the row above and run claude /login."
     },
     "codex": {
       "usageSignInLabel": "Signed out",
@@ -25724,7 +25713,6 @@
       "add": "Copy setup command",
       "refresh": "Refresh accounts",
       "upgrade": "If accounts do not appear, update or restart the Orca host.",
-      "system": "System default",
       "active": "Active",
       "select": "Select",
       "remove": "Remove",
@@ -25762,12 +25750,7 @@
     "remoteScopeAccountsAddHere": "Showing accounts managed by {{value0}}. New accounts sign in there; you finish in this device’s browser.",
     "rename": {
       "action": "Rename",
-      "title": "Rename account",
-      "description": "Only the name Orca shows changes. Leave it blank to show {{email}}.",
       "label": "Display name",
-      "reset": "Reset to default",
-      "cancel": "Cancel",
-      "save": "Save",
       "unsupportedHost": "Update Orca on {{host}} to change this setting there."
     }
   },

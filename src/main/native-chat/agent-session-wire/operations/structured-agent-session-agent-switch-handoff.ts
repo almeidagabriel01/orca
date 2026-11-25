@@ -11,6 +11,8 @@ import { isTuiAgent } from '../../../../shared/agent-launch/catalog/tui-agent-co
 import { formatAgentTypeLabel } from '../../../../shared/agent-status/presentation/agent-type-label'
 import type { AgentJournalPlainStatusItem } from '../../../../shared/agent-session/journal/agent-session-journal-types'
 import type { AgentSessionRecord } from '../../../../shared/agent-session/lifecycle/agent-session-record'
+import { getAccountDisplayName } from '../../../../shared/agent-accounts/managed-account-display-names'
+import { resolveAccountName } from '../../../../shared/agent-accounts/account-names'
 import { getClaudeProfileRouter } from '../../../claude-accounts/profiles/routing/claude-profile-installed-router'
 import { writeAgentSessionContextSnapshot } from '../../conversation-context/agent-session-context-snapshots'
 import type { AgentSessionAgentSwitch } from '../../../runtime/agent-session/records/agent-session-agent-switch-record'
@@ -30,10 +32,20 @@ export type AgentSwitchHandoff = {
 function accountLabel(provider: string, choice: string | null): string | undefined {
   const router = provider === 'claude' ? getClaudeProfileRouter() : undefined
   try {
-    const profile = router?.chosenProfile(choice ?? undefined)
-    return profile
-      ? router?.savedAccount(profile.accountId)?.email
-      : router?.systemDefaultLogin()?.email
+    if (!router) {
+      return undefined
+    }
+    const profile = router.chosenProfile(choice ?? undefined)
+    const login = profile
+      ? (router.accountLogin(profile.accountId) ?? router.savedAccount(profile.accountId))
+      : router.systemDefaultLogin()
+    return getAccountDisplayName({
+      displayName: resolveAccountName(router.accountNames(), 'claude', {
+        email: login?.email,
+        organization: login?.organizationUuid
+      }),
+      email: login?.email
+    })
   } catch {
     return undefined
   }

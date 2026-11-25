@@ -1708,7 +1708,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Valeur par défaut du système",
             "9f0b1c2d3e": "Compte Codex"
           }
         }
@@ -4586,7 +4585,6 @@
             "11e2354daf": "Runtime d'utilisation Claude",
             "3dd7ddfae1": "Ouvrir les détails Claude et le sélecteur de compte",
             "59c6e7b4e0": "Les sessions visibles redémarrent maintenant. Les autres redémarrent quand leur worktree devient actif.",
-            "c676918adc": "Valeur par défaut du système",
             "3325d996cb": "Actualiser les limites de débit",
             "cd9d7b40ff": "Redémarrer {{value0}} sessions",
             "6cd6650b4c": "Redémarrer la session",
@@ -7528,17 +7526,14 @@
           "3d245ef7d9": "Codex signale que cette connexion est périmée",
           "589eba1eee": "Réauthentification requise",
           "e74831fb6b": "Actif",
-          "b4c9450319": "Aucun compte Codex géré pour {{value0}}. Orca utilisera la connexion Codex par défaut du système de cet environnement jusqu'à ce que vous en ajoutiez un ici.",
           "93c47b333a": "Connexion requise",
-          "f2a265f8c7": "Valeur par défaut du système",
           "c0a52abfc5": "Affiche les comptes pour {{value0}}. Les nouveaux comptes y sont ajoutés.",
           "94d351af4a": "Comptes",
           "d0d53b7eb0": "Gérer le compte Codex qu'Orca utilise pour récupérer les rate limits en direct.",
           "340d6f7a85": "Chaque compte garde son propre contexte de connexion local dans Orca. L'authentification des comptes reste sur cet appareil.",
           "cedfab35ab": "Facultatif. Orca peut utiliser votre connexion Codex habituelle ; ajoutez des comptes seulement si vous voulez changer rapidement de compte dans Orca.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "Aucun compte Claude géré pour {{value0}}. Orca utilisera la connexion Claude par défaut du système de cet environnement jusqu'à ce que vous en ajoutiez un ici.",
-          "fcc4093fc1": "Utilisez votre connexion Codex {{value0}} actuelle.",
+          "fcc4093fc1": "Utilise la connexion Codex de {{value0}}.",
           "72b36ea174": "Facultatif. Orca peut utiliser votre connexion Claude habituelle ; ajoutez des comptes seulement si vous voulez changer rapidement sans déplacer les sessions de chat.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Échec de la mise à jour du compte Claude.",
@@ -7555,7 +7550,7 @@
           "fd62f37c24": "Codex signale que cette connexion {{value0}} est périmée.",
           "e4a28e8894": "Codex signale que la connexion {{value0}} doit être refaite. Reconnectez-vous avant de démarrer de nouvelles sessions Codex.",
           "75ca9b718e": "Codex signale que le compte actif doit être reconnecté. Réauthentifiez-le avant de démarrer de nouvelles sessions Codex.",
-          "e05d0ff737": "Utilisez votre connexion Claude {{value0}} actuelle.",
+          "e05d0ff737": "Utilise la connexion Claude de {{value0}}.",
           "2f24f244a4": "Le cookie MiniMax est requis.",
           "8e6f0cb1d8": "Le cookie MiniMax n'a pas été enregistré.",
           "8d61637a77": "Cookie MiniMax enregistré.",
@@ -7593,8 +7588,6 @@
           "accountScopePrefix": "Portée des comptes",
           "accountScopeRemoteServerUnnamed": "Serveur distant",
           "remoteScopeAuthContext": "Chaque compte garde son propre contexte de connexion sur {{value0}}.",
-          "remoteEmptyClaudeAccounts": "Aucun compte Claude géré sur {{value0}}. Il utilise sa connexion Claude par défaut du système ; ajoutez des comptes sur ce serveur.",
-          "remoteEmptyCodexAccounts": "Aucun compte Codex géré sur {{value0}}. Il utilise sa connexion Codex par défaut du système ; ajoutez des comptes sur ce serveur.",
           "codexSystemDefaultCustomProvider": "Fournisseur personnalisé — aucune consommation suivie.",
           "codexSystemDefaultNeedsSignIn": "Aucune connexion Codex trouvée pour {{value0}}.",
           "codexConfigSyncMissingSource": "Codex utilise toujours les derniers paramètres synchronisés car {{value0}} est absent. Restaurez ce fichier pour reprendre la synchronisation.",
@@ -16006,7 +15999,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Suivi non configuré",
-                  "cc39a87288": "Connecté · Par défaut du système",
                   "00087eecb2": "Connecté · {{value0}}"
                 }
               },
@@ -23072,7 +23064,6 @@
       "add": "Copier la commande de configuration",
       "refresh": "Actualiser les comptes",
       "upgrade": "Si les comptes n’apparaissent pas, mettez à jour ou redémarrez l’hôte Orca.",
-      "system": "Compte système par défaut",
       "active": "Actif",
       "select": "Sélectionner",
       "remove": "Supprimer",
@@ -23146,10 +23137,7 @@
       "added": "Compte ajouté. Sélectionnez-le pour l'utiliser pour le prochain Claude que vous démarrez.",
       "nextLaunch": "{{value0}} → {{value1}}. Le prochain terminal Claude que vous démarrez utilisera ce compte. Les terminaux Claude en cours conservent leur compte.",
       "profileSwitching": "Le changement s'applique au prochain Claude que vous démarrez dans n'importe quel onglet. Les sessions en cours conservent leur compte.",
-      "systemDefault": "Valeur par défaut du système",
       "unnamedAccount": "Compte Claude",
-      "systemDefaultNamed": "Système par défaut : {{value0}}",
-      "systemDefaultIsSaved": "Système par défaut est connecté en tant que {{value0}}, qui est aussi un compte enregistré. Une version antérieure d'Orca a peut-être copié cette connexion à cet endroit. S'il ne s'agit pas de votre propre connexion, sélectionnez Système par défaut et exécutez claude /login.",
       "systemDefaultIsSavedDismiss": "Ignorer",
       "signInRequired": "Reconnectez-vous pour utiliser ce compte",
       "signInAgain": "Se reconnecter",
@@ -23302,10 +23290,8 @@
       "dismiss": "Rejeter"
     },
     "claudeOldTerminalBanner": {
-      "title": "Ce terminal a été ouvert avant la mise à jour des comptes Claude d'Orca ; claude y utilise donc la connexion de Système par défaut.",
       "dialogTitle": "Pourquoi claude n'utilise pas ici le compte sélectionné",
-      "dialogDescription": "Orca conserve désormais chaque compte Claude dans son propre dossier, et claude dans un nouveau terminal suit le compte que vous sélectionnez.",
-      "dialogCause": "Les terminaux ouverts avant cette mise à jour ne le font pas, donc claude se connecte ici avec la connexion de Système par défaut. Ouvrez un nouveau terminal pour utiliser le compte sélectionné."
+      "dialogDescription": "Orca conserve désormais chaque compte Claude dans son propre dossier, et claude dans un nouveau terminal suit le compte que vous sélectionnez."
     },
     "fileDrop": {
       "copyUploadedPaths": "Copier les chemins",

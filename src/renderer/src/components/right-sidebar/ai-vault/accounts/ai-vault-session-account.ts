@@ -1,7 +1,10 @@
 import { useMemo, useSyncExternalStore } from 'react'
 import type { ManagedDataAccountsState } from '../../../../../../shared/agent-accounts/managed-account-types'
 import type { ProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
+import { getSystemDefaultDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
+import { useLocalUsageAccountRosters } from '../../../status-bar/composition/use-local-usage-account-rosters'
 import {
+  isOwnLoginSession,
   sessionAccountBinding,
   type SessionAccountSource,
   type AccountBinding
@@ -61,5 +64,14 @@ export function useAiVaultSessionAccount(session: SessionAccountSource): string 
       read: () => (key === null ? staticValue : readSessionAccount(key))
     }
   }, [key, staticValue, kind, profileId, path, scope])
-  return useSyncExternalStore(observation.subscribe, observation.read, observation.read)
+  const label = useSyncExternalStore(observation.subscribe, observation.read, observation.read)
+  const ownLogin = isOwnLoginSession(session)
+  const rosters = useLocalUsageAccountRosters(ownLogin)
+  if (!ownLogin) {
+    return label
+  }
+  return (
+    getSystemDefaultDisplayName(session.agent === 'claude' ? rosters.claude : rosters.codex) ??
+    label
+  )
 }

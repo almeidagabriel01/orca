@@ -2,7 +2,6 @@ import { Loader2, Plus, X } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
 import { selectClaudeProviderAccount } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
-import { Badge } from '../../../ui/badge'
 import { Button } from '../../../ui/button'
 import { ButtonGroup } from '../../../ui/button-group'
 import { Label } from '../../../ui/label'
@@ -27,6 +26,16 @@ import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { ProviderNotInstalledSection } from '../provider-not-installed'
 import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
 import { renderClaudeAccountRow } from './accounts-pane-claude-account-row'
+import {
+  getAccountDisplayName,
+  SYSTEM_DEFAULT_ACCOUNT_NAME_KEY
+} from '../../../../../../shared/agent-accounts/managed-account-display-names'
+import {
+  AccountRenameButton,
+  isEditingAccountName,
+  renderAccountNameInput
+} from '../account-name-field'
+import { OwnLoginRowTitle } from '../own-login-row-title'
 
 export function renderClaudeAccountsSection(
   model: AccountsPaneSectionModel,
@@ -51,9 +60,13 @@ export function renderClaudeAccountsSection(
     visibleClaudeAccounts,
     wslCapabilitiesLoading
   } = model
-  // System default belongs to the host home, never a WSL distro.
+  // The host's own login belongs to the host home, never a WSL distro.
   const systemDefaultEmail =
     accountRuntime.runtime === 'host' ? claudeAccounts.systemDefaultEmail : undefined
+  // The name belongs to the host's own login, so a WSL distro's login has none.
+  const systemDefaultName =
+    accountRuntime.runtime === 'host' ? claudeAccounts.systemDefaultDisplayName : undefined
+  const systemNameTarget = { provider: 'claude' as const, id: SYSTEM_DEFAULT_ACCOUNT_NAME_KEY }
   // Warn only with copy evidence; saving one’s own login as an account is normal.
   const systemDefaultIsSaved =
     !!systemDefaultEmail &&
@@ -187,57 +200,71 @@ export function renderClaudeAccountsSection(
           ) : null}
 
           <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() =>
-                void runClaudeAccountAction('select:system', () =>
-                  selectClaudeProviderAccount(accountOwner, {
-                    accountId: null,
-                    runtime: accountRuntime.runtime,
-                    wslDistro: accountRuntime.wslDistro
-                  })
+            <div className="flex items-center gap-1">
+              {isEditingAccountName(model, systemNameTarget) ? (
+                renderAccountNameInput(
+                  model,
+                  systemNameTarget,
+                  { displayName: systemDefaultName, email: systemDefaultEmail },
+                  t
                 )
-              }
-              disabled={claudeAction !== 'idle' || accountRuntimeUnavailable}
-              className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
-                systemClaudeActive
-                  ? 'border-foreground/20 bg-accent/15'
-                  : 'border-border/70 hover:border-border hover:bg-accent/8'
-              } disabled:cursor-default disabled:opacity-100`}
-            >
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate text-sm font-medium">
-                    {systemDefaultEmail
-                      ? t('accounts.claude.systemDefaultNamed', 'System default: {{value0}}', {
-                          value0: systemDefaultEmail
-                        })
-                      : t('auto.components.settings.AccountsPane.f2a265f8c7', 'System default')}
-                  </span>
-                  {systemClaudeActive ? (
-                    <Badge
-                      variant="outline"
-                      className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
-                    >
-                      {t('auto.components.settings.AccountsPane.e74831fb6b', 'Active')}
-                    </Badge>
-                  ) : null}
-                </div>
-                <span className="truncate text-[11px] text-muted-foreground">
-                  {t(
-                    'auto.components.settings.AccountsPane.e05d0ff737',
-                    'Use your current {{value0}} Claude login.',
-                    { value0: accountRuntimeSentenceLabel }
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void runClaudeAccountAction('select:system', () =>
+                      selectClaudeProviderAccount(accountOwner, {
+                        accountId: null,
+                        runtime: accountRuntime.runtime,
+                        wslDistro: accountRuntime.wslDistro
+                      })
+                    )
+                  }
+                  disabled={claudeAction !== 'idle' || accountRuntimeUnavailable}
+                  className={`flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors ${
+                    systemClaudeActive
+                      ? 'border-foreground/20 bg-accent/15'
+                      : 'border-border/70 hover:border-border hover:bg-accent/8'
+                  } disabled:cursor-default disabled:opacity-100`}
+                >
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <OwnLoginRowTitle
+                      name={getAccountDisplayName({
+                        displayName: systemDefaultName,
+                        email: systemDefaultEmail
+                      })}
+                      active={systemClaudeActive}
+                      t={t}
+                    />
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {systemDefaultEmail ? `${systemDefaultEmail} • ` : null}
+                      {t(
+                        'auto.components.settings.AccountsPane.e05d0ff737',
+                        "Uses {{value0}}'s Claude login.",
+                        { value0: accountRuntimeSentenceLabel }
+                      )}
+                    </span>
+                  </div>
+                </button>
+              )}
+              {accountRuntime.runtime === 'host' ? (
+                <AccountRenameButton
+                  t={t}
+                  pending={model.renamingAccountKeys.has(
+                    `claude:${SYSTEM_DEFAULT_ACCOUNT_NAME_KEY}`
                   )}
-                </span>
-              </div>
-            </button>
+                  onRename={() =>
+                    model.setEditingNameKey(`claude:${SYSTEM_DEFAULT_ACCOUNT_NAME_KEY}`)
+                  }
+                />
+              ) : null}
+            </div>
             {systemDefaultIsSaved ? (
               <div className="flex items-start justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
                   {t(
-                    'accounts.claude.systemDefaultIsSaved',
-                    'System default is signed in as {{value0}}, which is also a saved account. An earlier Orca version may have copied that login there. If it is not your own login, select System default and run claude /login.',
+                    'accounts.claude.ownLoginIsSaved',
+                    "This computer's Claude login is signed in as {{value0}}, which is also a saved account. An earlier Orca version may have copied that login there. If it is not your own login, select the row above and run claude /login.",
                     { value0: systemDefaultEmail }
                   )}
                 </p>
@@ -254,13 +281,13 @@ export function renderClaudeAccountsSection(
               <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
                 {isRemoteAccountScope
                   ? t(
-                      'auto.components.settings.AccountsPane.remoteEmptyClaudeAccounts',
-                      'No managed Claude accounts on {{value0}}. It uses its system default Claude login; add accounts on that server.',
+                      'auto.components.settings.AccountsPane.remoteEmptyClaudeOwnLogin',
+                      'No managed Claude accounts on {{value0}}. It uses its own Claude login; add accounts on that server.',
                       { value0: accountRuntimeSentenceLabel }
                     )
                   : t(
-                      'auto.components.settings.AccountsPane.3fe7862418',
-                      "No managed Claude accounts for {{value0}}. Orca will use that environment's system default Claude login until you add one here.",
+                      'auto.components.settings.AccountsPane.emptyClaudeOwnLogin',
+                      "No managed Claude accounts for {{value0}}. Orca will use that environment's own Claude login until you add one here.",
                       { value0: accountRuntimeSentenceLabel }
                     )}
               </div>

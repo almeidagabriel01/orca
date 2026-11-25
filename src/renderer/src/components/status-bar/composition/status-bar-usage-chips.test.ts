@@ -107,7 +107,7 @@ describe('per-account usage rows', () => {
       { id: 'beta', email: 'dev@beta.io', managedHomePath: '/b', ...saved }
     ],
     activeCodexManagedAccountId: 'alpha',
-    managedAccountDisplayNames: { claude: { work: 'Work' } }
+    accountNames: { 'claude:me@work.dev': { name: 'Work', updatedAt: 1 } }
   }
   const ownerUsage = owner({
     inactiveClaudeAccounts: [
@@ -116,7 +116,24 @@ describe('per-account usage rows', () => {
     inactiveCodexAccounts: [{ accountId: 'beta', rateLimits: null, updatedAt: 1, isFetching: true }]
   })
 
-  it('gives every saved Claude and Codex account its own labelled row, selected first', () => {
+  it('keeps every chip in place when the selected account switches', () => {
+    const order = (active: { claude: string; codex: string }) =>
+      getOwnerUsageRowChips({
+        ownerUsage,
+        settings: {
+          ...settings,
+          activeClaudeManagedAccountId: active.claude,
+          activeCodexManagedAccountId: active.codex
+        },
+        providers: [liveClaude, liveCodex],
+        accounts: 'all'
+      }).usageChips.map((chip) => `${chip.p.provider}:${chip.accountKey}`)
+    const before = order({ claude: 'work', codex: 'alpha' })
+    expect(before).toEqual(['claude:work', 'claude:side', 'codex:alpha', 'codex:beta'])
+    expect(order({ claude: 'side', codex: 'beta' })).toEqual(before)
+  })
+
+  it('gives every saved Claude and Codex account its own labelled row', () => {
     const { usageChips, hasSavedAccounts } = getOwnerUsageRowChips({
       ownerUsage,
       settings,

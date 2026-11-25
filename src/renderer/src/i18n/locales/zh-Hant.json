@@ -1946,7 +1946,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "系統預設",
             "9f0b1c2d3e": "Codex 帳戶"
           }
         }
@@ -4754,7 +4753,6 @@
             "11e2354daf": "Claude 用量執行環境",
             "3dd7ddfae1": "開啟 Claude 詳情和帳戶切換器",
             "59c6e7b4e0": "可見工作階段將立即重新啟動。其他工作階段會在其工作樹變為作用中狀態時重新啟動。",
-            "c676918adc": "系統預設",
             "3325d996cb": "重新整理速率限制",
             "cd9d7b40ff": "重新啟動 {{value0}} 工作階段",
             "6cd6650b4c": "重新啟動工作階段",
@@ -7500,17 +7498,14 @@
           "3d245ef7d9": "Codex 報告此登入已過時",
           "589eba1eee": "需要重新驗證",
           "e74831fb6b": "目前",
-          "b4c9450319": "{{value0}} 沒有受管理的 Codex 帳戶。Orca 將使用該環境的系統預設 Codex 登入，直到您在此處新增一個。",
           "93c47b333a": "需要登入",
-          "f2a265f8c7": "系統預設",
           "c0a52abfc5": "正在顯示 {{value0}} 的帳戶。新帳戶會新增到此處。",
           "94d351af4a": "帳戶",
           "d0d53b7eb0": "管理 Orca 使用哪個 Codex 帳戶進行即時速率限制擷取。",
           "340d6f7a85": "每個帳戶在 Orca 中都保留自己的本機登入上下文。帳戶身分驗證資訊保留在此裝置上。",
           "cedfab35ab": "可選。Orca 可使用系統預設 Codex 登入；僅當你需要在 Orca 中快速切換帳戶時才新增帳戶。",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "{{value0}} 沒有受管理的 Claude 帳戶。Orca 將使用該環境的系統預設 Claude 登入，直到您在此處新增一個。",
-          "fcc4093fc1": "使用您目前在 {{value0}} 的 Codex 登入資訊。",
+          "fcc4093fc1": "使用 {{value0}} 的 Codex 登入資訊。",
           "72b36ea174": "可選。Orca 可使用系統預設 Claude 登入；僅當你需要快速切換且不想搬移聊天工作階段時才新增帳戶。",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Claude 帳戶更新失敗。",
@@ -7527,7 +7522,7 @@
           "fd62f37c24": "Codex 報告此 {{value0}} 登入資訊已過期。",
           "e4a28e8894": "Codex 報告 {{value0}} 需要重新登入。請先重新登入，再啟動新的 Codex 工作階段。",
           "75ca9b718e": "Codex 報告目前使用的帳戶需要重新登入。請先重新進行身分驗證，再啟動新的 Codex 工作階段。",
-          "e05d0ff737": "使用您目前在 {{value0}} 的 Claude 登入資訊。",
+          "e05d0ff737": "使用 {{value0}} 的 Claude 登入資訊。",
           "2f24f244a4": "需要 MiniMax Cookie。",
           "8e6f0cb1d8": "MiniMax Cookie 未儲存。",
           "8d61637a77": "MiniMax Cookie 已儲存。",
@@ -7565,8 +7560,6 @@
           "accountScopePrefix": "帳戶範圍",
           "accountScopeRemoteServerUnnamed": "遠端伺服器",
           "remoteScopeAuthContext": "每個帳戶在 {{value0}} 上保留自己的登入上下文。",
-          "remoteEmptyClaudeAccounts": "{{value0}} 上沒有受管理的 Claude 帳戶。它使用其系統預設的 Claude 登入；請在該伺服器上新增帳戶。",
-          "remoteEmptyCodexAccounts": "{{value0}} 上沒有受管理的 Codex 帳戶。它使用其系統預設的 Codex 登入；請在該伺服器上新增帳戶。",
           "codexSystemDefaultCustomProvider": "自訂供應商 — 不追蹤用量。",
           "codexSystemDefaultNeedsSignIn": "未找到 {{value0}} 的 Codex 登入資訊。",
           "codexConfigSyncMissingSource": "由於缺少 {{value0}}，Codex 仍在使用上次同步的設定。請恢復該檔案以恢復同步。",
@@ -15882,7 +15875,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "未設定追蹤",
-                  "cc39a87288": "已連線·系統預設",
                   "00087eecb2": "已連線 · {{value0}}"
                 }
               }
@@ -22332,10 +22324,8 @@
       "failed": "無法將窗格移動到新分頁。"
     },
     "claudeOldTerminalBanner": {
-      "title": "此終端機是在 Orca 的 Claude 帳戶更新之前開啟的，因此這裡的 claude 使用系統預設的登入資訊。",
       "dialogTitle": "為何這裡的 claude 不使用所選帳戶",
-      "dialogDescription": "Orca 現在將每個 Claude 帳戶儲存在各自的資料夾中，新終端機中的 claude 會使用您選擇的帳戶。",
-      "dialogCause": "在此更新之前開啟的終端機不會如此，因此這裡的 claude 使用系統預設的登入資訊登入。請開啟新終端機以使用所選帳戶。"
+      "dialogDescription": "Orca 現在將每個 Claude 帳戶儲存在各自的資料夾中，新終端機中的 claude 會使用您選擇的帳戶。"
     },
     "claudeDiffPanelNotice": {
       "title": "終端機較寬時，Claude Code 可在聊天旁開啟自己的差異面板。此面板屬於 Claude，並非 Orca。",
@@ -22518,10 +22508,7 @@
       "added": "已新增帳戶。選擇它即可將其用於您下次啟動的 Claude。",
       "nextLaunch": "{{value0}} → {{value1}}。您下次啟動的 Claude 將使用它。正在執行的工作階段會保留其帳戶。",
       "profileSwitching": "下次在任何分頁中啟動 Claude 時，就會套用這次切換。",
-      "systemDefault": "系統預設",
       "unnamedAccount": "Claude 帳戶",
-      "systemDefaultNamed": "系統預設：{{value0}}",
-      "systemDefaultIsSaved": "系統預設已登入為 {{value0}}，它同時也是一個已儲存的帳戶。較早版本的 Orca 可能已將那個登入資訊複製到那裡。如果它不是您自己的登入資訊，請選擇系統預設並執行 claude /login。",
       "systemDefaultIsSavedDismiss": "關閉",
       "signInRequired": "請重新登入以使用此帳戶",
       "signInAgain": "重新登入",
@@ -22598,7 +22585,6 @@
       "add": "複製設定指令",
       "refresh": "重新整理帳戶",
       "upgrade": "如果帳戶未顯示，請更新或重新啟動 Orca 主機。",
-      "system": "系統預設",
       "active": "目前使用中",
       "select": "選擇",
       "remove": "移除",

@@ -1,7 +1,9 @@
 import {
-  getManagedAccountDisplayName,
-  getManagedAccountInlineLabel
+  getAccountDisplayName,
+  getSystemDefaultDisplayName
 } from '../../../../../shared/agent-accounts/managed-account-display-names'
+import { resolveAccountName } from '../../../../../shared/agent-accounts/account-names'
+import { managedAccountIdentity } from '../../../../../shared/agent-accounts/account-name-identity'
 import type { GlobalSettings } from '../../../../../shared/settings/global-settings-types'
 import { resolveClaudeRuntimeSelection } from '../../../../../shared/claude-runtime-selection'
 import {
@@ -13,6 +15,7 @@ import { translate } from '@/i18n/i18n'
 import {
   getCodexStatusRuntimeKey,
   getCodexStatusRuntimeLabel,
+  getOwnLoginLabel,
   type ClaudeStatusSwitchGroup,
   type CodexStatusRuntimeTarget,
   type StatusSwitchGroupOptions
@@ -129,7 +132,7 @@ export function buildClaudeStatusSwitchGroups(
       targets: [
         {
           id: null,
-          label: translate('auto.components.status.bar.StatusBar.c676918adc', 'System default'),
+          label: getOwnLoginLabel(getSystemDefaultDisplayName(state), target),
           active: activeId === null,
           runtimeTarget: target
         },
@@ -147,7 +150,7 @@ export function buildClaudeStatusSwitchGroups(
             id: account.id,
             usageAccountId: usable?.id ?? account.id,
             usableAccountId: usable?.id ?? null,
-            label: getManagedAccountInlineLabel(account),
+            label: getAccountDisplayName(account) ?? account.email,
             active: selected !== undefined,
             runtimeTarget: target,
             detail: [
@@ -228,7 +231,7 @@ export type ClaudeAccountSettings = Pick<
   | 'claudeManagedAccounts'
   | 'activeClaudeManagedAccountIdsByRuntime'
   | 'activeClaudeManagedAccountId'
-  | 'managedAccountDisplayNames'
+  | 'accountNames'
 >
 
 function getClaudeStatusAccountsFromSettings(
@@ -244,13 +247,13 @@ function getClaudeStatusAccountsFromSettings(
     ...runtimeState,
     accounts: settings.claudeManagedAccounts
       .map((account): ClaudeStatusAccount => {
-        // Settings carry the fresh name too; a retained host row may predate a rename.
-        const displayName = getManagedAccountDisplayName(
-          settings.managedAccountDisplayNames,
-          'claude',
-          account.id
-        )
         const hostRow = hostRows.get(account.id)
+        // Settings carry the fresh name too; keyed by the login the host reads, as it keys it.
+        const displayName = resolveAccountName(
+          settings.accountNames,
+          'claude',
+          managedAccountIdentity(hostRow ?? account)
+        )
         if (hostRow) {
           const { displayName: _hostName, ...rest } = hostRow
           return displayName ? { ...rest, displayName } : rest

@@ -14,13 +14,10 @@ import type {
 } from '../../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { formatUsageLimitResetClock } from '../../../../../../shared/agent-session/failures/agent-session-usage-limit'
 import { CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID } from '../../../../../../shared/agent-accounts/claude/claude-system-default-usage'
-import {
-  AGENT_CHAT_HOST_ACCOUNT,
-  AGENT_CHAT_SYSTEM_ACCOUNT,
-  agentSupportsChatAccountChoice
-} from '../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import { AGENT_CHAT_SYSTEM_ACCOUNT } from '../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import type { AgentSessionAgentSwitchTarget } from '../../../../../../shared/agent-session/conversation-context/agent-session-agent-switch'
-import { claudeChatAccountRows, codexHostAccountLabel } from './host-claude-chat-accounts'
+import { getSystemDefaultDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
+import { claudeChoiceRows, codexHostAccountLabel } from './host-claude-chat-accounts'
 import { offeredSwitchAgents, type SwitchFilter } from './native-chat-agent-switch-offered'
 
 export type SwitchRowUsage = {
@@ -32,10 +29,12 @@ export type SwitchRowUsage = {
 export type SwitchRow = {
   value: string
   agent: string
-  /** Concrete Claude accounts, then the other agents, then the rules a Claude chat can follow. */
-  group: 'claude' | 'agent' | 'rule'
+  /** Claude's accounts, then the other agents. */
+  group: 'claude' | 'agent'
   label: string
   description?: string
+  /** The account the host uses now, badged "default". */
+  isDefault?: boolean
   usage?: SwitchRowUsage
   disabled: boolean
   /** How the stop-and-switch confirmation names the destination. */
@@ -157,7 +156,7 @@ function codexLimits(usage: RateLimitState | null): ProviderRateLimits | null {
     : null
 }
 
-/** The "Continue with" rows: each concrete account once, the other agents, then distinct rules. */
+/** The "Continue with" rows: each Claude account once (own login included), then the other agents. */
 export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
   const { agent, choice, usage, display, now, locale, t } = input
   const usageOf = (limits: ProviderRateLimits | null): SwitchRowUsage | undefined =>
@@ -165,62 +164,52 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
   const claudeName = structuredAgentLabel('claude')
   const named = (name: string, account: string): string => `${name} · ${account}`
   const hostAccount = t('components.native-chat.agentSwitch.hostAccount', 'Host account')
-  const systemDefault = t('components.native-chat.account.systemDefault', 'System default')
+  const ownLogin = t('accounts.ownLogin', "This computer's login")
 
   const claude =
     input.accounts && !input.accounts.failedProviders?.includes('claude')
       ? input.accounts.claude
       : null
-  const concrete = claude ? claudeChatAccountRows(claude) : []
-  const shown = offeredSwitchAgents(input, concrete.length > 0)
+  const resolved = claude ? claudeChoiceRows(claude, choice, ownLogin) : null
+  // Only the own login: the chat has nothing to pick between, so it shows as the agent.
+  const concrete = resolved && resolved.rows.some((row) => row.value !== AGENT_CHAT_SYSTEM_ACCOUNT)
+  const shown = offeredSwitchAgents(input, Boolean(concrete))
   const offersClaude = input.agents.includes('claude') && !shown.claudeHidden
-  const saved = choice ?? AGENT_CHAT_HOST_ACCOUNT
-  const hostId = claude?.activeAccountId ?? null
-  const hostUsageId = hostId ?? CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID
-  const systemEmail = claude?.systemDefaultEmail
-  const systemMatch = systemEmail ? concrete.find((row) => row.email === systemEmail) : undefined
-  const hostRow = hostId ? concrete.find((row) => row.value === hostId) : systemMatch
-  const hostNow = hostRow?.label ?? (hostId ? undefined : (systemEmail ?? systemDefault))
+  const hostUsageId = claude?.activeAccountId ?? CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID
   const value =
     agent !== 'claude'
       ? agentRowValue(agent)
-      : concrete.length === 0
-        ? agentRowValue('claude')
-        : accountRowValue(saved)
-  // The concrete account a rule resolves to, while the chat runs on Claude.
-  const inUseId =
-    agent !== 'claude'
-      ? undefined
-      : saved === AGENT_CHAT_HOST_ACCOUNT
-        ? hostRow?.value
-        : saved === AGENT_CHAT_SYSTEM_ACCOUNT
-          ? systemMatch?.value
-          : undefined
+      : resolved && concrete
+        ? accountRowValue(resolved.value)
+        : agentRowValue('claude')
   const inUse = t('components.native-chat.agentSwitch.inUse', 'In use')
   const blocked = (rowValue: string, rowUsage: SwitchRowUsage | undefined): boolean =>
     rowUsage?.spentUntil !== undefined && rowValue !== value
 
+  const ownName = (claude && getSystemDefaultDisplayName(claude)) ?? ownLogin
   const claudeRows: SwitchRow[] = !offersClaude
     ? []
-    : concrete.length === 0
+    : !resolved || !concrete
       ? [
           {
             value: agentRowValue('claude'),
             agent: 'claude',
             group: 'claude',
-            label: hostAccount,
+            label: claude ? ownName : hostAccount,
+            ...(claude ? { isDefault: true } : {}),
             disabled: false,
             destination: claudeName,
             target: { agent: 'claude' }
           }
         ]
-      : concrete.map((row): SwitchRow => {
+      : resolved.rows.map((row): SwitchRow => {
           const rowValue = accountRowValue(row.value)
-          const rowUsage = usageOf(claudeLimits(usage, row.value, hostUsageId))
-          const description = joinedParts(
-            row.value === inUseId || rowValue === value ? inUse : null,
-            row.description
-          )
+          const usageId =
+            row.value === AGENT_CHAT_SYSTEM_ACCOUNT
+              ? CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID
+              : row.value
+          const rowUsage = usageOf(claudeLimits(usage, usageId, hostUsageId))
+          const description = joinedParts(rowValue === value ? inUse : null, row.description)
           return {
             value: rowValue,
             agent: 'claude',
@@ -228,6 +217,7 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
             label: row.label,
             ...(description ? { description } : {}),
             ...(rowUsage ? { usage: rowUsage } : {}),
+            ...(row.isDefault ? { isDefault: true } : {}),
             disabled: blocked(rowValue, rowUsage),
             destination: named(claudeName, row.label),
             target: { agent: 'claude', accountChoice: row.value }
@@ -236,95 +226,32 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
 
   const codexAccount = codexHostAccountLabel(input.accounts)
   const agentRows: SwitchRow[] = shown.otherAgents.map((other): SwitchRow => {
-    const hostOnly = !agentSupportsChatAccountChoice(other)
+    // Codex runs on the host's account, so its one row is the default one.
     const account = other === 'codex' ? codexAccount : null
-    const label = account ?? hostAccount
     const destination = account
       ? named(structuredAgentLabel(other), account)
       : structuredAgentLabel(other)
     const rowUsage = other === 'codex' ? usageOf(codexLimits(usage)) : undefined
     const rowValue = agentRowValue(other)
-    const description = joinedParts(
-      rowValue === value ? inUse : null,
-      hostOnly && account ? hostAccount : null
-    )
     return {
       value: rowValue,
       agent: other,
       group: 'agent',
-      label,
-      ...(description ? { description } : {}),
+      label: account ?? hostAccount,
+      ...(rowValue === value ? { description: inUse } : {}),
       ...(rowUsage ? { usage: rowUsage } : {}),
+      ...(account ? { isDefault: true } : {}),
       disabled: blocked(rowValue, rowUsage),
       destination,
       target: { agent: other }
     }
   })
 
-  const ruleRows: SwitchRow[] = []
-  if (offersClaude && concrete.length > 0) {
-    ruleRows.push({
-      value: accountRowValue(AGENT_CHAT_HOST_ACCOUNT),
-      agent: 'claude',
-      group: 'rule',
-      label: t('components.native-chat.agentSwitch.followHost', 'Follow the host'),
-      description: hostNow
-        ? t(
-            'components.native-chat.agentSwitch.followHostNow',
-            "Uses the host's selected account, now {{account}}",
-            { account: hostNow }
-          )
-        : t(
-            'components.native-chat.agentSwitch.followHostHint',
-            "Uses the host's selected account"
-          ),
-      disabled: false,
-      destination: named(claudeName, hostNow ?? hostAccount),
-      target: { agent: 'claude', accountChoice: AGENT_CHAT_HOST_ACCOUNT }
-    })
-    // Offered only when it reaches a login no saved account covers, or when it is the chat's pick.
-    if (saved === AGENT_CHAT_SYSTEM_ACCOUNT || (systemEmail && !systemMatch)) {
-      const rowValue = accountRowValue(AGENT_CHAT_SYSTEM_ACCOUNT)
-      const rowUsage = systemMatch
-        ? undefined
-        : usageOf(claudeLimits(usage, CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID, hostUsageId))
-      ruleRows.push({
-        value: rowValue,
-        agent: 'claude',
-        group: 'rule',
-        label: t('components.native-chat.agentSwitch.systemDefault', 'System default'),
-        description: systemEmail
-          ? t(
-              'components.native-chat.agentSwitch.systemDefaultLogin',
-              "The host's own Claude login, {{email}}",
-              { email: systemEmail }
-            )
-          : t(
-              'components.native-chat.agentSwitch.systemDefaultLoginUnnamed',
-              "The host's own Claude login"
-            ),
-        ...(rowUsage ? { usage: rowUsage } : {}),
-        disabled: blocked(rowValue, rowUsage),
-        destination: named(claudeName, systemEmail ?? systemDefault),
-        target: { agent: 'claude', accountChoice: AGENT_CHAT_SYSTEM_ACCOUNT }
-      })
-    }
-  }
-
-  // The rules close the Claude group; each other agent follows as its own group.
-  const rows = [...claudeRows, ...ruleRows, ...agentRows]
-  const pinned = concrete.find((row) => row.value === saved)
+  const rows = [...claudeRows, ...agentRows]
   const currentLabel =
     agent !== 'claude'
       ? named(structuredAgentLabel(agent), (agent === 'codex' && codexAccount) || hostAccount)
-      : !claude || concrete.length === 0
-        ? claudeName
-        : pinned
-          ? pinned.label
-          : saved === AGENT_CHAT_SYSTEM_ACCOUNT
-            ? (systemEmail ?? systemDefault)
-            : saved === AGENT_CHAT_HOST_ACCOUNT
-              ? (hostNow ?? claudeName)
-              : claudeName
+      : (rows.find((row) => row.agent === 'claude' && row.value === value && concrete)?.label ??
+        claudeName)
   return { rows, hiddenCount: shown.hiddenCount, value, currentLabel }
 }

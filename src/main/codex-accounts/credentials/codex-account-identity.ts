@@ -151,7 +151,8 @@ export class CodexAccountIdentity {
       authKind: 'oauth',
       email: identity?.email ?? null,
       providerAccountId: identity?.providerAccountId ?? null,
-      workspaceLabel: identity?.workspaceLabel ?? null
+      workspaceLabel: identity?.workspaceLabel ?? null,
+      workspaceAccountId: identity?.workspaceAccountId ?? null
     }
   }
 

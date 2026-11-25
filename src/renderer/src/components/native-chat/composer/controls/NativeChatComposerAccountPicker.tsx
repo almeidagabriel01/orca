@@ -9,14 +9,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
-import {
-  AGENT_CHAT_HOST_ACCOUNT,
-  AGENT_CHAT_SYSTEM_ACCOUNT
-} from '../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
+import { getAccountDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
+import { AccountDefaultBadge } from '@/components/status-bar/accounts/AccountSwitchRowItem'
 import {
   claudeChatAccountRows,
-  useHostClaudeAccounts,
-  type ClaudeChatAccountRow
+  claudeChoiceRows,
+  useHostClaudeAccounts
 } from './host-claude-chat-accounts'
 import type { NativeChatAccountControl } from '../../session/options/structured/use-structured-chat-account'
 import { NativeChatAgentSwitchMenu } from './NativeChatAgentSwitchMenu'
@@ -42,35 +40,19 @@ function NativeChatComposerAccountOnlyPicker({
 }): React.JSX.Element | null {
   const t = useTranslate()
   const state = useHostClaudeAccounts(control.target)
-  const accounts = state ? claudeChatAccountRows(state) : []
-  // With no saved account every chat already runs on System default.
-  if (!state || accounts.length === 0) {
+  // With no saved account every chat already runs on the host's own login.
+  if (!state || claudeChatAccountRows(state).length === 0) {
     return null
   }
-  const selected = state.accounts.find((account) => account.id === state.activeAccountId)
-  const hostLabel = selected
-    ? (selected.displayName ?? selected.email)
-    : t('components.native-chat.account.systemDefault', 'System default')
-  const rows: ClaudeChatAccountRow[] = [
-    {
-      value: AGENT_CHAT_HOST_ACCOUNT,
-      label: t('components.native-chat.account.followHost', 'Selected account'),
-      description: hostLabel
-    },
-    {
-      value: AGENT_CHAT_SYSTEM_ACCOUNT,
-      label: t('components.native-chat.account.systemDefault', 'System default'),
-      ...(state.systemDefaultEmail ? { description: state.systemDefaultEmail } : {})
-    },
-    ...accounts
-  ]
-  const value = control.choice ?? AGENT_CHAT_HOST_ACCOUNT
-  const shown = rows.find((row) => row.value === value)
+  const { rows, value } = claudeChoiceRows(
+    state,
+    control.choice,
+    t('accounts.ownLogin', "This computer's login")
+  )
   const pinned = state.accounts.find((account) => account.id === value)
   const triggerLabel =
-    value === AGENT_CHAT_HOST_ACCOUNT
-      ? hostLabel
-      : (shown?.label ?? (pinned ? (pinned.displayName ?? pinned.email) : value))
+    rows.find((row) => row.value === value)?.label ??
+    (pinned ? (getAccountDisplayName(pinned) ?? pinned.email) : value)
   const disabled = control.choose === undefined
   const title = t('components.native-chat.account.title', 'Account')
   return (
@@ -106,7 +88,7 @@ function NativeChatComposerAccountOnlyPicker({
               )
             : t(
                 'components.native-chat.account.hint',
-                'The account this chat runs on. Other chats keep the selected account.'
+                'The account this chat runs on. Other chats use the default.'
               )}
         </TooltipContent>
       </Tooltip>
@@ -116,10 +98,14 @@ function NativeChatComposerAccountOnlyPicker({
             <DropdownMenuRadioItem
               key={row.value}
               value={row.value}
-              onSelect={() => control.choose?.(row.value)}
+              // Picking the shown row keeps the chat's choice, so following the host stays put.
+              onSelect={() => row.value !== value && control.choose?.(row.value)}
             >
               <div className="min-w-0 py-0.5">
-                <div className="truncate">{row.label}</div>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="truncate">{row.label}</span>
+                  {row.isDefault ? <AccountDefaultBadge /> : null}
+                </div>
                 {row.description ? (
                   <div className="truncate text-xs font-normal text-muted-foreground">
                     {row.description}

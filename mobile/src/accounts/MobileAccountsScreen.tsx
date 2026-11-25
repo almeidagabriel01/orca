@@ -45,8 +45,8 @@ import { ListGroup, SectionHeader, ListRow } from '../components/list/ListGroup'
 import { useRouteHandoff } from '../navigation/route-handoff'
 import { useMobileAccountsSnapshot } from './use-mobile-accounts-snapshot'
 import {
-  getManagedAccountInlineLabel,
-  getManagedAccountPrimaryLabel
+  getAccountDisplayName,
+  getSystemDefaultDisplayName
 } from '../../../src/shared/agent-accounts/managed-account-display-names'
 import {
   getCodexAccountDisplayDetail,
@@ -211,7 +211,11 @@ export function MobileAccountsScreen() {
           {/* A blocked row drops its press instead of dimming, so the picked one keeps full contrast. */}
           <ListRow
             key="default"
-            title={t('accounts.screen.default', 'System default')}
+            title={
+              getSystemDefaultDisplayName(
+                provider === 'claude' ? snapshot.claude : snapshot.codex
+              ) ?? t('accounts.ownLogin', "This computer's login")
+            }
             subtitle={t('accounts.screen.agentLogin', "Use the agent's own login")}
             detail={
               hasActiveProviderUsage(systemDefaultUsage.limits) ? (
@@ -236,7 +240,8 @@ export function MobileAccountsScreen() {
             const isFetching =
               (isActive && usage?.status === 'fetching') ||
               (!isActive && inactiveEntry?.isFetching === true)
-            const title = getManagedAccountPrimaryLabel(account)
+            const title = getAccountDisplayName(account) ?? account.email
+            // Emails stay in Settings; the row shows the login's name.
             // Codex logins can share an email across workspaces; desktop tells them apart the same way.
             const detail =
               provider === 'codex' ? getCodexAccountDisplayDetail(account, state.accounts) : null
@@ -244,15 +249,11 @@ export function MobileAccountsScreen() {
               <ListRow
                 key={account.id}
                 title={title}
-                subtitle={
-                  [title === account.email ? null : account.email, detail]
-                    .filter(Boolean)
-                    .join(' · ') || undefined
-                }
+                subtitle={detail ?? undefined}
                 accessibilityLabel={
                   provider === 'codex'
                     ? getCodexAccountDisplayLabel(account, state.accounts)
-                    : getManagedAccountInlineLabel(account)
+                    : title
                 }
                 detail={
                   <>

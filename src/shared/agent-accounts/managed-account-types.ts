@@ -56,6 +56,8 @@ export type CodexSystemDefaultIdentity = {
   email: string | null
   providerAccountId: string | null
   workspaceLabel: string | null
+  /** Names the login across hosts; absent from older hosts. */
+  workspaceAccountId?: string | null
 }
 
 export type CodexRateLimitAccountsState = {
@@ -64,6 +66,8 @@ export type CodexRateLimitAccountsState = {
   activeAccountIdsByRuntime?: CodexManagedAccountRuntimeSelection
   /** Host’s real ~/.codex identity; omitted where unresolved, such as per-distro WSL. */
   systemDefault?: CodexSystemDefaultIdentity
+  /** The name the user gave System default on this host; absent shows the email's local part. */
+  systemDefaultDisplayName?: string
 }
 
 export type CodexManagedAccountRuntimeSelection = {
@@ -128,6 +132,8 @@ export type ClaudeRateLimitAccountsState = {
   activeAccountIdsByRuntime?: ClaudeManagedAccountRuntimeSelection
   /** The login System default holds, when the host can read it and accounts exist. */
   systemDefaultEmail?: string
+  /** The name the user gave System default on this host; absent shows the email's local part. */
+  systemDefaultDisplayName?: string
   systemDefaultOrganizationUuid?: string
   /** The host folder System default launches use, when accounts exist. */
   systemDefaultHome?: string

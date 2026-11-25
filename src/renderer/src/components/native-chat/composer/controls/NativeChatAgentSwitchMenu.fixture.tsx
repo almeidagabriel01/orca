@@ -67,7 +67,7 @@ const openMenu = async (frame: HTMLElement): Promise<void> => {
   await wait(50)
 }
 
-/** Follows the host (Work): the rule is marked and Work says it is in use. */
+/** Follows the computer's default (Work): its row is marked, in use and badged "default". */
 export const idle = defineFixture({
   width: 420,
   render: () => <Menu agent="claude" />,

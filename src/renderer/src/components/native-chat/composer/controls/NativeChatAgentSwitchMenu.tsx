@@ -22,7 +22,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { AgentIcon } from '@/components/agent/icons/AgentIcon'
 import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
-import { cn } from '@/lib/class-names'
 import { structuredAgentLabel } from '@/lib/agent-session/launch/structured-agent-session-launch-label'
 import { useAppStore } from '@/store'
 import { useAccountOwnerUsage } from '@/components/status-bar/usage/use-owner-usage-rate-limits'
@@ -34,6 +33,7 @@ import type { RateLimitState } from '../../../../../../shared/agent-usage/rate-l
 import type { AccountOwner } from '@/runtime/provider-accounts/ownership/wsl-host-account-owner'
 import type { ProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
 import { useAgentCliPresence } from '@/components/settings/accounts/provider-not-installed'
+import { AccountDefaultBadge } from '@/components/status-bar/accounts/AccountSwitchRowItem'
 import { useHostProviderAccounts } from './host-claude-chat-accounts'
 import { agentSwitchMenuModel, type SwitchRow } from './native-chat-agent-switch-rows'
 import type {
@@ -246,7 +246,10 @@ export function NativeChatAgentSwitchMenuView({
                   >
                     <span className="min-w-0 flex-1 py-0.5">
                       <span className="flex items-baseline gap-3">
-                        <span className="min-w-0 flex-1 truncate">{row.label}</span>
+                        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                          <span className="truncate">{row.label}</span>
+                          {row.isDefault ? <AccountDefaultBadge /> : null}
+                        </span>
                         {row.usage && !row.description ? (
                           <span className="shrink-0 text-xs font-normal text-muted-foreground tabular-nums">
                             {row.usage.text}
@@ -255,14 +258,7 @@ export function NativeChatAgentSwitchMenuView({
                       </span>
                       {row.description ? (
                         <span className="flex items-start gap-3 text-xs font-normal text-muted-foreground">
-                          <span
-                            className={cn(
-                              'min-w-0 flex-1',
-                              row.group === 'rule' ? 'line-clamp-2' : 'truncate'
-                            )}
-                          >
-                            {row.description}
-                          </span>
+                          <span className="min-w-0 flex-1 truncate">{row.description}</span>
                           {row.usage ? (
                             <span className="shrink-0 tabular-nums">{row.usage.text}</span>
                           ) : null}

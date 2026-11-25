@@ -48,6 +48,7 @@ export function sameNativeAccountDisplay(
   return (
     a.account.id === b.account.id &&
     a.account.email === b.account.email &&
+    a.account.displayName === b.account.displayName &&
     a.account.workspaceLabel === b.account.workspaceLabel &&
     a.peers.same(b.peers)
   )

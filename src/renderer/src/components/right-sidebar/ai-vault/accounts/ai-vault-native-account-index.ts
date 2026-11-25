@@ -3,6 +3,7 @@ import type {
   CodexManagedAccountSummary
 } from '../../../../../../shared/agent-accounts/managed-account-types'
 import { normalizeRuntimePathForComparison } from '../../../../../../shared/file-access/cross-platform-path'
+import { getAccountDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
 import type { ProviderAccountsSnapshot } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
 import { accountRuntimeScope, type NativeAccountBinding } from './ai-vault-account-binding'
 import {
@@ -169,13 +170,13 @@ export function nativeAccountDisplay(
     }
     const current = evidence.claudeHomes.get(key)
     if (current) {
-      return current.email
+      return getAccountDisplayName(current) ?? current.email
     }
     const summary = saved ? evidence.claudeIds.get(saved.id) : undefined
     return !summary ||
       (summary.home && normalizeRuntimePathForComparison(summary.home) !== binding.path)
       ? null
-      : summary.email
+      : (getAccountDisplayName(summary) ?? summary.email)
   }
   if (!saved) {
     return null
@@ -186,6 +187,9 @@ export function nativeAccountDisplay(
     account: {
       id: current.id,
       email: current.email,
+      ...('displayName' in current && current.displayName
+        ? { displayName: current.displayName }
+        : {}),
       workspaceLabel: current.workspaceLabel?.trim() || null
     },
     peers:

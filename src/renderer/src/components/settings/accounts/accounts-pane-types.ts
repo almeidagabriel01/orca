@@ -46,12 +46,10 @@ export type RemoveAccountTarget = {
   runtime: ProviderAccountRuntimeView
 }
 
+/** `id` is a saved account's id, or SYSTEM_DEFAULT_ACCOUNT_NAME_KEY for System default. */
 export type RenameAccountTarget = {
   provider: 'claude' | 'codex'
   id: string
-  email: string
-  displayName: string | null
-  runtime: ProviderAccountRuntimeView
 }
 
 export type ProviderAccountVisibilityOptions = {
@@ -99,7 +97,9 @@ export type AccountsPaneSectionModel = {
   visibleClaudeAccounts: ClaudeRateLimitAccountsState['accounts']
   systemClaudeActive: boolean
   setRemoveClaudeTarget: Dispatch<SetStateAction<RemoveAccountTarget | null>>
-  setRenameTarget: Dispatch<SetStateAction<RenameAccountTarget | null>>
+  /** `provider:id` of the account whose name is being edited inline. */
+  editingNameKey: string | null
+  setEditingNameKey: Dispatch<SetStateAction<string | null>>
   renameAccount: (target: RenameAccountTarget, displayName: string) => Promise<void>
   /** `provider:id` of accounts with a rename in flight. */
   renamingAccountKeys: ReadonlySet<string>

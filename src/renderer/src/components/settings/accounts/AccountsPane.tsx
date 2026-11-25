@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { withManagedAccountDisplayNames } from '../../../../../shared/agent-accounts/managed-account-display-names'
+import { withAccountNames } from '../../../../../shared/agent-accounts/account-name-identity'
 import type {
   ClaudeRateLimitAccountsState,
   CodexRateLimitAccountsState
@@ -50,10 +50,8 @@ import type {
   AccountsPaneProps,
   AccountsPaneSectionModel,
   ProviderAccountAction,
-  RemoveAccountTarget,
-  RenameAccountTarget
+  RemoveAccountTarget
 } from './accounts-pane-types'
-import { AccountRenameDialog } from './account-rename-dialog'
 import { EMPTY_WSL_DISTROS, getSelectedAccountRuntime } from './scope/accounts-pane-runtime'
 import { getRuntimeSentenceLabel } from '../../../lib/provider-accounts/account-runtime-label'
 import { createAccountsPaneRunners } from './accounts-pane-account-actions'
@@ -165,19 +163,19 @@ export function AccountsPane({
     codexShown: codexSectionShown
   })
   // This desktop's names change with its settings, e.g. a rename in another window.
-  const localNames = isRemoteAccountScope ? undefined : settings.managedAccountDisplayNames
+  const localNames = isRemoteAccountScope ? undefined : settings.accountNames
   const codexAccounts = useMemo(
-    () => withManagedAccountDisplayNames(ownerCodexAccounts, localNames, 'codex'),
+    () => withAccountNames(ownerCodexAccounts, localNames, 'codex'),
     [ownerCodexAccounts, localNames]
   )
   const claudeAccounts = useMemo(
-    () => withManagedAccountDisplayNames(ownerClaudeAccounts, localNames, 'claude'),
+    () => withAccountNames(ownerClaudeAccounts, localNames, 'claude'),
     [ownerClaudeAccounts, localNames]
   )
   // Capture runtime slots at dialog opening; roster updates could remove the slot needed for restart diffs.
   const [removeCodexTarget, setRemoveCodexTarget] = useState<RemoveAccountTarget | null>(null)
   const [removeClaudeTarget, setRemoveClaudeTarget] = useState<RemoveAccountTarget | null>(null)
-  const [renameTarget, setRenameTarget] = useState<RenameAccountTarget | null>(null)
+  const [editingNameKey, setEditingNameKey] = useState<string | null>(null)
   const [renamingAccountKeys, setRenamingAccountKeys] = useState<ReadonlySet<string>>(
     () => new Set()
   )
@@ -332,7 +330,8 @@ export function AccountsPane({
     visibleClaudeAccounts,
     systemClaudeActive,
     setRemoveClaudeTarget,
-    setRenameTarget,
+    editingNameKey,
+    setEditingNameKey,
     renameAccount,
     renamingAccountKeys,
     runClaudeAccountAction,
@@ -414,7 +413,6 @@ export function AccountsPane({
   return (
     <div className="space-y-8">
       {renderAccountsRemovalDialogs(model, removeCodexTarget, removeClaudeTarget, t)}
-      <AccountRenameDialog model={model} target={renameTarget} />
       <SettingsSectionStack sections={visibleSections} />
     </div>
   )

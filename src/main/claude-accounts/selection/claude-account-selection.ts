@@ -4,16 +4,13 @@ import type {
   ClaudeRateLimitAccountsState
 } from '../../../shared/agent-accounts/managed-account-types'
 import type { GlobalSettings } from '../../../shared/settings/global-settings-types'
-import {
-  getManagedAccountDisplayName,
-  normalizeManagedAccountDisplayName,
-  withManagedAccountDisplayName
-} from '../../../shared/agent-accounts/managed-account-display-names'
+import { SYSTEM_DEFAULT_ACCOUNT_NAME_KEY } from '../../../shared/agent-accounts/managed-account-display-names'
+import { setStoredAccountName } from '../../agent-accounts/stored-account-names'
+import { withClaudeAccountNames } from './claude-account-names'
 import type { RateLimitService } from '../../rate-limits/service/rate-limit-service'
 import { claudeStateFile, readClaudeFolderLogin } from '../sign-in/claude-account-folder'
-import { readClaudeOAuthCredentials } from '../../rate-limits/providers/claude/claude-oauth-credentials'
-import { resolveLoginShellEnvironment } from '../../startup/shell-environment/login-shell-environment'
 import { savedWslClaudeAccountHome } from '../profiles/wsl/claude-profile-wsl-paths'
+import { accountHoldsNoLogin } from './claude-account-login-presence'
 import type { ClaudeRuntimeAuthService } from '../runtime-auth-service'
 import {
   getClaudeSelectionTargetForAccount,
@@ -40,6 +37,7 @@ export type ClaudeAccountSettings = Pick<
   | 'activeClaudeManagedAccountId'
   | 'activeClaudeManagedAccountIdsByRuntime'
   | 'managedAccountDisplayNames'
+  | 'accountNames'
 >
 
 export type ClaudeAccountStore = {
@@ -90,11 +88,11 @@ export class ClaudeAccountSelection {
         }
       })
       .sort((a, b) => b.updatedAt - a.updatedAt)
-    const userConfigDir = this.runtimeAuth.router.userConfigDir()
-    // Throttle parsing of the large, frequently rewritten personal state file.
-    const systemDefault =
-      accounts.length > 0 ? readClaudeFolderLogin(claudeStateFile(userConfigDir), 5_000) : null
-    return {
+    // Throttle parsing of the large, frequently rewritten personal state file. Read even without
+    // saved accounts: System default's name is keyed by its login.
+    const systemLogin = this.systemLogin(5_000)
+    const systemDefault = accounts.length > 0 ? systemLogin : null
+    const state: ClaudeRateLimitAccountsState = {
       accounts,
       activeAccountId: selection.host,
       activeAccountIdsByRuntime: selection,
@@ -109,6 +107,11 @@ export class ClaudeAccountSelection {
         ? { systemDefaultMayBeCopied: true }
         : {})
     }
+    return withClaudeAccountNames(this.store, state, systemLogin)
+  }
+
+  private systemLogin(maxAgeMs = 0): ReturnType<typeof readClaudeFolderLogin> {
+    return readClaudeFolderLogin(claudeStateFile(this.runtimeAuth.router.userConfigDir()), maxAgeMs)
   }
 
   private summarize(account: ClaudeManagedAccount): ClaudeManagedAccountSummary {
@@ -135,15 +138,9 @@ export class ClaudeAccountSelection {
   }
 
   private savedSummary(account: ClaudeManagedAccount): ClaudeManagedAccountSummary {
-    const displayName = getManagedAccountDisplayName(
-      this.store.getSettings().managedAccountDisplayNames,
-      'claude',
-      account.id
-    )
     return {
       id: account.id,
       email: account.email,
-      ...(displayName ? { displayName } : {}),
       managedAuthRuntime: account.managedAuthRuntime ?? 'host',
       wslDistro: account.wslDistro ?? null,
       authMethod: account.authMethod ?? 'unknown',
@@ -178,19 +175,12 @@ export class ClaudeAccountSelection {
       console.warn('[claude-accounts] Could not delete the account folder:', error)
       throw new Error(CLAUDE_ACCOUNT_FOLDER_IN_USE_MESSAGE)
     }
-    // Re-read after the folder delete: a rename may have landed meanwhile.
+    // Re-read after the folder delete. The login's name stays: it is global, not this row's.
     const remaining = this.store.getSettings()
-    const names = withManagedAccountDisplayName(
-      remaining.managedAccountDisplayNames,
-      'claude',
-      accountId,
-      null
-    )
     this.saveSettings({
       claudeManagedAccounts: remaining.claudeManagedAccounts.filter(
         (entry) => entry.id !== accountId
-      ),
-      ...(names ? { managedAccountDisplayNames: names } : {})
+      )
     })
     // Removing the last account also removes the selection file.
     await this.runtimeAuth.syncForCurrentSelection(target)
@@ -201,16 +191,20 @@ export class ClaudeAccountSelection {
 
   /** Names only; the account's record, sign-in and selection stay untouched. */
   rename(accountId: string, displayName: string | null): ClaudeRateLimitAccountsState {
-    this.requireAccount(accountId)
-    const names = withManagedAccountDisplayName(
-      this.store.getSettings().managedAccountDisplayNames,
-      'claude',
-      accountId,
-      normalizeManagedAccountDisplayName(displayName)
-    )
-    if (names) {
-      this.saveSettings({ managedAccountDisplayNames: names })
+    // Keyed by the login the row shows, so this host's display and the name always agree.
+    const login =
+      accountId === SYSTEM_DEFAULT_ACCOUNT_NAME_KEY
+        ? this.systemLogin()
+        : this.list().accounts.find((account) => account.id === accountId)
+    if (accountId !== SYSTEM_DEFAULT_ACCOUNT_NAME_KEY && !login) {
+      this.requireAccount(accountId)
     }
+    setStoredAccountName(
+      this.store,
+      'claude',
+      { email: login?.email, organization: login?.organizationUuid },
+      displayName
+    )
     return this.list()
   }
 
@@ -318,17 +312,4 @@ export class ClaudeAccountSelection {
       })
     }
   }
-}
-
-/** The read usage already makes for this account; an unreadable store is no answer. */
-async function accountHoldsNoLogin(home: string): Promise<boolean> {
-  // Claude then keeps every login elsewhere, so an empty account folder proves nothing.
-  if ((await resolveLoginShellEnvironment()).CLAUDE_SECURESTORAGE_CONFIG_DIR !== undefined) {
-    return false
-  }
-  const login = await readClaudeOAuthCredentials({
-    credentialsFileConfigDir: home,
-    keychainConfigDir: home
-  })
-  return !login.token && !login.hasRefreshableCredentials && !login.unavailable
 }

@@ -197,7 +197,8 @@
 1 src/main/claude-accounts/profiles/wsl/claude-profile-wsl-provision.ts
 1 src/main/claude-accounts/profiles/wsl/claude-profile-wsl-router.ts
 2 src/main/claude-accounts/runtime-auth/keychain.ts
-5 src/main/claude-accounts/selection/claude-account-selection.ts
+1 src/main/claude-accounts/selection/claude-account-login-presence.ts
+4 src/main/claude-accounts/selection/claude-account-selection.ts
 1 src/main/claude-accounts/service.ts
 6 src/main/claude-accounts/sign-in/claude-account-folder.ts
 2 src/main/claude-accounts/sign-in/claude-account-registration.ts

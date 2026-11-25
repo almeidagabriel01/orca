@@ -186,6 +186,14 @@ export class RuntimeAccountController {
     return getManagedDataAccountService().remove(provider, accountId)
   }
 
+  renameData(
+    provider: ManagedDataAccountProvider,
+    accountId: string,
+    label: string
+  ): Promise<ManagedDataAccountsState> {
+    return getManagedDataAccountService().rename(provider, accountId, label)
+  }
+
   async refreshForMobile(): Promise<void> {
     // Refresh reads every saved account, not only the selected one.
     await this.requireServices()
@@ -300,6 +308,12 @@ export class RuntimeAccountController {
   renameAccount(provider: ManagedAccountNameProvider, id: string, name: string | null) {
     const { claudeAccounts, codexAccounts } = this.requireServices()
     return (provider === 'claude' ? claudeAccounts : codexAccounts).renameAccount(id, name)
+  }
+
+  /** Republishes account streams after a name set or merged outside the account services. */
+  notifyNamesChanged(): void {
+    this.services?.claudeAccounts.notifyRenamed()
+    this.services?.codexAccounts.notifyRenamed()
   }
 
   addCodexFromHome(

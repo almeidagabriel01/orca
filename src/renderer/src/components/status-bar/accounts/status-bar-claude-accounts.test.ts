@@ -55,7 +55,7 @@ function hostRows(state: ClaudeRateLimitAccountsState) {
 describe('Claude status switcher identities', () => {
   it('shows one row per account even when several records hold the same login', () => {
     const rows = hostRows(rosterWithDuplicates('borrowed'))
-    const engRows = rows.filter((row) => row.label.toLowerCase() === 'eng@example.com')
+    const engRows = rows.filter((row) => row.label.toLowerCase() === 'eng')
     expect(engRows).toHaveLength(1)
     // The selected record stays the row, so the panel's sign-in state describes what launches use.
     expect(engRows[0]).toMatchObject({ id: 'borrowed', active: true })
@@ -64,7 +64,7 @@ describe('Claude status switcher identities', () => {
 
   it('represents an unselected duplicated account by its own signed-in record', () => {
     const rows = hostRows(rosterWithDuplicates('other'))
-    const engRows = rows.filter((row) => row.label.toLowerCase() === 'eng@example.com')
+    const engRows = rows.filter((row) => row.label.toLowerCase() === 'eng')
     expect(engRows).toEqual([expect.objectContaining({ id: 'resigned', active: false })])
   })
 
@@ -81,9 +81,7 @@ describe('Claude status switcher identities', () => {
   it('keeps same-email accounts in different organizations apart', () => {
     const state = rosterWithDuplicates('other')
     state.accounts.push(account('team', 'eng@example.com', { organizationUuid: 'org-team' }))
-    expect(
-      hostRows(state).filter((row) => row.label.toLowerCase() === 'eng@example.com')
-    ).toHaveLength(2)
+    expect(hostRows(state).filter((row) => row.label.toLowerCase() === 'eng')).toHaveLength(2)
   })
 
   it('counts signed-in accounts, not saved records', () => {
@@ -95,7 +93,7 @@ describe('Claude status switcher identities', () => {
     state.accounts.push(
       account('stale', 'eng@example.com', { organizationUuid: ORG, needsSignIn: true })
     )
-    expect(hostRows(state).filter((row) => row.label.toLowerCase() === 'eng@example.com')).toEqual([
+    expect(hostRows(state).filter((row) => row.label.toLowerCase() === 'eng')).toEqual([
       expect.objectContaining({
         id: 'stale',
         active: true,
@@ -189,5 +187,21 @@ describe('Claude status switcher identities', () => {
     expect(
       buildClaudeStatusSwitchGroups(state, target)[1].targets.find((row) => row.id === null)?.active
     ).toBe(true)
+  })
+})
+
+describe('Claude status switcher own login', () => {
+  it('names the own login by nickname, else as this computer, never System default', () => {
+    const own = (state: Partial<ClaudeRateLimitAccountsState>) =>
+      buildClaudeStatusSwitchGroups({ accounts: [], activeAccountId: null, ...state }, HOST)[0]
+        .targets[0]
+    expect(
+      own({ systemDefaultEmail: 'p@example.com', systemDefaultDisplayName: 'ProOps' })
+    ).toMatchObject({
+      id: null,
+      label: 'ProOps',
+      active: true
+    })
+    expect(own({}).label).toBe("This computer's login")
   })
 })

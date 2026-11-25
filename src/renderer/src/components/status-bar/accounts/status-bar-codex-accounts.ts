@@ -1,12 +1,16 @@
 import {
-  getManagedAccountDisplayName,
-  getManagedAccountPrimaryLabel
+  getAccountDisplayName,
+  getSystemDefaultDisplayName
 } from '../../../../../shared/agent-accounts/managed-account-display-names'
+import { resolveAccountName } from '../../../../../shared/agent-accounts/account-names'
+import {
+  managedAccountIdentity,
+  systemDefaultIdentity
+} from '../../../../../shared/agent-accounts/account-name-identity'
 import type { GlobalSettings } from '../../../../../shared/settings/global-settings-types'
 import type { CodexRateLimitAccountsState } from '../../../../../shared/agent-accounts/managed-account-types'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { isCodexUsageSignInRequired } from '../../../../../shared/agent-accounts/codex/codex-auth-errors'
-import { translate } from '@/i18n/i18n'
 import {
   getCodexAccountDisplayDetail,
   getCodexAccountDisplayLabel
@@ -15,6 +19,7 @@ import {
   getCodexStatusRuntimeKey,
   getCodexStatusRuntimeLabel,
   getCodexStatusWslKey,
+  getOwnLoginLabel,
   type CodexStatusRuntimeTarget,
   type CodexStatusSwitchGroup,
   type StatusSwitchGroupOptions
@@ -113,10 +118,7 @@ export function buildCodexStatusSwitchGroups(
   const makeGroup = (target: CodexStatusRuntimeTarget): CodexStatusSwitchGroup => {
     const activeId = getCodexStatusActiveId(state, target)
     const accountsForTarget = getCodexStatusAccountsForTarget(state, target)
-    const systemDefaultLabel = translate(
-      'auto.components.status.bar.StatusBar.c676918adc',
-      'System default'
-    )
+    const systemName = getOwnLoginLabel(getSystemDefaultDisplayName(state), target)
     return {
       key: getCodexStatusRuntimeKey(target),
       label: getCodexStatusRuntimeLabel(target, options.hostLabel),
@@ -124,8 +126,8 @@ export function buildCodexStatusSwitchGroups(
       targets: [
         {
           id: null,
-          label: systemDefaultLabel,
-          name: systemDefaultLabel,
+          label: systemName,
+          name: systemName,
           detail: null,
           active: activeId === null,
           runtimeTarget: target
@@ -133,14 +135,8 @@ export function buildCodexStatusSwitchGroups(
         ...accountsForTarget.map((account) => ({
           id: account.id,
           label: getCodexAccountDisplayLabel(account, accountsForTarget),
-          name: getManagedAccountPrimaryLabel(account),
-          detail:
-            [
-              account.displayName ? account.email : null,
-              getCodexAccountDisplayDetail(account, accountsForTarget)
-            ]
-              .filter(Boolean)
-              .join(' · ') || null,
+          name: getAccountDisplayName(account) ?? account.email,
+          detail: getCodexAccountDisplayDetail(account, accountsForTarget),
           active: account.id === activeId,
           runtimeTarget: target
         }))
@@ -186,28 +182,36 @@ export function buildCodexStatusSwitchGroups(
 
 function withCodexDisplayName(
   settings: GlobalSettings,
-  accountId: string
+  account: { email: string; workspaceAccountId?: string | null }
 ): { displayName?: string } {
-  const displayName = getManagedAccountDisplayName(
-    settings.managedAccountDisplayNames,
+  const displayName = resolveAccountName(
+    settings.accountNames,
     'codex',
-    accountId
+    managedAccountIdentity(account)
   )
   return displayName ? { displayName } : {}
 }
 
 function getCodexStatusAccountsFromSettings(
-  settings: GlobalSettings | null | undefined
+  settings: GlobalSettings | null | undefined,
+  runtimeState: CodexRateLimitAccountsState
 ): CodexRateLimitAccountsState | null {
   if (!settings) {
     return null
   }
+  // Settings hold no System default login; the host's state does.
+  const systemDefaultDisplayName = resolveAccountName(
+    settings.accountNames,
+    'codex',
+    systemDefaultIdentity(runtimeState)
+  )
   return {
+    ...(systemDefaultDisplayName ? { systemDefaultDisplayName } : {}),
     accounts: settings.codexManagedAccounts
       .map((account) => ({
         id: account.id,
         email: account.email,
-        ...withCodexDisplayName(settings, account.id),
+        ...withCodexDisplayName(settings, account),
         managedHomeRuntime: account.managedHomeRuntime ?? 'host',
         wslDistro: account.wslDistro ?? null,
         providerAccountId: account.providerAccountId ?? null,
@@ -241,5 +245,5 @@ export function resolveCodexStatusAccountState(
   if (ownerEnvironmentId) {
     return runtimeState
   }
-  return getCodexStatusAccountsFromSettings(settings) ?? runtimeState
+  return getCodexStatusAccountsFromSettings(settings, runtimeState) ?? runtimeState
 }

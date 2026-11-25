@@ -5,6 +5,16 @@ function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/** One provider's names, so a rename of another provider's login leaves these consumers untouched. */
+function providerAccountNames(
+  settings: GlobalSettings,
+  provider: 'claude' | 'codex'
+): GlobalSettings['accountNames'] {
+  return Object.fromEntries(
+    Object.entries(settings.accountNames ?? {}).filter(([key]) => key.startsWith(`${provider}:`))
+  )
+}
+
 function sameProviderAccountData(left: unknown, right: unknown): boolean {
   if (Object.is(left, right)) {
     return true
@@ -51,7 +61,7 @@ export function getClaudeAccountRosterSyncKey(settings: GlobalSettings | null | 
     claudeKeyBySettings,
     settings,
     (resolved) =>
-      `${resolved.activeClaudeManagedAccountId ?? 'system'}:${JSON.stringify(resolved.activeClaudeManagedAccountIdsByRuntime ?? null)}:${resolved.claudeManagedAccounts.map((account) => `${account.id}:${account.updatedAt}`).join('|')}:${JSON.stringify(resolved.managedAccountDisplayNames?.claude ?? null)}`
+      `${resolved.activeClaudeManagedAccountId ?? 'system'}:${JSON.stringify(resolved.activeClaudeManagedAccountIdsByRuntime ?? null)}:${resolved.claudeManagedAccounts.map((account) => `${account.id}:${account.updatedAt}`).join('|')}:${JSON.stringify(providerAccountNames(resolved, 'claude'))}`
   )
 }
 
@@ -66,7 +76,7 @@ export function getCodexAccountSyncKey(settings: GlobalSettings | null | undefin
     codexKeyBySettings,
     settings,
     (resolved) =>
-      `${resolved.activeRuntimeEnvironmentId?.trim() || 'local'}:${resolved.activeCodexManagedAccountId ?? 'system'}:${JSON.stringify(resolved.activeCodexManagedAccountIdsByRuntime ?? null)}:${resolved.codexManagedAccounts.map((account) => `${account.id}:${account.updatedAt}`).join('|')}:${JSON.stringify(resolved.managedAccountDisplayNames?.codex ?? null)}`
+      `${resolved.activeRuntimeEnvironmentId?.trim() || 'local'}:${resolved.activeCodexManagedAccountId ?? 'system'}:${JSON.stringify(resolved.activeCodexManagedAccountIdsByRuntime ?? null)}:${resolved.codexManagedAccounts.map((account) => `${account.id}:${account.updatedAt}`).join('|')}:${JSON.stringify(providerAccountNames(resolved, 'codex'))}`
   )
 }
 
@@ -87,8 +97,7 @@ export function getClaudeAccountSettings(
     claudeManagedAccounts: settings.claudeManagedAccounts,
     activeClaudeManagedAccountId: settings.activeClaudeManagedAccountId,
     activeClaudeManagedAccountIdsByRuntime: settings.activeClaudeManagedAccountIdsByRuntime,
-    // Only Claude's names, so a Codex rename leaves Claude consumers untouched.
-    managedAccountDisplayNames: { claude: settings.managedAccountDisplayNames?.claude }
+    accountNames: providerAccountNames(settings, 'claude')
   }
   const stable =
     previousClaudeProjection !== null && sameProviderAccountData(previousClaudeProjection, next)

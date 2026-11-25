@@ -1,3 +1,5 @@
+import { getAccountDisplayName } from './managed-account-display-names'
+
 export type CodexDisplayAccount = {
   id: string
   email: string
@@ -39,14 +41,16 @@ export function getCodexAccountDisplayDetail(
   return workspace ? `${workspace} · ${identifier}` : identifier
 }
 
+/** The account's one name; accounts sharing an email add their workspace or ID so they stay apart. */
 export function getCodexAccountDisplayLabel(
   account: CodexDisplayAccount,
   accounts: readonly CodexDisplayAccount[]
 ): string {
-  const detail = getCodexAccountDisplayDetail(account, accounts)
-  const name = account.displayName?.trim()
-  if (name) {
-    return `${name} (${detail ? `${account.email} · ${detail}` : account.email})`
-  }
-  return detail ? `${account.email} (${detail})` : account.email
+  const name = getAccountDisplayName(account) ?? account.email
+  const email = normalizeCodexAccountEmail(account.email)
+  const sharesEmail = accounts.some(
+    (entry) => entry.id !== account.id && normalizeCodexAccountEmail(entry.email) === email
+  )
+  const detail = sharesEmail ? getCodexAccountDisplayDetail(account, accounts) : null
+  return detail ? `${name} (${detail})` : name
 }

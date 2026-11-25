@@ -37,7 +37,7 @@ import { selectHomeUsageSections, type HomeUsageCard } from './home-usage-cards'
 import { MobileHomeHostPill, useHomeTabHost } from './MobileHomeHostPill'
 import { MobileHomeTabHeader, MobileHomeTabHeaderButton } from './MobileHomeTabHeader'
 import { mobileHomeUsageStyles as styles } from './mobile-home-usage-styles'
-import { getManagedAccountPrimaryLabel } from '../../../../src/shared/agent-accounts/managed-account-display-names'
+import { getAccountDisplayName } from '../../../../src/shared/agent-accounts/managed-account-display-names'
 
 const PROVIDER_TITLES: Record<ProviderKey, string> = { claude: 'Claude Code', codex: 'Codex' }
 
@@ -217,17 +217,12 @@ function UsageCard(props: {
   useMobileColorScheme()
   const [pressed, setPressed] = useState(false)
   const { card } = props
-  const title =
-    card.email == null
-      ? t('accounts.screen.default', 'System default')
-      : getManagedAccountPrimaryLabel({ email: card.email, displayName: card.displayName })
-  // A named card keeps its email on the second line, as desktop rows do.
+  // Emails stay in Settings; a card shows the login's name only.
+  const title = getAccountDisplayName(card) ?? t('accounts.ownLogin', "This computer's login")
   const subtitle =
-    card.email == null
+    card.accountId === null
       ? t('accounts.screen.agentLogin', "Use the agent's own login")
-      : title === card.email
-        ? card.subtitle
-        : [card.email, card.subtitle].filter(Boolean).join(' · ')
+      : card.subtitle
   const windows: { key: 'session' | 'weekly'; label: string }[] = [
     { key: 'session', label: t('accounts.screen.sessionWindow', '5h') },
     { key: 'weekly', label: t('accounts.screen.weeklyWindow', '7d') }

@@ -55,6 +55,22 @@ export const ACCOUNT_COMMAND_SPECS: CommandSpec[] = [
     ]
   },
   {
+    path: ['account', 'rename'],
+    summary: 'Give an agent account the name Orca shows for it',
+    usage:
+      'orca account rename --agent claude|codex|opencode|devin --account <id|email|label|system> --label <name> [--json]',
+    allowedFlags: [...LOCAL_COMMAND_FLAGS, 'agent', 'account', 'label'],
+    notes: [
+      "Only the name changes; the sign-in and selection stay. `system` names the provider's own sign-in (Claude and Codex).",
+      'For Claude and Codex, --label "" restores the default name (the email before the @). OpenCode and Devin labels cannot be empty.'
+    ],
+    examples: [
+      'orca account rename --agent claude --account me@work.example --label Work',
+      'orca account rename --agent codex --account system --label Personal',
+      'orca account rename --agent claude --account system --label ""'
+    ]
+  },
+  {
     path: ['account', 'rm'],
     aliases: [['account', 'remove']],
     destructive: true,

@@ -130,6 +130,7 @@ export type RuntimeStore = {
     nativeChatResumeWorkOnRestart?: GlobalSettings['nativeChatResumeWorkOnRestart']
     notifications?: GlobalSettings['notifications']
     claudeManagedAccounts?: GlobalSettings['claudeManagedAccounts']
+    accountNames?: GlobalSettings['accountNames']
     activeClaudeManagedAccountId?: GlobalSettings['activeClaudeManagedAccountId']
     activeClaudeManagedAccountIdsByRuntime?: GlobalSettings['activeClaudeManagedAccountIdsByRuntime']
     activeCodexManagedAccountId?: GlobalSettings['activeCodexManagedAccountId']

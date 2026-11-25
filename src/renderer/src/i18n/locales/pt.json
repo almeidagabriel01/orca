@@ -2286,6 +2286,10 @@
     },
     "artifacts": {
       "teamDisabled": "O compartilhamento de Artefatos foi desativado pela sua equipe."
+    },
+    "accounts": {
+      "codexRemoveHomeOwnLogin": "O Orca exclui a pasta do Codex desta conta em {{host}}, incluindo o login e os logins de MCP. Isso não pode ser desfeito. Se ela estiver selecionada, o próximo Codex que você iniciar usará o login próprio do Codex em {{host}}.",
+      "claudeRemoveProfileOwnLogin": "O Orca exclui a pasta própria do Claude desta conta e o login salvo nela em {{host}}, mantendo o login próprio do Claude em {{host}} e o histórico de chats compartilhado com ele. Se ela estiver selecionada, o próximo Claude que você iniciar usará esse login."
     }
   },
   "auto": {
@@ -3215,7 +3219,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Padrão do sistema",
             "9f0b1c2d3e": "Conta do Codex"
           }
         }
@@ -3733,7 +3736,6 @@
             "11e2354daf": "Runtime de uso do Claude",
             "3dd7ddfae1": "Abrir detalhes do Claude e alternador de conta",
             "59c6e7b4e0": "As sessões visíveis reiniciam agora. As outras reiniciam quando sua worktree se tornar ativa.",
-            "c676918adc": "Padrão do sistema",
             "3325d996cb": "Atualizar limites de taxa",
             "cd9d7b40ff": "Reiniciar {{value0}} Sessões",
             "6cd6650b4c": "Reiniciar Sessão",
@@ -4715,17 +4717,14 @@
           "3d245ef7d9": "O Codex informou que este login está desatualizado",
           "589eba1eee": "Precisa reautenticar",
           "e74831fb6b": "Ativo",
-          "b4c9450319": "Nenhuma conta gerenciada do Codex para {{value0}}. O Orca usará o login padrão do sistema do Codex nesse ambiente até que você adicione uma aqui.",
           "93c47b333a": "Precisa entrar",
-          "f2a265f8c7": "Padrão do sistema",
           "c0a52abfc5": "Mostrando contas de {{value0}}. Novas contas são adicionadas ali.",
           "94d351af4a": "Contas",
           "d0d53b7eb0": "Gerencie qual conta do Codex o Orca usa para obter o limite de taxa em tempo real.",
           "340d6f7a85": "Cada conta mantém seu próprio contexto de login local no Orca. A autenticação da conta permanece neste dispositivo.",
           "cedfab35ab": "Opcional. O Orca pode usar seu login normal do Codex; adicione contas somente se quiser alternar rapidamente dentro do Orca.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "Nenhuma conta gerenciada do Claude para {{value0}}. O Orca usará o login padrão do sistema do Claude nesse ambiente até que você adicione uma aqui.",
-          "fcc4093fc1": "Use seu login atual do Codex em {{value0}}.",
+          "fcc4093fc1": "Usa o login do Codex em {{value0}}.",
           "72b36ea174": "Opcional. O Orca pode usar seu login normal do Claude; adicione contas somente se quiser alternar rapidamente sem mover sessões de chat.",
           "26ef4b55be": "Claude",
           "2743cdc0af": "Falha ao atualizar a conta do Claude.",
@@ -4742,7 +4741,7 @@
           "fd62f37c24": "O Codex informou que este login em {{value0}} está desatualizado.",
           "e4a28e8894": "O Codex informou que o login em {{value0}} precisa de um novo login. Entre novamente antes de iniciar novas sessões do Codex.",
           "75ca9b718e": "O Codex informou que a conta ativa precisa de um novo login. Reautentique-a antes de iniciar novas sessões do Codex.",
-          "e05d0ff737": "Use seu login atual do Claude em {{value0}}.",
+          "e05d0ff737": "Usa o login do Claude em {{value0}}.",
           "2f24f244a4": "O cookie do MiniMax é obrigatório.",
           "8e6f0cb1d8": "O cookie do MiniMax não foi salvo.",
           "8d61637a77": "Cookie do MiniMax salvo.",
@@ -4780,8 +4779,6 @@
           "accountScopePrefix": "Escopo da conta",
           "accountScopeRemoteServerUnnamed": "Servidor remoto",
           "remoteScopeAuthContext": "Cada conta mantém seu próprio contexto de login em {{value0}}.",
-          "remoteEmptyClaudeAccounts": "Nenhuma conta gerenciada do Claude em {{value0}}. Ele usa o login padrão do sistema para o Claude; adicione contas nesse servidor.",
-          "remoteEmptyCodexAccounts": "Nenhuma conta gerenciada do Codex em {{value0}}. Ele usa o login padrão do sistema para o Codex; adicione contas nesse servidor.",
           "codexSystemDefaultCustomProvider": "Provedor personalizado — nenhum uso rastreado.",
           "codexSystemDefaultNeedsSignIn": "Nenhum login do Codex foi encontrado para {{value0}}.",
           "codexConfigSyncMissingSource": "O Codex ainda está usando as configurações da última sincronização porque {{value0}} está ausente. Restaure esse arquivo para retomar a sincronização.",
@@ -4835,7 +4832,11 @@
           "4d274a02f0": "Cookie de Sessão do OpenCode Go",
           "4d41177f74": "Cookie de Sessão do MiniMax",
           "7e9977b560": "Adicionar Conta",
-          "109431f707": "ID do Espaço de Trabalho do OpenCode Go"
+          "109431f707": "ID do Espaço de Trabalho do OpenCode Go",
+          "remoteEmptyClaudeOwnLogin": "Nenhuma conta gerenciada do Claude em {{value0}}. Ele usa o próprio login do Claude; adicione contas nesse servidor.",
+          "remoteEmptyCodexOwnLogin": "Nenhuma conta gerenciada do Codex em {{value0}}. Ele usa o próprio login do Codex; adicione contas nesse servidor.",
+          "emptyClaudeOwnLogin": "Nenhuma conta gerenciada do Claude para {{value0}}. O Orca usará o login próprio do Claude nesse ambiente até que você adicione uma aqui.",
+          "emptyCodexOwnLogin": "Nenhuma conta gerenciada do Codex para {{value0}}. O Orca usará o login próprio do Codex nesse ambiente até que você adicione uma aqui."
         },
         "appearance": {
           "search": {
@@ -16036,7 +16037,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Rastreamento não configurado",
-                  "cc39a87288": "Conectado · Padrão do sistema",
                   "00087eecb2": "Conectado · {{value0}}"
                 }
               }
@@ -22460,12 +22460,6 @@
         "stopAndSwitchBody": "Isso interrompe o turno atual e continua o chat em {{target}}.",
         "switchButton": "Trocar conta ou agente",
         "inUse": "Em uso",
-        "followHost": "Seguir o host",
-        "followHostNow": "Usa a conta escolhida no host, agora {{account}}",
-        "followHostHint": "Usa a conta escolhida no host",
-        "systemDefault": "Padrão do sistema",
-        "systemDefaultLogin": "O login próprio do Claude no host, {{email}}",
-        "systemDefaultLoginUnnamed": "O login próprio do Claude no host",
         "usageWindow": "{{window}} · {{usage}}",
         "windowWeek": "semana",
         "limitedUntil": "No limite até {{time}}",
@@ -22482,11 +22476,10 @@
         "showAll": "Mostrar todos os provedores"
       },
       "account": {
-        "systemDefault": "Padrão do sistema",
         "followHost": "Conta selecionada",
         "title": "Conta",
         "locked": "Este chat mantém a conta com que começou.",
-        "hint": "A conta em que este chat roda. Os outros chats mantêm a conta selecionada.",
+        "hint": "A conta em que este chat roda. Os outros chats usam a padrão.",
         "changeFailed": "Não foi possível trocar a conta."
       },
       "workerDock": {
@@ -23737,10 +23730,10 @@
       "failed": "Não foi possível mover o painel para uma nova aba."
     },
     "claudeOldTerminalBanner": {
-      "title": "Este terminal foi aberto antes da atualização de contas do Claude no Orca, então o claude aqui usa o login do Padrão do sistema.",
       "dialogTitle": "Por que o claude aqui não usa a conta selecionada",
       "dialogDescription": "O Orca agora mantém cada conta do Claude em sua própria pasta, e o claude em um novo terminal usa a conta que você selecionar.",
-      "dialogCause": "Terminais abertos antes desta atualização não fazem isso, então o claude aqui usa o login do Padrão do sistema. Abra um novo terminal para usar a conta selecionada."
+      "titleOwnLogin": "Este terminal foi aberto antes da atualização de contas do Claude no Orca, então o claude aqui usa o login próprio do Claude deste computador.",
+      "dialogCauseOwnLogin": "Terminais abertos antes desta atualização não fazem isso, então o claude aqui usa o login próprio do Claude deste computador. Abra um novo terminal para usar a conta selecionada."
     },
     "claudeDiffPanelNotice": {
       "title": "O Claude Code pode abrir seu próprio painel de diferenças ao lado do chat em terminais largos. Esse painel pertence ao Claude, não ao Orca.",
@@ -23857,6 +23850,8 @@
     "addTypedPathCode": "Adicionar <path/>"
   },
   "accounts": {
+    "defaultBadge": "padrão",
+    "ownLogin": "Login deste computador",
     "wslAccountNotApplied": {
       "title": "Seleção de conta não aplicada em {{distro}}",
       "description": "Os agentes lá usam as contas padrão do Claude e do Codex da distribuição até que o Orca no WSL seja atualizado."
@@ -23928,10 +23923,7 @@
       "added": "Conta adicionada. Selecione-a para usar no próximo Claude que iniciar.",
       "nextLaunch": "{{value0}} → {{value1}}. O próximo Claude que você iniciar usará essa conta. Sessões em execução mantêm suas contas.",
       "profileSwitching": "A troca se aplica ao próximo Claude que você iniciar em qualquer aba.",
-      "systemDefault": "Padrão do sistema",
       "unnamedAccount": "Conta do Claude",
-      "systemDefaultNamed": "Padrão do sistema: {{value0}}",
-      "systemDefaultIsSaved": "O Padrão do sistema está conectado como {{value0}}, que também é uma conta salva. Uma versão anterior do Orca pode ter copiado esse login para lá. Se não for seu próprio login, selecione Padrão do sistema e execute claude /login.",
       "systemDefaultIsSavedDismiss": "Dispensar",
       "signInRequired": "Entre novamente para usar esta conta",
       "signInAgain": "Entrar novamente",
@@ -24001,7 +23993,8 @@
         "about": "Sobre a consulta de uso do Claude"
       },
       "organizationSuffix": "Organização ···{{suffix}}",
-      "personalOrganization": "Pessoal"
+      "personalOrganization": "Pessoal",
+      "ownLoginIsSaved": "O login do Claude deste computador está conectado como {{value0}}, que também é uma conta salva. Uma versão anterior do Orca pode ter copiado esse login para lá. Se não for seu próprio login, selecione a linha acima e execute claude /login."
     },
     "codex": {
       "usageSignInLabel": "Desconectado",
@@ -24014,7 +24007,6 @@
       "add": "Copiar comando de configuração",
       "refresh": "Atualizar contas",
       "upgrade": "Se as contas não aparecerem, atualize ou reinicie o host do Orca.",
-      "system": "Padrão do sistema",
       "active": "Ativa",
       "select": "Selecionar",
       "remove": "Remover",

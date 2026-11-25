@@ -5,6 +5,7 @@ import { getManagedAccountInlineLabel } from '../../shared/agent-accounts/manage
 type AccountsBlock = {
   accounts: readonly { id: string; email: string; displayName?: string; needsSignIn?: true }[]
   activeAccountId: string | null
+  systemDefaultDisplayName?: string
   activeAccountIdsByRuntime?: {
     host: string | null
     wsl: Record<string, string | null>
@@ -26,7 +27,8 @@ export function formatDataAccounts(label: string, state: ManagedDataAccountsStat
 
 export function formatAccountsBlock(label: string, block: AccountsBlock): string {
   const hostAccountId = block.activeAccountIdsByRuntime?.host ?? block.activeAccountId
-  const system = `  system  System default${hostAccountId === null ? ' (active)' : ''}`
+  const systemName = block.systemDefaultDisplayName?.trim()
+  const system = `  system  ${systemName ? `${systemName} (System default)` : 'System default'}${hostAccountId === null ? ' (active)' : ''}`
   if (block.accounts.length === 0) {
     return `No managed ${label} accounts.\n${system}`
   }

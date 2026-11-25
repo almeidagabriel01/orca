@@ -104,8 +104,8 @@ export function ClaudeOldTerminalBanner({
       {openedBefore ? (
         <PaneTopWarningBanner
           title={t(
-            'terminal.claudeOldTerminalBanner.title',
-            "This terminal was opened before Orca's Claude account update, so claude here uses System default's login."
+            'terminal.claudeOldTerminalBanner.titleOwnLogin',
+            "This terminal was opened before Orca's Claude account update, so claude here uses this computer's own Claude login."
           )}
           body={
             <PaneBannerLearnMore
@@ -144,8 +144,8 @@ export function ClaudeOldTerminalBanner({
           'Orca now keeps each Claude account in its own folder, and claude in a new terminal follows the account you select.'
         )}
         cause={t(
-          'terminal.claudeOldTerminalBanner.dialogCause',
-          "Terminals opened before this update don't, so claude here signs in with System default's login. Open a new terminal to use the selected account."
+          'terminal.claudeOldTerminalBanner.dialogCauseOwnLogin',
+          "Terminals opened before this update don't, so claude here signs in with this computer's own Claude login. Open a new terminal to use the selected account."
         )}
         onOpenChange={(open) => {
           if (!open) {

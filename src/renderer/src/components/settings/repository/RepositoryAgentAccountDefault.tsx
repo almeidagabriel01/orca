@@ -12,6 +12,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select'
 import { SettingsRow } from '../form-controls/SettingsFormControls'
 import { useTranslate } from '@/i18n/use-translate'
+import { getSystemDefaultDisplayName } from '../../../../../shared/agent-accounts/managed-account-display-names'
 
 const INHERIT = 'inherit'
 
@@ -46,7 +47,7 @@ function AccountSelect({
   const t = useTranslate()
   const state = useHostClaudeAccounts(target)
   const accounts = state ? claudeChatAccountRows(state) : []
-  // With no saved account every chat already runs on System default.
+  // With no saved account every chat already runs on the host's own login.
   if (!state || accounts.length === 0) {
     return null
   }
@@ -54,7 +55,7 @@ function AccountSelect({
   const rows = [
     {
       value: AGENT_CHAT_SYSTEM_ACCOUNT,
-      label: t('components.native-chat.account.systemDefault', 'System default')
+      label: getSystemDefaultDisplayName(state) ?? t('accounts.ownLogin', "This computer's login")
     },
     ...accounts
   ]

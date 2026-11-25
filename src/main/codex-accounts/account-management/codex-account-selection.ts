@@ -13,10 +13,14 @@ import type { CodexAuthIdentity as ResolvedCodexIdentity } from '../credentials/
 import { codexAuthIdentityContradictsAccount } from '../credentials/codex-auth-identity'
 import type { CodexAccountServiceLifecycle } from './codex-account-service-types'
 import { toCodexManagedAccountSummary } from './codex-account-service-types'
+import { SYSTEM_DEFAULT_ACCOUNT_NAME_KEY } from '../../../shared/agent-accounts/managed-account-display-names'
+import { resolveAccountName } from '../../../shared/agent-accounts/account-names'
 import {
-  normalizeManagedAccountDisplayName,
-  withManagedAccountDisplayName
-} from '../../../shared/agent-accounts/managed-account-display-names'
+  managedAccountIdentity,
+  migrateLegacyAccountNames,
+  systemDefaultIdentity
+} from '../../../shared/agent-accounts/account-name-identity'
+import { setStoredAccountName } from '../../agent-accounts/stored-account-names'
 import {
   getCodexSelectionTargetForAccount,
   getSelectedCodexAccountIdForTarget,
@@ -56,16 +60,33 @@ export class CodexAccountSelection {
   }
 
   async snapshot(): Promise<CodexRateLimitAccountsState> {
+    const systemDefault = await this.dependencies.resolveSystemDefault()
+    const system = systemDefaultIdentity({ systemDefault })
+    // Old id-keyed names become identity entries once their login is known.
+    const before = this.dependencies.store.getSettings()
+    const migrated = migrateLegacyAccountNames(
+      before.accountNames,
+      before.managedAccountDisplayNames,
+      'codex',
+      before.codexManagedAccounts.map((account) => ({
+        id: account.id,
+        identity: managedAccountIdentity(account)
+      })),
+      system
+    )
+    if (migrated) {
+      this.saveSettings(migrated)
+    }
     const settings = this.dependencies.store.getSettings()
+    const systemDefaultDisplayName = resolveAccountName(settings.accountNames, 'codex', system)
     return {
+      ...(systemDefaultDisplayName ? { systemDefaultDisplayName } : {}),
       accounts: settings.codexManagedAccounts
-        .map((account) =>
-          toCodexManagedAccountSummary(account, settings.managedAccountDisplayNames)
-        )
+        .map((account) => toCodexManagedAccountSummary(account, settings.accountNames))
         .sort((a, b) => b.updatedAt - a.updatedAt),
       activeAccountId: normalizeCodexRuntimeSelection(settings).host,
       activeAccountIdsByRuntime: normalizeCodexRuntimeSelection(settings),
-      systemDefault: await this.dependencies.resolveSystemDefault()
+      systemDefault
     }
   }
 
@@ -89,18 +110,11 @@ export class CodexAccountSelection {
     )
     const nextActiveId =
       settings.activeCodexManagedAccountId === accountId ? null : nextSelection.host
-    const names = withManagedAccountDisplayName(
-      settings.managedAccountDisplayNames,
-      'codex',
-      accountId,
-      null
-    )
-
+    // The login's name stays: it is global, not this row's.
     this.saveSettings({
       codexManagedAccounts: nextAccounts,
       activeCodexManagedAccountId: nextActiveId,
-      activeCodexManagedAccountIdsByRuntime: nextSelection,
-      ...(names ? { managedAccountDisplayNames: names } : {})
+      activeCodexManagedAccountIdsByRuntime: nextSelection
     })
     this.dependencies.runtimeHome.syncForCurrentSelection()
     if (account.managedHomeRuntime === 'host' && nextSelection.host === null) {
@@ -130,16 +144,11 @@ export class CodexAccountSelection {
     accountId: string,
     displayName: string | null
   ): Promise<CodexRateLimitAccountsState> {
-    this.requireAccount(accountId)
-    const names = withManagedAccountDisplayName(
-      this.dependencies.store.getSettings().managedAccountDisplayNames,
-      'codex',
-      accountId,
-      normalizeManagedAccountDisplayName(displayName)
-    )
-    if (names) {
-      this.saveSettings({ managedAccountDisplayNames: names })
-    }
+    const identity =
+      accountId === SYSTEM_DEFAULT_ACCOUNT_NAME_KEY
+        ? systemDefaultIdentity({ systemDefault: await this.dependencies.resolveSystemDefault() })
+        : managedAccountIdentity(this.requireAccount(accountId))
+    setStoredAccountName(this.dependencies.store, 'codex', identity, displayName)
     return this.snapshot()
   }
 

@@ -14,6 +14,7 @@ import { StructuredAgentSessionStatusBridge } from '../components/native-chat/se
 import { NativeChatVisualGuestThemePublisher } from '../components/native-chat/media/visuals/NativeChatVisualGuestThemePublisher'
 import { usePairedMobileDevices } from '../components/mobile/paired-mobile-devices'
 import { useBotSlackIcons } from '../components/bots/use-bot-slack-icons'
+import { useAccountNamesSync } from '../runtime/provider-accounts/account-names-sync'
 
 const DashboardPopoutBridge = lazy(
   () => import('../components/dashboard/popout-bridge/DashboardPopoutBridge')
@@ -33,6 +34,8 @@ export function AppBackgroundServices(): React.JSX.Element {
   const { hasPairedDevice } = usePairedMobileDevices({ enabled: canPublishAgentList })
   // A Slack-linked bot's colored or dressed mascot is drawn here, from the bots list once anything loads it.
   useBotSlackIcons()
+  // Account names are global: the same login carries one name on every host.
+  useAccountNamesSync()
 
   return (
     <>

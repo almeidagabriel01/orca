@@ -456,6 +456,7 @@ orca account select --agent claude --account you@example.com    # id, email or l
 orca worktree create --name task --agent claude --prompt "..."
 orca account select --agent claude --account system             # back to your own sign-in
 orca account rm --agent codex --account old@example.com         # forget a saved account
+orca account rename --agent claude --account system --label Personal  # name shown for an account; --label "" resets
 ```
 
 A selection applies to every agent of that provider launched on the host after it — the same switch as the status-bar account menu — not to a single workspace. An email shared by several accounts (one sign-in in two organizations) is refused; pass the id instead. Antigravity has no `system` default, and `account rm` never removes system credentials.

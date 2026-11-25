@@ -23,8 +23,7 @@ export function sessionAccountBinding(session: SessionAccountSource): SessionAcc
     return { value: null }
   }
   const home = session.accountHome
-  const defaultValue = () =>
-    translate('auto.components.status.bar.StatusBar.c676918adc', 'System default')
+  const defaultValue = () => translate('accounts.ownLogin', "This computer's login")
   if (home === null) {
     return { value: defaultValue() }
   }
@@ -53,4 +52,16 @@ export function sessionAccountBinding(session: SessionAccountSource): SessionAcc
     return { key: JSON.stringify([session.agent, session.executionHostId, binding]), binding }
   }
   return { value: null }
+}
+
+/** A local Claude/Codex session on the host's own login, which only the account roster can name. */
+export function isOwnLoginSession(session: SessionAccountSource): boolean {
+  const home = session.accountHome
+  return (
+    (session.agent === 'claude' || session.agent === 'codex') &&
+    session.executionHostId === LOCAL_EXECUTION_HOST_ID &&
+    !session.accountWslDistro &&
+    (home === null ||
+      (!!home && !isLegacyAgentSessionAccountHome(home) && home.locator.kind === 'unmanaged'))
+  )
 }

@@ -10,6 +10,9 @@ import { AccountSwitchRowItem } from '../accounts/AccountSwitchRowItem'
 import { InlineUsageBars } from './InlineProviderUsage'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
 import { formatTimeAgo } from './provider-usage-panel'
+import { getAccountDisplayName } from '../../../../../shared/agent-accounts/managed-account-display-names'
+import { resolveAccountName } from '../../../../../shared/agent-accounts/account-names'
+import { useAppStore } from '../../../store/index'
 
 /** Antigravity details plus each saved account's last verified reading; agy is never switched to read one. */
 export function AntigravityUsageMenu({
@@ -24,6 +27,12 @@ export function AntigravityUsageMenu({
   onManageAccounts: () => void
 }): React.JSX.Element {
   const t = useTranslate()
+  const accountNames = useAppStore((s) => s.settings?.accountNames)
+  const nameOf = (account: { email?: string | null }): string =>
+    getAccountDisplayName({
+      displayName: resolveAccountName(accountNames, 'antigravity', account),
+      email: account.email
+    }) ?? t('auto.components.status.bar.antigravity.unknownAccount', 'Google account')
   const ariaLabel = t(
     'auto.components.status.bar.UsageRosterPanel.openDetails',
     'Open usage details'
@@ -46,12 +55,7 @@ export function AntigravityUsageMenu({
       triggerContent={triggerContent}
       ariaLabel={ariaLabel}
       variant="account"
-      accountLabel={
-        account
-          ? (account.email ??
-            t('auto.components.status.bar.antigravity.unknownAccount', 'Google account'))
-          : undefined
-      }
+      accountLabel={account ? nameOf(account) : undefined}
     >
       <AccountSwitchList
         showResetColumn
@@ -60,10 +64,7 @@ export function AntigravityUsageMenu({
         {accounts.map((entry) => (
           <AccountSwitchRowItem
             key={entry.accountId}
-            label={
-              entry.email ??
-              t('auto.components.status.bar.antigravity.unknownAccount', 'Google account')
-            }
+            label={nameOf(entry)}
             detail={
               entry.rateLimits
                 ? t('auto.components.status.bar.antigravity.readAgo', 'Read {{time}}', {

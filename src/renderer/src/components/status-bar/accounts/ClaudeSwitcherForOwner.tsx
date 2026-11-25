@@ -298,6 +298,7 @@ export function ClaudeSwitcherForOwner({
       label={target.label}
       detail={target.detail ?? target.hint}
       active={target.active}
+      isDefault={target.active}
       key={`${selectedGroup?.key}:${target.id ?? 'system'}`}
       aria-description={
         !signInId &&

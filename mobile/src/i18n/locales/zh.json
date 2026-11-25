@@ -4,7 +4,6 @@
       "agentLogin": "使用智能体自身的登录信息",
       "connecting": "正在连接到主机…",
       "connectingTo": "正在连接到 {{name}}…",
-      "default": "系统默认",
       "fableWindow": "Fable",
       "hostNotFound": "未找到主机",
       "invalidSnapshot": "主机返回的账户快照无效",
@@ -5746,9 +5745,6 @@
             "cabdc2a9e0": "无法读取 Claude 登录凭据",
             "a7517cccb6": "Claude 用量目前不可用",
             "8418ec448d": "{{value0}} 用量无法刷新，代理会话可能仍处于登录状态"
-          },
-          "StatusBar": {
-            "c676918adc": "系统默认"
           }
         }
       }

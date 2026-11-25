@@ -70,10 +70,12 @@ export type RuntimeServiceCommandSurface = {
   runHostAccountSignIn: RuntimeAccountController['runHostSignIn']
   removeCodexAccount: RuntimeAccountController['removeCodex']
   renameManagedAccount: RuntimeAccountController['renameAccount']
+  notifyAccountNamesChanged: RuntimeAccountController['notifyNamesChanged']
   addCodexAccountFromHome: RuntimeAccountController['addCodexFromHome']
   addDataAccountFromHome: RuntimeAccountController['addDataFromHome']
   selectDataAccount: RuntimeAccountController['selectData']
   removeDataAccount: RuntimeAccountController['removeData']
+  renameDataAccount: RuntimeAccountController['renameData']
   onAccountsChanged: RuntimeAccountController['onChanged']
   setHostAccountLaunchEnv: RuntimeAccountController['setHostLaunchEnv']
   restoreHostAccountLaunchEnv: RuntimeAccountController['restoreHostLaunchEnv']
@@ -191,10 +193,12 @@ export function installRuntimeServiceCommandSurface(
     runHostAccountSignIn: accounts.runHostSignIn.bind(accounts),
     removeCodexAccount: accounts.removeCodex.bind(accounts),
     renameManagedAccount: accounts.renameAccount.bind(accounts),
+    notifyAccountNamesChanged: accounts.notifyNamesChanged.bind(accounts),
     addCodexAccountFromHome: accounts.addCodexFromHome.bind(accounts),
     addDataAccountFromHome: accounts.addDataFromHome.bind(accounts),
     selectDataAccount: accounts.selectData.bind(accounts),
     removeDataAccount: accounts.removeData.bind(accounts),
+    renameDataAccount: accounts.renameData.bind(accounts),
     onAccountsChanged: accounts.onChanged.bind(accounts),
     setHostAccountLaunchEnv: accounts.setHostLaunchEnv.bind(accounts),
     restoreHostAccountLaunchEnv: accounts.restoreHostLaunchEnv.bind(accounts),

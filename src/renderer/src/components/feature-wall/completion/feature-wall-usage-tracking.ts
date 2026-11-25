@@ -41,8 +41,11 @@ export function getFeatureWallUsageProviderConnection(
     return {
       connected: true,
       label: t(
-        'auto.components.feature.wall.feature.wall.usage.tracking.cc39a87288',
-        'Connected · System default'
+        'auto.components.feature.wall.feature.wall.usage.tracking.00087eecb2',
+        'Connected · {{value0}}',
+        {
+          value0: t('accounts.ownLogin', "This computer's login")
+        }
       )
     }
   }

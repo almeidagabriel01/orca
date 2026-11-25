@@ -19,6 +19,7 @@ import {
 import { SettingsGroup } from '../../section-layout/SettingsGroup'
 import { ProviderNotInstalledSection, useAgentCliPresence } from '../provider-not-installed'
 import { providerSignInState } from '../../../../lib/provider-accounts/provider-cli-presence'
+import { AccountNameInput, AccountRenameButton } from '../account-name-field'
 
 type Snapshot = { opencode?: ManagedDataAccountsState; devin?: ManagedDataAccountsState }
 
@@ -52,6 +53,7 @@ function ManagedDataAccountsSection({
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [removeId, setRemoveId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const environmentId = target.kind === 'environment' ? target.environmentId : null
   const cli = useAgentCliPresence(target)
@@ -90,14 +92,19 @@ function ManagedDataAccountsSection({
     }
   }
 
-  async function mutate(action: 'select' | 'remove', accountId: string | null): Promise<void> {
+  async function mutate(
+    action: 'select' | 'remove' | 'rename',
+    accountId: string | null,
+    label?: string
+  ): Promise<void> {
     setBusy(true)
     setError(null)
     try {
       setState(
         await callRuntimeRpc<ManagedDataAccountsState>(target, `accounts.${action}Data`, {
           provider,
-          accountId
+          accountId,
+          ...(label === undefined ? {} : { label })
         })
       )
     } catch (cause) {
@@ -177,7 +184,7 @@ function ManagedDataAccountsSection({
       {state && (
         <>
           <div data-settings-row="" className="flex items-center justify-between gap-3 py-2">
-            <span className="text-xs">{t('accounts.managedData.system', 'System default')}</span>
+            <span className="text-xs">{t('accounts.ownLogin', "This computer's login")}</span>
             <Button
               variant="ghost"
               size="xs"
@@ -197,11 +204,31 @@ function ManagedDataAccountsSection({
               data-settings-row=""
               className="flex items-center justify-between gap-3 py-2"
             >
-              <div className="space-y-1">
-                <span className="text-xs">{account.label}</span>
+              <div className="min-w-0 flex-1 space-y-1">
+                {editingId === account.id ? (
+                  <AccountNameInput
+                    t={t}
+                    saved={account.label}
+                    onDone={(label) => {
+                      setEditingId(null)
+                      // The label is the account's only name, so a blank edit keeps it.
+                      if (label) {
+                        void mutate('rename', account.id, label)
+                      }
+                    }}
+                  />
+                ) : (
+                  <span className="text-xs">{account.label}</span>
+                )}
                 <p className="text-xs text-muted-foreground">{account.integrations.join(', ')}</p>
               </div>
               <div className="flex items-center gap-2">
+                <AccountRenameButton
+                  t={t}
+                  disabled={busy}
+                  pending={false}
+                  onRename={() => setEditingId(account.id)}
+                />
                 {state.activeAccountId === account.id ? (
                   <Badge variant="secondary">{t('accounts.managedData.active', 'Active')}</Badge>
                 ) : (

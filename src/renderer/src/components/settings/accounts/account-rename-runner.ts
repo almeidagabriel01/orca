@@ -15,18 +15,40 @@ import {
   getCodexAccountErrorDescription
 } from '../../../lib/provider-accounts/provider-account-action-errors'
 import type { RenameAccountTarget } from './accounts-pane-types'
+import { SYSTEM_DEFAULT_ACCOUNT_NAME_KEY } from '../../../../../shared/agent-accounts/managed-account-display-names'
 
 export function renamingAccountKey(target: Pick<RenameAccountTarget, 'provider' | 'id'>): string {
   return `${target.provider}:${target.id}`
 }
 
+/** What an inline edit saves: the trimmed draft ('' clears), or null when nothing changed. */
+export function accountNameToSave(draft: string, saved: string | null | undefined): string | null {
+  const next = draft.trim()
+  return next === (saved ?? '').trim() ? null : next
+}
+
 export function withRenamedAccount<
-  State extends { accounts: readonly { id: string; displayName?: string }[] }
+  State extends {
+    accounts: readonly { id: string; displayName?: string }[]
+    systemDefaultDisplayName?: string
+  }
 >(
   current: State,
-  reply: { accounts: readonly { id: string; displayName?: string }[] },
+  reply: {
+    accounts: readonly { id: string; displayName?: string }[]
+    systemDefaultDisplayName?: string
+  },
   accountId: string
 ): State {
+  if (accountId === SYSTEM_DEFAULT_ACCOUNT_NAME_KEY) {
+    const next = { ...current }
+    if (reply.systemDefaultDisplayName) {
+      next.systemDefaultDisplayName = reply.systemDefaultDisplayName
+    } else {
+      delete next.systemDefaultDisplayName
+    }
+    return next
+  }
   const displayName = reply.accounts.find((account) => account.id === accountId)?.displayName
   if (!current.accounts.some((account) => account.id === accountId)) {
     return current

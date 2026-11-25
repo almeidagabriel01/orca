@@ -230,19 +230,24 @@ export class CodexAccountService {
 
   // Outside the mutation queue: a pending sign-in can hold it for minutes, and this
   // synchronous write touches no state a queued account change reads.
-  renameAccount(
+  async renameAccount(
     accountId: string,
     displayName: string | null
   ): Promise<CodexRateLimitAccountsState> {
-    const before = this.store.getSettings().managedAccountDisplayNames
-    const state = this.selection.rename(accountId, displayName)
+    const before = this.store.getSettings().accountNames
+    const state = await this.selection.rename(accountId, displayName)
     // Account streams otherwise republish only on usage changes; an unchanged name writes nothing.
-    if (this.store.getSettings().managedAccountDisplayNames !== before) {
-      for (const listener of this.renameListeners) {
-        listener()
-      }
+    if (this.store.getSettings().accountNames !== before) {
+      this.notifyRenamed()
     }
     return state
+  }
+
+  /** Republishes account streams after any name change, including a merge from another host. */
+  notifyRenamed(): void {
+    for (const listener of this.renameListeners) {
+      listener()
+    }
   }
 
   /** Listeners live as long as their account stream subscription. */
@@ -289,10 +294,7 @@ export class CodexAccountService {
   }
 
   private toSummary(account: CodexManagedAccount): CodexManagedAccountSummary {
-    return toCodexManagedAccountSummary(
-      account,
-      this.store.getSettings().managedAccountDisplayNames
-    )
+    return toCodexManagedAccountSummary(account, this.store.getSettings().accountNames)
   }
 
   private safeRemoveManagedHome(candidatePath: string, expectedAccountId: string): Promise<void> {

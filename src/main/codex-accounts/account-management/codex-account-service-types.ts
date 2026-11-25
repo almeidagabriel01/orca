@@ -1,7 +1,5 @@
-import {
-  getManagedAccountDisplayName,
-  type ManagedAccountDisplayNames
-} from '../../../shared/agent-accounts/managed-account-display-names'
+import { resolveAccountName, type AccountNames } from '../../../shared/agent-accounts/account-names'
+import { managedAccountIdentity } from '../../../shared/agent-accounts/account-name-identity'
 import type {
   CodexManagedAccount,
   CodexRateLimitAccountsState,
@@ -64,9 +62,9 @@ export type CodexResetCreditConsumeResult =
 
 export function toCodexManagedAccountSummary(
   account: CodexManagedAccount,
-  names?: ManagedAccountDisplayNames
+  names?: AccountNames
 ): CodexManagedAccountSummary {
-  const displayName = getManagedAccountDisplayName(names, 'codex', account.id)
+  const displayName = resolveAccountName(names, 'codex', managedAccountIdentity(account))
   return {
     id: account.id,
     email: account.email,

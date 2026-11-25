@@ -56,8 +56,8 @@ export function renderAccountsRemovalDialogs(
                 {removalAccountLabel(codexAccounts.accounts, removeCodexTarget)}
               </span>
               {t(
-                'settings.accounts.codexRemoveHome',
-                "Orca deletes this account's Codex folder on {{host}}, including its sign-in and MCP logins. This cannot be undone. If it is selected, the next Codex you start uses System default.",
+                'settings.accounts.codexRemoveHomeOwnLogin',
+                "Orca deletes this account's Codex folder on {{host}}, including its sign-in and MCP logins. This cannot be undone. If it is selected, the next Codex you start uses {{host}}'s own Codex login.",
                 { host: accountRuntimeSentenceLabel }
               )}
             </DialogDescription>
@@ -100,8 +100,8 @@ export function renderAccountsRemovalDialogs(
                 {removalAccountLabel(claudeAccounts.accounts, removeClaudeTarget)}
               </span>
               {t(
-                'settings.accounts.claudeRemoveProfile',
-                "Orca deletes this account's own Claude folder and the sign-in saved in it on {{host}}. Your System default login and chat history shared with it stay. If it is selected, the next Claude you start uses System default.",
+                'settings.accounts.claudeRemoveProfileOwnLogin',
+                "Orca deletes this account's own Claude folder and the sign-in saved in it on {{host}}, keeping {{host}}'s own Claude login and the chat history shared with it. If it is selected, the next Claude you start uses that login.",
                 { host: accountRuntimeSentenceLabel }
               )}
             </DialogDescription>

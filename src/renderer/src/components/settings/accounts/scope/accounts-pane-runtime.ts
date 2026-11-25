@@ -30,11 +30,9 @@ export function getCodexSystemDefaultSubtitle(
       'Custom provider — no usage tracked.'
     )
   }
-  return t(
-    'auto.components.settings.AccountsPane.fcc4093fc1',
-    'Use your current {{value0}} Codex login.',
-    { value0: runtimeSentenceLabel }
-  )
+  return t('auto.components.settings.AccountsPane.fcc4093fc1', "Uses {{value0}}'s Codex login.", {
+    value0: runtimeSentenceLabel
+  })
 }
 
 export function getCodexAccountRuntimeLabel(

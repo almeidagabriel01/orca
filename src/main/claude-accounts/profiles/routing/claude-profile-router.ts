@@ -53,6 +53,7 @@ export type ClaudeProfileRouterSettings = Pick<
   | 'activeClaudeManagedAccountIdsByRuntime'
   | 'agentStatusHooksEnabled'
   | 'disabledTuiAgents'
+  | 'accountNames'
 >
 
 /** Mirror the settings selection to a pointer file for Claude in existing terminals. */
@@ -126,6 +127,10 @@ export class ClaudeProfileRouter {
     const saved = this.savedAccount(accountId)
     const systemDefault = this.systemDefaultLogin()
     return Boolean(saved && systemDefault && isSameClaudeLogin(saved, systemDefault))
+  }
+
+  accountNames(): ClaudeProfileRouterSettings['accountNames'] {
+    return this.args.getSettings().accountNames
   }
 
   savedAccount(accountId: string): ClaudeManagedAccount | undefined {

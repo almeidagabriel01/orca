@@ -72,7 +72,7 @@ export function HostHeavyQueue({
             <TooltipContent side="top" sideOffset={4} className="max-w-64">
               {t(
                 'resourceManager.heavyQueue.tooltip',
-                'Builds, tests and installs run through vps-heavy take turns for a few slots, so the machine is not overloaded.'
+                'Builds, tests and installs run through the heavy queue take turns for a few slots, so the machine is not overloaded.'
               )}
             </TooltipContent>
           </Tooltip>

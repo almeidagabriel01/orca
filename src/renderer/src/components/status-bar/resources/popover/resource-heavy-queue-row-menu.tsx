@@ -189,7 +189,7 @@ export function QueueRowMenu({
                 ? null
                 : t(
                     'resourceManager.heavyQueue.reasonCantStop',
-                    "This host's vps-heavy can't stop commands; update it"
+                    "This host's heavy queue can't stop commands; update it"
                   )
             }
             destructive

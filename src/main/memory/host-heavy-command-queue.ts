@@ -22,7 +22,8 @@ import {
   type MemorySnapshotStore
 } from './memory-snapshot-buckets'
 
-const SCRIPT_NAME = 'vps-heavy'
+// macOS installs it as `heavy`; Linux hosts had only `vps-heavy` before the alias.
+const SCRIPT_NAMES = ['heavy', 'vps-heavy']
 const MAX_JOBS = 200
 const SCRIPT_TIMEOUT_MS = 5_000
 const SCRIPT_MAX_OUTPUT_BYTES = 1024 * 1024
@@ -96,13 +97,16 @@ export async function findHeavyQueueScript(
 ): Promise<string | null> {
   // Why ~/.local/bin too: a main started by systemd or the desktop may miss the login shell's PATH.
   const dirs = [...(pathEnv ?? '').split(path.delimiter), path.join(home, '.local', 'bin')]
-  for (const dir of new Set(dirs.filter((entry) => path.isAbsolute(entry)))) {
-    const candidate = path.join(dir, SCRIPT_NAME)
-    try {
-      await access(candidate, constants.X_OK)
-      return candidate
-    } catch {
-      // Not in this directory.
+  const absoluteDirs = [...new Set(dirs.filter((entry) => path.isAbsolute(entry)))]
+  for (const name of SCRIPT_NAMES) {
+    for (const dir of absoluteDirs) {
+      const candidate = path.join(dir, name)
+      try {
+        await access(candidate, constants.X_OK)
+        return candidate
+      } catch {
+        // Not in this directory.
+      }
     }
   }
   return null
@@ -134,7 +138,7 @@ export function parseHeavyQueueListing(value: unknown): ScriptListing | null {
 /** Scripts from before `stop` existed refuse it; their usage text is the only place that says so. */
 export async function scriptSupportsStop(script: string): Promise<boolean> {
   const text = await readFile(script, 'utf8').catch(() => '')
-  return /\bvps-heavy stop </.test(text)
+  return /\bheavy stop </.test(text)
 }
 
 /** The script's own listing also sees direct `flock` users and drops dead jobs. */
@@ -189,6 +193,10 @@ async function readSlots(home: string): Promise<number> {
   return /^[1-9]$/.test(raw.trim()) ? Number(raw.trim()) : 1
 }
 
+export function supportsHeavyQueueControls(platform: NodeJS.Platform): boolean {
+  return platform === 'linux' || platform === 'darwin'
+}
+
 /** Null when the host has no queue: neither the script nor its jobs directory. */
 export async function readHeavyCommandQueue({
   home,
@@ -200,8 +208,11 @@ export async function readHeavyCommandQueue({
     return null
   }
   const script = await findHeavyQueueScript(home, pathEnv)
-  // Why Linux only: `ls` checks /proc and lslocks, so elsewhere it would delete live jobs' files.
-  const listing = script && platform === 'linux' ? await readScriptListing(script) : null
+  // Why: `ls` deletes jobs it thinks dead; the Linux script reads /proc, so macOS lists only through its `heavy` port.
+  const listing =
+    script && (platform === 'linux' || (platform === 'darwin' && path.basename(script) === 'heavy'))
+      ? await readScriptListing(script)
+      : null
   const jobs =
     listing?.jobs ??
     (await readJobFiles(path.join(home, '.cache', 'vps-heavy', 'jobs'), isAlive)) ??

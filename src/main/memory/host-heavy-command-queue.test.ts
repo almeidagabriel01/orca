@@ -4,6 +4,7 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { Repo } from '../../shared/repository/repo-types'
 import {
+  findHeavyQueueScript,
   scriptSupportsStop,
   attributeHeavyQueueWorkspaces,
   parseHeavyQueueListing,
@@ -103,10 +104,11 @@ describe('readHeavyCommandQueue', () => {
         },
         { pid: 'x', status: 'waiting', queuedAt: 70, cwd: '/w', command: 'bad' }
       ])
-      await writeFile(path.join(bin, 'vps-heavy'), `#!/bin/sh\necho '${listing}'\n`)
-      await chmod(path.join(bin, 'vps-heavy'), 0o755)
+      await writeFile(path.join(bin, 'heavy'), `#!/bin/sh\necho '${listing}'\n`)
+      await chmod(path.join(bin, 'heavy'), 0o755)
 
-      const queue = await readHeavyCommandQueue({ home, pathEnv: bin, platform: 'linux' })
+      // macOS runs the script's own listing too.
+      const queue = await readHeavyCommandQueue({ home, pathEnv: bin, platform: 'darwin' })
 
       expect(queue?.slots).toBe(1)
       expect(
@@ -125,12 +127,29 @@ describe('readHeavyCommandQueue', () => {
   )
 })
 
+describe('findHeavyQueueScript', () => {
+  it.skipIf(process.platform === 'win32')(
+    'prefers `heavy` over `vps-heavy` and finds ~/.local/bin outside PATH',
+    async () => {
+      const bin = path.join(home, '.local', 'bin')
+      await mkdir(bin, { recursive: true })
+      for (const name of ['vps-heavy', 'heavy']) {
+        await writeFile(path.join(bin, name), '#!/bin/sh\n')
+        await chmod(path.join(bin, name), 0o755)
+      }
+      await expect(findHeavyQueueScript(home, '/usr/bin')).resolves.toBe(path.join(bin, 'heavy'))
+    }
+  )
+})
+
 describe('scriptSupportsStop', () => {
   it('reads it from the script, so an older vps-heavy keeps Stop off', async () => {
     const script = path.join(home, 'vps-heavy')
     await writeFile(script, '#!/bin/sh\n# vps-heavy cancel <pid>\n')
     await expect(scriptSupportsStop(script)).resolves.toBe(false)
     await writeFile(script, '#!/bin/sh\n# vps-heavy stop <pid>   para um job\n')
+    await expect(scriptSupportsStop(script)).resolves.toBe(true)
+    await writeFile(script, '#!/bin/sh\n# heavy stop <pid>\n')
     await expect(scriptSupportsStop(script)).resolves.toBe(true)
     await expect(scriptSupportsStop(path.join(home, 'missing'))).resolves.toBe(false)
   })

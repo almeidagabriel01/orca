@@ -1,7 +1,11 @@
 import os from 'node:os'
 import { runProcess } from '@orca/process-host'
 import type { HeavyQueueAction } from '../../shared/rpc-contract/diagnostics-params'
-import { findHeavyQueueScript, sampleHeavyCommandQueue } from './host-heavy-command-queue'
+import {
+  findHeavyQueueScript,
+  sampleHeavyCommandQueue,
+  supportsHeavyQueueControls
+} from './host-heavy-command-queue'
 
 const ACTION_TIMEOUT_MS = 10_000
 const MAX_ERROR_CHARS = 300
@@ -23,8 +27,9 @@ export function heavyQueueActionArgs(action: HeavyQueueAction): string[] {
 
 /** Runs one control through the host's own script; rejects with its message when it refuses. */
 export async function runHeavyQueueAction(action: HeavyQueueAction): Promise<void> {
-  const script =
-    process.platform === 'linux' ? await findHeavyQueueScript(os.homedir(), process.env.PATH) : null
+  const script = supportsHeavyQueueControls(process.platform)
+    ? await findHeavyQueueScript(os.homedir(), process.env.PATH)
+    : null
   if (!script) {
     throw new Error('heavy_queue_unavailable')
   }

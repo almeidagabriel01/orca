@@ -1,33 +1,37 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
-import type { RunHostChoiceOption } from '../../repository/hosts/ProjectRunHostSetting'
-import { HeavyRunHostDefaultSetting } from './heavy-run-host-default-row'
+import {
+  openRunHostDropdown,
+  runHostFixtureStore
+} from '../../repository/hosts/run-host-fixture-store'
+import { HeavyRunHostDefaultRow } from './heavy-run-host-default-row'
 
-const VPS: ExecutionHostId = 'runtime:vps'
+/** The row exactly as Remote Orca Servers mounts it, reading the seeded store. */
+const render = (): React.JSX.Element => (
+  <div className="p-3">
+    <HeavyRunHostDefaultRow allowLocalRuntime />
+  </div>
+)
+const automatic = runHostFixtureStore()
+const onVps = runHostFixtureStore({ heavyRunHostDefault: 'runtime:env-vps' })
+// A fork.2 user could have clicked an ssh alias here.
+const staleAlias = runHostFixtureStore({ heavyRunHostDefault: 'ssh:github.com-client-a' })
 
-const options: RunHostChoiceOption[] = [
-  { hostId: 'local', label: 'Mac' },
-  { hostId: 'runtime:vps', label: 'vps' },
-  { hostId: 'ssh:build-box', label: 'build-box', disabled: true }
-]
+export const wide = defineFixture({ width: 640, ...automatic, render })
 
-function Interactive({ initial }: { initial: ExecutionHostId | null }): React.JSX.Element {
-  const [value, setValue] = useState(initial)
-  return (
-    <div className="p-3">
-      <HeavyRunHostDefaultSetting options={options} value={value} onValueChange={setValue} />
-    </div>
-  )
-}
+export const narrow = defineFixture({ width: 340, ...automatic, render })
 
-const renderAutomatic = (): React.JSX.Element => <Interactive initial={null} />
-const renderHost = (): React.JSX.Element => <Interactive initial={VPS} />
+export const hostWide = defineFixture({ width: 640, ...onVps, render })
 
-export const wide = defineFixture({ width: 640, render: renderAutomatic })
+export const openWide = defineFixture({
+  width: 640,
+  ...automatic,
+  render,
+  interact: openRunHostDropdown
+})
 
-export const narrow = defineFixture({ width: 340, render: renderAutomatic })
+export const openNarrow = defineFixture({ ...openWide, width: 340 })
 
-export const hostWide = defineFixture({ width: 640, render: renderHost })
+export const staleAliasWide = defineFixture({ width: 640, ...staleAlias, render })
 
-export const hostNarrow = defineFixture({ width: 340, render: renderHost })
+export const staleAliasNarrow = defineFixture({ width: 340, ...staleAlias, render })

@@ -23,6 +23,29 @@ const TARGET_TIMEOUT_MS = 60_000
 /** A host card with a queue that can move jobs; id is 'local' or the paired environment id. */
 export type HeavyMoveHost = { id: string; label: string; queue: HeavyCommandQueue }
 
+/** Other machines only: one per hostname, and never the source's own machine paired twice. */
+export function heavyMoveTargets(
+  sourceId: string,
+  hosts: readonly HeavyMoveHost[]
+): HeavyMoveHost[] {
+  const sourceHostname = hosts.find((host) => host.id === sourceId)?.queue.hostname
+  const seen = new Set<string>()
+  return hosts.filter((host) => {
+    const hostname = host.queue.hostname
+    if (host.id === sourceId || (hostname && hostname === sourceHostname)) {
+      return false
+    }
+    if (!hostname) {
+      return true
+    }
+    if (seen.has(hostname)) {
+      return false
+    }
+    seen.add(hostname)
+    return true
+  })
+}
+
 export type HeavyJobMovePlan = { peer: HeavyQueuePeer; request: HeavyJobTargetRequest }
 
 export type HeavyJobMoveCheckResult =

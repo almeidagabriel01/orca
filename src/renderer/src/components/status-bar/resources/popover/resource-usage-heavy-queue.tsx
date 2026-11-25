@@ -10,6 +10,7 @@ import { useHeavyQueueActions } from './resource-heavy-queue-actions'
 import { QueueAction, QueueRow, type RowMoveHosts } from './resource-heavy-queue-row'
 import {
   executeHeavyJobMove,
+  heavyMoveTargets,
   heavyJobBlockersText,
   type HeavyMoveHost
 } from './resource-heavy-job-move'
@@ -40,7 +41,7 @@ export function HostHeavyQueue({
   const source = queue.canMoveHost ? { id: hostId, label, queue } : null
   const moveHosts: RowMoveHosts = {
     source,
-    targets: source ? movableHosts.filter((host) => host.id !== hostId) : [],
+    targets: source ? heavyMoveTargets(hostId, movableHosts) : [],
     onMoveHost: (pid) => (target, plan) =>
       runTask(
         async () => {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Server } from 'lucide-react'
+import { Server, TriangleAlert } from 'lucide-react'
 import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -15,6 +15,7 @@ import {
   getGlobalRunHostLabel,
   getProjectRunHostOptions,
   getRepoRunHostProjectId,
+  getStaleRunHostName,
   setProjectRunHost,
   useRunHostCandidates,
   RUN_HOST_DEFAULT_VALUE,
@@ -37,6 +38,7 @@ export function ProjectRunHostRadioItems({
   if (options.length < 2) {
     return null
   }
+  const staleName = getStaleRunHostName(value, options)
   return (
     <>
       <DropdownMenuSeparator />
@@ -46,8 +48,21 @@ export function ProjectRunHostRadioItems({
           {t('sidebar.projectRunHost.label', 'Run on')}
         </span>
       </DropdownMenuLabel>
+      {staleName ? (
+        <p className="flex max-w-56 items-start gap-1 px-2 pb-1 text-xs text-status-warning-text">
+          <TriangleAlert className="mt-0.5 size-3 shrink-0" />
+          {t(
+            'settings.runHost.staleSaved',
+            '{{value0}} no longer runs heavy work, so {{value1}} is used.',
+            {
+              value0: staleName,
+              value1: globalLabel
+            }
+          )}
+        </p>
+      ) : null}
       <DropdownMenuRadioGroup
-        value={value ?? RUN_HOST_DEFAULT_VALUE}
+        value={staleName ? RUN_HOST_DEFAULT_VALUE : (value ?? RUN_HOST_DEFAULT_VALUE)}
         onValueChange={(next) => {
           if (next === RUN_HOST_DEFAULT_VALUE) {
             onValueChange(null)

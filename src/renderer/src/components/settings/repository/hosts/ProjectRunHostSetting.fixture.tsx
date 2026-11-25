@@ -1,36 +1,44 @@
-import React, { useState } from 'react'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import React from 'react'
+import { useAppStore } from '@/store'
+import { getProjectHostSetupProjectionFromState } from '@/store/projects/project-host-setup-selector'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
-import { ProjectRunHostSetting, type RunHostChoiceOption } from './ProjectRunHostSetting'
+import { ProjectRunHostRow } from './ProjectRunHostSetting'
+import {
+  RUN_HOST_FIXTURE_PROJECT_ID,
+  openRunHostDropdown,
+  runHostFixtureStore
+} from './run-host-fixture-store'
 
-const VPS: ExecutionHostId = 'runtime:vps'
-
-const options: RunHostChoiceOption[] = [
-  { hostId: 'local', label: 'Mac' },
-  { hostId: 'runtime:vps', label: 'vps' }
-]
-
-function Interactive({ initial }: { initial: ExecutionHostId | null }): React.JSX.Element {
-  const [value, setValue] = useState(initial)
+/** The row exactly as Project Settings mounts it, reading the seeded store. */
+function Row(): React.JSX.Element {
+  const setups = useAppStore((state) => getProjectHostSetupProjectionFromState(state).setups)
   return (
     <div className="p-3">
-      <ProjectRunHostSetting
-        options={options}
-        value={value}
-        globalLabel="Automatic"
-        onValueChange={setValue}
-      />
+      <ProjectRunHostRow projectId={RUN_HOST_FIXTURE_PROJECT_ID} projectHostSetups={setups} />
     </div>
   )
 }
 
-const render = (): React.JSX.Element => <Interactive initial={VPS} />
-const renderGlobal = (): React.JSX.Element => <Interactive initial={null} />
+const render = (): React.JSX.Element => <Row />
+const onVps = runHostFixtureStore({
+  projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'runtime:env-vps' }
+})
+// A fork.2 user could have saved an ssh alias here.
+const staleAlias = runHostFixtureStore({
+  projectRunHostIds: { [RUN_HOST_FIXTURE_PROJECT_ID]: 'ssh:github.com-client-a' }
+})
 
-export const wide = defineFixture({ width: 640, render })
+export const wide = defineFixture({ width: 640, ...onVps, render })
 
-export const narrow = defineFixture({ width: 340, render })
+export const narrow = defineFixture({ width: 340, ...onVps, render })
 
-export const globalDefaultWide = defineFixture({ width: 640, render: renderGlobal })
+export const openWide = defineFixture({
+  width: 640,
+  ...runHostFixtureStore(),
+  render,
+  interact: openRunHostDropdown
+})
 
-export const globalDefaultNarrow = defineFixture({ width: 340, render: renderGlobal })
+export const staleAliasWide = defineFixture({ width: 640, ...staleAlias, render })
+
+export const staleAliasNarrow = defineFixture({ width: 340, ...staleAlias, render })

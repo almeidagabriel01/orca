@@ -306,7 +306,8 @@ export function ResourceHostCards({
   const labelByHostname = useMemo(
     () =>
       new Map(
-        hosts.flatMap((host) => {
+        // Reversed so the first card wins when one machine is paired twice.
+        hosts.toReversed().flatMap((host) => {
           const hostname = host.machine?.heavyQueue?.hostname
           return hostname ? [[hostname, host.label] as const] : []
         })

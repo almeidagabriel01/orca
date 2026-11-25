@@ -266,6 +266,7 @@ function HostCard({
       )}
       {host.machine?.outsideQueue && (
         <HostOutsideQueue
+          hostId={host.id}
           label={host.label}
           groups={host.machine.outsideQueue}
           hasQueue={Boolean(host.machine.heavyQueue)}

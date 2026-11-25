@@ -97,13 +97,13 @@ export class UsageLimitAccountHolds {
     try {
       // WSL readings never reach this host, so a WSL launch keeps the cut's own reset.
       if (record && record.location.wslDistro === null) {
-        // Off WSL a launch home follows the provider's selection, or the chat's own account.
-        const target = JSON.stringify([binding.witness, record.provider, record.accountChoice])
-        let launch = this.launchHomes.get(target)
-        if (!launch) {
-          launch = (async () => (await host.launchAccountHome?.(record)) ?? null)()
-          this.launchHomes.set(target, launch)
-        }
+        // Off WSL a launch home follows the provider's selection, or the chat's (or project's) account.
+        const account = host.launchAccountChoice?.(record) ?? record.accountChoice
+        const target = JSON.stringify([binding.witness, record.provider, account])
+        const launch =
+          this.launchHomes.get(target) ??
+          (async () => (await host.launchAccountHome?.(record)) ?? null)()
+        this.launchHomes.set(target, launch)
         const home = (await launch) ?? record.accountHome
         movedTo = hit.home && !sameAccountHome(home, hit.home) ? home : null
         relaunchedOn = hit.relaunched ? home : null

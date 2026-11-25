@@ -16,6 +16,10 @@ import type { CommitMessageAgentEnvironmentResolvers } from '../../../text-gener
 import type { StructuredChatNamingDeps } from '../../../native-chat/conversation-naming/structured-chat-naming-types'
 import type { StructuredAgentSessionLogger } from '../../../native-chat/agent-session-wire/host/structured-agent-session-logger'
 import { getStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/host/structured-agent-session-registry'
+import {
+  chatLaunchAccountChoice,
+  type ProjectRepoLookup
+} from '../../../claude-accounts/selection/claude-chat-account-choice'
 import { LOCAL_COMMIT_MESSAGE_HOST_KEY } from '../../../../shared/source-control/ai/generation/commit-message-host-key'
 import {
   generateConversationNameFromContext,
@@ -38,7 +42,7 @@ export function structuredChatNamingDeps(
     getSettings: () => Parameters<typeof resolveTextGenerationParams>[0] &
       AgentLaunchProfileSettings &
       ReturnType<StructuredChatNamingDeps['getSettings']>
-  },
+  } & ProjectRepoLookup,
   runtime: StructuredChatNamingRuntime,
   logger: StructuredAgentSessionLogger
 ): StructuredChatNamingDeps {
@@ -154,7 +158,8 @@ export function structuredChatNamingDeps(
             record,
             workspace.path,
             runtime.resolveNamingEnvironment,
-            current
+            current,
+            chatLaunchAccountChoice(getStore(), record)
           )
         : await resolveGenerationTarget(workspace.path, settings.params.agentId, runtime)
       if (!target) {

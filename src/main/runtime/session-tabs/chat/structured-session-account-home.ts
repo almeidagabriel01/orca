@@ -5,6 +5,8 @@ import { resolveHostStructuredAgentLaunchEnvironment } from '../../agent-session
 import { agentWorkspaceTrustDecisionForWorkspace } from '../../../agent-launch/trust/agent-workspace-trust-spawn'
 import { OrcaRuntimeWithStructuredSessionCliWriterHost } from './structured-session-cli-writer-host'
 import type { AgentSessionAccountHome } from '../../../../shared/agent-session/lifecycle/accounts/agent-session-account-home'
+import { chatLaunchAccountChoice } from '../../../claude-accounts/selection/claude-chat-account-choice'
+import type { StructuredAgentSessionRuntimeDeps } from '../../agent-session/installation/structured-agent-session-runtime-contract'
 import type { AgentSessionRecord } from '../../../../shared/agent-session/lifecycle/agent-session-record'
 
 export abstract class OrcaRuntimeWithStructuredSessionAccountHome extends OrcaRuntimeWithStructuredSessionCliWriterHost {
@@ -68,7 +70,24 @@ export abstract class OrcaRuntimeWithStructuredSessionAccountHome extends OrcaRu
     }
     const read = this.structuredAgentAccountHomeResolver(provider, '', purpose)
     const launchEnv = this.structuredAgentLaunchEnv(provider, this.requireStore().getSettings())
-    return (await read?.({ launchEnv, location }, undefined, record.accountChoice)) ?? null
+    const account = chatLaunchAccountChoice(this.store ?? undefined, record)
+    return (await read?.({ launchEnv, location }, undefined, account)) ?? null
+  }
+
+  /** The chat host's reads of the account a chat's next start runs on, all through one choice. */
+  structuredAgentLaunchAccountDeps(): Required<
+    Pick<
+      StructuredAgentSessionRuntimeDeps,
+      'launchAccountHome' | 'prepareLaunchAccountHome' | 'launchAccountChoice'
+    >
+  > {
+    return {
+      launchAccountHome: (record, purpose) =>
+        this.resolveStructuredAgentLaunchAccountHome(record, purpose),
+      prepareLaunchAccountHome: (record, launchDirectory) =>
+        this.prepareStructuredAgentLaunchAccountHome(record, launchDirectory),
+      launchAccountChoice: (record) => chatLaunchAccountChoice(this.store ?? undefined, record)
+    }
   }
 
   /** The same account, prepared for a start in `launchDirectory` as a create prepares it. */
@@ -83,6 +102,7 @@ export abstract class OrcaRuntimeWithStructuredSessionAccountHome extends OrcaRu
     const prepare = this.structuredAgentAccountHomeResolver(provider, '', 'launch', launchDirectory)
     await this.accounts.prepareHostAgentLaunch(provider)
     const launchEnv = this.structuredAgentLaunchEnv(provider, this.requireStore().getSettings())
-    return (await prepare?.({ launchEnv, location }, undefined, record.accountChoice)) ?? null
+    const account = chatLaunchAccountChoice(this.store ?? undefined, record)
+    return (await prepare?.({ launchEnv, location }, undefined, account)) ?? null
   }
 }

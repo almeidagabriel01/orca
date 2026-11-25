@@ -1,5 +1,6 @@
 import { claudeBotSessionOptions } from './claude-bot-session-options'
 import { withBotLaunchToolsEnv } from '../../../bots/bot-launch-tools'
+import type { StructuredAgentSessionHostDeps } from '../../../native-chat/agent-session-wire/host/structured-agent-session-host-types'
 import type { ClaudeAccountRecipe } from '../../../../shared/agent-session/lifecycle/accounts/agent-session-acquired-account'
 import { prepareClaudeLaunchAccount, withClaudeLaunchAccountPin } from './claude-launch-account'
 import { assertStructuredAgentResolutionCurrent } from '../../../native-chat/agent-launch/structured-agent-command-resolution'
@@ -108,6 +109,8 @@ export type ClaudeStructuredLaunchPartDeps = {
   resolveAuthPolicy: () => Promise<ClaudeStructuredAuthPolicy> | ClaudeStructuredAuthPolicy
   /** Host attachment store outside the workspace, granted to the agent at launch. */
   attachmentDirectory?: string
+  /** The chat's account now (`StructuredAgentSessionHostDeps.launchAccountChoice`); absent: its own. */
+  launchAccountChoice?: StructuredAgentSessionHostDeps['launchAccountChoice']
   /** Omit version-gated flags when support cannot be checked. */
   cliFlags?: Pick<ClaudeCliFlagSupport, 'check'>
   /** This host's setting for suggested next prompts, read at each spawn; absent means off. */
@@ -156,7 +159,7 @@ export function claudeStructuredLaunchPart(
     const { record } = basis
     const accountHome = requireLegacyAgentSessionAccountHome(record.accountHome)
     const router = getClaudeProfileRouter()
-    const { accountChoice } = record
+    const accountChoice = deps.launchAccountChoice?.(record) ?? record.accountChoice
     const active = activeProviderContext(record)
     const head = active.head?.handle ?? null
     if (

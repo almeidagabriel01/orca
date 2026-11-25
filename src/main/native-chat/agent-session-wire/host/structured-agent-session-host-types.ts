@@ -251,6 +251,10 @@ export type StructuredAgentSessionHostDeps = {
     record: AgentSessionRecord,
     purpose?: 'read' | 'identity'
   ) => Promise<AgentSessionAccountHome | null>
+  /** The account a launch of this chat runs on now: its own choice, else its project's default. */
+  launchAccountChoice?: (
+    record: Pick<AgentSessionRecord, 'accountChoice' | 'provider' | 'location'>
+  ) => string | undefined
   /** The tools a chat's agent launched with, against what its next launch would get; absent or a
    *  chat that launched none (not a bot's, or look-around) never refreshes for tools. */
   launchTools?: {

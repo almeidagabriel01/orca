@@ -150,6 +150,9 @@ export async function readStructuredAgentSessionOptions(
   }
   const resting = live ? restingOptions : null
   const record = store.getConversation(sessionId)
+  // The account its next launch runs on, so a picker shows the project's default it falls back to.
+  const accountChoice =
+    record && (context.deps.launchAccountChoice?.(record) ?? record.accountChoice)
   const permissionMode = record
     ? structuredAgentSessionImmediatePermission(context.deps, record)
     : null
@@ -271,7 +274,7 @@ export async function readStructuredAgentSessionOptions(
       ...(options.current.fastModeState ? { fastModeState: options.current.fastModeState } : {}),
       ...(confirmed?.length ? { confirmed } : {}),
       ...(permissionMode ? { permissionMode } : {}),
-      ...(record?.accountChoice ? { accountChoice: record.accountChoice } : {}),
+      ...(accountChoice ? { accountChoice } : {}),
       ...(live && options.current.reportedPermissionMode !== undefined
         ? { reportedPermissionMode: options.current.reportedPermissionMode }
         : { reportedPermissionMode: undefined })

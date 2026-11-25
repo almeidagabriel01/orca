@@ -139,6 +139,7 @@ function createClaudeAdapter(
         ...(deps.resolveClaudeCommand ? { resolveCommand: deps.resolveClaudeCommand } : {}),
         resolveAuthPolicy: deps.resolveClaudeAuthPolicy,
         attachmentDirectory: agentSessionAttachmentStoreRoot(deps.stateDirectory),
+        ...(deps.launchAccountChoice ? { launchAccountChoice: deps.launchAccountChoice } : {}),
         ...(deps.claudeCliFlags ? { cliFlags: deps.claudeCliFlags } : {}),
         ...(deps.nativeChatPromptSuggestions
           ? { promptSuggestions: deps.nativeChatPromptSuggestions }

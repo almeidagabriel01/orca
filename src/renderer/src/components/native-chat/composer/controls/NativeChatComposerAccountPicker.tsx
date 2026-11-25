@@ -98,8 +98,10 @@ function NativeChatComposerAccountOnlyPicker({
             <DropdownMenuRadioItem
               key={row.value}
               value={row.value}
-              // Picking the shown row keeps the chat's choice, so following the host stays put.
-              onSelect={() => row.value !== value && control.choose?.(row.value)}
+              // An accountless chat saves even the shown row, so a later project default can't move it.
+              onSelect={() =>
+                (row.value !== value || control.choice === undefined) && control.choose?.(row.value)
+              }
             >
               <div className="min-w-0 py-0.5">
                 <div className="flex min-w-0 items-center gap-1.5">

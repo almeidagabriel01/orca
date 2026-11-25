@@ -76,10 +76,10 @@ export function useStructuredChatAccount(args: {
     subscribeStructuredAgentLaunchStatus,
     () => getStructuredLaunchStateBySessionId(sessionId)?.intent.accountChoice
   )
-  // Until a pick, a new chat shows the project's account, which its host seeds at create.
+  // Until a pick, a new chat shows the project's account, which it launches on; a fork keeps its source's.
   const projectChoice = useAppStore((state) => {
     const intent = getStructuredLaunchStateBySessionId(sessionId)?.intent
-    return intent && !intent.params.resumeFrom && !intent.params.forkFrom
+    return intent && !intent.params.forkFrom
       ? projectAgentAccountChoice(
           findLaunchProjectRepo(
             state,

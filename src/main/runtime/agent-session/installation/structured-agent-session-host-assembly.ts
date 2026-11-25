@@ -105,6 +105,7 @@ export async function installOnJournal(
     ...(deps.onSessionTabHidden ? { onSessionTabHidden: deps.onSessionTabHidden } : {}),
     ...(deps.onMessageAdmitted ? { onMessageAdmitted: deps.onMessageAdmitted } : {}),
     ...(deps.launchAccountHome ? { launchAccountHome: deps.launchAccountHome } : {}),
+    ...(deps.launchAccountChoice ? { launchAccountChoice: deps.launchAccountChoice } : {}),
     ...(deps.launchTools ? { launchTools: deps.launchTools } : {}),
     ...(deps.assertNoTerminalWriter ? { assertNoTerminalWriter: deps.assertNoTerminalWriter } : {}),
     ...(catalogOwner.modelCatalog ? { modelCatalog: catalogOwner.modelCatalog } : {})

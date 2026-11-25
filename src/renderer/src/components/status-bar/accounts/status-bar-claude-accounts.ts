@@ -287,8 +287,6 @@ function getClaudeStatusAccountsFromSettings(
   }
 }
 
-// For remote ownership, desktop settings cannot override the owner’s account snapshot.
-
 /** `ownerEnvironmentId` is the server owning the shown accounts; `null` is this desktop. */
 export function resolveClaudeStatusAccountState(
   settings: ClaudeAccountSettings | null | undefined,
@@ -302,22 +300,15 @@ export function resolveClaudeStatusAccountState(
 }
 
 export function signedInClaudeAccountCount(state: ClaudeRateLimitAccountsState): number {
-  const identities = new Set(
-    state.accounts
-      .filter(
-        (account) =>
-          account.managedAuthRuntime !== 'wsl' &&
-          !account.needsSignIn &&
-          !account.runsOnSystemDefault
-      )
-      .map((account) => claudeAccountIdentityKey(account) ?? `record:${account.id}`)
-  )
   const systemDefault = claudeAccountIdentityKey({
     email: state.systemDefaultEmail,
     organizationUuid: state.systemDefaultOrganizationUuid
   })
-  if (systemDefault) {
-    identities.add(systemDefault)
-  }
-  return identities.size
+  const keys = state.accounts
+    .filter(
+      (account) =>
+        account.managedAuthRuntime !== 'wsl' && !account.needsSignIn && !account.runsOnSystemDefault
+    )
+    .map((account) => claudeAccountIdentityKey(account) ?? `record:${account.id}`)
+  return new Set(systemDefault ? [...keys, systemDefault] : keys).size
 }

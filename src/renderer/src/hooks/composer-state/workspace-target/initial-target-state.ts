@@ -27,6 +27,7 @@ import { isWorkspaceStatusId } from '../../../../../shared/workspace/status/work
 import { resolveWorkspaceCreationTarget } from '@/lib/workspace/creation/project-host-workspace-target'
 import { findActionableFolderProjectGroup } from '@/lib/workspace/creation/new-workspace-project-options'
 import type { ProjectGroup } from '../../../../../shared/project/groups/project-group-types'
+import { useAppStore } from '@/store/index'
 
 export function useComposerInitialTargetState(input: ComposerInitialTargetStateInput) {
   const {
@@ -49,6 +50,7 @@ export function useComposerInitialTargetState(input: ComposerInitialTargetStateI
     workspaceStatuses
   } = input
   const { resolveInitialWorkspaceRunSeed } = decisions
+  const projectRunHostIds = useAppStore((state) => state.settings?.projectRunHostIds)
 
   const draftRepoId = persistDraft ? (newWorkspaceDraft?.repoId ?? null) : null
 
@@ -90,7 +92,8 @@ export function useComposerInitialTargetState(input: ComposerInitialTargetStateI
     projectHostSetupId: initialRunSeed.projectHostSetupId,
     projectHostSetupHostId: initialWorkspaceTarget ? initialRunSeed.hostId : null,
     focusedHostScope: workspaceHostScope,
-    actionableHostIds
+    actionableHostIds,
+    projectRunHostIds
   })
 
   const resolvedInitialRepoId =

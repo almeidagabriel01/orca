@@ -280,6 +280,9 @@
       "existingWhy": "{{distro}} already runs as a host, so Git, files and terminals run natively in Linux instead of across the Windows file share.",
       "existingAccept": "Add on host"
     },
+    "projectRunHost": {
+      "label": "Run on"
+    },
     "hiddenProjects": {
       "hidden": "{{name}} hidden",
       "hiddenDescription": "Its terminals and agents keep running. Show it again from Hidden projects below the list.",
@@ -706,6 +709,10 @@
     "refreshingDetails": "Refreshing check details…"
   },
   "settings": {
+    "projectRunHost": {
+      "label": "Run on",
+      "description": "Host where new workspaces of this project are created and run. You can still pick another host when creating one."
+    },
     "chat": {
       "permissionsAgentsLink": "Settings → Agents",
       "permissionsTitle": "Permissions for new chats",
@@ -26600,7 +26607,7 @@
     },
     "heavyQueue": {
       "title": "Heavy command queue · {{value0}}",
-      "tooltip": "Builds, tests and installs run through vps-heavy take turns for a few slots, so the machine is not overloaded.",
+      "tooltip": "Builds, tests and installs run through the heavy queue take turns for a few slots, so the machine is not overloaded.",
       "expand": "Expand heavy command queue",
       "collapse": "Collapse heavy command queue",
       "busy": "{{value0}}/{{value1}} busy",
@@ -26647,7 +26654,7 @@
       "reasonFirst": "Already first in line",
       "reasonLast": "Already last in line",
       "reasonRemoteFolder": "The folder is on another machine",
-      "reasonCantStop": "This host's vps-heavy can't stop commands; update it"
+      "reasonCantStop": "This host's heavy queue can't stop commands; update it"
     },
     "chatRow": {
       "tooltip": "{{agent}} chat, including the processes running under it"

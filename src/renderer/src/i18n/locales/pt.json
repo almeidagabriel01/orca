@@ -673,6 +673,9 @@
       "existingWhy": "{{distro}} já roda como host, então Git, arquivos e terminais rodam nativamente no Linux em vez de pelo compartilhamento de arquivos do Windows.",
       "existingAccept": "Adicionar no host"
     },
+    "projectRunHost": {
+      "label": "Rodar em"
+    },
     "hiddenProjects": {
       "hidden": "{{name}} oculto",
       "hiddenDescription": "Os terminais e agentes dele continuam em execução. Para mostrá-lo novamente, acesse Projetos ocultos abaixo da lista.",
@@ -1523,6 +1526,10 @@
     }
   },
   "settings": {
+    "projectRunHost": {
+      "label": "Rodar em",
+      "description": "Host onde os novos workspaces deste projeto são criados e executados. Ainda dá para escolher outro host ao criar um."
+    },
     "appearance": {
       "language": {
         "title": "Idioma",
@@ -24718,7 +24725,7 @@
       "swapLabel": "Swap"
     },
     "heavyQueue": {
-      "tooltip": "Builds, testes e instalações rodados pelo vps-heavy se revezam em poucas vagas, para não sobrecarregar a máquina.",
+      "tooltip": "Builds, testes e instalações rodados pela fila pesada se revezam em poucas vagas, para não sobrecarregar a máquina.",
       "title": "Fila de comandos pesados · {{value0}}",
       "expand": "Expandir fila de comandos pesados",
       "collapse": "Recolher fila de comandos pesados",
@@ -24767,7 +24774,7 @@
       "reasonFirst": "Já é o primeiro da fila",
       "reasonLast": "Já é o último da fila",
       "reasonRemoteFolder": "A pasta está em outra máquina",
-      "reasonCantStop": "O vps-heavy deste host não sabe parar comandos; atualize-o"
+      "reasonCantStop": "A fila pesada deste host não sabe parar comandos; atualize-o"
     },
     "sessionProcesses": {
       "copy": "Copiar comando",

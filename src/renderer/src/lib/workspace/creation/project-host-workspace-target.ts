@@ -14,6 +14,10 @@ import './new-workspace-composer-repo'
 import { resolveNewWorkspaceDialogRepoId } from '../../../../../shared/new-workspace/new-workspace-dialog-repo'
 import { findSoleHostCopy } from '../../../../../shared/worktree/host-qualified-identity'
 import { normalizeRuntimePathForComparison } from '../../../../../shared/file-access/cross-platform-path'
+import {
+  runHostPreferenceFilter,
+  type ProjectRunHostIds
+} from '../../../../../shared/execution-host/project-run-host-preference'
 
 export type WorkspaceCreationTarget = {
   projectId: string
@@ -69,6 +73,8 @@ type ProjectHostWorkspaceTargetInput = {
   projectHostSetupHostId?: ExecutionHostId | null
   focusedHostScope?: ExecutionHostScope | null
   actionableHostIds?: ReadonlySet<ExecutionHostId>
+  /** Per-project "Run on" host; a soft default below explicit picks, above the focused scope. */
+  projectRunHostIds?: ProjectRunHostIds | null
 }
 
 type ProjectSetupModel = {
@@ -225,6 +231,12 @@ export function resolveWorkspaceCreationTarget(
   }
 
   if (projectId) {
+    // A stale or unreachable preference falls through; explicit host picks above fail closed.
+    const preferred = runHostPreferenceFilter(input.projectRunHostIds, projectId)
+    const preferredTarget = preferred && findReadySetupTarget(setups, reposById, preferred)
+    if (preferredTarget) {
+      return { status: 'ready', target: preferredTarget }
+    }
     const focusedHostId =
       focusedHostScope && focusedHostScope !== ALL_EXECUTION_HOSTS_SCOPE ? focusedHostScope : null
     const focusedTarget = focusedHostId
@@ -255,6 +267,19 @@ export function resolveWorkspaceCreationTarget(
 
   const repoId = resolveNewWorkspaceDialogRepoId(input)
   const legacyCandidates = repoId ? (reposById.get(repoId) ?? []) : []
+  // A repo picked in the dialog keeps its host; only a seeded one follows the preference.
+  const preferredLegacy =
+    repoId && !input.draftRepoId
+      ? runHostPreferenceFilter(
+          input.projectRunHostIds,
+          allSetups.find((setup) => setup.repoId === repoId)?.projectId
+        )
+      : null
+  const preferredLegacyTarget =
+    preferredLegacy && findReadySetupTarget(setups, reposById, preferredLegacy)
+  if (preferredLegacyTarget) {
+    return { status: 'ready', target: preferredLegacyTarget }
+  }
   const focusedLegacyRepo =
     focusedHostScope && focusedHostScope !== ALL_EXECUTION_HOSTS_SCOPE
       ? legacyCandidates.find((candidate) => getRepoExecutionHostId(candidate) === focusedHostScope)

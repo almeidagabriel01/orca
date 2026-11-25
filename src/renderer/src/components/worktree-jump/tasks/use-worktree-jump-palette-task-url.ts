@@ -56,7 +56,8 @@ function getComposerDefaultWorkspaceTarget(state: ReturnType<typeof useAppStore.
     projects: state.projects,
     projectHostSetups: state.projectHostSetups,
     activeRepoId,
-    focusedHostScope: state.workspaceHostScope
+    focusedHostScope: state.workspaceHostScope,
+    projectRunHostIds: state.settings?.projectRunHostIds
   })
   return resolution.status === 'ready' ? resolution.target : null
 }

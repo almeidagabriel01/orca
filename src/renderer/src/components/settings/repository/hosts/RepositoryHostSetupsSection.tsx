@@ -24,6 +24,11 @@ import { useTranslate } from '@/i18n/use-translate'
 import { translateExecutionHostLabel } from '@/runtime/hosts/display/execution-host-label'
 import { buildSetupHostOptions, getSetupStateLabel } from './repository-host-setup-options'
 import { RepositoryHostSetupActions } from './RepositoryHostSetupActions'
+import { ProjectRunHostSetting } from './ProjectRunHostSetting'
+import {
+  getProjectRunHostOptions,
+  setProjectRunHost
+} from '@/lib/workspace/creation/project-run-host'
 import {
   selectRuntimeAwareSshStatus,
   selectRuntimeAwareSshTargetLabel
@@ -147,6 +152,10 @@ export function RepositoryHostSetupsSection({
     t
   )
   const hostOptionById = new Map(hostOptions.map((option) => [option.id, option]))
+  const runHostProjectId = selectedProjectHostSetup?.projectId
+  const runHostOptions = runHostProjectId
+    ? getProjectRunHostOptions(runHostProjectId, projectHostSetupProjection.setups, hostOptions, t)
+    : []
   const [deletingSetupId, setDeletingSetupId] = useState<string | null>(null)
   // Split clones share project IDs but need independent selections.
   const selectionKey = settingsSelectionKey ?? selectedProjectHostSetup?.projectId
@@ -181,7 +190,7 @@ export function RepositoryHostSetupsSection({
         'auto.components.settings.RepositoryPane.availableHostsDescription',
         'Hosts where this project is set up.'
       )}
-      keywords={[repo.displayName, 'host', 'ssh', 'remote', 'vm', 'path']}
+      keywords={[repo.displayName, 'host', 'ssh', 'remote', 'vm', 'path', 'run on']}
       className="space-y-3 py-3"
       forceVisible={forceVisible}
     >
@@ -232,6 +241,13 @@ export function RepositoryHostSetupsSection({
           )}
         </p>
       </div>
+      {runHostProjectId ? (
+        <ProjectRunHostSetting
+          options={runHostOptions}
+          value={settings?.projectRunHostIds?.[runHostProjectId] ?? null}
+          onValueChange={(hostId) => setProjectRunHost(runHostProjectId, hostId)}
+        />
+      ) : null}
       <div className="divide-y divide-border rounded-md border border-border">
         {projectHostSetups.map((setup) => {
           const executionHost = parseExecutionHostId(setup.executionHostId ?? setup.hostId)

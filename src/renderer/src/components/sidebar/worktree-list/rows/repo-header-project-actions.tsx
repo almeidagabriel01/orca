@@ -45,6 +45,7 @@ import {
 import { REPO_HEADER_ACTION_BUTTON_CLASS } from './repo-header-action-button-class'
 import { setProjectHidden } from '../../hidden-projects/set-project-hidden'
 import { getRepoHeaderCreateState } from './repo-header-create-state'
+import { ProjectRunHostMenuSection } from './ProjectRunHostMenuSection'
 import {
   handleRepoHeaderActionPointerDown,
   stopRepoHeaderKeyboardToggle,
@@ -190,6 +191,7 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
         ) : null}
         <WslMoveProjectMenuItem repo={repo} />
         <WslMovedRepoUseHereMenuItem repo={repo} />
+        <ProjectRunHostMenuSection repo={repo} />
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() =>

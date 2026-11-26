@@ -312,7 +312,11 @@ async function addProjectOnBothHosts(
     ids,
     { timeout: 60_000, polling: 250 }
   )
-  const { mac, vps }: { mac: string; vps: string } = await found.jsonValue()
+  const pair = await found.jsonValue()
+  if (!pair) {
+    throw new Error('both checkouts should be listed once the wait resolves')
+  }
+  const { mac, vps } = pair
   // Both copies must be one project, or no host-to-host action can exist.
   await expect
     .poll(

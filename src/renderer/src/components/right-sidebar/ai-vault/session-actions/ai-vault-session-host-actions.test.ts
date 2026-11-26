@@ -50,6 +50,7 @@ const own = {
   subagent: null
 } as unknown as AiVaultSession
 // The same conversation as the VPS's synced copy.
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const copy = {
   ...own,
   id: 'runtime:vps:claude:s1',

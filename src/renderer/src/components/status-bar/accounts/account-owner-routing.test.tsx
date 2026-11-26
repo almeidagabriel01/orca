@@ -156,7 +156,10 @@ it.each(['claude', 'codex'] as const)(
       }),
       { button: 0, ctrlKey: false }
     )
-    const row = (await screen.findByText(/inactive/)).closest('[title]') as HTMLElement
+    const row = (await screen.findByText(/inactive/)).closest<HTMLElement>('[title]')
+    if (!row) {
+      throw new Error('inactive account row missing')
+    }
     expect(await within(row).findByRole('img', { name: /17/ })).toBeDefined()
     expect(within(row).queryByRole('img', { name: /99/ })).toBeNull()
     expect(screen.queryByRole('radiogroup')).toBeNull()

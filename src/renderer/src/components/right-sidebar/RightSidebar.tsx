@@ -53,6 +53,7 @@ import { useRightSidebarTabRouting } from './activity-bar/use-right-sidebar-tab-
 import { useWindowWidth } from './layout/use-window-width'
 import {
   SIDE_CHAT_PANEL_MIN_WIDTH,
+  sideChatReservedWidth,
   setSideChatPanelWidth,
   useSideChatPanelWidth
 } from './layout/side-chat-panel-width'
@@ -179,15 +180,15 @@ function RightSidebarInner(): React.JSX.Element {
   const setRightSidebarWidth = showsSideChat ? setSideChatPanelWidth : setUserRightSidebarWidth
   const activityBarSideWidth = activityBarPosition === 'side' ? ACTIVITY_BAR_SIDE_WIDTH : 0
   const windowWidth = useWindowWidth()
-  const maxWidth = computeMaxRightSidebarPanelWidth(
-    windowWidth,
-    activityBarSideWidth,
-    panelMinWidth
-  )
+  const leftSidebarWidth = useAppStore((s) => (s.sidebarOpen ? s.sidebarWidth : 0))
+  const reservedWidth = showsSideChat
+    ? sideChatReservedWidth(activityBarSideWidth, leftSidebarWidth)
+    : activityBarSideWidth
+  const maxWidth = computeMaxRightSidebarPanelWidth(windowWidth, reservedWidth, panelMinWidth)
   const renderedRightSidebarWidth = clampRightSidebarPanelWidth(
     rightSidebarWidth,
     windowWidth,
-    activityBarSideWidth,
+    reservedWidth,
     panelMinWidth
   )
   const { containerRef, isResizing, onResizeStart } = useSidebarResize<HTMLDivElement>({

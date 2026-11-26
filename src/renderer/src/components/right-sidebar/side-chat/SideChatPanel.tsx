@@ -154,20 +154,18 @@ export default function SideChatPanel(): React.JSX.Element {
   }
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-side-chat-panel="">
-      {dockedTabs.length > 1 ? (
-        // Wraps instead of scrolling, so the transcript stays the only scroller.
-        <div className="flex shrink-0 flex-wrap gap-1 border-b border-border px-2 py-1">
-          {dockedTabs.map((tab) => (
-            <DockedChatStripItem
-              key={tab.id}
-              tab={tab}
-              current={tab.id === currentTabId}
-              onSelect={() => selectTab(worktreeId, tab.id)}
-              onClose={() => closeItem(tab.id)}
-            />
-          ))}
-        </div>
-      ) : null}
+      {/* Always drawn, so even one docked chat shows its name and status; wraps instead of scrolling. */}
+      <div className="flex shrink-0 flex-wrap gap-1 border-b border-border px-2 py-1">
+        {dockedTabs.map((tab) => (
+          <DockedChatStripItem
+            key={tab.id}
+            tab={tab}
+            current={tab.id === currentTabId}
+            onSelect={() => selectTab(worktreeId, tab.id)}
+            onClose={() => closeItem(tab.id)}
+          />
+        ))}
+      </div>
       <div ref={registerBody} className="min-h-0 flex-1" style={BODY_ANCHOR_STYLE} />
     </div>
   )

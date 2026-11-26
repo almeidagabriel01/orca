@@ -1,7 +1,22 @@
 import { useSyncExternalStore } from 'react'
+import { RIGHT_SIDEBAR_MIN_NON_SIDEBAR_AREA } from './right-sidebar-width'
 
 export const SIDE_CHAT_PANEL_MIN_WIDTH = 360
 export const SIDE_CHAT_PANEL_DEFAULT_WIDTH = 480
+const SIDE_CHAT_CENTER_MIN_WIDTH = 360
+
+/** Width the panel clamp sets aside so the center chat keeps a usable column beside a docked chat. */
+export function sideChatReservedWidth(
+  activityBarSideWidth: number,
+  leftSidebarWidth: number
+): number {
+  return (
+    activityBarSideWidth +
+    leftSidebarWidth +
+    SIDE_CHAT_CENTER_MIN_WIDTH -
+    RIGHT_SIDEBAR_MIN_NON_SIDEBAR_AREA
+  )
+}
 const STORAGE_KEY = 'orca.rightSidebar.sideChatWidth'
 
 const listeners = new Set<() => void>()

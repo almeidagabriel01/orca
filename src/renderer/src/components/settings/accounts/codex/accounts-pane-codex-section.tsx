@@ -1,22 +1,15 @@
 import { AlertTriangle, Loader2, Plus, X } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
-import { selectCodexProviderAccount } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
-import { Badge } from '../../../ui/badge'
 import { Button } from '../../../ui/button'
 import { Label } from '../../../ui/label'
 import { OpenAIIcon } from '../../../status-bar/accounts/provider-icons'
 import { CodexLoginLinkNotice } from './CodexLoginLinkNotice'
 import { SearchableSetting } from '../../section-layout/SearchableSetting'
 import { ACCOUNTS_SECTION_IDS, getAccountsCodexSearchEntries } from '../accounts-search'
-import { getCodexSystemDefaultSubtitle } from '../scope/accounts-pane-runtime'
+import { renderCodexSystemDefaultButton } from './accounts-pane-codex-system-default'
 import type { AccountsPaneSectionModel } from '../accounts-pane-types'
 import { renderCodexAccountRow } from './accounts-pane-codex-account-row'
-import { OwnLoginCard } from '../own-login-card'
-import {
-  getAccountDisplayName,
-  SYSTEM_DEFAULT_ACCOUNT_NAME_KEY
-} from '../../../../../../shared/agent-accounts/managed-account-display-names'
 import { signInCodexAccountOnHost } from '@/runtime/provider-accounts/sign-in/runtime-host-account-sign-in-client'
 import { HostAccountSignInPrompt } from '../sign-in/HostAccountSignInPrompt'
 import {
@@ -47,21 +40,10 @@ export function renderCodexAccountsSection(
     remoteAccountScopeNotice,
     runCodexAccountAction,
     accountOwner,
-    systemCodexActive,
-    systemCodexIdentity,
     systemCodexMissingSignIn,
-    systemCodexNeedsSignIn,
     visibleCodexAccounts,
     wslCapabilitiesLoading
   } = model
-  // The name belongs to the host's own login, so a WSL distro's login has none.
-  const systemDefaultName =
-    accountRuntime.runtime === 'host' ? model.codexAccounts.systemDefaultDisplayName : undefined
-  const systemDefaultShortName =
-    accountRuntime.runtime === 'host'
-      ? getAccountDisplayName({ displayName: systemDefaultName, email: systemCodexIdentity?.email })
-      : undefined
-  const systemNameTarget = { provider: 'codex' as const, id: SYSTEM_DEFAULT_ACCOUNT_NAME_KEY }
   const title = (
     <span className="flex items-center gap-2">
       <OpenAIIcon size={16} />
@@ -251,67 +233,7 @@ export function renderCodexAccountsSection(
           )}
 
           <div className="space-y-2">
-            <OwnLoginCard
-              model={model}
-              target={systemNameTarget}
-              account={{ displayName: systemDefaultName, email: systemCodexIdentity?.email }}
-              name={systemDefaultShortName}
-              active={systemCodexActive}
-              t={t}
-              cardClassName={
-                systemCodexNeedsSignIn
-                  ? 'border-destructive/50 bg-destructive/5'
-                  : systemCodexActive
-                    ? 'border-foreground/20 bg-accent/15'
-                    : 'border-border/70 hover:border-border hover:bg-accent/8'
-              }
-              disabled={codexAction !== 'idle' || accountRuntimeUnavailable}
-              canRename={accountRuntime.runtime === 'host'}
-              onSelect={() =>
-                void runCodexAccountAction('select:system', () =>
-                  selectCodexProviderAccount(accountOwner, {
-                    accountId: null,
-                    runtime: accountRuntime.runtime,
-                    wslDistro: accountRuntime.wslDistro
-                  })
-                )
-              }
-              badges={
-                systemCodexNeedsSignIn ? (
-                  <Badge
-                    variant="destructive"
-                    className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
-                  >
-                    {t('auto.components.settings.AccountsPane.93c47b333a', 'Needs sign-in')}
-                  </Badge>
-                ) : null
-              }
-              detail={
-                <span
-                  className={`truncate text-[11px] ${
-                    systemCodexNeedsSignIn ? 'text-destructive' : 'text-muted-foreground'
-                  }`}
-                >
-                  {systemCodexNeedsSignIn
-                    ? systemCodexMissingSignIn
-                      ? t(
-                          'auto.components.settings.AccountsPane.codexSystemDefaultNeedsSignIn',
-                          'No Codex sign-in was found for {{value0}}.',
-                          { value0: accountRuntimeSentenceLabel }
-                        )
-                      : t(
-                          'auto.components.settings.AccountsPane.fd62f37c24',
-                          'Codex reported this {{value0}} login is out of date.',
-                          { value0: accountRuntimeSentenceLabel }
-                        )
-                    : getCodexSystemDefaultSubtitle(
-                        systemCodexIdentity,
-                        accountRuntimeSentenceLabel,
-                        t
-                      )}
-                </span>
-              }
-            />
+            {renderCodexSystemDefaultButton(model, t)}
             {visibleCodexAccounts.length === 0 ? (
               <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
                 {isRemoteAccountScope

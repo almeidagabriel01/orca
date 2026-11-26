@@ -113,7 +113,7 @@ export async function resolveUnlaunchedIntent(
       ? await resolveAgentLaunchModeOnHost(
           runtime,
           preflight,
-          intent.target.worktree,
+          { worktreeId: intent.target.worktree },
           intent.agent,
           undefined,
           {

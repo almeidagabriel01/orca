@@ -16,7 +16,7 @@ import {
   refuseUnmatchedWorkerSelector,
   workerStartTargetLabel
 } from './worker-start-selector-refusal'
-import { resolveWorkerStartModeOnHost } from '../../structured-workers/orchestration-worker-start-mode'
+import { preflightWorkerAgentOnHost } from './launch/worker-agent-host-preflight'
 import { lineageModeForResolvedAgent, workerStartProject } from './worker-chat-lineage'
 import type { AgentLaunchModeReceipt as WorkerStartModeReceipt } from '../../../../../../../shared/agent-launch/contracts/agent-launch-intent'
 import { EXISTING_WORKTREE_SETUP, placeWorkerAgent } from './placement/worker-start-agent-placement'
@@ -42,7 +42,7 @@ import {
 import { requireWorkerAuthority, type WorkerEffect } from './placement/worker-placement-topology'
 import { prepareLocalWorkerStart } from './launch/worker-start-validation'
 import { deliverAndSettleWorkerStartReadiness } from './readiness/worker-start-readiness-settlement'
-import { handOverWhenReady } from './readiness/placed-worker-readiness'
+import { handOverWhenReady, wakeReusedSleptAgent } from './readiness/placed-worker-readiness'
 import type { WorkerStartMutation } from './worker-start-mutation'
 import {
   prepareWorkerStartCard,
@@ -135,8 +135,8 @@ export async function startLocalWorker(args: {
   const project = await workerStartProject(runtime, resolvedWorktree?.id, creationTarget)
   const start = { ...args, params, agent, project }
   const decided = lineageModeForResolvedAgent(runtime, args.mode, start)
-  const hostMode = resolveWorkerStartModeOnHost(runtime, decided, resolvedWorktree?.id, agent)
-  let mode = chatWorkerMode(await hostMode, chat)
+  const host = { runtime, agent, resolvedWorktree, creationTarget, terminal: params.terminal }
+  let mode = chatWorkerMode(await preflightWorkerAgentOnHost({ ...host, mode: decided }), chat)
 
   // Synchronous through the Dispatch insert, so nothing else claims the terminal in between.
   refuseClaimedWorkerTerminal(db, params.terminal, runtime, args.followUp?.of)
@@ -238,15 +238,10 @@ export async function startLocalWorker(args: {
     // A structured worker's setup gate and its preamble's wait share one deadline: the timeout.
     const timeoutMs = params.timeoutMs ?? 60_000
     const readinessDeadline = Date.now() + timeoutMs
-    const readiness = {
-      agent,
-      reusesTerminal: Boolean(params.terminal),
-      creation: placed.terminalCreation
-    }
+    const sleptIncarnation = await wakeReusedSleptAgent(runtime, placed, workerChat, timeoutMs)
     // Fixed now: the hand-over may run later, from the background wait.
     const placement = placed
     const handle = terminalHandle
-    const worktreeId = resolvedWorktree.id
     // A hand-over from the background wait gets a fresh delivery budget; one in time keeps the shared one.
     const bindTerminal = (): void => {
       const terminalAuthority = authority ?? requireWorkerAuthority(runtime, handle)
@@ -254,10 +249,11 @@ export async function startLocalWorker(args: {
         dispatchId: started.dispatch.id,
         handle,
         ...terminalAuthority,
-        worktreeId,
+        worktreeId: placement.worktree.id,
         effects,
         setupState: setupReceipt.state,
-        terminalOwnership: external ? 'external' : 'created'
+        terminalOwnership: external ? 'external' : 'created',
+        sleptProcessIncarnation: sleptIncarnation
       })
     }
     const handOver = async (deliveryDeadline = readinessDeadline): Promise<unknown> => {
@@ -296,7 +292,11 @@ export async function startLocalWorker(args: {
       structuredSession,
       workerChat: Boolean(workerChat),
       setupStage,
-      readiness,
+      readiness: {
+        agent,
+        reusesTerminal: Boolean(params.terminal),
+        creation: placed.terminalCreation
+      },
       timeoutMs,
       readinessDeadline,
       launchedAt,

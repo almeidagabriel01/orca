@@ -50,7 +50,6 @@ type UsageProviderKey = {
 const USAGE_PROVIDER_IDS: Record<UsageProviderKey, ProviderRateLimits['provider']> = {
   claude: 'claude',
   codex: 'codex',
-  gemini: 'gemini',
   opencodeGo: 'opencode-go',
   kimi: 'kimi',
   antigravity: 'antigravity',
@@ -65,7 +64,6 @@ const USAGE_PROVIDER_IDS: Record<UsageProviderKey, ProviderRateLimits['provider'
 const USAGE_PROVIDER_AGENTS: Record<UsageProviderKey, TuiAgent | null> = {
   claude: 'claude',
   codex: 'codex',
-  gemini: 'gemini',
   opencodeGo: null,
   kimi: 'kimi',
   antigravity: 'antigravity',
@@ -79,7 +77,7 @@ const USAGE_PROVIDER_AGENTS: Record<UsageProviderKey, TuiAgent | null> = {
 // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the keys of a Record<UsageProviderKey, …>.
 const USAGE_PROVIDER_KEYS = Object.keys(USAGE_PROVIDER_IDS) as UsageProviderKey[]
 
-function mapProviders(
+export function mapProviders(
   build: (key: UsageProviderKey) => ProviderRateLimits | null
 ): Pick<RateLimitState, UsageProviderKey> {
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: one entry per UsageProviderKey.
@@ -89,7 +87,7 @@ function mapProviders(
   >
 }
 
-function describeUnverifiableOwner(
+export function describeUnverifiableOwner(
   ownerLabel: string,
   reason: OwnerUsageFailureReason,
   t: Translate = translate
@@ -228,7 +226,7 @@ function describePlaceholder(
     : null
 }
 
-function ownerPlaceholderSnapshot(
+export function ownerPlaceholderSnapshot(
   key: UsageProviderKey,
   error: string,
   usageMetadata: UsageRateLimitMetadata

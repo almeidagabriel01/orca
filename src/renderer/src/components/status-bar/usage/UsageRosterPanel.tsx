@@ -248,7 +248,6 @@ export function UsageRosterPanel({
   onManageAccounts,
   onUsageDetails,
   actionsAvailable = true,
-  unavailableReason,
   renderRow,
   sessionsForRow
 }: {
@@ -268,7 +267,6 @@ export function UsageRosterPanel({
   canSignIn: (provider: ProviderId) => boolean
   onManageAccounts: () => void
   actionsAvailable?: boolean
-  unavailableReason?: string
   onUsageDetails: () => void
   // Return null to use the default row instead of a host-supplied detail/account wrapper.
   renderRow?: (p: ProviderRateLimits, row: React.ReactNode, entry: UsageRowChip) => React.ReactNode
@@ -313,9 +311,6 @@ export function UsageRosterPanel({
           ? { usageAccounts, onUsageAccountsChange }
           : {})}
       />
-      {unavailableReason ? (
-        <div className="px-3.5 pb-2 text-2xs text-muted-foreground">{unavailableReason}</div>
-      ) : null}
       <div className="border-t border-border/70" />
       {sorted.map((entry, index) => {
         const p = entry.p

@@ -1,6 +1,6 @@
 import { claudeBotSessionOptions } from './claude-bot-session-options'
-import { withBotLaunchToolsEnv } from '../../../bots/bot-launch-tools'
 import type { StructuredAgentSessionHostDeps } from '../../../native-chat/agent-session-wire/host/structured-agent-session-host-types'
+import { withSessionMcpToolsEnv } from '../../../mcp-servers/session-mcp-tools'
 import type { ClaudeAccountRecipe } from '../../../../shared/agent-session/lifecycle/accounts/agent-session-acquired-account'
 import { prepareClaudeLaunchAccount, withClaudeLaunchAccountPin } from './claude-launch-account'
 import { assertStructuredAgentResolutionCurrent } from '../../../native-chat/agent-launch/structured-agent-command-resolution'
@@ -29,6 +29,12 @@ import { withClaudeArtifactDefault } from './claude-artifact-env'
 import { CLAUDE_DEFAULT_SETTING_SOURCES, claudeDiscoveryOptions } from './claude-discovery-options'
 import { claudeInChromeDefaultArgs } from '../../configuration/claude-in-chrome-default'
 import { claudeConfigDirEnvPatch } from './claude-config-dir-pin'
+import { claudeOwnServerNames } from '../../../bots/bot-tools-claude'
+import {
+  deliverHostMcpServers,
+  noteSessionIgnoresHostMcp
+} from '../../../mcp-servers/session-host-mcp-delivery'
+import { noteClaudeMcpConfigRefused } from '../../../mcp-servers/mcp-agent-problems'
 import type {
   ClaudeCliFlagCheck,
   ClaudeCliFlagSupport
@@ -160,6 +166,7 @@ export function claudeStructuredLaunchPart(
     const accountHome = requireLegacyAgentSessionAccountHome(record.accountHome)
     const router = getClaudeProfileRouter()
     const accountChoice = deps.launchAccountChoice?.(record) ?? record.accountChoice
+    const recordHome = accountHome.path
     const active = activeProviderContext(record)
     const head = active.head?.handle ?? null
     if (
@@ -191,16 +198,12 @@ export function claudeStructuredLaunchPart(
     }
     const sources = await resolveClaudeChildEnvSources(envDeps)
     // Overlap the version probe with remaining launch preparation.
+    const probeEnv = claudeProbeEnv(sources)
     const probeLaunch = {
       command: sources.command,
       prefixArgs: sources.prefixArgs,
       cwd,
-      env: await withClaudeLaunchAccountPin(
-        router,
-        claudeProbeEnv(sources),
-        accountHome.path,
-        accountChoice
-      )
+      env: await withClaudeLaunchAccountPin(router, probeEnv, recordHome, accountChoice)
     }
     const launchFlags = resolveClaudeLaunchFlags(
       { ...deps, prepareVisuals: basis.visuals },
@@ -209,6 +212,9 @@ export function claudeStructuredLaunchPart(
     )
     const launchArgs = await deps.resolveLaunchArgs()
     const { thinkingDisplayArgs, visuals, promptSuggestions, refused } = await launchFlags
+    noteClaudeMcpConfigRefused(refused.mcpConfig)
+    // Refused, Orca's servers go nowhere this launch, so no list edit is this chat's.
+    noteSessionIgnoresHostMcp(basis.record.sessionId, refused.mcpConfig)
     const linked = await basis.linkedSkills()
     const discovery = claudeDiscoveryOptions({
       configuredArgs: launchArgs,
@@ -241,7 +247,7 @@ export function claudeStructuredLaunchPart(
       envDeps,
       (base) =>
         withNativeChatVisualsEnv(
-          withBotLaunchToolsEnv(
+          withSessionMcpToolsEnv(
             {
               ...withClaudeArtifactDefault(base),
               // The turn translator relies on Claude's authoritative idle frame when no result arrives.
@@ -254,18 +260,11 @@ export function claudeStructuredLaunchPart(
       sources,
       { runtimeOnPath: false }
     )
-    const accountRecipe = await prepareClaudeLaunchAccount(
-      router,
-      env,
-      accountHome.path,
-      accountChoice
-    )
+    const accountRecipe = await prepareClaudeLaunchAccount(router, env, recordHome, accountChoice)
     const launchHome = accountRecipe.home
     // Read the config of the account directory the spawn pins, as session acquisition does.
-    const chromeArgs = await claudeInChromeDefaultArgs(
-      { ...env, ...claudeConfigDirEnvPatch(launchHome, { env }) },
-      [...prefixArgs, ...launchArgs]
-    )
+    const launchEnv = { ...env, ...claudeConfigDirEnvPatch(launchHome, { env }) }
+    const chromeArgs = await claudeInChromeDefaultArgs(launchEnv, [...prefixArgs, ...launchArgs])
     const resumesTranscript = resumedWithoutRouter ?? (await resumes(launchHome))
     if (fork?.throughEntryId && !resumesTranscript) {
       // Fork sources must pass the same account-history check as resumes.
@@ -279,6 +278,10 @@ export function claudeStructuredLaunchPart(
         hasTranscript: deps.hasTranscript
       })
     }
+    // The host list's servers the launch account's own Claude config doesn't already name.
+    const delivered = await deliverHostMcpServers(record.sessionId, 'Claude Code', tools, () =>
+      claudeOwnServerNames(launchEnv.CLAUDE_CONFIG_DIR?.trim() || null, cwd)
+    )
     return {
       launch: {
         pathToClaudeCodeExecutable: command,
@@ -289,7 +292,7 @@ export function claudeStructuredLaunchPart(
           ...CLAUDE_STRUCTURED_BASE_OPTIONS,
           ...permission,
           ...discovery,
-          ...(await claudeBotSessionOptions(basis, linked.projects, tools, refused)),
+          ...(await claudeBotSessionOptions(basis, linked.projects, delivered, refused)),
           ...(promptSuggestions ? { promptSuggestions } : {}),
           extraArgs: {
             ...discovery.extraArgs,

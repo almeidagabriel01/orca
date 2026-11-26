@@ -1,3 +1,4 @@
+import { hostSystemDefaultUsageId } from '../../../../../shared/agent-accounts/host-system-default-usage'
 import type {
   InactiveAccountUsage,
   ProviderRateLimits
@@ -268,7 +269,7 @@ function codexEntries(
   const inactive = getOwnerInactiveAccounts('codex', ownerUsage)
   const displayName = state.systemDefaultDisplayName
   return (group?.targets ?? []).flatMap((row): UsageAccountEntry[] => {
-    const usage = readingFor(inactive, row.id)
+    const usage = readingFor(inactive, row.id ?? hostSystemDefaultUsageId('codex', target))
     if (!row.id && !row.active && !usage.reading) {
       return []
     }

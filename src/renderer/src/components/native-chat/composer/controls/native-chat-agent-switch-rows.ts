@@ -13,7 +13,7 @@ import type {
   RateLimitState
 } from '../../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { formatUsageLimitResetClock } from '../../../../../../shared/agent-session/failures/agent-session-usage-limit'
-import { CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID } from '../../../../../../shared/agent-accounts/claude/claude-system-default-usage'
+import { HOST_SYSTEM_DEFAULT_USAGE_IDS } from '../../../../../../shared/agent-accounts/host-system-default-usage'
 import { AGENT_CHAT_SYSTEM_ACCOUNT } from '../../../../../../shared/agent-launch/accounts/agent-chat-account-choice'
 import type { AgentSessionAgentSwitchTarget } from '../../../../../../shared/agent-session/conversation-context/agent-session-agent-switch'
 import { getSystemDefaultDisplayName } from '../../../../../../shared/agent-accounts/managed-account-display-names'
@@ -175,7 +175,7 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
   const concrete = resolved && resolved.rows.some((row) => row.value !== AGENT_CHAT_SYSTEM_ACCOUNT)
   const shown = offeredSwitchAgents(input, Boolean(concrete))
   const offersClaude = input.agents.includes('claude') && !shown.claudeHidden
-  const hostUsageId = claude?.activeAccountId ?? CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID
+  const hostUsageId = claude?.activeAccountId ?? HOST_SYSTEM_DEFAULT_USAGE_IDS.claude
   const value =
     agent !== 'claude'
       ? agentRowValue(agent)
@@ -206,7 +206,7 @@ export function agentSwitchMenuModel(input: ModelInput): AgentSwitchMenuModel {
           const rowValue = accountRowValue(row.value)
           const usageId =
             row.value === AGENT_CHAT_SYSTEM_ACCOUNT
-              ? CLAUDE_HOST_SYSTEM_DEFAULT_USAGE_ID
+              ? HOST_SYSTEM_DEFAULT_USAGE_IDS.claude
               : row.value
           const rowUsage = usageOf(claudeLimits(usage, usageId, hostUsageId))
           const description = joinedParts(rowValue === value ? inUse : null, row.description)

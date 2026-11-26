@@ -42,11 +42,17 @@ export function getOwnerAccountRows<P extends AccountProvider>(
   usageTarget: RateLimitRuntimeTarget
 } {
   const owner = ownerUsage.rateLimits
+  // Why: this desktop manages a WSL host's distro accounts, so its roster is the local one.
+  const wslDistro = ownerUsage.owner?.wslHostDistro ?? null
   return {
     // Why: a remote roster comes from the snapshot that carries its readings, so names and numbers move together.
-    roster: ownerUsage.remoteOwner ? (ownerUsage.accounts?.[provider] ?? emptyRoster) : localRoster,
+    roster:
+      ownerUsage.remoteOwner && !wslDistro
+        ? (ownerUsage.accounts?.[provider] ?? emptyRoster)
+        : localRoster,
     rosterKnown:
       !ownerUsage.remoteOwner ||
+      wslDistro !== null ||
       (ownerUsage.accounts !== null && !ownerUsage.accounts.failedProviders?.includes(provider)),
     inactiveAccounts: getOwnerInactiveAccounts(provider, ownerUsage),
     usageTarget: provider === 'claude' ? owner.claudeTarget : owner.codexTarget

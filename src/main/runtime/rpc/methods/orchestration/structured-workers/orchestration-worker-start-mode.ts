@@ -5,6 +5,7 @@ import {
   downgradeAgentLaunchModeForHost,
   resolveAgentLaunchModeOnHost,
   type AgentLaunchModeSettings,
+  type AgentLaunchSupportPlace,
   type AgentLaunchModeVocabulary
 } from '../../../../../agent-launch/agent-launch-mode'
 import { readAgentLaunchModeSettings } from '../../../../../agent-launch/agent-launch-mode-settings'
@@ -54,10 +55,10 @@ export function decideWorkerStartMode(args: {
 export async function resolveWorkerStartModeOnHost(
   runtime: Pick<OrcaRuntimeService, 'getStructuredAgentSessionCreateSupport'>,
   mode: WorkerStartModeReceipt,
-  worktreeId: string | undefined,
+  place: AgentLaunchSupportPlace | undefined,
   agent: TuiAgent | undefined
 ): Promise<WorkerStartModeReceipt> {
-  return resolveAgentLaunchModeOnHost(runtime, mode, worktreeId, agent, WORKER_START_VOCABULARY)
+  return resolveAgentLaunchModeOnHost(runtime, mode, place, agent, WORKER_START_VOCABULARY)
 }
 
 export function downgradeWorkerStartModeForHost(

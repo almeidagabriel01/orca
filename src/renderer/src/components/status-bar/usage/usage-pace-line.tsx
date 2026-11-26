@@ -8,7 +8,10 @@ import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-
 import type { StatusBarUsageSection } from '../composition/status-bar-usage-sections'
 import { formatBareUsagePercentage } from './usage-percentage-label'
 import { formatLocalizedResetDuration } from './usage-reset-caption'
-import { clampUsedPercent } from '../../../../../shared/agent-usage/display/usage-percentage-display'
+import {
+  clampUsedPercent,
+  getDisplayedUsagePercentage
+} from '../../../../../shared/agent-usage/display/usage-percentage-display'
 import { UsageBar } from './usage-meter'
 import {
   formatPaceDetails,
@@ -92,7 +95,8 @@ export function ChipWindow({
   now,
   showLabel,
   wide,
-  short
+  short,
+  compact = false
 }: {
   p: ProviderRateLimits
   section: StatusBarUsageSection
@@ -103,12 +107,16 @@ export function ChipWindow({
   showLabel: boolean
   wide: boolean
   short: boolean
+  /** Compact bar: a bold number with a smaller, regular-weight muted unit. */
+  compact?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   const intlLocale = useIntlLocale()
   const { window } = section
   const pace = getReadingPace(p, window, now)
   const severity = getWindowSeverity(window, useUsageColorRule())
+  const text = formatBareUsagePercentage(window.usedPercent, display, t)
+  const value = String(getDisplayedUsagePercentage(window.usedPercent, display))
   const name = showLabel ? <span className="text-muted-foreground">{label}</span> : null
   const reset =
     wide && section.key === 'session'
@@ -121,8 +129,8 @@ export function ChipWindow({
       ) : null}
       <span className="inline-flex items-center gap-1 tabular-nums">
         {section.labelFirst ? name : null}
-        <span className={SEVERITY_TEXT_CLASS[severity]}>
-          {formatBareUsagePercentage(window.usedPercent, display, t)}
+        <span className={cn(SEVERITY_TEXT_CLASS[severity], compact && 'font-semibold')}>
+          {compact ? <CompactPercent text={text} value={value} /> : text}
         </span>
         {section.labelFirst ? null : name}
       </span>
@@ -138,6 +146,26 @@ export function ChipWindow({
       ) : null}
       {reset ? <span className="text-muted-foreground">{reset}</span> : null}
       {pace ? <PaceDelta pace={pace} short={short} /> : null}
+    </>
+  )
+}
+
+function CompactPercent({ text, value }: { text: string; value: string }): React.ReactNode {
+  const at = text.indexOf(value)
+  if (at === -1) {
+    return text
+  }
+  const unit = (part: string) =>
+    part.trim() ? (
+      <span className="text-[0.82em] font-normal text-muted-foreground">{part}</span>
+    ) : (
+      part
+    )
+  return (
+    <>
+      {unit(text.slice(0, at))}
+      {value}
+      {unit(text.slice(at + value.length))}
     </>
   )
 }

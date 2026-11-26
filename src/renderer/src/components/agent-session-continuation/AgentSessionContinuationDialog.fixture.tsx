@@ -139,7 +139,7 @@ async function pickRadio(index: number): Promise<void> {
 }
 
 // The vps lists its agents, as a paired host answers detection; the harness has no real vps.
-const vpsAgents: TuiAgent[] = ['codex', 'claude', 'gemini']
+const vpsAgents: TuiAgent[] = ['codex', 'claude']
 const vpsInventoryKey = getRuntimeAgentInventoryKey('vps', vpsDevelop.id)
 
 /** `pushed`: after Commit & push, the Mac copy is clean and Start opens on the vps.

@@ -1,7 +1,12 @@
 import { Loader2, Plus, X } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
-import { selectClaudeProviderAccount } from '@/runtime/provider-accounts/observations/runtime-provider-accounts-client'
+import { selectClaudeProviderAccount } from '@/runtime/provider-accounts/observations/runtime-provider-account-selection'
+import {
+  getSystemDefaultLanes,
+  clearsHiddenWslLanes,
+  systemDefaultCandidates
+} from '../scope/system-default-lanes'
 import { Button } from '../../../ui/button'
 import { ButtonGroup } from '../../../ui/button-group'
 import { Label } from '../../../ui/label'
@@ -41,6 +46,7 @@ export function renderClaudeAccountsSection(
     accountRuntime,
     accountRuntimeSentenceLabel,
     accountRuntimeUnavailable,
+    accountVisibilityOptions,
     claudeAccounts,
     claudeAction,
     cliPresence,
@@ -55,6 +61,21 @@ export function renderClaudeAccountsSection(
     visibleClaudeAccounts,
     wslCapabilitiesLoading
   } = model
+  // Remote Claude has no targeted select, so System default resets only the shown lane and says so.
+  const skipsWslLanes = clearsHiddenWslLanes(
+    getSystemDefaultLanes(
+      accountRuntime,
+      systemDefaultCandidates(
+        claudeAccounts.accounts,
+        visibleClaudeAccounts,
+        accountVisibilityOptions
+      ),
+      claudeAccounts,
+      isRemoteAccountScope
+    )
+  )
+  // The shown lane itself is a remote WSL lane, which the host cannot reset at all.
+  const shownLaneBlocked = isRemoteAccountScope && accountRuntime.runtime === 'wsl'
   // The host's own login belongs to the host home, never a WSL distro.
   const systemDefaultEmail =
     accountRuntime.runtime === 'host' ? claudeAccounts.systemDefaultEmail : undefined
@@ -210,7 +231,7 @@ export function renderClaudeAccountsSection(
                   ? 'border-foreground/20 bg-accent/15'
                   : 'border-border/70 hover:border-border hover:bg-accent/8'
               }
-              disabled={claudeAction !== 'idle' || accountRuntimeUnavailable}
+              disabled={claudeAction !== 'idle' || accountRuntimeUnavailable || shownLaneBlocked}
               canRename={accountRuntime.runtime === 'host'}
               onSelect={() =>
                 void runClaudeAccountAction('select:system', () =>
@@ -224,11 +245,16 @@ export function renderClaudeAccountsSection(
               detail={
                 <span className="truncate text-[11px] text-muted-foreground">
                   {systemDefaultEmail ? `${systemDefaultEmail} • ` : null}
-                  {t(
-                    'auto.components.settings.AccountsPane.e05d0ff737',
-                    "Uses {{value0}}'s Claude login.",
-                    { value0: accountRuntimeSentenceLabel }
-                  )}
+                  {skipsWslLanes || shownLaneBlocked
+                    ? t(
+                        'accounts.selection.claudeWslLanesNotReset',
+                        "WSL Claude accounts can't be reset from here yet."
+                      )
+                    : t(
+                        'auto.components.settings.AccountsPane.e05d0ff737',
+                        "Uses {{value0}}'s Claude login.",
+                        { value0: accountRuntimeSentenceLabel }
+                      )}
                 </span>
               }
             />

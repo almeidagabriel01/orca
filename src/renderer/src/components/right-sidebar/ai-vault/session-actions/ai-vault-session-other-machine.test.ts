@@ -4,7 +4,10 @@ import type { Repo } from '../../../../../../shared/repository/repo-types'
 import type { Worktree } from '../../../../../../shared/worktree/types'
 import { buildHandoffDestinations } from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import type { ProjectHostSetupOption } from '@/lib/workspace/creation/project-host-setup-options'
-import { aiVaultCopyContinueDestination } from './ai-vault-session-other-machine'
+import {
+  aiVaultCopyContinueDestination,
+  aiVaultResumeSessionForWorkspace
+} from './ai-vault-session-other-machine'
 import {
   aiVaultSessionResumeLabel,
   resolveAiVaultHistorySessionResumeState
@@ -126,4 +129,18 @@ it('offers continuing a copy only on another host where its project is set up', 
       canSetLocation: true
     })
   ).toBeNull()
+})
+
+it('resumes a copy held by a chat on this computer as the recording host session, not that chat', () => {
+  // A chat here once adopted the synced copy; opening it would continue the copy on the wrong host.
+  const held = { ...copy, structuredSession: { sessionId: 'chat-1', workspaceId: vpsWorktree.id } }
+  const state = {
+    folderWorkspaces: [],
+    projectGroups: [],
+    repos,
+    worktreesByRepo: { 'repo-mac': [macWorktree], 'repo-vps': [vpsWorktree] }
+  }
+  const session = aiVaultResumeSessionForWorkspace(held, state, macWorktree.id)
+  expect(session).toMatchObject({ executionHostId: 'local', sessionId: 's1' })
+  expect(session?.structuredSession).toBeUndefined()
 })

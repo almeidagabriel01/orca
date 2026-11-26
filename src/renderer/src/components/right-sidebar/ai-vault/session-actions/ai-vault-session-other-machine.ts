@@ -77,6 +77,8 @@ export function aiVaultSessionOnRecordingHost(
     executionHostPlatform: _platform,
     accountHome: _home,
     accountWslDistro: _distro,
+    // A holder's chat that adopted the copy owns only the copy; the recording host resumes its own.
+    structuredSession: _holderChat,
     ...rest
   } = session
   return { ...rest, executionHostId: hostId, resumeCommand: '', codexHome: null }

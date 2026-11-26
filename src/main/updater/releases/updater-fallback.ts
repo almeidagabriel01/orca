@@ -2,11 +2,16 @@ import { parse } from 'semver'
 import type { UpdateStatus } from '../../../shared/updater/update-status-types'
 import {
   compareAppVersions,
+  isForkAppVersion,
   isPrereleaseAppVersion,
   isValidAppVersion
 } from '../../../shared/app-lifecycle/identity/app-version'
 
 function parseComparableSemver(value: string) {
+  // semver ranks `X.Y.Z-fork.N` below X.Y.Z; only compareAppVersions knows forks ship on top of it.
+  if (isForkAppVersion(value)) {
+    return null
+  }
   const parsed = parse(value.trim().replace(/^V/, 'v'))
   // Keep numeric identifiers outside the safe integer range exact.
   return parsed?.prerelease.some((id) => typeof id === 'string' && /^\d+$/.test(id)) ? null : parsed

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isForkAppVersion } from '../../app-lifecycle/identity/app-version'
 
 // Why: v0 supports only the ">=x.y.z" form. A closed grammar keeps the gate
 // predictable; richer ranges can be added without breaking old manifests.
@@ -8,7 +9,7 @@ export const orcaEngineRangeSchema = z
   .regex(/^>=\d+\.\d+\.\d+$/, 'must be a ">=x.y.z" version range')
 
 /** v0 engines gate: supports the ">=x.y.z" grammar the schema enforces. A prerelease host
- *  (`1.5.0-rc.1`) ranks below its release, as in semver; build metadata (`+…`) is ignored. */
+ *  (`1.5.0-rc.1`) ranks below its release, as in semver, but a fork build (`1.5.0-fork.1`) does not; build metadata (`+…`) is ignored. */
 export function satisfiesOrcaEngineRange(hostVersion: string, range: string): boolean {
   const minimum = range.slice(2)
   const parse = (value: string): number[] =>
@@ -25,5 +26,5 @@ export function satisfiesOrcaEngineRange(hostVersion: string, range: string): bo
       return a > b
     }
   }
-  return !/^[^+]*-/.test(hostVersion)
+  return !/^[^+]*-/.test(hostVersion) || isForkAppVersion(hostVersion)
 }

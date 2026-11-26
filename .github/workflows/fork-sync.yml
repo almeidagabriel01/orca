@@ -2,8 +2,8 @@ name: Fork upstream sync
 
 # Hourly: when stablyai/orca publishes a newer stable release, merge upstream main into fork-main,
 # check it, bump to <upstream version>-fork.1 and run the fork release, so installed fork builds offer
-# the update. On a conflict or a failing check nothing is pushed or released: an issue labelled
-# upstream-sync says why. Installed fork builds also dispatch this when they see the new release.
+# the update. On a conflict or a failing check nothing is pushed or released: one issue labelled
+# upstream-sync says why, updated only when something changes; a conflict leaves the run green. Installed fork builds also dispatch this when they see the new release.
 # See docs/fork-releases.md.
 
 on:
@@ -113,12 +113,23 @@ jobs:
             if git diff --name-only --diff-filter=U | grep -qx package.json; then
               node config/scripts/fork/fork-version.mjs --resolve-conflict && git add package.json || true
             fi
+            # Generated per-file ratchet baselines collide whenever both sides touch neighbouring rows;
+            # take upstream's here and regenerate from the merged code once dependencies are installed.
+            regen=""
+            for f in config/react-compiler-bailout-baseline.txt config/react-compiler-hazard-baseline.txt; do
+              if git diff --name-only --diff-filter=U | grep -qx "$f"; then
+                git checkout --theirs -- "$f" && git add "$f" && regen=true
+              fi
+            done
+            echo "regen-compiler-baseline=$regen" >> "$GITHUB_OUTPUT"
             conflicts="$(git diff --name-only --diff-filter=U)"
             if [[ -n "$conflicts" ]]; then
+              # A conflict needs a person, not an hourly red run: report it once in the sync issue and stop.
               { echo 'conflicts<<EOF'; echo "$conflicts"; echo EOF; } >> "$GITHUB_OUTPUT"
+              echo "conflicted=true" >> "$GITHUB_OUTPUT"
               git merge --abort
-              echo "::error::Merging upstream v$UPSTREAM conflicts in: $conflicts"
-              exit 1
+              echo "::warning::Merging upstream v$UPSTREAM conflicts in: $conflicts"
+              exit 0
             fi
             git commit --no-edit
           fi
@@ -126,13 +137,13 @@ jobs:
           git commit -am "chore(release): $(node -p 'require("./package.json").version')"
 
       - name: Setup pnpm
-        if: steps.merge.outcome == 'success'
+        if: steps.merge.outcome == 'success' && steps.merge.outputs.conflicted != 'true'
         uses: pnpm/setup@v2
         with:
           install: false
 
       - name: Setup Node.js
-        if: steps.merge.outcome == 'success'
+        if: steps.merge.outcome == 'success' && steps.merge.outputs.conflicted != 'true'
         uses: actions/setup-node@v6
         with:
           node-version-file: package.json
@@ -141,11 +152,18 @@ jobs:
 
       - name: Install dependencies
         id: install
-        if: steps.merge.outcome == 'success'
+        if: steps.merge.outcome == 'success' && steps.merge.outputs.conflicted != 'true'
         run: |
           npm install -g node-gyp@11.5.0
           export npm_config_node_gyp="$(npm root -g)/node-gyp/bin/node-gyp.js"
           pnpm install --frozen-lockfile
+
+      - name: Regenerate the React Compiler baselines
+        if: steps.install.outcome == 'success' && steps.merge.outputs.regen-compiler-baseline == 'true'
+        run: |
+          pnpm check:react-compiler-compat-ratchet --update
+          git add config/react-compiler-*-baseline.txt
+          git diff --cached --quiet || git commit -m "chore: regenerate React Compiler baselines after upstream merge"
 
       # Typecheck catches what a clean textual merge breaks; the fork's own tests guard its features.
       - name: Typecheck
@@ -199,7 +217,7 @@ jobs:
             done
 
       - name: Open an issue
-        if: failure() && steps.upstream.outputs.newer == 'true'
+        if: (failure() || steps.merge.outputs.conflicted == 'true') && steps.upstream.outputs.newer == 'true'
         env:
           UPSTREAM: ${{ steps.upstream.outputs.upstream }}
           COMMIT: ${{ steps.fetch.outputs.commit }}
@@ -239,10 +257,16 @@ jobs:
           $details
           EOF
           )"
+          # One issue per upstream version; it changes only when the upstream commit or the reason does.
+          key="sync-key: $COMMIT $(printf '%s' "$reason $details" | sha256sum | cut -c1-16)"
+          body="$body"$'\n\n'"<!-- $key -->"
           gh label create "$ISSUE_LABEL" --color FBCA04 --description "Fork upstream sync failures" --force
           existing="$(gh issue list --label "$ISSUE_LABEL" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
-          if [[ -n "$existing" ]]; then
-            gh issue comment "$existing" --body "$body"
-          else
+          if [[ -z "$existing" ]]; then
             gh issue create --title "$title" --label "$ISSUE_LABEL" --body "$body"
+          elif gh issue view "$existing" --json body --jq .body | grep -qF "$key"; then
+            echo "Issue #$existing already reports this; nothing new to say."
+          else
+            gh issue edit "$existing" --body "$body"
+            gh issue comment "$existing" --body "Atualizado: $reason Run: $RUN_URL"
           fi

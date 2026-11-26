@@ -23,13 +23,7 @@ export type AgentSessionContinuation = {
 }
 
 const MAX_ID_LENGTH = 512
-
-function optionalBounded(value: unknown): value is string | undefined {
-  return (
-    value === undefined ||
-    (typeof value === 'string' && value.length > 0 && value.length <= MAX_ID_LENGTH)
-  )
-}
+const FIELDS = ['installationId', 'hostLabel', 'sessionId', 'worktreeId'] as const
 
 /** The mark from a stored row or a paired host's frame, or undefined when it is malformed. A mark
  *  saved before installation ids (only a client-relative `executionHostId`) reads as an unknown host. */
@@ -43,25 +37,19 @@ export function readAgentSessionContinuedTo(value: unknown): AgentSessionContinu
   ) {
     return undefined
   }
-  const installationId = 'installationId' in value ? value.installationId : undefined
-  const hostLabel = 'hostLabel' in value ? value.hostLabel : undefined
-  const sessionId = 'sessionId' in value ? value.sessionId : undefined
-  const worktreeId = 'worktreeId' in value ? value.worktreeId : undefined
-  if (
-    !optionalBounded(installationId) ||
-    !optionalBounded(hostLabel) ||
-    !optionalBounded(sessionId) ||
-    !optionalBounded(worktreeId)
-  ) {
-    return undefined
+  const mark: AgentSessionContinuedTo = { at: value.at }
+  const fields: Record<string, unknown> = { ...value }
+  for (const field of FIELDS) {
+    const text = fields[field]
+    if (text === undefined) {
+      continue
+    }
+    if (typeof text !== 'string' || text.length === 0 || text.length > MAX_ID_LENGTH) {
+      return undefined
+    }
+    mark[field] = text
   }
-  return {
-    ...(installationId !== undefined ? { installationId } : {}),
-    ...(hostLabel !== undefined ? { hostLabel } : {}),
-    ...(sessionId !== undefined ? { sessionId } : {}),
-    ...(worktreeId !== undefined ? { worktreeId } : {}),
-    at: value.at
-  }
+  return mark
 }
 
 export function agentSessionContinuedToEqual(
@@ -72,11 +60,8 @@ export function agentSessionContinuedToEqual(
     a === b ||
     (a !== undefined &&
       b !== undefined &&
-      a.installationId === b.installationId &&
-      a.hostLabel === b.hostLabel &&
-      a.sessionId === b.sessionId &&
-      a.worktreeId === b.worktreeId &&
-      a.at === b.at)
+      a.at === b.at &&
+      FIELDS.every((field) => a[field] === b[field]))
   )
 }
 

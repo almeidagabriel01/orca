@@ -22808,7 +22808,14 @@
         "questionNotSent": "{{agent}} didn't get your question",
         "questionNotSentDetail": "Your question is still in this chat. Send /btw again to retry.",
         "questionUnconfirmed": "{{agent}} couldn't confirm the side chat got your question",
-        "questionUnconfirmedDetail": "Check the side chat before asking again. Your question is still in this chat."
+        "questionUnconfirmedDetail": "Check the side chat before asking again. Your question is still in this chat.",
+        "hideEarlier": "Hide earlier messages from {{name}}",
+        "showEarlier": "Show earlier messages from {{name}}",
+        "showEarlierCount": "Show earlier messages from {{name}} ({{total}})",
+        "moveToCenter": "Move to center",
+        "moveToRightPanel": "Move to right panel",
+        "title": "Side chat · {{name}}",
+        "titleUnnamed": "Side chat"
       },
       "urlRequest": {
         "title": "Sign-in requested",
@@ -23765,7 +23772,13 @@
         "promptSuggestionsTitle": "Suggested prompts",
         "promptSuggestionsCopy": "After Claude or Codex replies, its guess at your next message shows in the empty message box. Press Tab to use it. Each guess is an extra request that counts toward that agent's usage.",
         "promptSuggestionsSearchNext": "next prompt",
-        "promptSuggestionsSearchGhost": "ghost text"
+        "promptSuggestionsSearchGhost": "ghost text",
+        "sideChatPlacementRightPanel": "Right panel",
+        "sideChatPlacementCenter": "Center",
+        "sideChatPlacementTitle": "Open side chats in",
+        "sideChatPlacementCopy": "Where /btw opens its side chat. You can move each one between the right panel and the center from its header.",
+        "sideChatPlacementSearchBtw": "btw",
+        "sideChatPlacementSearchRightPanel": "right panel"
       },
       "voice": {
         "dictationLanguage": {
@@ -24679,6 +24692,13 @@
     "agent-session-continuation": {
       "createWorkspaceFetchFailed": "Couldn't fetch {{value0}} from GitHub. Check the connection and try again.",
       "createWorkspaceFailed": "Couldn't create the {{value0}} workspace on this host. Try again."
+    },
+    "rightSidebar": {
+      "sideChat": {
+        "tab": "Side chat",
+        "close": "Close {{name}}",
+        "empty": "No side chats here. Type /btw in a chat to start one."
+      }
     }
   },
   "dashboardPopout": {

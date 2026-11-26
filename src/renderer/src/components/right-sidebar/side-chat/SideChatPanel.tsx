@@ -22,6 +22,7 @@ import {
   useSideChatDockStore
 } from './side-chat-dock-state'
 
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: React's CSSProperties lacks anchorName; the value is a plain CSS anchor name.
 const BODY_ANCHOR_STYLE = {
   anchorName: tabGroupBodyAnchorName(SIDE_CHAT_DOCK_ANCHOR_KEY)
 } as React.CSSProperties

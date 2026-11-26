@@ -15,7 +15,12 @@ import type { WorkspaceLayoutModel } from '../workspace-layout-model'
 
 const WT = 'repo-1::/home/user/project'
 
-function chatTab(id: string, groupId: string, sortOrder: number, extra: object = {}) {
+function chatTab(
+  id: string,
+  groupId: string,
+  sortOrder: number,
+  extra: { dock?: 'right-panel' } = {}
+) {
   return {
     id,
     entityId: `session-${id}`,

@@ -109,7 +109,7 @@ export async function launchAgentSessionContinuation({
   sessionOptions,
   chatSessionOptions,
   agentArgs
-}: LaunchAgentSessionContinuationArgs): Promise<boolean> {
+}: LaunchAgentSessionContinuationArgs): Promise<false | { sessionId: string | null }> {
   const label = getAgentLabel(agent)
   // Blind PTY writes do not prove prompt delivery; claiming success can hide a lost handoff (#22479).
   let deliveryUnconfirmed = false
@@ -180,11 +180,13 @@ export async function launchAgentSessionContinuation({
   }
   // A launch still waiting on its host has opened nothing yet: the handoff counts once a chat or
   // terminal exists, so a declined or cancelled one leaves the dialog open to retry.
+  let sessionId: string | null = null
   if (result.surface.kind === 'host-published' && result.structuredSettlement) {
     const settled = await result.structuredSettlement
     if (settled.kind === 'cancelled' || settled.kind === 'failed') {
       return false
     }
+    sessionId = settled.kind === 'terminal' ? null : settled.sessionId
   }
 
   if (result.promptDeliveryResult) {
@@ -199,7 +201,7 @@ export async function launchAgentSessionContinuation({
         notifyDeliveryFailed(label, prompt)
       })
   }
-  return true
+  return { sessionId }
 }
 
 function notifyDeliveryFailed(agentLabel: string, prompt: string): void {

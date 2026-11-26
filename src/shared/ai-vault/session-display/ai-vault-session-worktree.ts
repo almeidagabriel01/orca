@@ -23,7 +23,9 @@ export type AiVaultSessionOwnerWorkspace = Pick<
   Worktree,
   'id' | 'path' | 'repoId' | 'displayName'
 > &
-  Partial<Pick<Worktree, 'hostId' | 'isArchived' | 'priorWorktreeIds'>>
+  Partial<
+    Pick<Worktree, 'hostId' | 'isArchived' | 'priorWorktreeIds' | 'branch' | 'isMainWorktree'>
+  >
 
 export type AiVaultSessionOwnerRepo = {
   id: string
@@ -109,7 +111,7 @@ function resolveWorktreeInfoFromCandidates(
     compareWorktreeCandidates
   )
 
-  const best = matched[0]
+  const best = matched[0] ?? (sessionHostId ? hostFallbackCandidate(session, hostCandidates) : null)
   if (!best) {
     return {
       status: 'unavailable',
@@ -119,6 +121,45 @@ function resolveWorktreeInfoFromCandidates(
   }
 
   return worktreeInfoFromCandidate(best)
+}
+
+/** No workspace holds the cwd on its host (e.g. a hidden worktree): the project's workspace on the same branch there, else its main checkout. */
+function hostFallbackCandidate(
+  session: Pick<AiVaultSession, 'cwd' | 'branch'>,
+  hostCandidates: readonly WorktreeCandidate[]
+): WorktreeCandidate | null {
+  const cwdSegments = new Set(
+    normalizeRuntimePathSeparators(session.cwd ?? '')
+      .split('/')
+      .filter(Boolean)
+  )
+  const live = hostCandidates.filter(
+    (candidate) => candidate.status === 'active' && candidate.source === 'current-path'
+  )
+  // ponytail: the project is the repo whose main checkout's folder names a cwd segment, as Orca lays
+  // out worktrees (<root>/<Repo>/<name>); a recorded repo id would be exact.
+  const main = live.find(
+    (candidate) =>
+      candidate.worktree.isMainWorktree &&
+      cwdSegments.has(aiVaultWorktreeCompactPath(candidate.path).split('/').pop() ?? '')
+  )
+  if (!main) {
+    return null
+  }
+  const branch = session.branch ? stripBranchRef(session.branch) : ''
+  return (
+    (branch
+      ? live.find(
+          (candidate) =>
+            candidate.worktree.repoId === main.worktree.repoId &&
+            stripBranchRef(candidate.worktree.branch ?? '') === branch
+        )
+      : undefined) ?? main
+  )
+}
+
+function stripBranchRef(branch: string): string {
+  return branch.trim().replace(/^refs\/heads\//, '')
 }
 
 function worktreeInfoFromCandidate(candidate: WorktreeCandidate): AiVaultSessionWorktreeInfo {

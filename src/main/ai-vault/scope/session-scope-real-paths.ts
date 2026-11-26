@@ -84,11 +84,13 @@ export function attachAiVaultScopeCwdAliases(
       continue
     }
     changed = true
-    sessions.push({
-      ...session,
-      cwdAliases: match.aliases,
-      ...(match.otherMachine ? { recordedOnOtherMachine: true as const } : {})
-    })
+    if (match.otherMachine) {
+      // A chat here that adopted the copy would reopen it on this host; the copy routes to its recording host.
+      const { structuredSession: _holderChat, ...copy } = session
+      sessions.push({ ...copy, cwdAliases: match.aliases, recordedOnOtherMachine: true as const })
+      continue
+    }
+    sessions.push({ ...session, cwdAliases: match.aliases })
   }
   return changed ? { ...result, sessions } : result
 }

@@ -25099,7 +25099,6 @@
       "runningElsewhere": "Bu {{agent}} konuşması {{host}} üzerinde başka bir sohbette veya terminalde çalışıyor. Orada durdurun, sonra devam ettirin."
     },
     "recordedOnHost": "{{value0}} üzerinde kaydedildi",
-    "resumeOnHost": "{{value0}} üzerinde sürdür",
     "recordedOnOfflineHost": "{{value0}} üzerinde kaydedildi ve çevrimdışı. Orada sürdürmek için yeniden bağlayın.",
     "recordedOnUnknownHost": "Başka bir bilgisayarda kaydedildi. Orada sürdürmek için klasörünü o bilgisayarda çalışma alanı olarak açın.",
     "antigravityIdeToCli": "IDE → CLI",

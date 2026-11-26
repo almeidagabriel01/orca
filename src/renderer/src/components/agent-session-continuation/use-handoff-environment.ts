@@ -6,6 +6,7 @@ import {
 } from '@/lib/agent-session/launch/continuation/handoff-destinations'
 import { retargetContinuationRequest } from '@/lib/agent-session/launch/continuation/handoff-continuation-retarget'
 import { commitAndPushHandoffSource } from '@/lib/agent-session/launch/continuation/handoff-source-publish'
+import type { HandoffContinuation } from '@/lib/agent-session/launch/continuation/handoff-continued-on'
 import { syncHandoffDestination } from '@/lib/agent-session/launch/continuation/handoff-destination-sync'
 import { createHandoffDestinationWorkspace } from '@/lib/agent-session/launch/continuation/handoff-destination-create'
 import type { AgentSessionContinuationRequest } from '../../../../shared/agent-session/conversation-context/agent-session-continuation'
@@ -149,6 +150,16 @@ export function useHandoffEnvironment(
     startBlocked: elsewhere && (git.state.kind !== 'clean' || !destination?.worktreeId),
     awaitingWorkspace: elsewhere && !destination?.worktreeId,
     destinationLabel: destination?.hostLabel ?? '',
+    /** Where a session launched as `sessionId` continued, when that is another host. */
+    continuedOn: (sessionId: string | null): HandoffContinuation | null =>
+      elsewhere && destination?.worktreeId
+        ? {
+            hostId: destination.hostId,
+            hostLabel: destination.hostLabel,
+            worktreeId: destination.worktreeId,
+            ...(sessionId ? { sessionId } : {})
+          }
+        : null,
     sourceChanges: {
       state: git.state,
       message: commitMessage,

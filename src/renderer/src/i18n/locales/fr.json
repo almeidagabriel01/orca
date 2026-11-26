@@ -23331,7 +23331,6 @@
       "runningElsewhere": "Cette conversation {{agent}} s’exécute dans un autre chat ou terminal sur {{host}}. Arrêtez-la là-bas, puis reprenez-la."
     },
     "recordedOnHost": "Enregistrée sur {{value0}}",
-    "resumeOnHost": "Reprendre sur {{value0}}",
     "recordedOnOfflineHost": "Enregistrée sur {{value0}}, hors ligne. Reconnectez-le pour la reprendre là-bas.",
     "recordedOnUnknownHost": "Enregistrée sur un autre ordinateur. Ouvrez son dossier comme espace de travail sur cet ordinateur pour la reprendre là-bas.",
     "antigravityIdeToCli": "IDE → CLI",

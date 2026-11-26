@@ -17,6 +17,7 @@ import {
 
 import type { AgentSessionLastTurn } from './records/agent-session-last-turn'
 import type { AgentSessionForkedFrom } from './records/agent-session-forked-from'
+import type { AgentSessionContinuation } from './records/agent-session-continued-to'
 export type { AgentSessionForkedFrom }
 import type { ExecutionHostId } from '../../execution-host/execution-host'
 import { isAgentSessionConversationCommandRecord } from '../conversation-context/agent-session-conversation-command'
@@ -151,7 +152,7 @@ export type AgentSessionRecord = AgentSessionSwitchFields & {
   lease: AgentSessionLease
   createdAt: number
   updatedAt: number
-}
+} & AgentSessionContinuation
 
 const MAX_ID_LENGTH = 512
 /** A death evidence's `detail` past this fails a load, so whoever writes one cuts it here. */

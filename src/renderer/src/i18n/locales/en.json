@@ -23577,6 +23577,12 @@
       }
     },
     "agentSessionContinuation": {
+      "continuedOn": "Continued on {{host}}",
+      "continuedOnBody": "This chat is read-only. The conversation goes on there.",
+      "openContinuation": "Open on {{host}}",
+      "markFailed": "The new session started, but this chat could not be marked as continued there.",
+      "hostUnknown": "This computer is not connected to {{host}}, so the chat cannot open here.",
+      "otherComputer": "another computer",
       "preparingContext": "Preparing saved chat context…",
       "handOffToAnotherAgent": "Hand off to agent",
       "untitledSession": "Current session",
@@ -25450,7 +25456,6 @@
       "runningElsewhere": "This {{agent}} conversation is running in another chat or terminal on {{host}}. Stop it there, then resume."
     },
     "recordedOnHost": "Recorded on {{value0}}",
-    "resumeOnHost": "Resume on {{value0}}",
     "recordedOnOfflineHost": "Recorded on {{value0}}, which is offline. Reconnect it to resume there.",
     "recordedOnUnknownHost": "Recorded on another computer. Open its folder as a workspace on that computer to resume it there.",
     "antigravityIdeToCli": "IDE → CLI",

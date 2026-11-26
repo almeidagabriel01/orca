@@ -4,10 +4,8 @@ import {
   useNativeChatCrewSource
 } from '../orchestration-crew/use-native-chat-crew'
 import { NativeChatUsageLimitActionsProvider } from './usage/NativeChatUsageLimitActions'
-import {
-  NativeChatHandOffContext,
-  useNativeChatHandOff
-} from './pane/actions/use-native-chat-hand-off'
+import { useNativeChatHandOff } from './pane/actions/use-native-chat-hand-off'
+import { NativeChatComposerSlot } from './pane/actions/NativeChatContinuedOnBanner'
 import { useNativeChatStructuredPaneNotices } from '@/components/native-chat/messages/notices/use-native-chat-structured-pane-notices'
 import { useRef, useState } from 'react'
 import { structuredAgentSessionPaneKey } from '../../../../shared/agent-session/view/structured-agent-session-projection'
@@ -385,7 +383,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
                   />
                 )}
                 {composerShown ? (
-                  <NativeChatHandOffContext.Provider value={handOff.footer}>
+                  <NativeChatComposerSlot footer={handOff.footer} pane={props}>
                     <NativeChatComposer
                       ref={composerRef}
                       terminalTabId={props.tabId}
@@ -402,7 +400,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
                       notices={notices}
                       recallSource={{ messages: session.messages, withoutImageMarkers: true }}
                     />
-                  </NativeChatHandOffContext.Provider>
+                  </NativeChatComposerSlot>
                 ) : null}
               </NativeChatDock>
             </NativeChatSubagentSheetLayer>

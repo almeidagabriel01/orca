@@ -27,6 +27,7 @@ import {
   type AgentSessionRecord
 } from '../../../../shared/agent-session/lifecycle/agent-session-record'
 import { isAgentSessionLaunchArgs } from '../../../../shared/agent-session/lifecycle/records/agent-session-launch-args'
+import { agentSessionHandedOff } from '../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import { agentSessionProviderHandleRoot } from '../../../../shared/agent-session/lifecycle/provider-handles/agent-session-provider-handle-encoding'
 import type {
   StructuredAgentId,
@@ -196,6 +197,12 @@ export function applyAgentSessionReservation(
     // Location/provider/account define identity; changing any would fork the session.
     throw agentSessionRefusalError('agent_session_conflict', { reason: 'identityMismatch' })
   }
+  if (existing.continuedTo) {
+    // Handed off to another host: the conversation goes on there, so this chat never runs again.
+    throw agentSessionRefusalError('agent_session_conflict', {
+      reason: 'conversationHeldElsewhere'
+    })
+  }
   // Recreate only never-bound conversations whose last attempt is proven gone.
   const recreatable =
     existing.providerHandleChain.length === 0 &&
@@ -231,7 +238,7 @@ export function assertAdoptedConversationUnowned(
   }
   const root = agentSessionProviderHandleRoot(adopted.handle)
   for (const record of listAgentSessionConversations(state)) {
-    if (record.sessionId === request.sessionId) {
+    if (record.sessionId === request.sessionId || agentSessionHandedOff(record)) {
       continue
     }
     // Only the conversation a chat continues now: an earlier link no longer holds anything.

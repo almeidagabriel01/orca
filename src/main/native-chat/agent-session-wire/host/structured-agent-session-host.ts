@@ -335,6 +335,7 @@ export class StructuredAgentSessionHost {
   regenerateConversationName = this.reads.regenerateConversationName
   setUserConversationName = this.reads.setUserConversationName
   skipAsyncQuestions = this.reads.skipAsyncQuestions
+  markContinuedTo = this.reads.markContinuedTo
 
   subscribeTurnCompletions = this.clientDelivery.subscribeTurnCompletions
   readStatusSummary = this.clientDelivery.readStatusSummary

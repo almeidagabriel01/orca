@@ -1,3 +1,4 @@
+import { ArrowUpRight } from 'lucide-react'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { DashboardAgentChildDisclosure } from '@/components/dashboard/rows/DashboardAgentChildDisclosure'
 import { AGENT_ROW_TITLE_BESIDE_MODEL_CHIP } from '@/components/dashboard/rows/agent-row-title-floor'
@@ -29,6 +30,12 @@ import { getCompactAgentLineOrder } from './worktree-card-compact-agent-line-ord
 import type { ProgramStatusPresentation } from '../../../../../../shared/program-status/presentation'
 import { resolveRowProgramStatus } from '@/lib/program-status/agent-row-presentation'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
+import {
+  handoffContinuationUnreachable,
+  openHandoffContinuation,
+  useHandoffContinuationPlace
+} from '@/lib/agent-session/launch/continuation/handoff-continued-on'
+import type { AgentSessionContinuedTo } from '../../../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 
 function getCompactAgentPrimary(
   agent: DashboardAgentRowData,
@@ -116,6 +123,43 @@ type CompactAgentRowProps = {
   isUnvisited?: boolean
 }
 
+/** Where a handed-off chat went; opens it there when this computer knows that host. */
+function ContinuedOnChip({
+  continuedTo,
+  t
+}: {
+  continuedTo: AgentSessionContinuedTo
+  t: Translate
+}): React.JSX.Element {
+  const place = useHandoffContinuationPlace(continuedTo)
+  const host = place?.label ?? ''
+  const label = t('components.agentSessionContinuation.continuedOn', 'Continued on {{host}}', {
+    host
+  })
+  // Icon + host only, so the chat name keeps the row's width; the full sentence is the label.
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="flex min-w-0 max-w-[45%] shrink items-center gap-0.5 rounded-sm border border-border px-1 text-3xs leading-4 text-muted-foreground hover:bg-accent hover:text-foreground"
+      disabled={!place?.hostId}
+      title={`${label}. ${
+        (place && handoffContinuationUnreachable(place)) ??
+        t('components.agentSessionContinuation.openContinuation', 'Open on {{host}}', { host })
+      }`}
+      onClick={(event) => {
+        event.stopPropagation()
+        if (place?.hostId) {
+          openHandoffContinuation(continuedTo, place.hostId)
+        }
+      }}
+    >
+      <ArrowUpRight className="size-2.5 shrink-0" aria-hidden />
+      <span className="truncate">{host}</span>
+    </button>
+  )
+}
+
 export const CompactAgentRow = React.memo(function CompactAgentRow({
   agent,
   showModel = true,
@@ -145,7 +189,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   const hideIcon = hideIdentityIcon || agent.rowSource === 'subagent'
   const { presentation, dotStateOverride } = resolveRowProgramStatus(agent)
   const dotState = dotStateOverride ?? getAgentDotState(agent)
-  const { name: conversationName, forked } = useAgentRowConversationNaming(agent)
+  const { name: conversationName, forked, continuedTo } = useAgentRowConversationNaming(agent)
   const primary = getCompactAgentPrimary(agent, conversationName)
   const forkNamed = forked && conversationName !== null
   const isLineageChild = agent.lineage?.depth === 1
@@ -286,6 +330,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           +{childAgentCount}
         </span>
       )}
+      {continuedTo ? <ContinuedOnChip continuedTo={continuedTo} t={t} /> : null}
       {cacheTimer && <CacheTimer startedAt={cacheTimer.startedAt} ttlMs={cacheTimer.ttlMs} />}
       {hasChildDisclosure ? (
         <DashboardAgentChildDisclosure
@@ -311,7 +356,9 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
         'flex h-6 items-center gap-1',
         highlighted && 'bg-worktree-sidebar-accent',
         sendTargetStatus === 'sending' && 'cursor-progress opacity-75',
-        sendTargetStatus === 'disabled' && 'cursor-default opacity-60'
+        sendTargetStatus === 'disabled' && 'cursor-default opacity-60',
+        // A handed-off chat stays listed as a read-only record of where the conversation went.
+        continuedTo && 'opacity-70'
       )}
       onClickCapture={sendTargetRow.onClickCapture}
       onClick={handleActivate}

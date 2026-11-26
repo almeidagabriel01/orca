@@ -22958,7 +22958,6 @@
       "runningElsewhere": "Diese {{agent}}-Unterhaltung läuft in einem anderen Chat oder Terminal auf {{host}}. Beende sie dort und setze sie dann fort."
     },
     "recordedOnHost": "Auf {{value0}} aufgezeichnet",
-    "resumeOnHost": "Auf {{value0}} fortsetzen",
     "recordedOnOfflineHost": "Auf {{value0}} aufgezeichnet, das offline ist. Verbinde es erneut, um dort fortzusetzen.",
     "recordedOnUnknownHost": "Auf einem anderen Computer aufgezeichnet. Öffne den Ordner dort als Workspace, um sie dort fortzusetzen.",
     "antigravityIdeToCli": "IDE → CLI",

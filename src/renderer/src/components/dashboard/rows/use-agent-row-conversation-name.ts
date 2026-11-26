@@ -6,6 +6,7 @@ import { resolveAgentRowPaneLiveTitle } from './agent-row-pane-live-title'
 import { structuredChatTabById } from '@/lib/agent-session/tab-identity/structured-chat-tab-index'
 import { useStructuredChatTabNaming } from '@/runtime/native-chat/naming/structured-conversation-name'
 import type { AppState } from '@/store/types'
+import type { AgentSessionContinuedTo } from '../../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import type { DashboardAgentRow } from './dashboard-agent-row'
 
 type WorktreeTabs = NonNullable<AppState['tabsByWorktree'][string]>
@@ -31,10 +32,12 @@ export function useAgentRowConversationName(agent: DashboardAgentRow): string | 
   return useAgentRowConversationNaming(agent).name
 }
 
-/** The row's name, and whether it names a forked native chat (drawn with the fork mark). */
+/** The row's name, whether it names a forked native chat (drawn with the fork mark), and where a
+ *  chat handed off to another host went. */
 export function useAgentRowConversationNaming(agent: DashboardAgentRow): {
   name: string | null
   forked: boolean
+  continuedTo: AgentSessionContinuedTo | null
 } {
   const parentPaneKey = agent.entry.orchestration?.parentPaneKey
   const usesParentTab =
@@ -72,13 +75,17 @@ export function useAgentRowConversationNaming(agent: DashboardAgentRow): {
   )
   // Why: synthetic and same-tab child rows do not own the parent tab's name.
   if (cannotOwnTabName) {
-    return { name: null, forked: false }
+    return { name: null, forked: false, continuedTo: null }
   }
   const structuredName =
     structuredTab &&
     structuredChatDisplayName(structuredTab.customLabel, conversationName, structuredTab.label)
   if (structuredName) {
-    return { name: structuredName, forked: chatNaming.forkSourceId !== null }
+    return {
+      name: structuredName,
+      forked: chatNaming.forkSourceId !== null,
+      continuedTo: chatNaming.continuedTo
+    }
   }
   // Why: attributed rows can arrive before their tab metadata.
   const name = getAgentRowConversationName(
@@ -88,5 +95,5 @@ export function useAgentRowConversationNaming(agent: DashboardAgentRow): {
     paneLiveTitle,
     agent.entry.providerSession?.id
   )
-  return { name, forked: false }
+  return { name, forked: false, continuedTo: structuredTab ? chatNaming.continuedTo : null }
 }

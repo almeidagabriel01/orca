@@ -48,6 +48,12 @@ export type AiVaultSessionResumeState = {
   unavailableReason?: string
   /** A synced copy's recording host, by name. */
   originHostLabel?: string
+  /** A synced copy's recording host, and its workspace there even while that host is offline. */
+  originHostId?: ExecutionHostId
+  originWorktreeId?: string
+  /** The row's own host, by name, and whether it is disconnected; unset for synced copies. */
+  hostLabel?: string
+  hostOffline?: boolean
 }
 
 export type AiVaultSessionResumeAction = {
@@ -121,7 +127,8 @@ export function resolveAiVaultHistorySessionResumeState(
     return resolveAiVaultOtherMachineResumeState(args)
   }
   const child = Boolean(args.session.subagent)
-  return resolveAiVaultSessionResumeState({
+  const hostId = args.session.executionHostId
+  const state = resolveAiVaultSessionResumeState({
     ...args,
     sessionFilePath: args.session.filePath,
     sessionExecutionHostId: args.session.executionHostId,
@@ -136,6 +143,11 @@ export function resolveAiVaultHistorySessionResumeState(
     // Lazy children are absent from the panel map; never resume them in an unrelated active workspace.
     activeWorktreeId: child ? null : args.activeWorktreeId
   })
+  return {
+    ...state,
+    ...(args.hostLabel ? { hostLabel: args.hostLabel(hostId) } : {}),
+    ...(args.isHostOffline?.(hostId) ? { hostOffline: true } : {})
+  }
 }
 
 // A synced copy resumes only where it was recorded, in the workspace that holds its cwd there.
@@ -148,10 +160,12 @@ function resolveAiVaultOtherMachineResumeState(
     return { ...blocked, unavailableReason: aiVaultOtherMachineUnknownReason() }
   }
   const originHostLabel = (args.hostLabel ?? getTranslatedExecutionHostLabel)(origin.hostId)
+  const named = { originHostLabel, originHostId: origin.hostId }
   if (args.isHostOffline?.(origin.hostId)) {
     return {
       ...blocked,
-      originHostLabel,
+      ...named,
+      originWorktreeId: origin.worktreeInfo.worktreeId,
       unavailableReason: aiVaultOtherMachineOfflineReason(originHostLabel)
     }
   }
@@ -164,8 +178,8 @@ function resolveAiVaultOtherMachineResumeState(
     activeWorktreeId: null
   })
   return state.blocked
-    ? { ...state, originHostLabel, unavailableReason: aiVaultOtherMachineUnknownReason() }
-    : { ...state, originHostLabel }
+    ? { ...state, ...named, unavailableReason: aiVaultOtherMachineUnknownReason() }
+    : { ...state, ...named }
 }
 
 export function resolveAiVaultSessionResumeActions(args: {
@@ -305,7 +319,9 @@ export function aiVaultSessionResumeLabel(
   t: Translate = translate
 ): string {
   if (state.originHostLabel) {
-    return t('aiVault.resumeOnHost', 'Resume on {{value0}}', { value0: state.originHostLabel })
+    return t('components.agentSessionContinuation.continueOnHost', 'Continue on {{host}}', {
+      host: state.originHostLabel
+    })
   }
   if (state.usesSessionWorktree) {
     return aiVaultResumeInSessionWorkspaceLabel(state.worktreeId, t)

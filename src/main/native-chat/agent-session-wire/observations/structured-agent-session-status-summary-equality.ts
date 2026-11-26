@@ -1,3 +1,4 @@
+import { agentSessionContinuedToEqual } from '../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import { agentProviderSessionsEqual } from '../../../../shared/agent-session/lifecycle/resume/agent-provider-session-equality'
 import type { AgentSessionStatusSummary } from '../../../../shared/agent-session/agent-session-wire'
 import { agentSessionBackgroundTasksEqual } from '../../../../shared/agent-session/background-tasks/agent-session-background-task-wire'
@@ -50,6 +51,7 @@ export function structuredStatusSummariesEqual(
     a.conversationName === b.conversationName &&
     a.conversationNameSource === b.conversationNameSource &&
     agentSessionForkNamingEqual(a.forkedFrom, b.forkedFrom) &&
+    agentSessionContinuedToEqual(a.continuedTo, b.continuedTo) &&
     a.sleptAt === b.sleptAt &&
     a.namingError?.message === b.namingError?.message &&
     a.namingError?.failedAt === b.namingError?.failedAt &&

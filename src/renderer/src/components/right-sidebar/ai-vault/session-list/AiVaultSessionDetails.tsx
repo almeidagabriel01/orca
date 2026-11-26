@@ -18,12 +18,6 @@ import {
   type AiVaultSession
 } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
 import { translate } from '@/i18n/i18n'
-import { useAppStore } from '@/store/index'
-import { nativeChatPreferenceFor } from '../../../../../../shared/agent-launch/choices/structured-native-chat-launch-route'
-import {
-  adoptsCliConversations,
-  CLI_CONVERSATION_ADOPTING_AGENTS
-} from '../../../../../../shared/agent-session/view/structured-agent-cli-conversation-adoption'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { FirstPromptCard } from './ai-vault-first-prompt-card'
 import { ResumeInNewCliTooltipText } from '../session-actions/ai-vault-session-cli-fork-copy'
@@ -40,6 +34,7 @@ import { useAiVaultSessionAccount } from '../accounts/ai-vault-session-account'
 import { SessionAccountSection } from '../accounts/AiVaultSessionAccount'
 import { SessionReceiptSection } from './AiVaultSessionReceiptSection'
 import { ResumeInNewChatButton } from './AiVaultResumeInNewChatButton'
+import { useAiVaultChatFirst } from './AiVaultSessionHostActions'
 import './ai-vault-session-worktree'
 import {
   aiVaultResumeInSessionWorkspaceLabel,
@@ -67,7 +62,7 @@ export function SessionInlineDetails({
   onResumeInNewChat,
   onResumeInNewCli,
   onOpenLog,
-  resumeOverride,
+  hostActions,
   actionsHidden = false
 }: {
   id: string
@@ -85,35 +80,37 @@ export function SessionInlineDetails({
   onResumeInNewChat?: () => void
   onResumeInNewCli?: () => void
   onOpenLog?: () => void
-  /** A synced copy's Resume: named after its host, or replaced by the row's reason; Hand Off names its destination. */
-  resumeOverride?: { label?: string; unavailableReason?: string; continueLabel?: string }
-  /** Hides the action bar, bar a synced copy's host Resume and Continue; the details stay. */
+  /** Resume on the recording host and continue on the project's other hosts; shown first, picker included. */
+  hostActions?: React.ReactNode
+  /** Hides the action bar but for `hostActions`; the details stay. */
   actionsHidden?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
   // Zero-turn sessions cannot resume meaningful content; show not-saved status instead.
   const referenceSession = isAntigravityReferenceSession(session)
   const hasResumableContent = isAiVaultSessionResumableContent(session)
-  const resumable = hasResumableContent && !resumeOverride?.unavailableReason
   const { worktree, newTab } = resumeActions
-  const showResumeInWorktree = resumable && Boolean(worktree.worktreeId)
+  // The host row's Resume covers the session's own workspace.
+  const showResumeInWorktree = !hostActions && hasResumableContent && Boolean(worktree.worktreeId)
   const showResumeInNewTab =
-    !actionsHidden && resumable && (!worktree.worktreeId || Boolean(newTab.worktreeId))
+    !actionsHidden && hasResumableContent && (!worktree.worktreeId || Boolean(newTab.worktreeId))
   const promptPreview = sessionPromptPreview(session)
   const detailTurns = sessionDetailConversationTurns(session, 3)
   const accountLabel = useAiVaultSessionAccount(session)
   // Chat first where chat is the default for a chat that can take the row over; buttons keep their surface.
-  const chatFirst =
-    useAppStore(
-      (state) =>
-        adoptsCliConversations(session.agent) &&
-        CLI_CONVERSATION_ADOPTING_AGENTS[session.agent].some((agent) =>
-          nativeChatPreferenceFor(state.settings, agent)
-        )
-    ) && onResumeInNewChat !== undefined
+  const chatFirst = useAiVaultChatFirst(session) && onResumeInNewChat !== undefined
+  // The host row's Resume is the one affirmative action when it is shown.
   const resumeInNewChatButton = onResumeInNewChat ? (
-    <ResumeInNewChatButton primary={chatFirst} onResume={onResumeInNewChat} />
+    <ResumeInNewChatButton primary={chatFirst && !hostActions} onResume={onResumeInNewChat} />
   ) : null
+  const barActions =
+    !actionsHidden &&
+    (showResumeInWorktree ||
+      showResumeInNewTab ||
+      onContinueInNewSession ||
+      onResumeInNewChat ||
+      onResumeInNewCli ||
+      onOpenLog)
   return (
     <div
       id={id}
@@ -126,15 +123,10 @@ export function SessionInlineDetails({
         event.stopPropagation()
       }}
     >
-      {(!actionsHidden || resumeOverride) &&
-      (showResumeInWorktree ||
-        showResumeInNewTab ||
-        onContinueInNewSession ||
-        onResumeInNewChat ||
-        onResumeInNewCli ||
-        onOpenLog) ? (
+      {hostActions || barActions ? (
         <div className="flex flex-wrap items-center gap-1.5 border-b border-sidebar-border/80 bg-sidebar-accent/15 px-3 py-2">
-          {chatFirst ? resumeInNewChatButton : null}
+          {hostActions}
+          {barActions && chatFirst ? resumeInNewChatButton : null}
           {showResumeInWorktree ? (
             <Button
               type="button"
@@ -151,14 +143,13 @@ export function SessionInlineDetails({
               <Play className="size-3.5" />
               {referenceSession
                 ? t('aiVault.continueInCli', 'Continue in CLI')
-                : (resumeOverride?.label ??
-                  aiVaultResumeInSessionWorkspaceLabel(resumeActions.worktree.worktreeId, t))}
+                : aiVaultResumeInSessionWorkspaceLabel(resumeActions.worktree.worktreeId, t)}
             </Button>
           ) : null}
           {showResumeInNewTab ? (
             <Button
               type="button"
-              variant={showResumeInWorktree || chatFirst ? 'secondary' : 'default'}
+              variant={hostActions || showResumeInWorktree || chatFirst ? 'secondary' : 'default'}
               size="xs"
               disabled={resumeActions.newTab.disabled}
               draggable={false}
@@ -177,8 +168,8 @@ export function SessionInlineDetails({
                   )}
             </Button>
           ) : null}
-          {chatFirst ? null : resumeInNewChatButton}
-          {onResumeInNewCli ? (
+          {!barActions || chatFirst ? null : resumeInNewChatButton}
+          {barActions && onResumeInNewCli ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -204,7 +195,7 @@ export function SessionInlineDetails({
               </TooltipContent>
             </Tooltip>
           ) : null}
-          {onContinueInNewSession ? (
+          {barActions && onContinueInNewSession ? (
             <Button
               type="button"
               variant="secondary"
@@ -217,11 +208,10 @@ export function SessionInlineDetails({
               className="h-7 shrink-0 px-2.5 text-[11px]"
             >
               <MessageSquarePlus className="size-3.5" />
-              {resumeOverride?.continueLabel ??
-                t('components.agentSessionContinuation.handOffToAnotherAgent', 'Hand off to agent')}
+              {t('components.agentSessionContinuation.handOffToAnotherAgent', 'Hand off to agent')}
             </Button>
           ) : null}
-          {onOpenLog ? (
+          {barActions && onOpenLog ? (
             <Button
               type="button"
               variant="ghost"

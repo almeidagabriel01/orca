@@ -76,7 +76,7 @@ it('resumes a synced copy in the recording host workspace, never the copy holder
     usesSessionWorktree: true,
     originHostLabel: 'mac'
   })
-  expect(aiVaultSessionResumeLabel(state)).toBe('Resume on mac')
+  expect(aiVaultSessionResumeLabel(state)).toBe('Continue on mac')
 })
 
 it('blocks with an explanation while the recording host is offline', () => {

@@ -3,6 +3,7 @@ import { parseRoutableExecutionHostId } from '../../../../../../shared/execution
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store/index'
+import { aiVaultResumeSessionForWorkspace } from './ai-vault-session-other-machine'
 import { agentLabel } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-filters'
 import { CLI_CONVERSATION_ADOPTING_AGENTS } from '../../../../../../shared/agent-session/view/structured-agent-cli-conversation-adoption'
 import type { CliConversationRowAgent } from '../../../../../../shared/agent-session/view/structured-agent-cli-conversation-adoption'
@@ -48,12 +49,14 @@ export function activateAiVaultResumeWorkspace(
 
 /** Adopt through the eligibility verdict; silent terminal fallback would hide actionable refusals. */
 export async function resumeAiVaultSessionInNewChat(
-  session: AiVaultSession,
+  row: AiVaultSession,
   rowAgent: CliConversationRowAgent,
   worktreeId: string,
   requestId: string,
   replacing?: AiVaultChatReplacement
 ): Promise<void> {
+  // A synced copy resumes as its recording host's own session, in that host's workspace.
+  const session = aiVaultResumeSessionForWorkspace(row, useAppStore.getState(), worktreeId) ?? row
   try {
     const recordingHost = parseRoutableExecutionHostId(session.executionHostId)
     const workspaceOwner = structuredLaunchOwner({ route: 'structured-native-chat' }, worktreeId)

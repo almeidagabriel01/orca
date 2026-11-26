@@ -38,6 +38,7 @@ import {
   type AgentSessionContinuationRequest
 } from '../../../../shared/agent-session/conversation-context/agent-session-continuation'
 import { launchAgentSessionContinuation } from '@/lib/agent-session/launch/continuation/launch-agent-session-continuation'
+import type { HandoffContinuation } from '@/lib/agent-session/launch/continuation/handoff-continued-on'
 import { useAppStore } from '@/store'
 import { HandoffEnvironmentSection } from './HandoffEnvironmentField'
 import { HandoffStartReason } from './HandoffSourceChanges'
@@ -54,8 +55,9 @@ type AgentSessionContinuationDialogProps = {
   request: AgentSessionContinuationRequest | null
   onOpenChange: (open: boolean) => void
   initialEnvironmentKey?: string
-  /** Fires after the new session launched, so a host can step aside for the new tab. */
-  onStarted?: () => void
+  /** Fires after the new session launched, so a host can step aside for the new tab; names where it
+   *  went when that is another host. */
+  onStarted?: (continuedOn: HandoffContinuation | null) => void
 }
 
 const EMPTY_DISABLED_AGENTS: TuiAgent[] = []
@@ -239,7 +241,7 @@ export function AgentSessionContinuationDialog({
     // A late finish is reported by the launch's own owners, never by a dialog it no longer holds.
     if (launched && !signal?.aborted) {
       onOpenChange(false)
-      onStarted?.()
+      onStarted?.(env.continuedOn(launched.sessionId))
     }
   }
 

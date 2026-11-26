@@ -25,6 +25,8 @@ import {
   type AiVaultSessionWorktreeInfo
 } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-worktree'
 import { aiVaultCopyHandoffSourceWorktreeId } from '../session-actions/ai-vault-session-other-machine'
+import { resolveAiVaultSessionHostOrigin } from '../session-actions/ai-vault-session-host-actions'
+import { worktreeIdsShareCheckout } from '../../../../../../shared/worktree/id'
 import {
   canOpenAiVaultSessionLogInOrca,
   canUseLocalAiVaultSessionPathActions
@@ -214,6 +216,16 @@ export const AiVaultVirtualRow = memo(function AiVaultVirtualRow({
           newTab: { worktreeId: null, disabled: true }
         }
 
+  // Only expanded rows show the host row, so collapsed rows skip its derivation.
+  const hostOrigin =
+    row.type === 'session' && detailsExpanded && resumeState
+      ? resolveAiVaultSessionHostOrigin(row.session, resumeState, visibleResumeActions)
+      : null
+  const originWorktreeId = hostOrigin?.worktreeId ?? null
+  // A copy's pane here is the holder's adopting chat, never the recording host's conversation.
+  const openElsewhere =
+    canJumpToOriginalPane && row.type === 'session' && !row.session.recordedOnOtherMachine
+
   return (
     <div
       ref={measureElement}
@@ -243,6 +255,33 @@ export const AiVaultVirtualRow = memo(function AiVaultVirtualRow({
           session={row.session}
           searchHit={searchHit}
           sourceHostLabel={sourceHostLabel}
+          hostActions={
+            hostOrigin
+              ? {
+                  origin: hostOrigin,
+                  openElsewhere,
+                  onResume: () => {
+                    if (openElsewhere) {
+                      onJumpToOriginalPane(row.session)
+                    } else if (hostOrigin.resumable && originWorktreeId) {
+                      onResume(row.session, originWorktreeId)
+                    }
+                  },
+                  // A new chat takes the conversation only in the origin's own workspace.
+                  onResumeInNewChat:
+                    resumeInNewChatWorkspaceId &&
+                    originWorktreeId &&
+                    worktreeIdsShareCheckout(resumeInNewChatWorkspaceId, originWorktreeId)
+                      ? () => onResumeInNewChat(row.session, resumeInNewChatWorkspaceId)
+                      : undefined,
+                  onContinueOnHost: (environmentKey) => {
+                    if (originWorktreeId) {
+                      onContinueInNewSession(row.session, originWorktreeId, environmentKey)
+                    }
+                  }
+                }
+              : undefined
+          }
           liveState={getSessionLiveState(row.session)}
           resumeStartup={resumeStartup}
           realHomeResumeStartup={

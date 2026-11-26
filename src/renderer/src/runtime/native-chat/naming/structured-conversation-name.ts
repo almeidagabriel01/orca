@@ -18,6 +18,7 @@ import {
   getStructuredAgentSessionStatusFeed,
   type StructuredAgentSessionStatusFeedOwner
 } from '../status/structured-agent-session-status-feed'
+import type { AgentSessionContinuedTo } from '../../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import { agentSessionShownName } from '../../../../../shared/agent-session/conversation-naming/agent-session-fork-name'
 import {
   structuredChatForkSourceId,
@@ -44,6 +45,8 @@ export type StructuredChatNaming = Readonly<{
   name: string | null
   /** The chat this one was forked from; null when it is not a fork or its host predates the mark. */
   forkSourceId: string | null
+  /** Where the chat was handed off to; null while it is the live one or its host predates the mark. */
+  continuedTo: AgentSessionContinuedTo | null
 }>
 
 /** The chat's shown name and fork mark. Reads its source only for an older fork's title, so a plain
@@ -64,9 +67,18 @@ export function useStructuredChatNaming(
     const shown = note ? agentSessionShownName(note, sourceSavedName ?? undefined) : null
     return {
       name: isAgentSessionConversationName(shown) ? shown : null,
-      forkSourceId: structuredChatForkSourceId(note ?? undefined)
+      forkSourceId: structuredChatForkSourceId(note ?? undefined),
+      continuedTo: note?.continuedTo ?? null
     }
   }, [note, sourceSavedName])
+}
+
+/** Where the chat was handed off to another host; null while it is the live one. */
+export function useStructuredConversationContinuedTo(
+  executionHostId: string | null | undefined,
+  sessionId: string | null | undefined
+): AgentSessionContinuedTo | null {
+  return useStructuredSessionSummaryField(executionHostId, sessionId, (note) => note?.continuedTo)
 }
 
 const NAMING_ERROR_MESSAGE_LIMIT = 1024

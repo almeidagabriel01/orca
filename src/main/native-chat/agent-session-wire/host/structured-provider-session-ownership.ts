@@ -4,6 +4,7 @@ import type {
 } from '../../../../shared/agent-session/lifecycle/leases/agent-session-conversation-view'
 import type { StructuredAgentId } from '../../../../shared/agent-session/lifecycle/provider-handles/agent-session-provider-handle'
 import { agentSessionOwnerObservationVerdict } from '../../../../shared/agent-session/lifecycle/leases/agent-session-lease-adjudication'
+import { agentSessionHandedOff } from '../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import { structuredAgentRuntimeMetadata } from '../../../runtime/agent-session/installation/structured-agent-runtime-metadata'
 import {
   keysMayMatch,
@@ -32,7 +33,8 @@ export function listStructuredProviderSessionOwnership(
     const history = structuredAgentRuntimeMetadata(record.provider)?.sessionHistory
     const head = record.providerHandleChain.at(-1)
     const headKey = head ? recordConversationKey(record, head) : null
-    return history && headKey
+    // A chat handed off to another host no longer owns its History rows there.
+    return history && headKey && !agentSessionHandedOff(record)
       ? record.providerHandleChain.flatMap((link) => {
           const key = recordConversationKey(record, link)
           return key

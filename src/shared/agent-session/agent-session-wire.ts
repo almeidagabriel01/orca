@@ -278,6 +278,9 @@ export type AgentSessionStatusSummary = {
   /** The chat's source, null when not a fork; current hosts always send it, making the naming
    *  fields authoritative even while unnamed. Older hosts omit it. */
   forkedFrom?: AgentSessionForkNaming | null
+  /** Handed off to another host: the conversation goes on there and this chat no longer runs.
+   *  Sent with `forkedFrom`; absent while it was not handed off, or from older hosts. */
+  continuedTo?: AgentSessionRecord['continuedTo']
   /** Why the host could not name this chat, kept in memory only while the chat still has the
    *  name the failed run would have replaced. Absent from older hosts; older clients ignore it. */
   namingError?: AgentSessionNamingError
@@ -312,7 +315,7 @@ export type AgentSessionConversationName = {
   namingError?: AgentSessionNamingError
   /** The chat's agent, so an older fork can title itself from an unnamed source no longer open. */
   agent?: AgentSessionStatusSummary['agent']
-} & Pick<AgentSessionStatusSummary, 'conversationNameSource' | 'forkedFrom'>
+} & Pick<AgentSessionStatusSummary, 'conversationNameSource' | 'forkedFrom' | 'continuedTo'>
 
 /** Retain projections after child eviction; idle remains idle. Tabs decide list membership, never this feed. */
 export type AgentSessionStatusEvent =

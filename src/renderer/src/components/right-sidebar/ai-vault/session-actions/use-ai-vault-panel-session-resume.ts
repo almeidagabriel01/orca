@@ -12,7 +12,14 @@ import {
   type AiVaultSessionResumeTargetState
 } from './ai-vault-session-resume'
 import type { AiVaultResumeInChatEligibility } from './ai-vault-session-resume-in-chat'
-import { resolveAiVaultHistoryRowResume } from './ai-vault-session-resume-in-chat-workspace'
+import {
+  resolveAiVaultHistoryRowResume,
+  resolveAiVaultSessionResumeInChatForWorkspace
+} from './ai-vault-session-resume-in-chat-workspace'
+import {
+  aiVaultResumeSessionForWorkspace,
+  resolveAiVaultOtherMachineOrigin
+} from './ai-vault-session-other-machine'
 import {
   useAiVaultSessionOwnerWorkspaces,
   useAiVaultSessionWorktreeMap
@@ -51,8 +58,15 @@ export function useAiVaultPanelSessionResume(args: {
   // Stamp current per row to preserve the cached ownership map.
   const getSessionWorktreeInfo = useCallback(
     (session: AiVaultSession) =>
-      withAiVaultCurrentWorktreeStatus(sessionWorktreeById.get(session.id) ?? null, workspaceId),
-    [workspaceId, sessionWorktreeById]
+      withAiVaultCurrentWorktreeStatus(
+        // A copy's aliases name this holder's folder; it belongs to its recording host's workspace.
+        session.recordedOnOtherMachine
+          ? (resolveAiVaultOtherMachineOrigin({ session, worktrees: ownerWorkspaces, repos })
+              ?.worktreeInfo ?? null)
+          : (sessionWorktreeById.get(session.id) ?? null),
+        workspaceId
+      ),
+    [workspaceId, sessionWorktreeById, ownerWorkspaces, repos]
   )
   const getSessionRowResumeArgs = useCallback(
     (session: AiVaultSession) => ({
@@ -110,17 +124,42 @@ export function useAiVaultPanelSessionResume(args: {
   const launchRoute = useAppStoreWithHostStatuses(selectAgentLaunchRouteView)
   const chatProgramFactsVersion = useChatProgramFactsVersion()
   const getSessionResumeInChat = useCallback(
-    (session: AiVaultSession): AiVaultResumeInChatEligibility =>
-      session.recordedOnOtherMachine
-        ? { available: false, reason: 'remote' }
-        : // Eligibility reads the store and host agent caches outside its arguments; these track them.
-          recomputeOn([launchRoute, chatProgramFactsVersion], () =>
-            resolveAiVaultHistoryRowResume({
-              ...getSessionRowResumeArgs(session),
-              settings: launchRoute.settings
-            })
-          ).resumeInChat,
-    [getSessionRowResumeArgs, launchRoute, chatProgramFactsVersion]
+    (session: AiVaultSession): AiVaultResumeInChatEligibility => {
+      // Eligibility reads the store and host agent caches outside its arguments; these track them.
+      if (!session.recordedOnOtherMachine) {
+        return recomputeOn([launchRoute, chatProgramFactsVersion], () =>
+          resolveAiVaultHistoryRowResume({
+            ...getSessionRowResumeArgs(session),
+            settings: launchRoute.settings
+          })
+        ).resumeInChat
+      }
+      // A copy is judged as its recording host's own session, in that host's workspace.
+      const resumeState = getSessionResumeState(session)
+      const onRecordingHost = resumeState.blocked
+        ? null
+        : aiVaultResumeSessionForWorkspace(session, resumeTargetState, resumeState.worktreeId)
+      if (!onRecordingHost) {
+        return { available: false, reason: 'remote' }
+      }
+      return recomputeOn([launchRoute, chatProgramFactsVersion], () =>
+        resolveAiVaultSessionResumeInChatForWorkspace({
+          session: onRecordingHost,
+          resumeState,
+          activeWorkspaceId: workspaceId,
+          targetState: resumeTargetState,
+          settings: launchRoute.settings
+        })
+      )
+    },
+    [
+      getSessionRowResumeArgs,
+      getSessionResumeState,
+      launchRoute,
+      chatProgramFactsVersion,
+      resumeTargetState,
+      workspaceId
+    ]
   )
   return {
     getSessionWorktreeInfo,

@@ -11,6 +11,7 @@ import {
   encodePersistedAgentSessionProviderHandleChain
 } from '../provider-handles/agent-session-provider-handle'
 import { isAgentSessionLastTurn } from './agent-session-last-turn'
+import { readAgentSessionContinuedTo } from './agent-session-continued-to'
 import type { AgentSessionDeathEvidence } from '../leases/agent-session-death-evidence'
 import type { AgentSessionRecord } from '../agent-session-record'
 
@@ -56,8 +57,10 @@ export function decodePersistedAgentSessionRecord<L extends PersistedAgentSessio
     lastTurn,
     instructionsKey,
     asyncQuestionsSkippedThrough: skipped,
+    continuedTo: storedContinuedTo,
     ...rest
   } = record
+  const continuedTo = readAgentSessionContinuedTo(storedContinuedTo)
   const validSleep = typeof sleptAt === 'number' && Number.isFinite(sleptAt) && sleptAt > 0
   const validKey =
     typeof instructionsKey === 'string' &&
@@ -70,6 +73,7 @@ export function decodePersistedAgentSessionRecord<L extends PersistedAgentSessio
       ...(validSleep ? { sleptAt } : {}),
       ...(validKey ? { instructionsKey } : {}),
       ...(isAgentSessionLastTurn(lastTurn) ? { lastTurn } : {}),
+      ...(continuedTo ? { continuedTo } : {}),
       ...(typeof skipped === 'string' && skipped ? { asyncQuestionsSkippedThrough: skipped } : {}),
       providerHandleChain,
       lease: { ...lease, deathEvidence: decodeDeathEvidence(lease.deathEvidence) }
@@ -77,7 +81,8 @@ export function decodePersistedAgentSessionRecord<L extends PersistedAgentSessio
     normalized:
       leaseCarriesLegacyHandoffValues(record.lease) ||
       (sleptAt !== undefined && !validSleep) ||
-      (instructionsKey !== undefined && !validKey)
+      (instructionsKey !== undefined && !validKey) ||
+      (storedContinuedTo !== undefined && !continuedTo)
   }
 }
 

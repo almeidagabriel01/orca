@@ -7,6 +7,7 @@ import {
 } from '../../../../shared/agent-session/lifecycle/stopping/agent-session-usage-limit-continue'
 import type { AgentSessionRewindRecord } from '../../../../shared/agent-session/lifecycle/rewind/agent-session-rewind'
 import type { AgentSessionLastTurn } from '../../../../shared/agent-session/lifecycle/records/agent-session-last-turn'
+import type { AgentSessionContinuedTo } from '../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import {
   withMovedAccountHome,
   type createAgentSessionOwnerProof
@@ -82,6 +83,7 @@ export type AgentSessionRecordCommand =
   | { kind: 'cancel-continue'; cut: UsageLimitContinueIdentity }
   | { kind: 'handoff-given'; switchId: string }
   | { kind: 'skip-async-questions'; itemId: string }
+  | { kind: 'continued-to'; continuedTo: AgentSessionContinuedTo }
   | { kind: 'last-turn'; lastTurn?: AgentSessionLastTurn }
   | { kind: 'rewind'; fence: number; rewind: AgentSessionRewindRecord }
   | { kind: 'sleep'; now: number; fence: number }
@@ -197,6 +199,13 @@ export function applyAgentSessionRecordCommand(
       break
     case 'skip-async-questions':
       next = { ...record, asyncQuestionsSkippedThrough: command.itemId }
+      break
+    case 'continued-to':
+      next = {
+        ...record,
+        continuedTo: command.continuedTo,
+        updatedAt: Math.max(record.updatedAt, command.continuedTo.at)
+      }
       break
     case 'last-turn': {
       const { lastTurn: previous, ...rest } = record

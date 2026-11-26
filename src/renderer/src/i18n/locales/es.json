@@ -23650,7 +23650,6 @@
       "runningElsewhere": "Esta conversación de {{agent}} se está ejecutando en otro chat o terminal en {{host}}. Detenla allí y luego reanúdala."
     },
     "recordedOnHost": "Grabada en {{value0}}",
-    "resumeOnHost": "Reanudar en {{value0}}",
     "recordedOnOfflineHost": "Grabada en {{value0}}, que está sin conexión. Vuelve a conectarlo para reanudarla allí.",
     "recordedOnUnknownHost": "Grabada en otro equipo. Abre su carpeta como espacio de trabajo en ese equipo para reanudarla allí.",
     "antigravityIdeToCli": "IDE → CLI",

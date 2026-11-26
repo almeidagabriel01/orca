@@ -145,7 +145,7 @@ export function structuredSummaryHostProgram(
 
 type StructuredSummaryNaming = Pick<
   AgentSessionStatusSummary,
-  'conversationName' | 'namingError' | 'conversationNameSource' | 'forkedFrom'
+  'conversationName' | 'namingError' | 'conversationNameSource' | 'forkedFrom' | 'continuedTo'
 >
 
 /** The record's name, its provenance, and the failure to replace it only while that is still the
@@ -165,7 +165,10 @@ export function structuredSummaryConversationNaming(
           ...(record.forkedFrom.plainName ? { plainName: true as const } : {})
         }
       : null,
-    ...(record.conversationNameSource === 'user' ? { conversationNameSource: 'user' as const } : {})
+    ...(record.conversationNameSource === 'user'
+      ? { conversationNameSource: 'user' as const }
+      : {}),
+    ...(record.continuedTo ? { continuedTo: record.continuedTo } : {})
   }
   if (!name) {
     return provenance
@@ -194,6 +197,7 @@ export function renamedStructuredStatusSummary(
     namingError: _error,
     conversationNameSource: _source,
     forkedFrom: _forkedFrom,
+    continuedTo: _continuedTo,
     sleptAt: _sleptAt,
     ...rest
   } = previous

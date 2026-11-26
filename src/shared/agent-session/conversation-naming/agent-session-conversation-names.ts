@@ -1,5 +1,9 @@
 import { isAgentSessionConversationName } from './agent-session-conversation-name'
 import { agentSessionForkNamingEqual, type AgentSessionForkNaming } from './agent-session-fork-name'
+import {
+  agentSessionContinuedToEqual,
+  readAgentSessionContinuedTo
+} from '../lifecycle/records/agent-session-continued-to'
 import type {
   AgentSessionConversationName,
   AgentSessionNamingError,
@@ -64,6 +68,8 @@ function readNamingNote(value: unknown): AgentSessionConversationName | null {
     return null
   }
   const forkedFrom = 'forkedFrom' in value ? readForkNaming(value.forkedFrom) : undefined
+  const continuedTo =
+    'continuedTo' in value ? readAgentSessionContinuedTo(value.continuedTo) : undefined
   const named = 'conversationName' in value
   if (!named && forkedFrom === undefined) {
     return null
@@ -89,7 +95,8 @@ function readNamingNote(value: unknown): AgentSessionConversationName | null {
           forkedFrom,
           ...('conversationNameSource' in value && value.conversationNameSource === 'user'
             ? { conversationNameSource: 'user' as const }
-            : {})
+            : {}),
+          ...(continuedTo ? { continuedTo } : {})
         }
       : {})
   }
@@ -107,7 +114,8 @@ function sameNamingNote(
     a.conversationNameSource === b.conversationNameSource &&
     a.agent === b.agent &&
     'forkedFrom' in a === 'forkedFrom' in b &&
-    agentSessionForkNamingEqual(a.forkedFrom, b.forkedFrom)
+    agentSessionForkNamingEqual(a.forkedFrom, b.forkedFrom) &&
+    agentSessionContinuedToEqual(a.continuedTo, b.continuedTo)
   )
 }
 

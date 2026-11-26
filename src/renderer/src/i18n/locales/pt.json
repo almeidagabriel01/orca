@@ -347,7 +347,6 @@
       "runningElsewhere": "Esta conversa do {{agent}} está rodando em outro chat ou terminal em {{host}}. Pare-a lá e depois retome."
     },
     "recordedOnHost": "Gravada em {{value0}}",
-    "resumeOnHost": "Retomar em {{value0}}",
     "recordedOnOfflineHost": "Gravada em {{value0}}, que está offline. Reconecte-o para retomar lá.",
     "recordedOnUnknownHost": "Gravada em outro computador. Abra a pasta dela como workspace nesse computador para retomar lá.",
     "antigravityIdeToCli": "IDE → CLI",
@@ -23254,6 +23253,12 @@
       }
     },
     "agentSessionContinuation": {
+      "continuedOn": "Continuada em {{host}}",
+      "continuedOnBody": "Este chat é somente leitura. A conversa segue lá.",
+      "openContinuation": "Abrir em {{host}}",
+      "markFailed": "A nova sessão começou, mas este chat não pôde ser marcado como continuado lá.",
+      "hostUnknown": "Este computador não está conectado a {{host}}, então o chat não abre aqui.",
+      "otherComputer": "outro computador",
       "untitledSession": "Sessão atual",
       "agent": "Agente",
       "selectAgent": "Selecionar um Agente",

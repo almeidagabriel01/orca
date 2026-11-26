@@ -220,6 +220,14 @@ export function AiVaultSessionVirtualList({
     })
   }, [])
 
+  // A cached row size beats the expanded estimate, and ResizeObserver lags (or skips hidden windows):
+  // re-measure mounted rows before paint so the next row never draws over the opened details.
+  useLayoutEffect(() => {
+    listScrollRef.current?.querySelectorAll('[data-index]').forEach((element) => {
+      virtualizer.measureElement(element)
+    })
+  }, [expandedSessionIds, virtualizer])
+
   // Keep a synchronous single-flight latch while resume opens its destination so repeated picks cannot start duplicate resumes.
   const pickInFlight = useRef(false)
   const pickHere = (session: AiVaultSession): boolean => {

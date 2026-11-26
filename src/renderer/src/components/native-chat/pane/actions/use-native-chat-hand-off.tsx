@@ -15,6 +15,10 @@ import { useAppStore } from '@/store/index'
 import { structuredChatTabById } from '@/lib/agent-session/tab-identity/structured-chat-tab-index'
 import { useStructuredChatTabConversationName } from '@/runtime/native-chat/naming/structured-conversation-name'
 import { AgentSessionContinuationDialog } from '@/components/agent-session-continuation/AgentSessionContinuationDialog'
+import {
+  markHandoffContinuedTo,
+  openHandoffContinuation
+} from '@/lib/agent-session/launch/continuation/handoff-continued-on'
 import { buildAgentSessionContinuationPrompt } from '../../../../../../shared/agent-session/conversation-context/agent-session-continuation'
 import type { AgentSessionContinuationRequest } from '../../../../../../shared/agent-session/conversation-context/agent-session-continuation'
 import { isTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent-config'
@@ -229,6 +233,14 @@ export function useNativeChatHandOff(
         open
         request={request}
         initialEnvironmentKey={currentAttempt.environmentKey}
+        // The conversation lives on there now; this chat stays only as its read-only record.
+        onStarted={(continuedOn) => {
+          if (continuedOn) {
+            void markHandoffContinuedTo(pane.target, pane.sessionId, continuedOn)
+            // Take the user to where the conversation goes on, not the read-only source.
+            openHandoffContinuation({ ...continuedOn, at: Date.now() }, continuedOn.hostId)
+          }
+        }}
         onOpenChange={(isOpen) => {
           if (!isOpen && active.current === currentAttempt) {
             retire()

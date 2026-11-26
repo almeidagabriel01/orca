@@ -23757,7 +23757,6 @@
       "runningElsewhere": "この {{agent}} の会話は {{host}} の別のチャットまたはターミナルで実行中です。そこで停止してから再開してください。"
     },
     "recordedOnHost": "{{value0}} で記録",
-    "resumeOnHost": "{{value0}} で再開",
     "recordedOnOfflineHost": "{{value0}} で記録されましたが、オフラインです。再接続してそちらで再開してください。",
     "recordedOnUnknownHost": "別のコンピューターで記録されました。そのコンピューターでフォルダーをワークスペースとして開くと、そちらで再開できます。",
     "antigravityIdeToCli": "IDE → CLI",

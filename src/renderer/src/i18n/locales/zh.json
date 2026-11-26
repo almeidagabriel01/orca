@@ -24866,7 +24866,6 @@
       "runningElsewhere": "此 {{agent}} 对话正在 {{host}} 上的另一个聊天或终端中运行。请在那里停止后再继续。"
     },
     "recordedOnHost": "记录于 {{value0}}",
-    "resumeOnHost": "在 {{value0}} 上恢复",
     "recordedOnOfflineHost": "记录于 {{value0}}，但它已离线。重新连接后即可在那里恢复。",
     "recordedOnUnknownHost": "在另一台电脑上记录。在那台电脑上将其文件夹作为工作区打开，即可在那里恢复。",
     "antigravityIdeToCli": "IDE → CLI",

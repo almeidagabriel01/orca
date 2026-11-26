@@ -37,7 +37,10 @@ export function aiVaultSearchHitToSession(
     ...(hit.accountHome !== undefined
       ? { accountHome: hit.accountHome, accountWslDistro: hit.accountWslDistro }
       : {}),
-    ...(hit.structuredSession ? { structuredSession: hit.structuredSession } : {})
+    // A copy's chat here would reopen it on this host, not where it was recorded.
+    ...(hit.structuredSession && !hit.recordedOnOtherMachine
+      ? { structuredSession: hit.structuredSession }
+      : {})
   }
 }
 

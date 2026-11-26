@@ -1,3 +1,4 @@
+import type { AgentSessionContinuedTo } from '../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import { agentSessionLeaseOwnerVerdict } from '../../../../shared/agent-session/lifecycle/leases/agent-session-lease-adjudication'
 import { holdStructuredMailSources } from '../observations/structured-agent-session-mail-sources'
 import {
@@ -162,6 +163,15 @@ export function createStructuredAgentSessionConversationReads(context: () => Rea
           return
         }
         await deps.store.skipAsyncQuestions(sessionId, itemId)
+        publishStatus(sessionId)
+      })
+    },
+    /** Saved on the chat so every device reads it as handed off to another host. */
+    markContinuedTo: async (sessionId: string, continuedTo: AgentSessionContinuedTo) => {
+      await context().conversation(sessionId)
+      return context().serialize(sessionId, async () => {
+        const { deps, publishStatus } = context()
+        await deps.store.updateRecord(sessionId, { kind: 'continued-to', continuedTo })
         publishStatus(sessionId)
       })
     },

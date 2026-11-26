@@ -39,6 +39,10 @@ import { AiVaultSearchEvidence } from '../search/AiVaultSearchEvidence'
 import { useAiVaultSessionDisplayTitle } from './use-ai-vault-session-display-title'
 import { ForkMarkedName } from '@/components/native-chat/fork/ForkMarkedName'
 import type { AiVaultOriginalPaneTarget } from '../session-actions/ai-vault-original-pane'
+import {
+  AiVaultSessionHostActions,
+  type AiVaultSessionHostActionsProps
+} from './AiVaultSessionHostActions'
 
 export function VaultSessionRow({
   session,
@@ -76,6 +80,7 @@ export function VaultSessionRow({
   onRequestDelete,
   searchHit,
   sourceHostLabel,
+  hostActions,
   onPick
 }: {
   session: AiVaultSession
@@ -115,7 +120,9 @@ export function VaultSessionRow({
   searchHit?: AiVaultSearchHit
   /** The host a search hit came from, set when hits span several hosts. */
   sourceHostLabel?: string
-  /** Set in `/resume`'s picker: a click resumes the row, and the row offers no other action. */
+  /** Resume on the recording host and Continue on the project's other hosts, atop the details. */
+  hostActions?: AiVaultSessionHostActionsProps
+  /** Set in `/resume`'s picker: a click resumes the row, and the row offers no other action but `hostActions`. */
   onPick?: () => void
 }) {
   const t = useTranslate()
@@ -295,15 +302,16 @@ export function VaultSessionRow({
           onResumeInWorktree={onResumeInWorktree}
           onResumeInNewTab={onResumeInNewTab}
           subagentResume={onPick ? null : subagentResume}
-          onContinueInNewSession={onContinueInNewSession}
+          // A synced copy's Continue is a move to another host, which the host row offers.
+          onContinueInNewSession={
+            hostActions && session.recordedOnOtherMachine ? undefined : onContinueInNewSession
+          }
           onResumeInNewChat={onPick ? undefined : onResumeInNewChat}
           onResumeInNewCli={onPick ? undefined : onResumeInNewCli}
           // The unsaved notice's "open the log" hint needs the button the picker hides.
           onOpenLog={onPick ? undefined : onOpenLog}
-          resumeOverride={
-            session.recordedOnOtherMachine
-              ? { label: resumeLabel, unavailableReason: resumeUnavailableReason, continueLabel }
-              : undefined
+          hostActions={
+            hostActions ? <AiVaultSessionHostActions session={session} {...hostActions} /> : null
           }
           actionsHidden={Boolean(onPick)}
         />

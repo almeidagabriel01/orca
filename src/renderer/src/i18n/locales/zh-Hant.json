@@ -24602,7 +24602,6 @@
       "runningElsewhere": "此 {{agent}} 對話正在 {{host}} 上的另一個聊天或終端機中執行。請在那裡停止後再繼續。"
     },
     "recordedOnHost": "記錄於 {{value0}}",
-    "resumeOnHost": "在 {{value0}} 上繼續",
     "recordedOnOfflineHost": "記錄於 {{value0}}，但它已離線。重新連線後即可在那裡繼續。",
     "recordedOnUnknownHost": "在另一台電腦上記錄。在那台電腦上將其資料夾開啟為工作區，即可在那裡繼續。",
     "antigravityIdeToCli": "IDE → CLI",

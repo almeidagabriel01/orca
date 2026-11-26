@@ -28,8 +28,7 @@ export function AccountSwitchRowItem({
   label: string
   /** Secondary line, e.g. workspace or the ID that tells same-email accounts apart. */
   detail?: string | null
-  /** Checked only in a selectable (chat picker) row. */
-  active?: boolean
+  active: boolean
   /** Badges the account the computer uses now. */
   isDefault?: boolean
   /** Usage shown in the fixed-width right column so rows line up. */
@@ -39,10 +38,15 @@ export function AccountSwitchRowItem({
 }): React.JSX.Element {
   const t = useTranslate()
   const title = detail ? `${label}\n${detail}` : label
-  const selectable = Boolean(props.onSelect)
-  const content = (
-    <>
-      {selectable ? (
+  return (
+    <div className="flex items-center">
+      <DropdownMenuItem
+        title={title}
+        {...props}
+        aria-current={active ? 'true' : undefined}
+        data-current={active ? 'true' : undefined}
+        className={cn('min-h-9 min-w-0 flex-1', className)}
+      >
         <span className="flex w-4 shrink-0 justify-center">
           {active ? (
             <>
@@ -53,42 +57,17 @@ export function AccountSwitchRowItem({
             </>
           ) : null}
         </span>
-      ) : null}
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <span className="truncate">{label}</span>
-          {isDefault ? <AccountDefaultBadge /> : null}
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate">{label}</span>
+            {isDefault ? <AccountDefaultBadge /> : null}
+          </span>
+          {detail ? (
+            <span className="truncate text-2xs text-muted-foreground">{detail}</span>
+          ) : null}
         </span>
-        {detail ? <span className="truncate text-2xs text-muted-foreground">{detail}</span> : null}
-      </span>
-      {children ? <div className="w-1/2 max-w-48 shrink-0 text-xs">{children}</div> : null}
-    </>
-  )
-  return (
-    <div className="flex items-center">
-      {selectable ? (
-        <DropdownMenuItem
-          title={title}
-          {...props}
-          aria-current={active ? 'true' : undefined}
-          data-current={active ? 'true' : undefined}
-          className={cn('min-h-9 min-w-0 flex-1', className)}
-        >
-          {content}
-        </DropdownMenuItem>
-      ) : (
-        // Why: the status bar lists accounts read-only; only Settings and a chat's picker switch.
-        <div
-          title={title}
-          aria-description={props['aria-description']}
-          className={cn(
-            'flex min-h-9 min-w-0 flex-1 items-center gap-2 px-2.5 py-[5px] text-[13px] leading-4 select-none',
-            className
-          )}
-        >
-          {content}
-        </div>
-      )}
+        {children ? <div className="w-1/2 max-w-48 shrink-0 text-xs">{children}</div> : null}
+      </DropdownMenuItem>
       {action ? <div className="shrink-0 pr-1.5">{action}</div> : null}
     </div>
   )

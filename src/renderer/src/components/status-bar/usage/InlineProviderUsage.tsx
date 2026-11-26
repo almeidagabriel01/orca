@@ -150,16 +150,6 @@ export function InlineUsageBars({
   )
 }
 
-export function isUnavailableInactiveUsage(limits: ProviderRateLimits | null | undefined): boolean {
-  return (
-    limits?.status === 'error' &&
-    !limits.session &&
-    !limits.weekly &&
-    !limits.fableWeekly &&
-    !limits.monthly
-  )
-}
-
 export function InlineUsageSignInAction({
   isSigningIn,
   disabled,

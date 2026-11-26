@@ -5129,7 +5129,6 @@
             "grokUsageMenu": "Grok 使用情况",
             "floatingTerminalNewActivity": "{{label}}，有新活动",
             "4fba7dc1e7": "余额 {{value0}}",
-            "codexSignInSuccess": "已登录 Codex",
             "codexSignInError": "Codex 登录失败，请重试",
             "cursorUsageMenu": "Cursor 用量",
             "hiddenUsageProviders": "另有：{{value0}}",
@@ -5546,15 +5545,11 @@
             "detached": "分离状态"
           },
           "antigravity": {
-            "unknownAccount": "Google 账户",
-            "accounts": "已保存的 Antigravity 账户",
-            "readAgo": "读取于 {{time}}",
-            "notRead": "用量未知：尚未读取"
+            "unknownAccount": "Google 账户"
           },
           "AccountSwitchList": {
             "used": "已用",
             "left": "剩余",
-            "reset": "重置",
             "accounts": "账户"
           },
           "InlineUsageBars": {
@@ -24621,6 +24616,10 @@
     "antigravityReferenceDescription": "使用此记录作为参考继续新的Antigravity CLI 对话",
     "searchHitSourceHost": "在 {{value0}} 上找到",
     "recordedOnOtherMachineCopy": "在另一台电脑上记录 · 请在那里打开",
+    "ownerRefusal": {
+      "heldByChat": "{{host}} 上的 Orca 聊天持有此 {{agent}} 对话，因此无法同时在终端中打开。请在 {{host}} 上打开该聊天以继续。",
+      "runningElsewhere": "此 {{agent}} 对话正在 {{host}} 上的另一个聊天或终端中运行。请在那里停止后再继续。"
+    },
     "recordedOnHost": "记录于 {{value0}}",
     "resumeOnHost": "在 {{value0}} 上恢复",
     "recordedOnOfflineHost": "记录于 {{value0}}，但它已离线。重新连接后即可在那里恢复。",

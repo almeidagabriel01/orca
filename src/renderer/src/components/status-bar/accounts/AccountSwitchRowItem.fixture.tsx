@@ -9,7 +9,6 @@ import {
 import { AccountSwitchList } from './AccountSwitchList'
 import { AccountSwitchRowItem } from './AccountSwitchRowItem'
 import { InlineUsageBars } from '../usage/InlineProviderUsage'
-import { AccountUsageGauge } from './AccountUsageGauge'
 
 function accountRows(provider: 'codex' | 'claude', width = 520, language: 'en' | 'ru' = 'en') {
   const limits: ProviderRateLimits = {
@@ -76,40 +75,3 @@ export const narrowCodex = accountRows('codex', 336)
 export const narrowClaude = accountRows('claude', 336)
 export const russianCodex = accountRows('codex', 390, 'ru')
 export const russianClaude = accountRows('claude', 390, 'ru')
-
-function readOnlyLimits(usedPercent: number): ProviderRateLimits {
-  return {
-    provider: 'claude',
-    session: {
-      usedPercent,
-      windowMinutes: 300,
-      resetsAt: Date.now() + 80 * 60_000,
-      resetDescription: null
-    },
-    weekly: null,
-    updatedAt: 0,
-    error: null,
-    status: 'ok'
-  }
-}
-
-export const readOnlyUsageAccounts = defineFixture({
-  width: 440,
-  render: () => (
-    <div className="h-[200px] bg-background p-3">
-      <DropdownMenu defaultOpen modal={false}>
-        <DropdownMenuTrigger>Claude</DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[400px]" align="start">
-          <AccountSwitchList heading="Accounts">
-            <AccountSwitchRowItem label="ProOps" isDefault>
-              <AccountUsageGauge limits={readOnlyLimits(4)} isFetching={false} />
-            </AccountSwitchRowItem>
-            <AccountSwitchRowItem label="Beyond" detail="Beyond the Bytes">
-              <AccountUsageGauge limits={readOnlyLimits(12)} isFetching={false} />
-            </AccountSwitchRowItem>
-          </AccountSwitchList>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  )
-})

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, cleanup, fireEvent, render, renderHook, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { useAppStore } from '@/store/index'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -156,14 +156,10 @@ it.each(['claude', 'codex'] as const)(
       }),
       { button: 0, ctrlKey: false }
     )
-    const row = (await screen.findByText(/inactive/)).closest<HTMLElement>('[title]')
-    if (!row) {
-      throw new Error('inactive account row missing')
-    }
-    expect(await within(row).findByRole('img', { name: /17/ })).toBeDefined()
-    expect(within(row).queryByRole('img', { name: /99/ })).toBeNull()
+    const manage = await screen.findByRole('menuitem', { name: /Manage Accounts/ })
+    expect(screen.queryByText(/inactive/)).toBeNull()
     expect(screen.queryByRole('radiogroup')).toBeNull()
-    fireEvent.click(screen.getByRole('menuitem', { name: /Manage Accounts/ }))
+    fireEvent.click(manage)
     expect(openSettingsTarget).toHaveBeenCalledWith(
       expect.objectContaining({
         sectionId: `accounts-${provider}`,

@@ -1,21 +1,14 @@
 import React from 'react'
 import { CodexResetCredits, CodexResetConfirmation } from './CodexResetCredits'
-import { DropdownMenuItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { ProviderRateLimits } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
 import { useTranslate } from '@/i18n/use-translate'
 import {
   AccountRuntimeToggle,
   CodexRestartStatusPrompt
 } from '../composition/StatusBarAccountControls'
-import { AccountUsageGauge } from './AccountUsageGauge'
-import {
-  InlineUsageSignInAction,
-  InlineUsageSkeleton,
-  isUnavailableInactiveUsage
-} from '../usage/InlineProviderUsage'
 import { ProviderDetailsMenu } from '../usage/ProviderDetailsMenu'
-import { AccountSwitchSection } from './AccountSwitchList'
-import { AccountSwitchRowItem } from './AccountSwitchRowItem'
+import { AccountManageLink } from './AccountSwitchList'
 import { useCodexSwitcherController } from './use-codex-switcher-controller'
 import type { OwnerUsageRateLimits } from '../usage/use-owner-usage-rate-limits'
 import { isCodexUsageSignInRequired } from '../../../../../shared/agent-accounts/codex/codex-auth-errors'
@@ -66,15 +59,12 @@ function CodexSwitcherForOwner({
     handleOpenChange,
     handleResetMenuSelect,
     handleSelectRuntime,
-    handleSignInAccount,
     hasActiveRuntimeEnvironment,
-    inactiveCodexAccounts,
     isRedeemingReset,
     open,
     openSettingsPage,
     openSettingsTarget,
     providerAccountHostLabel,
-    reauthenticatingAccountId,
     resetConfirmOpen,
     rosterKnown,
     resetCreditCount,
@@ -87,7 +77,6 @@ function CodexSwitcherForOwner({
     switchGroups
   } = useCodexSwitcherController(codex, ownerUsage, owner)
 
-  const isBusy = reauthenticatingAccountId !== null
   const signInRequired = codex.status === 'error' && isCodexUsageSignInRequired(codex)
   const authFailureAccount = codex.usageMetadata?.authFailureAccount
   const authFailureMatchesActive =
@@ -102,73 +91,6 @@ function CodexSwitcherForOwner({
   )
   const activeSignInRequired = signInRequired && displayedCodex === codex
   const canSignInLocally = !hasActiveRuntimeEnvironment && authFailureMatchesActive
-  const rows = (selectedGroup?.targets ?? []).map((target) => {
-    const inactiveUsage = target.id
-      ? inactiveCodexAccounts.find((a) => a.accountId === target.id)
-      : null
-    const limits = inactiveUsage?.rateLimits
-    // Why: sign-in spawns a local `codex login`, so a remote-owned account can't be re-authed from this desktop.
-    const showSignInAction =
-      !hasActiveRuntimeEnvironment &&
-      target.id !== null &&
-      (target.active
-        ? activeSignInRequired && canSignInLocally
-        : isUnavailableInactiveUsage(limits) ||
-          (limits?.status === 'error' && isCodexUsageSignInRequired(limits)))
-    return { target, inactiveUsage, showSignInAction }
-  })
-  // The active row stays in place; only inactive rows move under "Usage unavailable".
-  const isUnavailableUsageRow = (row: (typeof rows)[number]): boolean =>
-    row.showSignInAction && !row.target.active
-  const unavailableUsageRows = rows.filter(isUnavailableUsageRow)
-  const renderRow = ({
-    target,
-    inactiveUsage,
-    showSignInAction
-  }: (typeof rows)[number]): React.JSX.Element => (
-    <AccountSwitchRowItem
-      label={target.name}
-      detail={target.detail}
-      isDefault={target.active}
-      key={`${selectedGroup?.key}:${target.id ?? 'system'}`}
-      action={
-        showSignInAction ? (
-          <InlineUsageSignInAction
-            accountLabel={target.label}
-            isSigningIn={reauthenticatingAccountId === target.id}
-            disabled={isBusy}
-            onSignIn={() => {
-              if (target.id !== null) {
-                void handleSignInAccount(target.id, target.runtimeTarget)
-              }
-            }}
-          />
-        ) : undefined
-      }
-    >
-      {showSignInAction ? null : renderUsage(target.active, inactiveUsage)}
-    </AccountSwitchRowItem>
-  )
-  function renderUsage(
-    active: boolean,
-    inactiveUsage: (typeof rows)[number]['inactiveUsage']
-  ): React.ReactNode {
-    if (active) {
-      return (
-        <AccountUsageGauge
-          limits={displayedCodex}
-          isFetching={displayedCodex.status === 'fetching'}
-        />
-      )
-    }
-    if (inactiveUsage?.isFetching && !inactiveUsage.rateLimits) {
-      return <InlineUsageSkeleton />
-    }
-    return inactiveUsage?.rateLimits ? (
-      <AccountUsageGauge limits={inactiveUsage.rateLimits} isFetching={inactiveUsage.isFetching} />
-    ) : null
-  }
-
   return (
     <ProviderDetailsMenu
       provider={displayedCodex}
@@ -253,10 +175,7 @@ function CodexSwitcherForOwner({
       ) : null}
       {/* Why: until the host lists its accounts, the empty roster's only row would claim "System default". */}
       {rosterKnown ? (
-        <AccountSwitchSection
-          heading={t('auto.components.status.bar.AccountSwitchList.accounts', 'Accounts')}
-          targets={selectedGroup?.targets ?? []}
-          panelShowsActiveAccount={!(activeSignInRequired && canSignInLocally)}
+        <AccountManageLink
           onOpenSettings={() => {
             openSettingsTarget({
               pane: 'accounts',
@@ -266,17 +185,7 @@ function CodexSwitcherForOwner({
             })
             openSettingsPage()
           }}
-        >
-          {rows.filter((row) => !isUnavailableUsageRow(row)).map(renderRow)}
-          {unavailableUsageRows.length > 0 ? (
-            <>
-              <DropdownMenuLabel className="mt-1">
-                {t('auto.components.status.bar.tooltip.f8b8dbed85', 'Usage unavailable')}
-              </DropdownMenuLabel>
-              {unavailableUsageRows.map(renderRow)}
-            </>
-          ) : null}
-        </AccountSwitchSection>
+        />
       ) : null}
     </ProviderDetailsMenu>
   )

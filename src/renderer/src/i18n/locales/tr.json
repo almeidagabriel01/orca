@@ -5853,7 +5853,6 @@
             "4fba7dc1e7": "{{value0}} bakiye",
             "4025a6f62f": "Sınırsız",
             "a95969101f": "{{value0}} kredi",
-            "codexSignInSuccess": "Codex'te oturum açıldı",
             "codexSignInError": "Codex'te oturum açılamadı. Lütfen tekrar deneyin.",
             "cursorUsageMenu": "Cursor Kullanımı",
             "hiddenUsageProviders": "Ayrıca: {{value0}}",
@@ -6303,15 +6302,11 @@
             "detached": "ayrık"
           },
           "antigravity": {
-            "unknownAccount": "Google hesabı",
-            "accounts": "Kayıtlı Antigravity Hesapları",
-            "readAgo": "Okunma zamanı: {{time}}",
-            "notRead": "Kullanım bilinmiyor: henüz okunmadı"
+            "unknownAccount": "Google hesabı"
           },
           "AccountSwitchList": {
             "used": "Kullanılan",
             "left": "Kalan",
-            "reset": "Sıfırlanma",
             "accounts": "Hesaplar"
           },
           "InlineUsageBars": {
@@ -25111,6 +25106,10 @@
     "antigravityReferenceDescription": "Bu konuşma dökümünü referans alarak yeni bir Antigravity CLI konuşmasında devam eder.",
     "searchHitSourceHost": "{{value0}} üzerinde bulundu",
     "recordedOnOtherMachineCopy": "Başka bir bilgisayarda kaydedildi · orada açın",
+    "ownerRefusal": {
+      "heldByChat": "{{host}} üzerindeki bir Orca sohbeti bu {{agent}} konuşmasını tutuyor, bu yüzden bir terminalde de açılamaz. Devam etmek için {{host}} üzerinde o sohbeti açın.",
+      "runningElsewhere": "Bu {{agent}} konuşması {{host}} üzerinde başka bir sohbette veya terminalde çalışıyor. Orada durdurun, sonra devam ettirin."
+    },
     "recordedOnHost": "{{value0}} üzerinde kaydedildi",
     "resumeOnHost": "{{value0}} üzerinde sürdür",
     "recordedOnOfflineHost": "{{value0}} üzerinde kaydedildi ve çevrimdışı. Orada sürdürmek için yeniden bağlayın.",

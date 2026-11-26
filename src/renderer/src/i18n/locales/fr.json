@@ -4600,7 +4600,6 @@
             "grokUsageMenu": "Utilisation Grok",
             "floatingTerminalNewActivity": "{{label}}, nouvelle activité",
             "4fba7dc1e7": "solde {{value0}}",
-            "codexSignInSuccess": "Connecté à Codex",
             "codexSignInError": "Échec de la connexion à Codex. Veuillez réessayer.",
             "cursorUsageMenu": "Utilisation Cursor",
             "hiddenUsageProviders": "Aussi : {{value0}}",
@@ -5063,15 +5062,11 @@
             "detached": "détaché"
           },
           "antigravity": {
-            "unknownAccount": "Compte Google",
-            "accounts": "Comptes Antigravity enregistrés",
-            "readAgo": "Relevé {{time}}",
-            "notRead": "Utilisation inconnue : pas encore relevée"
+            "unknownAccount": "Compte Google"
           },
           "AccountSwitchList": {
             "used": "Utilisé",
             "left": "Restant",
-            "reset": "Réinitialisation",
             "accounts": "Comptes"
           },
           "InlineUsageBars": {
@@ -22957,6 +22952,10 @@
     "antigravityReferenceDescription": "Continue dans une nouvelle conversation Antigravity CLI en utilisant cette transcription comme référence.",
     "searchHitSourceHost": "Trouvée sur {{value0}}",
     "recordedOnOtherMachineCopy": "Enregistrée sur un autre ordinateur · ouvrez-la là-bas",
+    "ownerRefusal": {
+      "heldByChat": "Un chat Orca sur {{host}} détient cette conversation {{agent}}, elle ne peut donc pas s’ouvrir aussi dans un terminal. Ouvrez ce chat sur {{host}} pour continuer.",
+      "runningElsewhere": "Cette conversation {{agent}} s’exécute dans un autre chat ou terminal sur {{host}}. Arrêtez-la là-bas, puis reprenez-la."
+    },
     "recordedOnHost": "Enregistrée sur {{value0}}",
     "resumeOnHost": "Reprendre sur {{value0}}",
     "recordedOnOfflineHost": "Enregistrée sur {{value0}}, hors ligne. Reconnectez-le pour la reprendre là-bas.",

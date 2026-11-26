@@ -342,6 +342,10 @@
     "antigravityReferenceDescription": "Continua em uma nova conversa do Antigravity CLI usando esta transcrição como referência.",
     "searchHitSourceHost": "Encontrado em {{value0}}",
     "recordedOnOtherMachineCopy": "Gravada em outro computador · abra lá",
+    "ownerRefusal": {
+      "heldByChat": "Um chat do Orca em {{host}} detém esta conversa do {{agent}}, então ela não pode abrir também em um terminal. Abra esse chat em {{host}} para continuar.",
+      "runningElsewhere": "Esta conversa do {{agent}} está rodando em outro chat ou terminal em {{host}}. Pare-a lá e depois retome."
+    },
     "recordedOnHost": "Gravada em {{value0}}",
     "resumeOnHost": "Retomar em {{value0}}",
     "recordedOnOfflineHost": "Gravada em {{value0}}, que está offline. Reconecte-o para retomar lá.",
@@ -3753,7 +3757,6 @@
             "antigravityUsage": "Uso do Antigravity",
             "grokUsageMenu": "Uso do Grok",
             "floatingTerminalNewActivity": "{{label}}, nova atividade",
-            "codexSignInSuccess": "Login realizado no Codex",
             "codexSignInError": "Falha no login do Codex. Tente novamente.",
             "4fba7dc1e7": "Saldo {{value0}}",
             "4025a6f62f": "Ilimitado",
@@ -4230,15 +4233,11 @@
             "detached": "desanexado"
           },
           "antigravity": {
-            "unknownAccount": "Conta Google",
-            "accounts": "Contas Antigravity salvas",
-            "readAgo": "Lido {{time}}",
-            "notRead": "Uso desconhecido: ainda não consultado"
+            "unknownAccount": "Conta Google"
           },
           "AccountSwitchList": {
             "used": "Usado",
             "left": "Restante",
-            "reset": "Redefinição",
             "accounts": "Contas"
           },
           "InlineUsageBars": {

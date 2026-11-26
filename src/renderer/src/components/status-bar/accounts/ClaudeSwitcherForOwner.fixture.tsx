@@ -140,3 +140,108 @@ export const narrow = fixture(360)
 export const wsl = fixture(520, true)
 export const signInAgain = fixture(520, false, { signInAgain: true })
 export const signInAgainBusy = fixture(520, false, { signInAgain: true, busy: true })
+
+const NOW = Date.now()
+const statusBarClaude: ProviderRateLimits = {
+  provider: 'claude',
+  status: 'ok',
+  error: null,
+  session: {
+    usedPercent: 9,
+    windowMinutes: 300,
+    resetsAt: NOW + 3_600_000,
+    resetDescription: null
+  },
+  weekly: {
+    usedPercent: 6,
+    windowMinutes: 10080,
+    resetsAt: NOW + 5 * 86_400_000,
+    resetDescription: null
+  },
+  fableWeekly: {
+    usedPercent: 0,
+    windowMinutes: 10080,
+    resetsAt: NOW + 5 * 86_400_000,
+    resetDescription: null
+  },
+  updatedAt: NOW
+}
+
+// The status bar popover lists no accounts: only the usage card and a Manage Accounts link.
+export const statusBarPopover = (() => {
+  const named = (id: string, email: string): ClaudeManagedAccountSummary => ({
+    id,
+    email,
+    organizationUuid: null,
+    organizationName: null,
+    managedAuthRuntime: 'host',
+    wslDistro: null,
+    authMethod: 'subscription-oauth',
+    createdAt: 1,
+    updatedAt: 1,
+    lastAuthenticatedAt: 1
+  })
+  const accounts = [named('proops', 'proops@example.com'), named('beyond', 'beyond@example.com')]
+  const state: ClaudeRateLimitAccountsState = {
+    accounts,
+    activeAccountId: 'proops',
+    activeAccountIdsByRuntime: { host: 'proops', wsl: {} }
+  }
+  const owner = { target: { kind: 'local' as const }, wslHostDistro: null }
+  return defineFixture({
+    width: 520,
+    store: {
+      settings: {
+        ...getDefaultSettings('/home/fixture'),
+        claudeManagedAccounts: accounts.map((a) => ({
+          ...a,
+          managedAuthPath: `/home/fixture/${a.id}`
+        })),
+        activeClaudeManagedAccountId: 'proops',
+        activeClaudeManagedAccountIdsByRuntime: state.activeAccountIdsByRuntime!,
+        accountNames: {
+          'claude:proops@example.com': { name: 'ProOps', updatedAt: 1 },
+          'claude:beyond@example.com': { name: 'Beyond', updatedAt: 1 }
+        }
+      },
+      rateLimits: createEmptyRateLimitState({
+        claude: statusBarClaude,
+        claudeTarget: { runtime: 'host', wslDistro: null },
+        inactiveClaudeAccounts: [
+          {
+            accountId: 'beyond',
+            rateLimits: statusBarClaude,
+            updatedAt: NOW,
+            isFetching: false
+          }
+        ]
+      }),
+      fetchInactiveClaudeAccountUsage: async () => {}
+    },
+    setup: () => {
+      window.api.claudeAccounts.list = async () => state
+      window.api.codexAccounts.list = async () => ({ accounts: [], activeAccountId: null })
+    },
+    render: () => (
+      <div className="flex h-[640px] items-end bg-background p-3">
+        <ClaudeSwitcherForOwner
+          claude={statusBarClaude}
+          iconOnly={false}
+          owner={owner}
+          ownerUsage={{
+            owner,
+            rateLimits: useAppStore.getState().rateLimits,
+            accounts: null,
+            remoteOwner: null,
+            refreshRemote: null
+          }}
+        />
+      </div>
+    ),
+    interact: async (frame) => {
+      frame
+        .querySelector<HTMLButtonElement>('button[aria-label]')
+        ?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }))
+    }
+  })
+})()

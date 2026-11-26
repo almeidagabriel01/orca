@@ -5,11 +5,7 @@ import type {
   AntigravityAccountUsage,
   ProviderRateLimits
 } from '../../../../../shared/agent-usage/rate-limits/rate-limit-types'
-import { AccountSwitchList } from '../accounts/AccountSwitchList'
-import { AccountSwitchRowItem } from '../accounts/AccountSwitchRowItem'
-import { InlineUsageBars } from './InlineProviderUsage'
 import { ProviderDetailsMenu } from './ProviderDetailsMenu'
-import { formatTimeAgo } from './provider-usage-panel'
 import { getAccountDisplayName } from '../../../../../shared/agent-accounts/managed-account-display-names'
 import { resolveAccountName } from '../../../../../shared/agent-accounts/account-names'
 import { useAppStore } from '../../../store/index'
@@ -57,28 +53,6 @@ export function AntigravityUsageMenu({
       variant="account"
       accountLabel={account ? nameOf(account) : undefined}
     >
-      <AccountSwitchList
-        showResetColumn
-        heading={t('auto.components.status.bar.antigravity.accounts', 'Saved Antigravity Accounts')}
-      >
-        {accounts.map((entry) => (
-          <AccountSwitchRowItem
-            key={entry.accountId}
-            label={nameOf(entry)}
-            detail={
-              entry.rateLimits
-                ? t('auto.components.status.bar.antigravity.readAgo', 'Read {{time}}', {
-                    time: formatTimeAgo(entry.rateLimits.updatedAt, t)
-                  })
-                : t('auto.components.status.bar.antigravity.notRead', 'Usage unknown: not read yet')
-            }
-          >
-            {entry.rateLimits ? (
-              <InlineUsageBars limits={entry.rateLimits} isFetching={false} />
-            ) : null}
-          </AccountSwitchRowItem>
-        ))}
-      </AccountSwitchList>
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onManageAccounts}>
         {t('auto.components.status.bar.StatusBar.75ded02687', 'Manage Accounts…')}

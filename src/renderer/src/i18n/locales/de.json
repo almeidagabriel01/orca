@@ -4848,7 +4848,6 @@
             "grokUsageMenu": "Grok-Nutzung",
             "floatingTerminalNewActivity": "{{label}}, neue Aktivität",
             "4fba7dc1e7": "{{value0}} Guthaben",
-            "codexSignInSuccess": "Bei Codex angemeldet",
             "codexSignInError": "Anmeldung bei Codex fehlgeschlagen. Bitte erneut versuchen.",
             "cursorUsageMenu": "Cursor-Nutzung",
             "hiddenUsageProviders": "Außerdem: {{value0}}",
@@ -5284,15 +5283,11 @@
             "detached": "losgelöst"
           },
           "antigravity": {
-            "unknownAccount": "Google-Konto",
-            "accounts": "Gespeicherte Antigravity-Konten",
-            "readAgo": "Ausgelesen {{time}}",
-            "notRead": "Nutzung unbekannt: noch nicht ausgelesen"
+            "unknownAccount": "Google-Konto"
           },
           "AccountSwitchList": {
             "used": "Verbraucht",
             "left": "Übrig",
-            "reset": "Zurücksetzung",
             "accounts": "Konten"
           },
           "InlineUsageBars": {
@@ -22571,6 +22566,10 @@
     "antigravityReferenceDescription": "Setzt die Unterhaltung in einer neuen Antigravity-CLI-Unterhaltung mit diesem Protokoll als Referenz fort.",
     "searchHitSourceHost": "Auf {{value0}} gefunden",
     "recordedOnOtherMachineCopy": "Auf einem anderen Computer aufgezeichnet · dort öffnen",
+    "ownerRefusal": {
+      "heldByChat": "Ein Orca-Chat auf {{host}} hält diese {{agent}}-Unterhaltung, daher kann sie nicht zusätzlich in einem Terminal geöffnet werden. Öffne diesen Chat auf {{host}}, um fortzufahren.",
+      "runningElsewhere": "Diese {{agent}}-Unterhaltung läuft in einem anderen Chat oder Terminal auf {{host}}. Beende sie dort und setze sie dann fort."
+    },
     "recordedOnHost": "Auf {{value0}} aufgezeichnet",
     "resumeOnHost": "Auf {{value0}} fortsetzen",
     "recordedOnOfflineHost": "Auf {{value0}} aufgezeichnet, das offline ist. Verbinde es erneut, um dort fortzusetzen.",

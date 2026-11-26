@@ -5912,7 +5912,6 @@
             "4fba7dc1e7": "{{value0}} bal",
             "4025a6f62f": "Unlimited",
             "a95969101f": "{{value0}} credits",
-            "codexSignInSuccess": "Signed in to Codex",
             "codexSignInError": "Codex sign-in failed. Please try again.",
             "cursorUsageMenu": "Cursor Usage",
             "hiddenUsageProviders": "Also: {{value0}}",
@@ -6361,15 +6360,11 @@
             "detached": "detached"
           },
           "antigravity": {
-            "unknownAccount": "Google account",
-            "accounts": "Saved Antigravity Accounts",
-            "readAgo": "Read {{time}}",
-            "notRead": "Usage unknown: not read yet"
+            "unknownAccount": "Google account"
           },
           "AccountSwitchList": {
             "used": "Used",
             "left": "Left",
-            "reset": "Reset",
             "accounts": "Accounts"
           },
           "InlineUsageBars": {
@@ -22465,7 +22460,7 @@
         "mainCheckout": "Main checkout",
         "turnWorking": "This chat's agent is working. Switch branches after its turn finishes.",
         "worktree": "Worktree",
-        "handOffEnvironment": "Hand off to another environment"
+        "handOffEnvironment": "Continue on another host"
       },
       "creationChatNotOpened": "Your worktree is ready, but the chat could not open. Retry to open it with your message.",
       "fork": {
@@ -23475,6 +23470,8 @@
         "defaultMessage": "chore: hand off work to {{host}}"
       },
       "continueOnHost": "Continue on {{host}}",
+      "movesConversation": "Moves this conversation there",
+      "continueConversation": "Continue this conversation",
       "createWorkspaceToStart": "Create the workspace on {{host}} to start there."
     },
     "status": {
@@ -25279,6 +25276,10 @@
     "antigravityReferenceDescription": "Continues in a new Antigravity CLI conversation using this transcript as a reference.",
     "searchHitSourceHost": "Found on {{value0}}",
     "recordedOnOtherMachineCopy": "Recorded on another computer · open it there",
+    "ownerRefusal": {
+      "heldByChat": "An Orca chat on {{host}} holds this {{agent}} conversation, so it cannot also open in a terminal. Open that chat on {{host}} to continue.",
+      "runningElsewhere": "This {{agent}} conversation is running in another chat or terminal on {{host}}. Stop it there, then resume."
+    },
     "recordedOnHost": "Recorded on {{value0}}",
     "resumeOnHost": "Resume on {{value0}}",
     "recordedOnOfflineHost": "Recorded on {{value0}}, which is offline. Reconnect it to resume there.",

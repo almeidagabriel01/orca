@@ -4962,7 +4962,6 @@
             "4fba7dc1e7": "баланс {{value0}}",
             "4025a6f62f": "Без ограничений",
             "a95969101f": "Кредитов: {{value0}}",
-            "codexSignInSuccess": "Вход в Codex выполнен",
             "codexSignInError": "Не удалось войти в Codex. Повторите попытку.",
             "cursorUsageMenu": "Использование Cursor",
             "hiddenUsageProviders": "Также: {{value0}}",
@@ -5461,15 +5460,11 @@
             "detached": "отсоединено"
           },
           "antigravity": {
-            "unknownAccount": "Аккаунт Google",
-            "accounts": "Сохранённые аккаунты Antigravity",
-            "readAgo": "Считано {{time}}",
-            "notRead": "Использование неизвестно: данные ещё не считаны"
+            "unknownAccount": "Аккаунт Google"
           },
           "AccountSwitchList": {
             "used": "Использовано",
             "left": "Осталось",
-            "reset": "Сброс",
             "accounts": "Аккаунты"
           },
           "InlineUsageBars": {
@@ -23322,6 +23317,10 @@
     "antigravityReferenceDescription": "Продолжает в новом разговоре Antigravity CLI, используя эту историю как справочный материал.",
     "searchHitSourceHost": "Найдено на {{value0}}",
     "recordedOnOtherMachineCopy": "Записано на другом компьютере · откройте там",
+    "ownerRefusal": {
+      "heldByChat": "Чат Orca на {{host}} удерживает этот разговор {{agent}}, поэтому его нельзя открыть ещё и в терминале. Откройте этот чат на {{host}}, чтобы продолжить.",
+      "runningElsewhere": "Этот разговор {{agent}} выполняется в другом чате или терминале на {{host}}. Остановите его там, затем возобновите."
+    },
     "recordedOnHost": "Записано на {{value0}}",
     "resumeOnHost": "Продолжить на {{value0}}",
     "recordedOnOfflineHost": "Записано на {{value0}}, который не в сети. Подключите его снова, чтобы продолжить там.",

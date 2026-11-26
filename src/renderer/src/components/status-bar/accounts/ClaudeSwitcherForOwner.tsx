@@ -43,7 +43,11 @@ import {
   AccountUsageNotChecked,
   isClaudeAccountNotChecked
 } from './AccountUsageGauge'
-import { AccountSwitchSection, AccountSwitchSignedOutHeading } from './AccountSwitchList'
+import {
+  AccountManageLink,
+  AccountSwitchSection,
+  AccountSwitchSignedOutHeading
+} from './AccountSwitchList'
 import { AccountSwitchRowItem } from './AccountSwitchRowItem'
 import { ProviderDetailsMenu } from '../usage/ProviderDetailsMenu'
 import { claudeInactiveUsageId } from '../../../../../shared/agent-accounts/claude/claude-system-default-usage'
@@ -259,20 +263,10 @@ export function ClaudeSwitcherForOwner({
     'auto.components.status.bar.tooltip.claude.waiting.label',
     'Updates when Claude runs'
   )
-  // Why: `claude` and the rows come from the same owner snapshot, so its active row is the reading's account.
-  const liveActiveUsage = chatAction ? null : claude
   const rowUsage = (
-    target: (typeof rows)[number]['target'],
-    inactiveUsage: (typeof rows)[number]['inactiveUsage']
+    inactiveUsage: (typeof rows)[number]['inactiveUsage'],
+    target: (typeof rows)[number]['target']
   ): React.ReactNode => {
-    if (target.active && !target.needsSignIn && liveActiveUsage) {
-      return (
-        <AccountUsageGauge
-          limits={liveActiveUsage}
-          isFetching={liveActiveUsage.status === 'fetching'}
-        />
-      )
-    }
     if (inactiveUsage?.isFetching && !inactiveUsage.rateLimits) {
       return <InlineUsageSkeleton />
     }
@@ -315,22 +309,17 @@ export function ClaudeSwitcherForOwner({
         target.active ||
         (signInId === null && target.disabled)
       }
-      // Why: only a chat's own picker switches accounts; the status bar lists them read-only.
-      onSelect={
-        chatAction
-          ? (event) => {
-              event.preventDefault()
-              if (target.active) {
-                return
-              }
-              if (signInId) {
-                void handleSignIn(signInId)
-              } else {
-                void handleSelectAccount(target.id, target.runtimeTarget)
-              }
-            }
-          : undefined
-      }
+      onSelect={(event) => {
+        event.preventDefault()
+        if (target.active) {
+          return
+        }
+        if (signInId) {
+          void handleSignIn(signInId)
+        } else {
+          void handleSelectAccount(target.id, target.runtimeTarget)
+        }
+      }}
       action={
         signInId ? (
           <InlineUsageSignInAction
@@ -342,7 +331,7 @@ export function ClaudeSwitcherForOwner({
         ) : undefined
       }
     >
-      {target.needsSignIn && !target.usableAccountId ? null : rowUsage(target, inactiveUsage)}
+      {target.needsSignIn && !target.usableAccountId ? null : rowUsage(inactiveUsage, target)}
     </AccountSwitchRowItem>
   )
 
@@ -396,7 +385,10 @@ export function ClaudeSwitcherForOwner({
       onOpenChange={handleOpenChange}
     >
       {/* Why: until the host lists its accounts, the empty roster's only row would claim "System default". */}
-      {rosterKnown ? (
+      {/* Why: the status bar shows each account's usage on the bar; only a chat's picker lists them. */}
+      {!chatAction ? (
+        <AccountManageLink onOpenSettings={openAccountSettings} />
+      ) : rosterKnown ? (
         <AccountSwitchSection
           heading={t('auto.components.status.bar.AccountSwitchList.accounts', 'Accounts')}
           targets={selectedGroup?.targets ?? []}

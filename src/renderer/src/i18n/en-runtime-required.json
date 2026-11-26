@@ -2469,6 +2469,7 @@
         "currentBadge": "Current",
         "detachedSource": "This workspace is not on a branch.",
         "folderSource": "A folder workspace has no branch to continue on another host.",
+        "label": "Environment",
         "noWorkspaceYet": "no workspace on this branch yet",
         "projectMissing": "This project is not set up on this host. {{detail}}",
         "sameBranch": "workspace on the same branch"

@@ -4711,7 +4711,6 @@
             "4fba7dc1e7": "残高 {{value0}}",
             "4025a6f62f": "無制限",
             "a95969101f": "{{value0}} クレジット",
-            "codexSignInSuccess": "Codex にサインインしました",
             "codexSignInError": "Codex のサインインに失敗しました。もう一度お試しください。",
             "cursorUsageMenu": "Cursor の使用状況",
             "hiddenUsageProviders": "ほかに: {{value0}}",
@@ -5126,15 +5125,11 @@
             "detached": "分離状態"
           },
           "antigravity": {
-            "unknownAccount": "Google アカウント",
-            "accounts": "保存済み Antigravity アカウント",
-            "readAgo": "{{time}} に取得",
-            "notRead": "使用量は不明：未取得"
+            "unknownAccount": "Google アカウント"
           },
           "AccountSwitchList": {
             "used": "使用済み",
             "left": "残り",
-            "reset": "リセット",
             "accounts": "アカウント"
           },
           "InlineUsageBars": {
@@ -23485,6 +23480,10 @@
     "antigravityReferenceDescription": "このトランスクリプトを参照として使用して、新規 Antigravity CLI 会話を続けます。",
     "searchHitSourceHost": "{{value0}} で見つかりました",
     "recordedOnOtherMachineCopy": "別のコンピューターで記録 · そちらで開いてください",
+    "ownerRefusal": {
+      "heldByChat": "{{host}} の Orca チャットがこの {{agent}} の会話を保持しているため、ターミナルでは開けません。続けるには {{host}} でそのチャットを開いてください。",
+      "runningElsewhere": "この {{agent}} の会話は {{host}} の別のチャットまたはターミナルで実行中です。そこで停止してから再開してください。"
+    },
     "recordedOnHost": "{{value0}} で記録",
     "resumeOnHost": "{{value0}} で再開",
     "recordedOnOfflineHost": "{{value0}} で記録されましたが、オフラインです。再接続してそちらで再開してください。",

@@ -36,6 +36,10 @@ import { describeAiVaultResumeFailure } from '@/lib/agent-session/resume/history
 import { resumeAiVaultSessionInNewChat } from './ai-vault-session-resume-in-chat-launch'
 import { resolveAiVaultTargetWorkspacePath } from './ai-vault-session-launch-target'
 import { aiVaultResumeSessionForWorkspace } from './ai-vault-session-other-machine'
+import {
+  resolveAiVaultOwnershipRefusal,
+  type AiVaultOwnershipRefusalOutcome
+} from './ai-vault-session-owner-chat'
 import type {
   AiVaultResumeCommandSession,
   AiVaultResumeStartup
@@ -116,7 +120,8 @@ export function useAiVaultSessionLaunchActions({
       session: AiVaultSession,
       targetWorktreeId: string | undefined,
       prepareStartup: (worktreeId: string) => Promise<AiVaultResumeStartup>,
-      describeFailure: (message: string) => string = (message) => message
+      describeFailure: (message: string) => string = (message) => message,
+      resolveOwnerRefusal?: (error: unknown) => Promise<AiVaultOwnershipRefusalOutcome | null>
     ): void => {
       const targetId = resolveAiVaultSessionLaunchTargetOrNotify({
         sessionFilePath: session.filePath,
@@ -135,9 +140,14 @@ export function useAiVaultSessionLaunchActions({
             describeFailure
           )
         )
-        .catch((error: unknown) =>
-          notifyAiVaultSessionPreparationFailure(error, session.agent, describeFailure)
-        )
+        .catch(async (error: unknown) => {
+          const resolved = await resolveOwnerRefusal?.(error).catch(() => null)
+          if (resolved?.kind === 'refused') {
+            toast.error(resolved.message)
+          } else if (!resolved) {
+            notifyAiVaultSessionPreparationFailure(error, session.agent, describeFailure)
+          }
+        })
     },
     [activeWorktree?.id, activeWorktreeId, targetState]
   )
@@ -159,7 +169,9 @@ export function useAiVaultSessionLaunchActions({
           prepareAiVaultSessionForTerminalResume(session)
             .then(dropDeletedRemoteResumeCwd)
             .then((preparedSession) => buildResumeStartup(preparedSession, worktreeId)),
-        (message) => describeAiVaultResumeFailure(new Error(message), session.agent)
+        (message) => describeAiVaultResumeFailure(new Error(message), session.agent),
+        // The host's chat that holds the conversation opens instead of a refused terminal.
+        (error) => resolveAiVaultOwnershipRefusal(session, error)
       )
     },
     [buildResumeStartup, launchInTerminal, targetState]

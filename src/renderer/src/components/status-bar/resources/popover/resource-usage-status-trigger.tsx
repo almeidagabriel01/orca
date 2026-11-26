@@ -5,6 +5,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
 import type { Translate } from '@/i18n/use-translate'
+import { HeavyQueueTriggerCounts, heavyQueueHostText } from '../chips/HeavyQueueTriggerCounts'
+import type { HeavyQueueChipHost } from '../chips/heavy-queue-chip-state'
 import { STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS } from '../../composition/status-bar-context-menu-policy'
 
 export function focusResourceManagerTrigger(): void {
@@ -19,7 +21,8 @@ export function renderResourceUsageStatusTrigger(
     commitToneClass,
     triggerSessionCount,
     orphanCount,
-    resourceManagerTooltipLines
+    resourceManagerTooltipLines,
+    heavyQueueHosts = []
   }: {
     daemonUnreachable: boolean
     resourceManagerAriaLabel: string
@@ -28,9 +31,20 @@ export function renderResourceUsageStatusTrigger(
     triggerSessionCount: number | null
     orphanCount: number
     resourceManagerTooltipLines: { id: string; text: string; emphasized: boolean }[]
+    heavyQueueHosts?: readonly HeavyQueueChipHost[]
   },
   t: Translate = translate
 ): React.JSX.Element {
+  const queueLines = heavyQueueHosts
+    .filter((host) => host.value.status !== 'none')
+    .map((host) => `${host.label}: ${heavyQueueHostText(host.value, t)}`)
+  const baseLabel = daemonUnreachable
+    ? t(
+        'auto.components.status.bar.ResourceUsageStatusSegment.59f178fe11',
+        '{{value0}}, daemon unreachable',
+        { value0: resourceManagerAriaLabel }
+      )
+    : resourceManagerAriaLabel
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -39,16 +53,8 @@ export function renderResourceUsageStatusTrigger(
             type="button"
             data-resource-manager-trigger=""
             {...STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS}
-            className="relative inline-flex items-center gap-1.5 cursor-pointer rounded px-1 py-0.5 hover:bg-accent/70"
-            aria-label={
-              daemonUnreachable
-                ? t(
-                    'auto.components.status.bar.ResourceUsageStatusSegment.59f178fe11',
-                    '{{value0}}, daemon unreachable',
-                    { value0: resourceManagerAriaLabel }
-                  )
-                : resourceManagerAriaLabel
-            }
+            className="relative inline-flex shrink-0 items-center gap-1.5 cursor-pointer rounded-md border border-border/60 px-1.5 py-0.5 outline-none hover:bg-accent/70 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            aria-label={queueLines.length ? `${baseLabel}. ${queueLines.join('; ')}` : baseLabel}
           >
             {spaceScanReady ? (
               <span
@@ -65,6 +71,7 @@ export function renderResourceUsageStatusTrigger(
                 <span className="ml-0.5 text-status-warning-text">({orphanCount})</span>
               )}
             </span>
+            <HeavyQueueTriggerCounts hosts={heavyQueueHosts} />
             {daemonUnreachable && (
               <AlertTriangle
                 className="size-3 text-yellow-500"
@@ -83,6 +90,9 @@ export function renderResourceUsageStatusTrigger(
             <div key={line.id} className={line.emphasized ? 'text-primary' : ''}>
               {line.text}
             </div>
+          ))}
+          {queueLines.map((line) => (
+            <div key={line}>{line}</div>
           ))}
         </div>
       </TooltipContent>

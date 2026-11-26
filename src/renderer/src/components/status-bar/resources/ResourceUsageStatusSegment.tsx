@@ -8,7 +8,7 @@ import { Popover, PopoverContent } from '@/components/ui/popover'
 import { DaemonActionDialog } from '../../shared/useDaemonActions'
 import { STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS } from '../composition/status-bar-context-menu-policy'
 import { useResourceUsageStatusController } from './use-resource-usage-status-controller'
-import { HeavyQueueStatusChipsHost } from './chips/HeavyQueueStatusChipsHost'
+import { useHeavyQueueChips } from './chips/use-heavy-queue-chips'
 import { renderResourceUsageStatusTrigger } from './popover/resource-usage-status-trigger'
 import {
   renderDaemonUnreachableBanner,
@@ -29,6 +29,7 @@ import { WorkspaceSpaceCompactPanel } from '../workspace-storage/WorkspaceSpaceC
 export function ResourceUsageStatusSegment(): React.JSX.Element {
   const t = useTranslate()
   const controller = useResourceUsageStatusController()
+  const heavyQueueHosts = useHeavyQueueChips()
   const {
     open,
     setOpen,
@@ -85,27 +86,19 @@ export function ResourceUsageStatusSegment(): React.JSX.Element {
         setOpen(nextOpen)
       }}
     >
-      <div className="flex shrink-0 items-center gap-1">
-        {renderResourceUsageStatusTrigger(
-          {
-            daemonUnreachable,
-            resourceManagerAriaLabel,
-            spaceScanReady,
-            commitToneClass,
-            triggerSessionCount,
-            orphanCount,
-            resourceManagerTooltipLines
-          },
-          t
-        )}
-        <HeavyQueueStatusChipsHost
-          onOpen={() => {
-            takeChatOpenedClose()
-            recordFeatureInteraction('resource-manager')
-            setOpen(true)
-          }}
-        />
-      </div>
+      {renderResourceUsageStatusTrigger(
+        {
+          daemonUnreachable,
+          resourceManagerAriaLabel,
+          spaceScanReady,
+          commitToneClass,
+          triggerSessionCount,
+          orphanCount,
+          resourceManagerTooltipLines,
+          heavyQueueHosts
+        },
+        t
+      )}
 
       <PopoverContent
         side="top"

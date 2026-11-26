@@ -17,10 +17,10 @@ import {
 } from '../resource-usage-open-slices'
 import {
   nextHeavyQueueChipReading,
+  type HeavyQueueChipHost,
   type HeavyQueueChipOutcome,
   type HeavyQueueChipReading
 } from './heavy-queue-chip-state'
-import type { HeavyQueueChipHost } from './HeavyQueueStatusChips'
 
 const POLL_MS = 5_000
 const LOCAL_ID = 'local'

@@ -5,6 +5,13 @@ export type HeavyQueueChipValue =
   | { status: 'offline' }
   | { status: 'ok'; counts: HeavyQueueCounts }
 
+export type HeavyQueueChipHost = {
+  id: string
+  label: string
+  kind: 'local' | 'server'
+  value: HeavyQueueChipValue
+}
+
 export type HeavyQueueChipOutcome =
   | { kind: 'counts'; counts: HeavyQueueCounts | null }
   | { kind: 'unsupported' }

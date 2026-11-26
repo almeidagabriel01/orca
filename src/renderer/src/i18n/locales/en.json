@@ -22134,10 +22134,6 @@
       "copyCode": "Copy code",
       "wrapLines": "Wrap lines",
       "disableLineWrap": "Disable line wrap",
-      "htmlPreview": "HTML preview",
-      "htmlView": "HTML view",
-      "htmlViewCode": "Code",
-      "htmlViewPreview": "Preview",
       "context": {
         "unavailable": "Context usage is not known yet. It becomes available after the agent next responds.",
         "summary": "Context: {{used}} / {{window}} tokens ({{percent}}%), estimated from the last response.",
@@ -28143,6 +28139,7 @@
         "body": "Agents installed on Windows can’t run inside WSL. Install one in the distro and sign in, and it shows up here.",
         "copied": "Copied",
         "copy": "Copy",
+        "checkAgain": "Check again",
         "checking": "Checking again…"
       },
       "hostSleeping": "Sleeping · wakes when used",

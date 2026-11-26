@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HeavyCommandJob } from '../../../../../../shared/diagnostics/process-stats-types'
-import { buildHeavyQueueView, cwdName } from './resource-heavy-queue-view'
+import { buildHeavyQueueView, cwdName, heavyQueueMoveSteps } from './resource-heavy-queue-view'
 
 const job = (pid: number, fields: Partial<HeavyCommandJob>): HeavyCommandJob => ({
   pid,
@@ -72,31 +72,6 @@ describe('buildHeavyQueueView', () => {
     ])
   })
 
-  it('offers only the moves the order allows, and none without controls', () => {
-    const jobs = [
-      job(1, { position: 1, ordered: true }),
-      job(2, { position: 2, ordered: true }),
-      job(3, { direct: true, queuedAt: 5 })
-    ]
-    const can = buildHeavyQueueView({ readAt: 0, slots: 1, controls: true, jobs }).waiting.map(
-      (row) => row.can
-    )
-    expect(can[0]).toMatchObject({ runNext: false, moveUp: false, moveDown: true, startNow: true })
-    expect(can[1]).toMatchObject({ runNext: true, moveUp: true, moveDown: false, moveToEnd: false })
-    expect(can[2]).toEqual({
-      runNext: false,
-      moveUp: false,
-      moveDown: false,
-      moveToEnd: false,
-      startNow: false,
-      remove: true,
-      stop: false
-    })
-
-    const readOnly = buildHeavyQueueView({ readAt: 0, slots: 1, controls: false, jobs })
-    expect(readOnly.waiting.every((row) => Object.values(row.can).every((v) => !v))).toBe(true)
-  })
-
   it('offers Stop on running jobs only when the host can stop them', () => {
     const jobs = [job(1, { status: 'running', slot: 1 }), job(2, { position: 1, ordered: true })]
     const view = (canStop: boolean | undefined, controls = true) =>
@@ -105,5 +80,34 @@ describe('buildHeavyQueueView', () => {
     expect(view(true).waiting[0].can.stop).toBe(false)
     expect(view(undefined).running[0].can.stop).toBe(false)
     expect(view(true, false).running[0].can.stop).toBe(false)
+  })
+})
+
+describe('heavyQueueMoveSteps', () => {
+  // The script's op_move: pop the job, insert it at up i-1, down i+1, top 0, bottom end.
+  const apply = (order: number[], pid: number, to: string): number[] => {
+    const rest = order.filter((p) => p !== pid)
+    const i = order.indexOf(pid)
+    const at = { up: Math.max(i - 1, 0), down: i + 1, top: 0, bottom: rest.length }[to] ?? -1
+    rest.splice(at, 0, pid)
+    return rest
+  }
+
+  it('lands every job exactly where it was dropped', () => {
+    for (let count = 1; count <= 5; count++) {
+      for (let from = 0; from < count; from++) {
+        for (let to = 0; to < count; to++) {
+          const order = Array.from({ length: count }, (_, i) => i)
+          const moved = heavyQueueMoveSteps(from, to).reduce(
+            (current, step) => apply(current, from, step),
+            order
+          )
+          const expected = order.filter((p) => p !== from)
+          expected.splice(to, 0, from)
+          expect(moved).toEqual(expected)
+          expect(heavyQueueMoveSteps(from, to).length).toBeLessThanOrEqual(Math.abs(to - from))
+        }
+      }
+    }
   })
 })

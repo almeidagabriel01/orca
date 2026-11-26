@@ -1,16 +1,5 @@
 import React from 'react'
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpToLine,
-  Copy,
-  FolderOpen,
-  MoreHorizontal,
-  Square,
-  X,
-  Zap
-} from 'lucide-react'
+import { Copy, FolderOpen, MoreHorizontal, Square, X, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -26,7 +15,6 @@ import { QueueMenuItem } from './resource-heavy-queue-row-menu-item'
 import type { HeavyMoveHost } from './resource-heavy-job-move'
 import { RunOnHostItems, type HeavyJobMoveRequest } from './resource-heavy-queue-move-items'
 
-export type QueueMove = 'up' | 'down' | 'top' | 'bottom'
 export type ConfirmKind = 'start' | 'remove' | 'stop'
 
 /** Every row's full action list, also the only way in on a narrow card. Off actions say why. */
@@ -34,8 +22,6 @@ export function QueueRowMenu({
   hostId,
   row,
   pending,
-  onMove,
-  onRunNext,
   onConfirm,
   moveSource,
   moveTargets,
@@ -44,8 +30,6 @@ export function QueueRowMenu({
   hostId: string
   row: HeavyQueueRow
   pending: boolean
-  onMove: (to: QueueMove) => void
-  onRunNext: () => void
   onConfirm: (kind: ConfirmKind) => void
   /** This host when its queue can move jobs, with the other hosts that can take them. */
   moveSource: HeavyMoveHost | null
@@ -63,12 +47,8 @@ export function QueueRowMenu({
     'resourceManager.heavyQueue.reasonOutsideOrder',
     'Started through flock, outside the queue order'
   )
-  // Why one reason per row: a read-only host or a flock job blocks every move the same way.
+  // Why one reason per row: a read-only host or a flock job can't be started out of turn either way.
   const orderReason = !can.remove ? readOnly : !can.startNow ? outsideOrder : null
-  const moveReason = (allowed: boolean, edge: string): string | null =>
-    orderReason ?? (allowed ? null : edge)
-  const first = t('resourceManager.heavyQueue.reasonFirst', 'Already first in line')
-  const last = t('resourceManager.heavyQueue.reasonLast', 'Already last in line')
   const label = t('resourceManager.heavyQueue.actions', 'Queue actions')
   return (
     <DropdownMenu modal={false}>
@@ -96,34 +76,6 @@ export function QueueRowMenu({
             {orderReason && (
               <div className="px-2 py-1.5 text-2xs text-muted-foreground">{orderReason}</div>
             )}
-            <QueueMenuItem
-              icon={ArrowUp}
-              label={t('resourceManager.heavyQueue.moveUp', 'Move up')}
-              quiet={orderReason !== null}
-              reason={moveReason(can.moveUp, first)}
-              onSelect={() => onMove('up')}
-            />
-            <QueueMenuItem
-              icon={ArrowDown}
-              label={t('resourceManager.heavyQueue.moveDown', 'Move down')}
-              quiet={orderReason !== null}
-              reason={moveReason(can.moveDown, last)}
-              onSelect={() => onMove('down')}
-            />
-            <QueueMenuItem
-              icon={ArrowUpToLine}
-              label={t('resourceManager.heavyQueue.runNext', 'Run next')}
-              quiet={orderReason !== null}
-              reason={moveReason(can.runNext, first)}
-              onSelect={onRunNext}
-            />
-            <QueueMenuItem
-              icon={ArrowDownToLine}
-              label={t('resourceManager.heavyQueue.moveToEnd', 'Move to end')}
-              quiet={orderReason !== null}
-              reason={moveReason(can.moveToEnd, last)}
-              onSelect={() => onMove('bottom')}
-            />
             <QueueMenuItem
               icon={Zap}
               label={t('resourceManager.heavyQueue.startNow', 'Start now…')}

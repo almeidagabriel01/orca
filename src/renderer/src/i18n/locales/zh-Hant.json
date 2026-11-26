@@ -23208,8 +23208,7 @@
     "sharedAgentProcesses": "共用代理程式行程",
     "heavyQueueChip": {
       "summary": "{{slots}} 個插槽中 {{running}} 個執行中，{{waiting}} 個等待中",
-      "offline": "無法連線",
-      "aria": "{{host}}：{{text}}"
+      "offline": "無法連線"
     }
   },
   "browserExtensions": {

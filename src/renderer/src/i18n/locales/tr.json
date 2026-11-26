@@ -26262,8 +26262,7 @@
     "sharedAgentProcesses": "Paylaşılan ajan işlemleri",
     "heavyQueueChip": {
       "summary": "{{slots}} yuvadan {{running}} tanesi çalışıyor, {{waiting}} bekliyor",
-      "offline": "Erişilemedi",
-      "aria": "{{host}}: {{text}}"
+      "offline": "Erişilemedi"
     }
   },
   "browserExtensions": {

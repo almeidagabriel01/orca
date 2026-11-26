@@ -26665,10 +26665,7 @@
       "expandCommand": "Show the whole command",
       "collapseCommand": "Show less of the command",
       "actions": "Queue actions",
-      "runNext": "Run next",
-      "moveUp": "Move up",
-      "moveDown": "Move down",
-      "moveToEnd": "Move to end",
+      "reorderHint": "Drag to reorder, or press Alt+Up / Alt+Down",
       "moveFailed": "Couldn't move it. {{value0}}",
       "startNow": "Start now…",
       "startQuestion": "Start now in an extra slot? It runs beside the busy slots, even if {{value0}} is loaded.",
@@ -26688,8 +26685,6 @@
       "stopFailed": "Couldn't stop it. {{value0}}",
       "reasonReadOnly": "This host's queue can't be changed from here",
       "reasonOutsideOrder": "Started through flock, outside the queue order",
-      "reasonFirst": "Already first in line",
-      "reasonLast": "Already last in line",
       "reasonRemoteFolder": "The folder is on another machine",
       "reasonCantStop": "This host's heavy queue can't stop commands; update it",
       "moved": "Moved",
@@ -26746,8 +26741,7 @@
     },
     "heavyQueueChip": {
       "summary": "{{running}} of {{slots}} slots running, {{waiting}} waiting",
-      "offline": "Couldn't be reached",
-      "aria": "{{host}}: {{text}}"
+      "offline": "Couldn't be reached"
     }
   },
   "browserExtensions": {

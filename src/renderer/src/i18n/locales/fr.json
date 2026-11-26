@@ -23420,8 +23420,7 @@
     "sharedAgentProcesses": "Processus d’agent partagés",
     "heavyQueueChip": {
       "summary": "{{running}} sur {{slots}} emplacements utilisés, {{waiting}} en attente",
-      "offline": "Connexion impossible",
-      "aria": "{{host}} : {{text}}"
+      "offline": "Connexion impossible"
     }
   },
   "csv": {

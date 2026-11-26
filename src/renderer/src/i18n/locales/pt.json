@@ -24707,10 +24707,7 @@
       "expandCommand": "Mostrar o comando inteiro",
       "collapseCommand": "Mostrar menos do comando",
       "actions": "Ações da fila",
-      "runNext": "Rodar a seguir",
-      "moveUp": "Subir",
-      "moveDown": "Descer",
-      "moveToEnd": "Mover para o fim",
+      "reorderHint": "Arraste para reordenar, ou use Alt+Cima / Alt+Baixo",
       "moveFailed": "Não foi possível mover. {{value0}}",
       "startNow": "Rodar agora…",
       "startQuestion": "Rodar agora numa vaga extra? Roda ao lado das vagas ocupadas, mesmo com {{value0}} carregada.",
@@ -24730,8 +24727,6 @@
       "stopFailed": "Não foi possível parar. {{value0}}",
       "reasonReadOnly": "A fila deste host não pode ser alterada daqui",
       "reasonOutsideOrder": "Iniciado pelo flock, fora da ordem da fila",
-      "reasonFirst": "Já é o primeiro da fila",
-      "reasonLast": "Já é o último da fila",
       "reasonRemoteFolder": "A pasta está em outra máquina",
       "reasonCantStop": "A fila pesada deste host não sabe parar comandos; atualize-o",
       "moved": "Movido",
@@ -24801,8 +24796,7 @@
     "sharedAgentProcesses": "Processos de agente compartilhados",
     "heavyQueueChip": {
       "summary": "{{running}} de {{slots}} vagas em uso, {{waiting}} aguardando",
-      "offline": "Não foi possível conectar",
-      "aria": "{{host}}: {{text}}"
+      "offline": "Não foi possível conectar"
     }
   },
   "browserTab": {

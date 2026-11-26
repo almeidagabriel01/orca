@@ -25900,8 +25900,7 @@
     "sharedAgentProcesses": "공유 에이전트 프로세스",
     "heavyQueueChip": {
       "summary": "슬롯 {{slots}}개 중 {{running}}개 실행 중, {{waiting}}개 대기 중",
-      "offline": "연결할 수 없습니다",
-      "aria": "{{host}}: {{text}}"
+      "offline": "연결할 수 없습니다"
     }
   },
   "workspaceSpace": {

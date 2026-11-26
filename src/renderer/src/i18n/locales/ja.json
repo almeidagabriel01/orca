@@ -24535,8 +24535,7 @@
     "sharedAgentProcesses": "共有 Agent プロセス",
     "heavyQueueChip": {
       "summary": "{{slots}} 枠中 {{running}} 枠が実行中、{{waiting}} 件待機中",
-      "offline": "接続できませんでした",
-      "aria": "{{host}}: {{text}}"
+      "offline": "接続できませんでした"
     }
   },
   "workspaceSpace": {

@@ -24343,8 +24343,7 @@
     "sharedAgentProcesses": "Общие процессы агентов",
     "heavyQueueChip": {
       "summary": "Занято {{running}} из {{slots}} слотов, в ожидании {{waiting}}",
-      "offline": "Не удалось подключиться",
-      "aria": "{{host}}: {{text}}"
+      "offline": "Не удалось подключиться"
     }
   },
   "browserExtensions": {

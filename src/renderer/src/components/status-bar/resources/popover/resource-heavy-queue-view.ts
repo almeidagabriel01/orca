@@ -15,10 +15,7 @@ export type HeavyQueueRow = {
   place: string
   /** What the host lets this row do; all false without controls. */
   can: {
-    runNext: boolean
-    moveUp: boolean
-    moveDown: boolean
-    moveToEnd: boolean
+    /** In the host's order, so it drags, reorders and starts now. */
     startNow: boolean
     remove: boolean
     /** Ends a running job; only hosts whose script has `stop`. */
@@ -39,10 +36,6 @@ export type HeavyQueueView = {
 }
 
 const NO_ACTIONS: HeavyQueueRow['can'] = {
-  runNext: false,
-  moveUp: false,
-  moveDown: false,
-  moveToEnd: false,
   startNow: false,
   remove: false,
   stop: false
@@ -95,8 +88,6 @@ export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
   const waiting = queue.jobs.filter((job) => job.status === 'waiting').sort(byWaitingOrder)
   // Only jobs in the host's order move; direct flock users and older waiters take slots on their own.
   const orderable = waiting.filter((job) => queue.controls && job.ordered)
-  const first = orderable[0]
-  const last = orderable.at(-1)
   return {
     slots: queue.slots,
     busy: running.filter((job) => !job.extra).length,
@@ -122,7 +113,6 @@ export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
         can: { ...NO_ACTIONS, stop: queue.controls && queue.canStop === true }
       })),
     waiting: waiting.map((job, index) => {
-      const ordered = orderable.includes(job)
       return {
         job,
         elapsedMs: Math.max(0, queue.readAt - job.queuedAt),
@@ -130,15 +120,39 @@ export function buildHeavyQueueView(queue: HeavyCommandQueue): HeavyQueueView {
         position: index + 1,
         place: placeOf(job),
         can: {
-          runNext: ordered && job !== first,
-          moveUp: ordered && job !== first,
-          moveDown: ordered && job !== last,
-          moveToEnd: ordered && job !== last,
-          startNow: ordered,
+          startNow: orderable.includes(job),
           remove: queue.controls,
           stop: false
         }
       }
+    })
+  }
+}
+
+export type QueueMove = 'up' | 'down' | 'top' | 'bottom'
+
+/**
+ * The fewest script moves (it only knows up/down/top/bottom) taking index `from` to `to`.
+ * Never anchored on `bottom`: a job queued since the sample would shift that landing.
+ */
+export function heavyQueueMoveSteps(from: number, to: number): QueueMove[] {
+  const relative: QueueMove[] = Array(Math.abs(to - from)).fill(to < from ? 'up' : 'down')
+  const viaTop: QueueMove[] = ['top', ...Array<QueueMove>(to).fill('down')]
+  return viaTop.length < relative.length ? viaTop : relative
+}
+
+/** The queue with its ordered waiters in `pids` order; jobs not listed keep their place. */
+export function withHeavyQueueOrder(
+  queue: HeavyCommandQueue,
+  pids: readonly number[]
+): HeavyCommandQueue {
+  return {
+    ...queue,
+    jobs: queue.jobs.map((job) => {
+      const index = pids.indexOf(job.pid)
+      return job.status === 'waiting' && job.ordered && index !== -1
+        ? { ...job, position: index + 1 }
+        : job
     })
   }
 }

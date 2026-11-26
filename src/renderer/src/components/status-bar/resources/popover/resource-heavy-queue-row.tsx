@@ -1,17 +1,6 @@
 import type React from 'react'
-import { useState } from 'react'
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpToLine,
-  ArrowRight,
-  Hourglass,
-  Play,
-  X,
-  Zap,
-  type LucideIcon
-} from 'lucide-react'
+import { useState, type CSSProperties, type ReactNode, type Ref } from 'react'
+import { ArrowRight, Hourglass, Play, X, Zap, type LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/class-names'
@@ -20,7 +9,7 @@ import type { HeavyQueueAction } from '../../../../../../shared/rpc-contract/dia
 import type { HeavyQueueRow } from './resource-heavy-queue-view'
 import { formatElapsed } from './resource-session-processes'
 import { CopyCommand } from './resource-usage-session-processes'
-import { QueueRowMenu, type ConfirmKind, type QueueMove } from './resource-heavy-queue-row-menu'
+import { QueueRowMenu, type ConfirmKind } from './resource-heavy-queue-row-menu'
 import type { HeavyMoveHost } from './resource-heavy-job-move'
 import type { HeavyJobMoveRequest } from './resource-heavy-queue-move-items'
 import { QueueRowHostNote } from './resource-heavy-queue-host-note'
@@ -37,6 +26,15 @@ export type RowMoveHosts = {
 /** A command short enough to name in a question. */
 function shortCommand(command: string): string {
   return command.length > 60 ? `${command.slice(0, 59)}…` : command
+}
+
+/** A sortable waiter's handle and drop line; plain rows get none. */
+export type QueueRowDrag = {
+  rowRef: Ref<HTMLLIElement>
+  rowStyle: CSSProperties
+  grip: ReactNode
+  dragging: boolean
+  insertion: 'before' | 'after' | undefined
 }
 
 export type RunAction = (action: HeavyQueueAction, failure: (message: string) => string) => void
@@ -73,57 +71,27 @@ export function QueueAction({
   )
 }
 
-/** Wide cards show a waiting row's moves as icons; every row, wide or narrow, keeps the ⋯ menu. */
+/** Wide cards show start now and remove as icons; every row keeps the ⋯ menu. Moving is drag or Alt+Up/Down. */
 function RowActions({
   hostId,
   row,
   pending,
-  run,
   onConfirm,
   moveHosts
 }: {
   hostId: string
   row: HeavyQueueRow
   pending: boolean
-  run: RunAction
   onConfirm: (kind: ConfirmKind) => void
   moveHosts: RowMoveHosts
 }): React.JSX.Element {
   const t = useTranslate()
   const { pid } = row.job
-  const moveFailed = (message: string): string =>
-    t('resourceManager.heavyQueue.moveFailed', "Couldn't move it. {{value0}}", { value0: message })
-  const move = (to: QueueMove): void => run({ action: 'move', pid, to }, moveFailed)
-  const runNext = (): void => run({ action: 'run-now', pid, extra: false }, moveFailed)
   return (
     <div className="flex shrink-0 items-center gap-0.5">
-      {/* Why invisible, not absent: rows that cannot move keep their ⋯ in the same column. */}
+      {/* Why invisible, not absent: rows without these actions keep their ⋯ in the same column. */}
       <div className="hidden items-center @[24rem]/queue:flex">
         <div className={cn('flex items-center', !row.can.startNow && 'invisible')}>
-          <QueueAction
-            label={t('resourceManager.heavyQueue.moveUp', 'Move up')}
-            icon={ArrowUp}
-            disabled={pending || !row.can.moveUp}
-            onClick={() => move('up')}
-          />
-          <QueueAction
-            label={t('resourceManager.heavyQueue.moveDown', 'Move down')}
-            icon={ArrowDown}
-            disabled={pending || !row.can.moveDown}
-            onClick={() => move('down')}
-          />
-          <QueueAction
-            label={t('resourceManager.heavyQueue.runNext', 'Run next')}
-            icon={ArrowUpToLine}
-            disabled={pending || !row.can.runNext}
-            onClick={runNext}
-          />
-          <QueueAction
-            label={t('resourceManager.heavyQueue.moveToEnd', 'Move to end')}
-            icon={ArrowDownToLine}
-            disabled={pending || !row.can.moveToEnd}
-            onClick={() => move('bottom')}
-          />
           <QueueAction
             label={t('resourceManager.heavyQueue.startNow', 'Start now…')}
             icon={Zap}
@@ -144,8 +112,6 @@ function RowActions({
         hostId={hostId}
         row={row}
         pending={pending}
-        onMove={move}
-        onRunNext={runNext}
         onConfirm={onConfirm}
         moveSource={moveHosts.source}
         moveTargets={moveHosts.targets}
@@ -161,7 +127,9 @@ export function QueueRow({
   hostLabel,
   pending,
   run,
-  moveHosts
+  moveHosts,
+  drag,
+  onStep
 }: {
   hostId: string
   row: HeavyQueueRow
@@ -169,6 +137,9 @@ export function QueueRow({
   pending: boolean
   run: RunAction
   moveHosts: RowMoveHosts
+  drag?: QueueRowDrag
+  /** Alt+Up / Alt+Down anywhere in a sortable row moves it one place. */
+  onStep?: (delta: -1 | 1) => void
 }): React.JSX.Element {
   const t = useTranslate()
   const [expanded, setExpanded] = useState(false)
@@ -210,13 +181,52 @@ export function QueueRow({
     }
   }
   return (
-    <li data-queue-row className="group/procrow py-1 pl-3 pr-2">
+    <li
+      data-queue-row
+      ref={drag?.rowRef}
+      style={drag?.rowStyle}
+      onKeyDown={(event) => {
+        // Why contains: keys from the portaled ⋯ menu bubble here through React.
+        const step = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0
+        if (
+          !onStep ||
+          !event.altKey ||
+          !step ||
+          !event.currentTarget.contains(event.target as Node)
+        ) {
+          return
+        }
+        event.preventDefault()
+        if (pending) {
+          return
+        }
+        const focused = document.activeElement
+        onStep(step)
+        // React moves this node to its new place, which drops focus on the way down.
+        requestAnimationFrame(() => focused instanceof HTMLElement && focused.focus())
+      }}
+      className={cn(
+        'group/procrow relative py-1 pl-3 pr-2',
+        drag?.dragging && 'rounded-md bg-accent shadow-xs'
+      )}
+    >
+      {drag?.insertion && (
+        <span
+          aria-hidden
+          className={cn(
+            'pointer-events-none absolute inset-x-2 h-0.5 rounded-full bg-primary',
+            drag.insertion === 'before' ? 'top-0' : 'bottom-0'
+          )}
+        />
+      )}
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1.5 [grid-template-areas:'main_actions'_'place_place'_'cmd_cmd']">
         <div className="flex min-h-5 min-w-0 flex-wrap items-center gap-x-1.5 text-2xs text-muted-foreground [grid-area:main]">
-          <Icon
-            className={cn('size-3 shrink-0', running && 'fill-current text-foreground')}
-            aria-hidden
-          />
+          {drag?.grip ?? (
+            <Icon
+              className={cn('size-3 shrink-0', running && 'fill-current text-foreground')}
+              aria-hidden
+            />
+          )}
           <span
             className={cn(
               'w-14 shrink-0 truncate tabular-nums @[24rem]/queue:w-[4.25rem]',
@@ -276,7 +286,6 @@ export function QueueRow({
             hostId={hostId}
             row={row}
             pending={pending}
-            run={run}
             onConfirm={setConfirm}
             moveHosts={moveHosts}
           />

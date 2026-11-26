@@ -25738,8 +25738,7 @@
     "sharedAgentProcesses": "共享智能体进程",
     "heavyQueueChip": {
       "summary": "{{slots}} 个槽位中 {{running}} 个运行中，{{waiting}} 个等待中",
-      "offline": "无法连接",
-      "aria": "{{host}}：{{text}}"
+      "offline": "无法连接"
     }
   },
   "browserExtensions": {

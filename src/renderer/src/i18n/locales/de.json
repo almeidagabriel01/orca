@@ -23711,8 +23711,7 @@
     "sharedAgentProcesses": "Gemeinsame Agentenprozesse",
     "heavyQueueChip": {
       "summary": "{{running}} von {{slots}} Plätzen belegt, {{waiting}} wartend",
-      "offline": "Nicht erreichbar",
-      "aria": "{{host}}: {{text}}"
+      "offline": "Nicht erreichbar"
     }
   },
   "browserExtensions": {

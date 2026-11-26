@@ -1,12 +1,17 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, ChevronRight, Minus, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/class-names'
 import { useTranslate } from '@/i18n/use-translate'
 import type { HeavyCommandQueue } from '../../../../../../shared/diagnostics/process-stats-types'
 import { useHostSectionCollapsed } from './resource-host-section'
-import { buildHeavyQueueView } from './resource-heavy-queue-view'
-import { useHeavyQueueActions } from './resource-heavy-queue-actions'
+import {
+  buildHeavyQueueView,
+  heavyQueueMoveSteps,
+  withHeavyQueueOrder
+} from './resource-heavy-queue-view'
+import { callHeavyQueueAction, useHeavyQueueActions } from './resource-heavy-queue-actions'
+import { SortableQueueRows } from './resource-heavy-queue-sortable'
 import { QueueAction, QueueRow, type RowMoveHosts } from './resource-heavy-queue-row'
 import {
   executeHeavyJobMove,
@@ -36,8 +41,53 @@ export function HostHeavyQueue({
   outsideCount?: number
 }): React.JSX.Element {
   const t = useTranslate()
-  const view = useMemo(() => buildHeavyQueueView(queue), [queue])
+  // Why: a reorder shows at once; it holds until the first sample after it lands, and drops on failure.
+  const [override, setOverride] = useState<{
+    pids: number[]
+    settledOn: HeavyCommandQueue | null
+  } | null>(null)
+  const latestQueue = useRef(queue)
+  useEffect(() => {
+    latestQueue.current = queue
+  }, [queue])
+  const view = useMemo(
+    () =>
+      buildHeavyQueueView(
+        override && (override.settledOn === null || override.settledOn === queue)
+          ? withHeavyQueueOrder(queue, override.pids)
+          : queue
+      ),
+    [queue, override]
+  )
   const { run, runTask, pending, error } = useHeavyQueueActions(hostId)
+  const reorder = (pid: number, toIndex: number): void => {
+    const order = view.waiting.filter((row) => row.can.startNow).map((row) => row.job.pid)
+    const from = order.indexOf(pid)
+    if (pending || from === -1 || toIndex < 0 || toIndex >= order.length || toIndex === from) {
+      return
+    }
+    const pids = order.filter((other) => other !== pid)
+    pids.splice(toIndex, 0, pid)
+    setOverride({ pids, settledOn: null })
+    runTask(
+      async () => {
+        try {
+          // The script moves by up/down/top/bottom only, so a drop is a short run of those.
+          for (const to of heavyQueueMoveSteps(from, toIndex)) {
+            await callHeavyQueueAction(hostId, { action: 'move', pid, to })
+          }
+        } catch (cause) {
+          setOverride(null)
+          throw cause
+        }
+        setOverride({ pids, settledOn: latestQueue.current })
+      },
+      (message) =>
+        t('resourceManager.heavyQueue.moveFailed', "Couldn't move it. {{value0}}", {
+          value0: message
+        })
+    )
+  }
   const source = queue.canMoveHost ? { id: hostId, label, queue } : null
   const moveHosts: RowMoveHosts = {
     source,
@@ -162,8 +212,11 @@ export function HostHeavyQueue({
         </div>
       </div>
       {!collapsed && rows.length > 0 && (
-        <ul className="pb-1">
-          {rows.map((row) => (
+        <SortableQueueRows
+          rows={rows}
+          pending={pending}
+          onReorder={reorder}
+          renderRow={(row, drag) => (
             <QueueRow
               key={row.job.pid}
               hostId={hostId}
@@ -172,9 +225,21 @@ export function HostHeavyQueue({
               pending={pending}
               run={run}
               moveHosts={moveHosts}
+              drag={drag}
+              onStep={
+                drag
+                  ? (delta) =>
+                      reorder(
+                        row.job.pid,
+                        view.waiting
+                          .filter((other) => other.can.startNow)
+                          .findIndex((other) => other.job.pid === row.job.pid) + delta
+                      )
+                  : undefined
+              }
             />
-          ))}
-        </ul>
+          )}
+        />
       )}
       {!collapsed && rows.length === 0 && (
         <p className="px-3 pb-2 text-2xs text-muted-foreground">

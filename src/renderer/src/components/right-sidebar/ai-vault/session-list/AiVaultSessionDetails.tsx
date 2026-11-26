@@ -1,5 +1,4 @@
 import { isAntigravityReferenceSession } from '../../../../../../shared/agent-session/lifecycle/provider-handles/antigravity-session-origin'
-
 import type React from 'react'
 import {
   FileJson,
@@ -88,7 +87,7 @@ export function SessionInlineDetails({
   onOpenLog?: () => void
   /** A synced copy's Resume: named after its host, or replaced by the row's reason; Hand Off names its destination. */
   resumeOverride?: { label?: string; unavailableReason?: string; continueLabel?: string }
-  /** Hides the action bar; the details stay. */
+  /** Hides the action bar, bar a synced copy's host Resume and Continue; the details stay. */
   actionsHidden?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
@@ -96,9 +95,10 @@ export function SessionInlineDetails({
   const referenceSession = isAntigravityReferenceSession(session)
   const hasResumableContent = isAiVaultSessionResumableContent(session)
   const resumable = hasResumableContent && !resumeOverride?.unavailableReason
-  const showResumeInWorktree = resumable && Boolean(resumeActions.worktree.worktreeId)
+  const { worktree, newTab } = resumeActions
+  const showResumeInWorktree = resumable && Boolean(worktree.worktreeId)
   const showResumeInNewTab =
-    resumable && (!resumeActions.worktree.worktreeId || Boolean(resumeActions.newTab.worktreeId))
+    !actionsHidden && resumable && (!worktree.worktreeId || Boolean(newTab.worktreeId))
   const promptPreview = sessionPromptPreview(session)
   const detailTurns = sessionDetailConversationTurns(session, 3)
   const accountLabel = useAiVaultSessionAccount(session)
@@ -114,7 +114,6 @@ export function SessionInlineDetails({
   const resumeInNewChatButton = onResumeInNewChat ? (
     <ResumeInNewChatButton primary={chatFirst} onResume={onResumeInNewChat} />
   ) : null
-
   return (
     <div
       id={id}
@@ -127,7 +126,7 @@ export function SessionInlineDetails({
         event.stopPropagation()
       }}
     >
-      {!actionsHidden &&
+      {(!actionsHidden || resumeOverride) &&
       (showResumeInWorktree ||
         showResumeInNewTab ||
         onContinueInNewSession ||

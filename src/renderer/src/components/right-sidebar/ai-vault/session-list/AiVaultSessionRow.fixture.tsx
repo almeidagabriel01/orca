@@ -46,10 +46,13 @@ function row(props: {
   picker: boolean
   /** The other host holding the project, offered beside Resume. */
   continueHost?: string
+  session?: AiVaultSession
+  originHost?: string
 }) {
+  const originHost = props.originHost ?? 'mac'
   return (
     <VaultSessionRow
-      session={copy}
+      session={props.session ?? copy}
       liveState={null}
       resumeStartup={{ command: '' }}
       realHomeResumeStartup={{ command: '' }}
@@ -61,7 +64,10 @@ function row(props: {
       onToggleDetails={noop}
       showJumpToWorktree={false}
       onResume={noop}
-      resumeLabel={aiVaultSessionResumeLabel({ usesSessionWorktree: true, originHostLabel: 'mac' })}
+      resumeLabel={aiVaultSessionResumeLabel({
+        usesSessionWorktree: true,
+        originHostLabel: originHost
+      })}
       resumeActions={{
         worktree: { worktreeId: props.worktreeId, disabled: !props.worktreeId },
         newTab: { worktreeId: null, disabled: true }
@@ -69,7 +75,7 @@ function row(props: {
       onResumeInWorktree={noop}
       onResumeInNewTab={noop}
       onCopyId={noop}
-      sourceHostLabel={aiVaultOtherMachineLabel('mac')}
+      sourceHostLabel={aiVaultOtherMachineLabel(originHost)}
       onPick={props.picker ? noop : undefined}
       onContinueInNewSession={props.continueHost ? noop : undefined}
       continueLabel={
@@ -117,4 +123,24 @@ export const sidebarContinueOnHost = defineFixture({
   width: 560,
   render: () =>
     row({ picker: false, worktreeId: 'repo-mac::/Users/me/DEV/kit', continueHost: 'vps' })
+})
+
+// The history modal's expanded card: a copy recorded on the VPS offers Resume there or Continue here.
+export const modalHostActions = defineFixture({
+  width: 480,
+  render: () =>
+    row({
+      picker: true,
+      worktreeId: 'repo-vps::/home/me/projects/Personal-ProOps-app',
+      continueHost: 'Local Mac',
+      originHost: 'vps',
+      session: {
+        ...copy,
+        title: 'Recorded on vps',
+        cwd: '/home/me/projects/Personal-ProOps-app',
+        cwdAliases: [],
+        model: 'claude-opus-5-5',
+        branch: 'main'
+      }
+    })
 })

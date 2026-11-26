@@ -296,8 +296,8 @@ export function VaultSessionRow({
           onResumeInNewTab={onResumeInNewTab}
           subagentResume={onPick ? null : subagentResume}
           onContinueInNewSession={onContinueInNewSession}
-          onResumeInNewChat={onResumeInNewChat}
-          onResumeInNewCli={onResumeInNewCli}
+          onResumeInNewChat={onPick ? undefined : onResumeInNewChat}
+          onResumeInNewCli={onPick ? undefined : onResumeInNewCli}
           // The unsaved notice's "open the log" hint needs the button the picker hides.
           onOpenLog={onPick ? undefined : onOpenLog}
           resumeOverride={

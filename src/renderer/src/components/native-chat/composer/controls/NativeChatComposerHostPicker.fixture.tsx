@@ -28,9 +28,7 @@ function ChatMenuPreview({
 }): React.JSX.Element {
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger data-menu-fixture-trigger className="px-3 text-xs">
-        Chat menu
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger data-menu-fixture-trigger>Chat menu</DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuItem>Find</DropdownMenuItem>
         <DropdownMenuItem>

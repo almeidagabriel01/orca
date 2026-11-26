@@ -4,7 +4,6 @@ import { defaultRangeExtractor } from '@tanstack/react-virtual'
 import { useNativeChatToolRunWindow } from '../../runs/use-native-chat-tool-run-window'
 import { workerDockClearable } from '../../../../../../../shared/orchestration/dock/worker-dock'
 import { WorkerDockRow, workerDockRowTitle, type WorkerDockRowView } from './WorkerDockRow'
-import type { WorkerDockRowActionKind } from './WorkerDockRow'
 import { useLatestHandler } from '@/lib/use-latest-handler'
 import { cn } from '@/lib/class-names'
 import { workerDockChipLabel, workerDockSummary } from './worker-dock-summary'
@@ -54,7 +53,7 @@ export function WorkerDockRoster(props: {
   onExpandedChange: (value: boolean) => void
   pending: ReadonlySet<string>
   onOpen: (row: WorkerDockRowView, opener: HTMLElement) => void
-  onAction: (row: WorkerDockRowView, action: WorkerDockRowActionKind) => void
+  onAction: React.ComponentProps<typeof WorkerDockRow>['onAction']
   onClearAll: () => void
   loadWindow?: (anchor: string) => Promise<void>
 }) {

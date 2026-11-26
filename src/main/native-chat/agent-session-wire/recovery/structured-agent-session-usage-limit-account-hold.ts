@@ -252,7 +252,11 @@ export class UsageLimitAccountHolds {
       scope?.account?.refresh(UNKNOWN_RESET_ASK_MS)
       return false
     }
-    if (now < Math.max(hold.resetsAt + (hold.releasedByRoom ? 0 : GRACE_MS), notBefore)) {
+    // Room releases a resetless cut at once, but never inside the switch grace after its turn.
+    const sendAt = hold.releasedByRoom
+      ? Math.max(hold.resetsAt, (cut.turnEndedAt ?? Number.NEGATIVE_INFINITY) + GRACE_MS)
+      : hold.resetsAt + GRACE_MS
+    if (now < Math.max(sendAt, notBefore)) {
       return false
     }
     const refresh = scope?.account?.refresh ?? scope?.bootstrap

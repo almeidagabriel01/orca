@@ -142,7 +142,7 @@ it("clears a paired host's settled failure from this window once the host takes 
   hoisted.pairedDockOwner = true
   hoisted.workers = [worker, failed]
   renderStrip(REMOTE)
-  const clear = await screen.findByRole('button', { name: 'Clear Cleaner' })
+  const clear = await screen.findByRole('button', { name: 'Dismiss Cleaner' })
   expect(screen.getByRole('button', { name: /^Stop Verifier · Review journal$/ })).toBeVisible()
   expect(screen.queryByText(/from the computer it runs on/)).toBeNull()
   fireEvent.click(clear)

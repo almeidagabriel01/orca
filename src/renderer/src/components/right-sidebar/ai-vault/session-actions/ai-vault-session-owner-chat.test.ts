@@ -22,7 +22,11 @@ it('opens the recording host chat that holds a refused conversation instead of r
       "Error invoking remote method 'aiVault:prepareSessionResume': Error: agent_session_ownership_unknown"
     ),
     {
-      list: async () => ({ sessions: [hostRow], issues: [], scannedAt: '' }) as AiVaultListResult,
+      list: async (): Promise<AiVaultListResult> => ({
+        sessions: [hostRow],
+        issues: [],
+        scannedAt: ''
+      }),
       open: async (owner, target) => opened.push({ owner, target }),
       hostLabel: () => 'vps'
     }

@@ -7,6 +7,9 @@ import { readOwnInstallation } from '@/components/bots/use-paired-server-client-
 import { activateAiVaultStructuredSession } from '@/lib/agent-session/open/activate-ai-vault-structured-session'
 import { activateAndRevealWorkspace } from '@/lib/workspace/activation/worktree-activation'
 import { callStructuredAgentSession } from '@/runtime/native-chat/requests/structured-agent-session-call'
+import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
+import { structuredAgentSessionTargetForHost } from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
+import { normalizeAgentSessionConversationName } from '../../../../../../shared/agent-session/conversation-naming/agent-session-conversation-name'
 import { getTranslatedExecutionHostLabel } from '@/runtime/hosts/display/execution-host-label'
 import { useAppStore } from '@/store'
 import {
@@ -77,6 +80,23 @@ export async function markHandoffContinuedTo(
       )
     )
   }
+}
+
+/** The continued chat keeps the source's name, not one drawn from the hand-off's technical prompt. */
+export function nameHandoffContinuation(
+  hostId: ExecutionHostId,
+  sessionId: string,
+  sourceTitle: string | null | undefined
+): void {
+  const name = normalizeAgentSessionConversationName(sourceTitle)
+  const target = structuredAgentSessionTargetForHost(hostId)
+  if (!name || !target) {
+    return
+  }
+  callRuntimeRpc(target, 'agentSession.rename', { sessionId, name }).catch((error: unknown) => {
+    // An older host keeps its own name for the chat; the continuation itself is unaffected.
+    console.warn('Could not name the continued chat after its source', error)
+  })
 }
 
 /** The one mapping of a recorded destination onto this client: its own installation is `local`, a

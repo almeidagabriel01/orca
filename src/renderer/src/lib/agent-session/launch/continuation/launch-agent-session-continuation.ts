@@ -24,6 +24,7 @@ import { translate } from '@/i18n/i18n'
 import { resolveWorktreeDisplayName } from '@/lib/workspace/display/worktree-default-display-name'
 import { getResolvedExecutionHostIdForWorktree } from '@/lib/workspace/ownership/resolved-worktree-execution-host'
 import { workspaceNavigationToastAction } from '@/lib/workspace/activation/workspace-navigation-toast-action'
+import { nameHandoffContinuation } from './handoff-continued-on'
 
 type LaunchAgentSessionContinuationArgs = {
   agent: TuiAgent
@@ -33,6 +34,8 @@ type LaunchAgentSessionContinuationArgs = {
   initialCwd?: string | null
   launchChoice?: AgentLaunchChoice
   launchSource: LaunchSource
+  /** The source's name, which the continued chat keeps. */
+  name?: string | null
   signal?: AbortSignal
   sessionOptions?: Readonly<Record<string, string>>
   chatSessionOptions?: Readonly<Record<string, string>>
@@ -105,6 +108,7 @@ export async function launchAgentSessionContinuation({
   initialCwd,
   launchChoice,
   launchSource,
+  name,
   signal,
   sessionOptions,
   chatSessionOptions,
@@ -187,6 +191,9 @@ export async function launchAgentSessionContinuation({
       return false
     }
     sessionId = settled.kind === 'terminal' ? null : settled.sessionId
+  }
+  if (sessionId && executionHostId) {
+    nameHandoffContinuation(executionHostId, sessionId, name)
   }
 
   if (result.promptDeliveryResult) {

@@ -136,12 +136,12 @@ function ContinuedOnChip({
   const label = t('components.agentSessionContinuation.continuedOn', 'Continued on {{host}}', {
     host
   })
-  // Icon + host only, so the chat name keeps the row's width; the full sentence is the label.
+  // The chat name keeps the row: icon alone in a narrow row, icon + host in a wide one; the label says it all.
   return (
     <button
       type="button"
       aria-label={label}
-      className="flex min-w-0 max-w-[45%] shrink items-center gap-0.5 rounded-sm border border-border px-1 text-3xs leading-4 text-muted-foreground hover:bg-accent hover:text-foreground"
+      className="flex min-w-0 max-w-[40%] shrink-0 items-center gap-0.5 rounded-sm border border-border px-1 text-3xs leading-4 text-muted-foreground hover:bg-accent hover:text-foreground"
       disabled={!place?.hostId}
       title={`${label}. ${
         (place && handoffContinuationUnreachable(place)) ??
@@ -155,7 +155,7 @@ function ContinuedOnChip({
       }}
     >
       <ArrowUpRight className="size-2.5 shrink-0" aria-hidden />
-      <span className="truncate">{host}</span>
+      <span className="hidden truncate @[16rem]:inline">{host}</span>
     </button>
   )
 }
@@ -247,7 +247,8 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   )
 
   const modelChip =
-    showModel && model ? (
+    // A continued row gives its width to the title and the chip.
+    showModel && model && !continuedTo ? (
       <span
         className={cn(
           'min-w-0 max-w-24 truncate font-mono text-3xs',
@@ -264,7 +265,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       title={sendTargetDisabledReason ? undefined : rowTitle}
     >
       <span className={leadClassName}>{shownNode(leadingText)}</span>
-      {trailingText && (
+      {trailingText && !continuedTo && (
         <span className={highlighted ? 'text-foreground/70' : 'text-muted-foreground/65'}>
           {' '}
           - {shownNode(trailingText)}
@@ -354,6 +355,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
         hasChildDisclosure && 'worktree-agent-lineage-parent-row',
         isLineageChild && 'worktree-agent-lineage-child-row',
         'flex h-6 items-center gap-1',
+        continuedTo && '@container',
         highlighted && 'bg-worktree-sidebar-accent',
         sendTargetStatus === 'sending' && 'cursor-progress opacity-75',
         sendTargetStatus === 'disabled' && 'cursor-default opacity-60',

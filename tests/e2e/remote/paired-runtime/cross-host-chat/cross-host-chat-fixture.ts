@@ -179,6 +179,13 @@ export function shotDir(fallback: string): string {
 
 export async function screenshotStep(page: Page, dir: string, step: number, name: string) {
   const file = path.join(dir, `e2e-${String(step).padStart(2, '0')}-${name}.png`)
+  // The star prompt is a timed toast; it would cover the banner's action in every later print.
+  const later = page.getByRole('button', { name: 'Later', exact: true })
+  if (await later.isVisible().catch(() => false)) {
+    // A plain click event: an open modal menu blocks pointer input, and a pointerdown would close it.
+    await later.dispatchEvent('click')
+    await later.waitFor({ state: 'hidden' }).catch(() => {})
+  }
   await page.screenshot({ path: file })
   return file
 }

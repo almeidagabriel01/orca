@@ -169,6 +169,9 @@ test('History and chat continue across Local and vps hosts', async () => {
         await expect
           .soft(sidebarRow(page, destination), 'focus moves to the new vps chat')
           .toHaveAttribute('aria-current', 'page', { timeout: 15_000 })
+        await expect
+          .soft(sidebarRow(page, destination), 'the continued chat keeps the source name')
+          .toContainText('MAC-RECORDED', { timeout: 15_000 })
       }
       await shot(page, 'b-vps-chat-continued')
       await activateWorkspace(page, workspaces.macWorktreeId)

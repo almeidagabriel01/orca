@@ -235,6 +235,7 @@ export function AgentSessionContinuationDialog({
           )
         : {}),
       launchSource: request.launchSource,
+      name: request.source.sourceTitle,
       signal
     })
     setStartingFor((current) => (current === start ? null : current))

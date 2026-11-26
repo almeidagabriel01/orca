@@ -101,29 +101,36 @@ function SortableQueueRow({
   renderRow: (row: HeavyQueueRow, drag?: QueueRowDrag) => ReactNode
 }): ReactNode {
   const t = useTranslate()
-  const sortable = useSortable({ id: row.job.pid, disabled: pending })
-  const { transform } = sortable
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: row.job.pid, disabled: pending })
   const label = t(
     'resourceManager.heavyQueue.reorderHint',
     'Drag to reorder, or press Alt+Up / Alt+Down'
   )
   return renderRow(row, {
-    rowRef: sortable.setNodeRef,
+    rowRef: setNodeRef,
     rowStyle: {
       transform: transform ? `translate3d(0, ${transform.y}px, 0)` : undefined,
-      transition: sortable.transition,
-      zIndex: sortable.isDragging ? 1 : undefined
+      transition,
+      zIndex: isDragging ? 1 : undefined
     },
-    dragging: sortable.isDragging,
+    dragging: isDragging,
     insertion,
     grip: (
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type="button"
-            ref={sortable.setActivatorNodeRef}
-            {...sortable.attributes}
-            {...sortable.listeners}
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
             aria-label={label}
             aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
             aria-disabled={pending}

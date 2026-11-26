@@ -60,6 +60,7 @@ test.use({ actionTimeout: 15_000 })
 
 test('History and chat continue across Local and vps hosts', async () => {
   const testInfo = test.info()
+  // Two Orca apps, two hosts and four scenarios with real launches outgrow the default budget.
   test.setTimeout(15 * 60_000)
   const shots = shotDir(testInfo.outputDir)
   let step = 0
@@ -81,10 +82,14 @@ test('History and chat continue across Local and vps hosts', async () => {
     // The vps, like the local host, opens Claude as a chat rather than a terminal.
     patchProfileSettings(serverProfile.userDataDir, CLAUDE_CHAT_SETTINGS)
     serve = await startCliServe(serverProfile, { PATH: stubPath(fixture.vpsStub) })
-    const pairing = serve.readiness.pairing as { available?: boolean; url?: string } | undefined
-    expect(pairing?.available, 'isolated orca serve offers a pairing link').toBe(true)
+    const pairing = serve.readiness.pairing
+    const pairingUrl =
+      pairing && typeof pairing === 'object' && 'url' in pairing && typeof pairing.url === 'string'
+        ? pairing.url
+        : null
+    expect(pairingUrl, 'isolated orca serve offers a pairing link').not.toBeNull()
 
-    client = await launchPairedElectronClient({ pairingUrl: pairing!.url! }, testInfo, VPS_HOST, {
+    client = await launchPairedElectronClient({ pairingUrl: pairingUrl! }, testInfo, VPS_HOST, {
       extraEnv: { PATH: stubPath(fixture.macStub) }
     })
     const page = client.page
@@ -307,7 +312,7 @@ async function addProjectOnBothHosts(
     ids,
     { timeout: 60_000, polling: 250 }
   )
-  const { mac, vps } = (await found.jsonValue()) as { mac: string; vps: string }
+  const { mac, vps }: { mac: string; vps: string } = await found.jsonValue()
   // Both copies must be one project, or no host-to-host action can exist.
   await expect
     .poll(

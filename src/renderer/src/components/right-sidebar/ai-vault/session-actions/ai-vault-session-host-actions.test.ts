@@ -37,6 +37,7 @@ const vpsWorktree = {
 const worktrees = [macWorktree, vpsWorktree]
 // The Mac's own row of a conversation recorded there.
 // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
+// oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: partial test fixture; only the fields under test are read
 const own = {
   id: 'local:claude:s1',
   agent: 'claude',

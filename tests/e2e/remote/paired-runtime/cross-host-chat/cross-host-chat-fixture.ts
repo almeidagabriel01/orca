@@ -205,7 +205,7 @@ export function killProcessesUsing(profileDir: string): void {
 /** Merges `settings` into a profile's stored settings, so a host starts with them. */
 export function patchProfileSettings(userDataDir: string, settings: Record<string, unknown>): void {
   const file = path.join(userDataDir, 'orca-data.json')
-  const data = JSON.parse(readFileSync(file, 'utf8')) as { settings?: Record<string, unknown> }
+  const data: { settings?: Record<string, unknown> } = JSON.parse(readFileSync(file, 'utf8'))
   data.settings = { ...data.settings, ...settings }
   writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`)
 }

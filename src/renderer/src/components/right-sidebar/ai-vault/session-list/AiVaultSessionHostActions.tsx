@@ -111,7 +111,7 @@ function HostActionButton({
         event.stopPropagation()
         onClick()
       }}
-      className="h-7 min-w-0 max-w-full px-2.5 text-[11px]"
+      className="min-w-0 max-w-full"
     >
       <ArrowRightLeft className="size-3.5" />
       <span className="truncate">{label}</span>

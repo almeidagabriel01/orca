@@ -1,4 +1,5 @@
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
+import { translate } from '@/i18n/i18n'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import {
   aiVaultOtherMachineLabel,
@@ -43,6 +44,8 @@ function row(props: {
   resumeUnavailableReason?: string
   worktreeId: string | null
   picker: boolean
+  /** The other host holding the project, offered beside Resume. */
+  continueHost?: string
 }) {
   return (
     <VaultSessionRow
@@ -68,6 +71,18 @@ function row(props: {
       onCopyId={noop}
       sourceHostLabel={aiVaultOtherMachineLabel('mac')}
       onPick={props.picker ? noop : undefined}
+      onContinueInNewSession={props.continueHost ? noop : undefined}
+      continueLabel={
+        props.continueHost
+          ? translate(
+              'components.agentSessionContinuation.continueOnHost',
+              'Continue on {{host}}',
+              {
+                host: props.continueHost
+              }
+            )
+          : undefined
+      }
     />
   )
 }
@@ -95,4 +110,11 @@ export const sidebarReady = defineFixture({
 export const sidebarBlocked = defineFixture({
   width: 560,
   render: () => row({ picker: false, worktreeId: null })
+})
+
+// The project is set up on the Mac and the VPS: Resume on the Mac, or continue on the VPS.
+export const sidebarContinueOnHost = defineFixture({
+  width: 560,
+  render: () =>
+    row({ picker: false, worktreeId: 'repo-mac::/Users/me/DEV/kit', continueHost: 'vps' })
 })

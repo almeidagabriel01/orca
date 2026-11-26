@@ -387,6 +387,7 @@ export default function AiVaultPanel({
         <AgentSessionContinuationDialog
           open
           request={launchActions.continuationRequest}
+          initialEnvironmentKey={launchActions.continuationEnvironmentKey}
           onOpenChange={launchActions.handleContinuationDialogOpenChange}
           onStarted={onSessionOpened}
         />

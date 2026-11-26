@@ -86,8 +86,8 @@ export function SessionInlineDetails({
   onResumeInNewChat?: () => void
   onResumeInNewCli?: () => void
   onOpenLog?: () => void
-  /** A synced copy's Resume: named after its host, or replaced by the row's reason. */
-  resumeOverride?: { label?: string; unavailableReason?: string }
+  /** A synced copy's Resume: named after its host, or replaced by the row's reason; Hand Off names its destination. */
+  resumeOverride?: { label?: string; unavailableReason?: string; continueLabel?: string }
   /** Hides the action bar; the details stay. */
   actionsHidden?: boolean
 }): React.JSX.Element {
@@ -218,7 +218,8 @@ export function SessionInlineDetails({
               className="h-7 shrink-0 px-2.5 text-[11px]"
             >
               <MessageSquarePlus className="size-3.5" />
-              {t('components.agentSessionContinuation.handOffToAnotherAgent', 'Hand off to agent')}
+              {resumeOverride?.continueLabel ??
+                t('components.agentSessionContinuation.handOffToAnotherAgent', 'Hand off to agent')}
             </Button>
           ) : null}
           {onOpenLog ? (
@@ -348,9 +349,7 @@ function WorktreeMetadataLines({
   return (
     <div className="grid min-w-0 gap-1 text-[11px] leading-4">
       <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
-        {shouldShowAiVaultWorktreeStatusBadge(worktreeInfo.status, {
-          vaultScope
-        }) ? (
+        {shouldShowAiVaultWorktreeStatusBadge(worktreeInfo.status, { vaultScope }) ? (
           <>
             <span className="shrink-0 text-[10px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
               {aiVaultWorktreeStatusLabel(worktreeInfo.status, worktreeInfo.worktreeId, t)}

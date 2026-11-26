@@ -1,4 +1,9 @@
 import { translate } from '@/i18n/i18n'
+import {
+  isPickableHandoffDestination,
+  type HandoffDestination
+} from '@/lib/agent-session/launch/continuation/handoff-destinations'
+import { isCursorAcpSessionRow } from '../../../../../../shared/ai-vault/session-display/cursor-acp-session-path'
 import { getAiVaultResumeWorkspaceExecutionHostId } from '@/lib/agent-session/resume/history/ai-vault-resume-target'
 import type { AppState } from '@/store/types'
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
@@ -90,6 +95,30 @@ export function aiVaultResumeSessionForWorkspace(
   return hostId && hostId !== session.executionHostId
     ? aiVaultSessionOnRecordingHost(session, hostId)
     : null
+}
+
+/** A synced copy's hand-off source: its recording host's workspace, when the copy's preview holds a conversation. */
+export function aiVaultCopyHandoffSourceWorktreeId(
+  session: AiVaultSession,
+  resumeWorktreeId: string | null | undefined
+): string | null {
+  return session.recordedOnOtherMachine &&
+    resumeWorktreeId &&
+    !isCursorAcpSessionRow(session) &&
+    session.previewMessages.some((message) => message.text.trim())
+    ? resumeWorktreeId
+    : null
+}
+
+/** Where a synced copy can continue besides its recording host: the first host the hand-off dialog accepts. */
+export function aiVaultCopyContinueDestination(
+  destinations: readonly HandoffDestination[] | null
+): HandoffDestination | null {
+  // ponytail: first pickable host wins; with three or more hosts the dialog's picker reaches the rest.
+  return (
+    destinations?.find((row) => row.kind === 'same-branch' && isPickableHandoffDestination(row)) ??
+    null
+  )
 }
 
 export function aiVaultOtherMachineOfflineReason(hostLabel: string): string {

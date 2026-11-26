@@ -62,6 +62,7 @@ export function useAiVaultSessionLaunchActions({
   // An open dialog whose request is null is still saving the conversation on its host.
   const [continuation, setContinuation] = useState<{
     request: AgentSessionContinuationRequest | null
+    environmentKey?: string
   } | null>(null)
   // Only the latest Hand Off may fill or close the dialog.
   const continuationAttempt = useRef<object | null>(null)
@@ -225,8 +226,13 @@ export function useAiVaultSessionLaunchActions({
     [activeWorktree?.id, activeWorktreeId]
   )
 
+  /** `environmentKey` preselects a hand-off destination; a synced copy hands off from its recording host. */
   const handleContinueInNewSession = useCallback(
-    (session: AiVaultSession, targetWorktreeId: string): void => {
+    (row: AiVaultSession, targetWorktreeId: string, environmentKey?: string): void => {
+      const session = aiVaultResumeSessionForWorkspace(row, targetState, targetWorktreeId)
+      if (!session) {
+        return
+      }
       const targetId = resolveAiVaultSessionLaunchTargetOrNotify({
         sessionFilePath: session.filePath,
         sessionExecutionHostId: session.executionHostId,
@@ -251,20 +257,25 @@ export function useAiVaultSessionLaunchActions({
         )
         return
       }
-      const target = { session, targetWorktreeId: targetId.worktreeId, targetWorkspacePath }
+      // A copy's transcript exists only on its holder, so it hands off its preview.
+      const target = {
+        session: row.recordedOnOtherMachine ? { ...session, filePath: '' } : session,
+        targetWorktreeId: targetId.worktreeId,
+        targetWorkspacePath
+      }
       const attempt = {}
       continuationAttempt.current = attempt
-      if (!isAiVaultDatabaseAgent(session.agent)) {
-        setContinuation({ request: prepareAiVaultSessionContinuation(target) })
+      if (row.recordedOnOtherMachine || !isAiVaultDatabaseAgent(session.agent)) {
+        setContinuation({ request: prepareAiVaultSessionContinuation(target), environmentKey })
         return
       }
-      setContinuation({ request: null })
+      setContinuation({ request: null, environmentKey })
       void loadDatabaseAiVaultSessionContinuation(target).then((request) => {
         if (continuationAttempt.current !== attempt) {
           return
         }
         if (request) {
-          setContinuation({ request })
+          setContinuation({ request, environmentKey })
           return
         }
         setContinuation(null)
@@ -290,6 +301,7 @@ export function useAiVaultSessionLaunchActions({
     handleContinueInNewSession,
     continuationOpen: continuation !== null,
     continuationRequest: continuation?.request ?? null,
+    continuationEnvironmentKey: continuation?.environmentKey,
     handleContinuationDialogOpenChange
   }
 }

@@ -22,6 +22,7 @@ export function SessionActionMenuItems({
   resumeHidden = false,
   onResume,
   onContinueInNewSession,
+  continueLabel,
   onResumeInNewChat,
   onResumeInNewCli,
   onJumpToOriginalPane,
@@ -44,6 +45,8 @@ export function SessionActionMenuItems({
   resumeHidden?: boolean
   onResume: () => void
   onContinueInNewSession?: () => void
+  /** Replaces "Hand off to agent" where the hand-off is a move to another host. */
+  continueLabel?: string
   onResumeInNewChat?: () => void
   // Offered only on rows native chat owns, where it forks: see ai-vault-session-cli-fork.
   onResumeInNewCli?: () => void
@@ -129,7 +132,8 @@ export function SessionActionMenuItems({
           {hasItemsAboveHandOff ? <Separator /> : null}
           <Item onSelect={onContinueInNewSession}>
             <MessageSquarePlus className="size-3.5" />
-            {t('components.agentSessionContinuation.handOffToAnotherAgent', 'Hand off to agent')}
+            {continueLabel ??
+              t('components.agentSessionContinuation.handOffToAnotherAgent', 'Hand off to agent')}
           </Item>
         </>
       ) : null}

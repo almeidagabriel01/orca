@@ -58,6 +58,7 @@ export function VaultSessionRow({
   onJumpToWorktree,
   onResume,
   onContinueInNewSession,
+  continueLabel,
   onResumeInNewChat,
   onResumeInNewCli,
   resumeLabel: defaultResumeLabel,
@@ -94,6 +95,8 @@ export function VaultSessionRow({
   onJumpToWorktree?: () => void
   onResume: () => void
   onContinueInNewSession?: () => void
+  /** Replaces "Hand off to agent" where the hand-off is a move to another host. */
+  continueLabel?: string
   onResumeInNewChat?: () => void
   onResumeInNewCli?: () => void
   resumeLabel: string
@@ -233,6 +236,7 @@ export function VaultSessionRow({
           onJumpToWorktree={onJumpToWorktree}
           onResume={onResume}
           onContinueInNewSession={onContinueInNewSession}
+          continueLabel={continueLabel}
           onResumeInNewChat={onResumeInNewChat}
           onResumeInNewCli={onResumeInNewCli}
           onCopyResume={onCopyResume}
@@ -298,7 +302,7 @@ export function VaultSessionRow({
           onOpenLog={onPick ? undefined : onOpenLog}
           resumeOverride={
             session.recordedOnOtherMachine
-              ? { label: resumeLabel, unavailableReason: resumeUnavailableReason }
+              ? { label: resumeLabel, unavailableReason: resumeUnavailableReason, continueLabel }
               : undefined
           }
           actionsHidden={Boolean(onPick)}
@@ -326,6 +330,7 @@ export function VaultSessionRow({
           onJumpToWorktree={onJumpToWorktree}
           onResume={onResume}
           onContinueInNewSession={onContinueInNewSession}
+          continueLabel={continueLabel}
           onResumeInNewChat={onResumeInNewChat}
           onResumeInNewCli={onResumeInNewCli}
           onCopyResume={onCopyResume}

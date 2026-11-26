@@ -52,6 +52,7 @@ export function SessionRowTrailingActions({
   onJumpToWorktree,
   onResume,
   onContinueInNewSession,
+  continueLabel,
   onResumeInNewChat,
   onResumeInNewCli,
   onCopyResume,
@@ -79,6 +80,8 @@ export function SessionRowTrailingActions({
   onJumpToWorktree?: () => void
   onResume: () => void
   onContinueInNewSession?: () => void
+  /** Replaces "Hand off to agent" where the hand-off is a move to another host. */
+  continueLabel?: string
   /** Passed through to the overflow menu only; the resting row keeps its two-icon budget. */
   onResumeInNewChat?: () => void
   onResumeInNewCli?: () => void
@@ -199,10 +202,13 @@ export function SessionRowTrailingActions({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label={t(
-                    'components.agentSessionContinuation.handOffToAnotherAgent',
-                    'Hand off to agent'
-                  )}
+                  aria-label={
+                    continueLabel ??
+                    t(
+                      'components.agentSessionContinuation.handOffToAnotherAgent',
+                      'Hand off to agent'
+                    )
+                  }
                   draggable={false}
                   onClick={(event) => {
                     event.stopPropagation()
@@ -215,10 +221,11 @@ export function SessionRowTrailingActions({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={4}>
-                {t(
-                  'components.agentSessionContinuation.handOffToAnotherAgent',
-                  'Hand off to agent'
-                )}
+                {continueLabel ??
+                  t(
+                    'components.agentSessionContinuation.handOffToAnotherAgent',
+                    'Hand off to agent'
+                  )}
               </TooltipContent>
             </Tooltip>
           ) : null}
@@ -285,6 +292,7 @@ export function SessionRowTrailingActions({
               resumeLabel={resumeLabel}
               onResume={onResume}
               onContinueInNewSession={onContinueInNewSession}
+              continueLabel={continueLabel}
               onResumeInNewChat={onResumeInNewChat}
               onResumeInNewCli={onResumeInNewCli}
               onJumpToOriginalPane={onJumpToOriginalPane}

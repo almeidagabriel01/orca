@@ -9,7 +9,7 @@ import type {
 import type { AiVaultResumeStartup } from '../../../../../../shared/ai-vault/resume/ai-vault-resume-startup'
 import { cn } from '@/lib/class-names'
 import { VaultGroupHeader } from '../panel/AiVaultPanelControls'
-import { VaultSessionRow } from './AiVaultSessionRow'
+import { AiVaultSessionRowSlot } from './AiVaultSyncedCopySessionRow'
 import type { AiVaultSessionGroup } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-filters'
 import type { AiVaultOriginalPaneTarget } from '../session-actions/ai-vault-original-pane'
 import {
@@ -24,6 +24,7 @@ import {
   canJumpToAiVaultSessionWorktree,
   type AiVaultSessionWorktreeInfo
 } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-worktree'
+import { aiVaultCopyHandoffSourceWorktreeId } from '../session-actions/ai-vault-session-other-machine'
 import {
   canOpenAiVaultSessionLogInOrca,
   canUseLocalAiVaultSessionPathActions
@@ -64,7 +65,11 @@ type AiVaultVirtualRowProps = {
   onJumpToOriginalPane: (session: AiVaultSession) => void
   onJumpToWorktree: (worktreeId: string) => void
   onResume: (session: AiVaultSession, worktreeId: string) => void
-  onContinueInNewSession: (session: AiVaultSession, worktreeId: string) => void
+  onContinueInNewSession: (
+    session: AiVaultSession,
+    worktreeId: string,
+    environmentKey?: string
+  ) => void
   onResumeInNewChat: (session: AiVaultSession, worktreeId: string) => void
   onResumeInNewCli: (session: AiVaultSession, worktreeId: string) => void
   onCopyResume: (session: AiVaultSession, worktreeId?: string | null) => void
@@ -187,6 +192,10 @@ export const AiVaultVirtualRow = memo(function AiVaultVirtualRow({
   // File viewing needs a conversation resource; Reveal/CWD retain their own path semantics.
   const canOpenLogInOrca = row.type === 'session' && canOpenAiVaultSessionLogInOrca(row.session)
   const searchResumeAllowed = searchHit ? canResumeAiVaultSearchHit(searchHit) : true
+  const handoffSourceWorktreeId =
+    row.type === 'session' && searchResumeAllowed
+      ? aiVaultCopyHandoffSourceWorktreeId(row.session, resumeState?.worktreeId)
+      : null
   const searchPathAllowed = searchHit ? hasAiVaultSearchHitPath(searchHit) : true
   const usesLegacyResumeCommand = row.type === 'session' && !row.session.structuredSession
   const canBuildResumeStartup =
@@ -224,7 +233,13 @@ export const AiVaultVirtualRow = memo(function AiVaultVirtualRow({
           onToggle={() => onToggleGroup(row.group.key)}
         />
       ) : (
-        <VaultSessionRow
+        <AiVaultSessionRowSlot
+          handoffSourceWorktreeId={handoffSourceWorktreeId}
+          onContinueOnHost={(environmentKey) => {
+            if (handoffSourceWorktreeId) {
+              onContinueInNewSession(row.session, handoffSourceWorktreeId, environmentKey)
+            }
+          }}
           session={row.session}
           searchHit={searchHit}
           sourceHostLabel={sourceHostLabel}

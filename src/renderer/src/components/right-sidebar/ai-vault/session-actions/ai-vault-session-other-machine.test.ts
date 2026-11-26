@@ -2,6 +2,9 @@ import { expect, it } from 'vitest'
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
 import type { Repo } from '../../../../../../shared/repository/repo-types'
 import type { Worktree } from '../../../../../../shared/worktree/types'
+import { buildHandoffDestinations } from '@/lib/agent-session/launch/continuation/handoff-destinations'
+import type { ProjectHostSetupOption } from '@/lib/workspace/creation/project-host-setup-options'
+import { aiVaultCopyContinueDestination } from './ai-vault-session-other-machine'
 import {
   aiVaultSessionResumeLabel,
   resolveAiVaultHistorySessionResumeState
@@ -89,4 +92,38 @@ it('blocks a copy whose recorded folder no other host holds', () => {
   })
   expect(state).toMatchObject({ blocked: true, worktreeId: null })
   expect(state.unavailableReason).toBeTruthy()
+})
+
+it('offers continuing a copy only on another host where its project is set up', () => {
+  const vpsSetup = {
+    id: 'vps',
+    projectId: 'kit',
+    hostId: 'runtime:vps' as const,
+    label: 'vps',
+    detail: ''
+  }
+  const offered = (vpsOption: ProjectHostSetupOption) =>
+    aiVaultCopyContinueDestination(
+      buildHandoffDestinations({
+        source: { ...macWorktree, branch: 'refs/heads/main' },
+        sourceHostId: 'local',
+        sourceIsFolder: false,
+        hostOptions: [vpsOption],
+        hosts: [],
+        worktreesByRepo: { 'repo-vps': [{ ...vpsWorktree, branch: 'refs/heads/main' }] },
+        hostUnavailableDetail: () => null
+      })
+    )
+  expect(
+    offered({ ...vpsSetup, kind: 'ready', repoId: 'repo-vps', path: vpsWorktree.path })
+  ).toMatchObject({ key: 'host:runtime:vps', hostLabel: 'vps', worktreeId: vpsWorktree.id })
+  expect(
+    offered({
+      ...vpsSetup,
+      kind: 'needs-setup',
+      isAvailable: true,
+      attention: false,
+      canSetLocation: true
+    })
+  ).toBeNull()
 })

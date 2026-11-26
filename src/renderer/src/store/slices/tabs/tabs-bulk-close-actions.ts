@@ -7,6 +7,12 @@ import { editorTabsRetirement } from '../editor/tabs/editor-tab-retirement'
 import { editorTabWorkspace } from '../editor/tabs/workspace-editor-files'
 import type { TabsSlice, TabsSliceGet, TabsSliceSet } from './tabs-slice-contract'
 import { findGroupForTab, findTabAndWorktree } from './tab-group-state'
+import type { Tab } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
+
+/** Pinned and docked tabs survive "close others" and "close to the side". */
+function isKeptByBulkClose(tab: Pick<Tab, 'isPinned' | 'dock'> | undefined): boolean {
+  return tab?.isPinned === true || tab?.dock !== undefined
+}
 
 export function createTabsBulkCloseActions(
   set: TabsSliceSet,
@@ -53,7 +59,9 @@ export function createTabsBulkCloseActions(
         return []
       }
       const closedIds = (state.unifiedTabsByWorktree[worktreeId] ?? [])
-        .filter((item) => item.groupId === group.id && item.id !== tabId && !item.isPinned)
+        .filter(
+          (item) => item.groupId === group.id && item.id !== tabId && !isKeptByBulkClose(item)
+        )
         .map((item) => item.id)
       get().closeUnifiedTabs(closedIds)
       return closedIds
@@ -78,9 +86,11 @@ export function createTabsBulkCloseActions(
         .slice(index + 1)
         .filter(
           (id) =>
-            !(state.unifiedTabsByWorktree[worktreeId] ?? []).find(
-              (candidate) => candidate.id === id
-            )?.isPinned
+            !isKeptByBulkClose(
+              (state.unifiedTabsByWorktree[worktreeId] ?? []).find(
+                (candidate) => candidate.id === id
+              )
+            )
         )
       get().closeUnifiedTabs(closableIds)
       return closableIds
@@ -105,9 +115,11 @@ export function createTabsBulkCloseActions(
         .slice(0, index)
         .filter(
           (id) =>
-            !(state.unifiedTabsByWorktree[worktreeId] ?? []).find(
-              (candidate) => candidate.id === id
-            )?.isPinned
+            !isKeptByBulkClose(
+              (state.unifiedTabsByWorktree[worktreeId] ?? []).find(
+                (candidate) => candidate.id === id
+              )
+            )
         )
       get().closeUnifiedTabs(closableIds)
       return closableIds

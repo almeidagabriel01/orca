@@ -63,6 +63,8 @@ export function toVisibleTabType(contentType: TabContentType): WorkspaceVisibleT
   return TAB_CONTENT_TRAITS[contentType].visibleType
 }
 
+export type TabDock = 'right-panel'
+
 export type Tab = {
   id: string // UUID for terminals, filePath for editors (preserves current convention)
   entityId: string // ID of the backing content (terminal tab ID, file path, browser workspace ID)
@@ -82,6 +84,8 @@ export type Tab = {
   createdAt: number
   isPreview?: boolean // preview tabs get replaced by next single-click open
   isPinned?: boolean // pinned tabs survive "close others"
+  /** Shown in that panel instead of the center: kept in its group's order, never its active tab. */
+  dock?: TabDock
   /** Provider backing a structured agent-session tab. */
   agentSessionAgent?: AgentType
   /** Chat overlays retain the mounted terminal; missing/legacy mode uses raw xterm. */

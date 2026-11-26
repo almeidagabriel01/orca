@@ -14,3 +14,17 @@ export const NativeChatForkedFromContext = createContext<
 export const NativeChatSideChatForkPointContext = createContext<
   ((point: NativeChatSideChatForkPoint) => void) | undefined
 >(undefined)
+
+/** The chat is a side chat: its inherited history starts folded behind the "Forked from" rule. */
+export const NativeChatSideChatContext = createContext(false)
+
+/** The folded inherited history a "Forked from" rule can unfold; absent when nothing folds. */
+export type NativeChatInheritedHistory = {
+  /** Rows held back; null while more of the chat's history is still unloaded. */
+  count: number | null
+  expanded: boolean
+  toggle: () => void
+}
+export const NativeChatInheritedHistoryContext = createContext<NativeChatInheritedHistory | null>(
+  null
+)

@@ -167,6 +167,13 @@ const SetTabPropsCommand = z.object({
   clearLaunchAgent: z.literal(true).optional()
 })
 
+const SetTabDockCommand = z.object({
+  type: z.literal('setTabDock'),
+  ...OnTab,
+  dock: z.union([z.literal('right-panel'), z.null()]),
+  groupId: z.string().min(1).optional()
+})
+
 /** Preserve window-created browser tab/page IDs for immediate callers; refuse collisions and replay opens idempotently. */
 const OpenBrowserTabCommand = z.object({
   type: z.literal('openBrowserTab'),
@@ -320,6 +327,7 @@ export const LayoutApplyParams = z.object({
     RenameTabCommand,
     RenameTabsCommand,
     SetTabPropsCommand,
+    SetTabDockCommand,
     MovePaneToNewTabCommand,
     OpenBrowserTabCommand,
     OpenBrowserPageCommand,

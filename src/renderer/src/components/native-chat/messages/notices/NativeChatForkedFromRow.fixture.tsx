@@ -1,5 +1,9 @@
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
-import { NativeChatForkedFromContext } from '../actions/native-chat-fork-context'
+import {
+  NativeChatForkedFromContext,
+  NativeChatInheritedHistoryContext,
+  type NativeChatInheritedHistory
+} from '../actions/native-chat-fork-context'
 import { NativeChatNoticeRow } from './NativeChatNoticeRow'
 import type { NativeChatTextBlock } from '../../../../../../shared/native-chat/native-chat-types'
 
@@ -20,17 +24,21 @@ function divider(
 function Row({
   label,
   block,
-  canOpen = true
+  canOpen = true,
+  inherited = null
 }: {
   label: string
   block: NativeChatTextBlock
   canOpen?: boolean
+  inherited?: NativeChatInheritedHistory | null
 }): React.JSX.Element {
   return (
     <div className="space-y-1">
       <div className="text-2xs text-muted-foreground">{label}</div>
       <NativeChatForkedFromContext.Provider value={canOpen ? open : undefined}>
-        <NativeChatNoticeRow block={block} />
+        <NativeChatInheritedHistoryContext.Provider value={inherited}>
+          <NativeChatNoticeRow block={block} />
+        </NativeChatInheritedHistoryContext.Provider>
       </NativeChatForkedFromContext.Provider>
     </div>
   )
@@ -63,6 +71,21 @@ export const states = defineFixture({
         block={divider(
           'Investigate why the remote worktree sync stalls after reconnecting overnight'
         )}
+      />
+      <Row
+        label="Side chat, history folded"
+        block={divider('Annotate capabilities')}
+        inherited={{ count: 14, expanded: false, toggle: open }}
+      />
+      <Row
+        label="Side chat, more history unloaded"
+        block={divider('Annotate capabilities')}
+        inherited={{ count: null, expanded: false, toggle: open }}
+      />
+      <Row
+        label="Side chat, history shown"
+        block={divider('Annotate capabilities')}
+        inherited={{ count: 14, expanded: true, toggle: open }}
       />
     </Surface>
   )

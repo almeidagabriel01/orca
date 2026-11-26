@@ -106,7 +106,8 @@ export function createTabsFocusActions(
         } else {
           found = findTabAndWorktree(state.unifiedTabsByWorktree, tabId)
         }
-        if (!found) {
+        // A docked tab is shown by its panel, never as the center's active tab.
+        if (!found || found.tab.dock) {
           return state
         }
         const { tab, worktreeId } = found

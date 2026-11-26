@@ -12,6 +12,7 @@ import type { StructuredAgentSessionLogger } from '../host/structured-agent-sess
 import type { StructuredAgentSessionObservedWork } from '../observations/structured-agent-session-observed-work'
 import type { JournalWorkReader } from '../../agent-session-journal/journal-work-read'
 import type { StructuredAgentSessionRanRecorder } from '../options/structured-agent-session-ran-options'
+import type { StructuredAgentSessionSideChatParent } from '../structured-agent-session-side-chat-parent'
 import type { StructuredAgentSessionTurnContext } from '../structured-agent-session-turn-context'
 import type { StructuredAgentSessionAcquireAborts } from '../startup/structured-agent-session-acquire-aborts'
 import type { StructuredAgentSessionStartClaim } from '../startup/structured-agent-session-agent-start'
@@ -75,6 +76,7 @@ export type StructuredAgentSessionDeliveryLoopDeps = {
   acquireAborts: Pick<StructuredAgentSessionAcquireAborts, 'begin'>
   recordRanOptions?: StructuredAgentSessionRanRecorder
   turnContext?: StructuredAgentSessionTurnContext | undefined
+  sideChatParent?: StructuredAgentSessionSideChatParent
 }
 
 /**

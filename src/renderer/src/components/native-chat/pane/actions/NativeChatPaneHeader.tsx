@@ -1,5 +1,11 @@
 import { Fragment } from 'react'
-import { MessageSquarePlus, SquareSplitVertical } from 'lucide-react'
+import {
+  MessageSquarePlus,
+  PanelRightClose,
+  PanelRightOpen,
+  SquareSplitVertical,
+  X
+} from 'lucide-react'
 import { ShortcutKeyCombo } from '@/components/ui/ShortcutKeyCombo'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -18,6 +24,8 @@ import { useBotHomeRuleApplies } from '@/lib/bot-host-status'
 import { NativeChatSettingsButton } from '../../appearance/NativeChatSettingsButton'
 import type { NativeChatStructuredViewProps } from '../../native-chat-view-types'
 import type { NativeChatHandOff } from './use-native-chat-hand-off'
+import { useIsSideChatTab } from './side-chat-tab'
+import { useSideChatDockStore } from '../../../right-sidebar/side-chat/side-chat-dock-state'
 
 const HEADER_STYLE: React.CSSProperties & Record<'--orca-pane-title-bg', string> = {
   '--orca-pane-title-bg': 'var(--chat-canvas)'
@@ -44,10 +52,12 @@ export function NativeChatPaneHeader({
 }): React.JSX.Element {
   const t = useTranslate()
   const actions = useStructuredChatPaneActions(tabId, worktreeId, groupId)
-  const tabHostId = useAppStore(
-    (state) =>
-      state.unifiedTabsByWorktree[worktreeId]?.find((entry) => entry.id === tabId)?.executionHostId
+  const paneTab = useAppStore((state) =>
+    state.unifiedTabsByWorktree[worktreeId]?.find((entry) => entry.id === tabId)
   )
+  const tabHostId = paneTab?.executionHostId
+  const docked = paneTab?.dock === 'right-panel'
+  const sideChat = useIsSideChatTab(paneTab)
   const bot = useBotForWorkspace(worktreeId, tabHostId)
   // A bot's chats stay native chats.
   const onBotPage = bot !== null
@@ -70,6 +80,23 @@ export function NativeChatPaneHeader({
     'Hand off to agent'
   )
   const homeBot = hostedChat && homeRule && bot?.chatSessionId === nativeChat.sessionId ? bot : null
+  // A bot's page hides the side chat panel, so a chat there only ever moves back to the center.
+  const canMove = docked || (sideChat && !onBotPage)
+  const moveLabel = docked
+    ? t('components.native-chat.sideChat.moveToCenter', 'Move to center')
+    : t('components.native-chat.sideChat.moveToRightPanel', 'Move to right panel')
+  const closeLabel = t('auto.components.tab.bar.SortableTab.95db5f2f7d', 'Close tab')
+  const moveDock = (): void => {
+    const store = useAppStore.getState()
+    if (docked) {
+      store.setTabDock(tabId, null)
+      return
+    }
+    store.setTabDock(tabId, 'right-panel')
+    useSideChatDockStore.getState().selectTab(worktreeId, tabId)
+    store.setRightSidebarOpen(true)
+    store.setRightSidebarTab('side-chat')
+  }
   return (
     <div
       className="pane-title-bar z-20"
@@ -109,44 +136,88 @@ export function NativeChatPaneHeader({
             nativeChat={nativeChat}
           />
         ) : null}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="pane-title"
-              size="icon-xs"
-              aria-label={split}
-              data-contextual-tour-target={focused ? 'chat-pane-split-target' : undefined}
-              onClick={(event) => {
-                event.stopPropagation()
-                actions.onSplitRight()
-              }}
-            >
-              <SquareSplitVertical className="size-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" sideOffset={4}>
-            <span className="inline-flex items-center gap-1.5">
-              <span>
-                {split}
-                {splitShortcutCombos.length > 0 ? ': ' : null}
+        {canMove ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost-muted"
+                size="icon-xs"
+                aria-label={moveLabel}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  moveDock()
+                }}
+              >
+                {docked ? <PanelRightClose /> : <PanelRightOpen />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={4}>
+              {moveLabel}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+        {docked ? null : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="pane-title"
+                size="icon-xs"
+                aria-label={split}
+                data-contextual-tour-target={focused ? 'chat-pane-split-target' : undefined}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  actions.onSplitRight()
+                }}
+              >
+                <SquareSplitVertical className="size-3" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={4}>
+              <span className="inline-flex items-center gap-1.5">
+                <span>
+                  {split}
+                  {splitShortcutCombos.length > 0 ? ': ' : null}
+                </span>
+                {splitShortcutCombos.map((shortcut, index) => (
+                  <Fragment key={JSON.stringify([shortcut.keys, shortcut.doubleTap])}>
+                    {index > 0 ? <span>{', '}</span> : null}
+                    <ShortcutKeyCombo
+                      keys={shortcut.keys}
+                      doubleTap={shortcut.doubleTap}
+                      className="gap-0.5"
+                      keyCapClassName="min-w-0 border-background/30 bg-background/10 px-1 py-0 text-3xs text-background shadow-none"
+                      separatorClassName="mx-0 text-3xs text-background/70"
+                    />
+                  </Fragment>
+                ))}
               </span>
-              {splitShortcutCombos.map((shortcut, index) => (
-                <Fragment key={JSON.stringify([shortcut.keys, shortcut.doubleTap])}>
-                  {index > 0 ? <span>{', '}</span> : null}
-                  <ShortcutKeyCombo
-                    keys={shortcut.keys}
-                    doubleTap={shortcut.doubleTap}
-                    className="gap-0.5"
-                    keyCapClassName="min-w-0 border-background/30 bg-background/10 px-1 py-0 text-3xs text-background shadow-none"
-                    separatorClassName="mx-0 text-3xs text-background/70"
-                  />
-                </Fragment>
-              ))}
-            </span>
-          </TooltipContent>
-        </Tooltip>
+            </TooltipContent>
+          </Tooltip>
+        )}
         <NativeChatSettingsButton />
+        {docked ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost-muted"
+                size="icon-xs"
+                aria-label={closeLabel}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  actions.onClosePane()
+                }}
+              >
+                <X />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={4}>
+              {closeLabel}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
       </div>
     </div>
   )

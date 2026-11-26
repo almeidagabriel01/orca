@@ -113,6 +113,8 @@ const tabSchema = z.object({
   lastFocusedAt: z.number().finite().nonnegative().optional().catch(undefined),
   isPreview: z.boolean().optional(),
   isPinned: z.boolean().optional(),
+  // An unknown future dock degrades to the center rather than dropping the tab.
+  dock: z.literal('right-panel').optional().catch(undefined),
   // Preserve chat mode on restore; unknown future values degrade to terminal and missing legacy values remain absent.
   viewMode: z.enum(['terminal', 'chat']).catch('terminal').optional()
 })

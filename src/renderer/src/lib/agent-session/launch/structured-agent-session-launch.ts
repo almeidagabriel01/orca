@@ -194,6 +194,9 @@ function structuredAgentLaunchState(
   intent.explicitLaunchOptions =
     !options.forkFrom && options.launchOptions ? { ...options.launchOptions } : undefined
   intent.forkRequiresInheritedOriginal = options.forkRequiresInheritedOriginal
+  if (options.forkFrom && options.sideChat) {
+    intent.sideChat = true
+  }
   intent.beforeCreate = options.beforeCreate
   intent.createAfter = options.createAfter
   intent.surfaceAddress = options.surfaceAddress

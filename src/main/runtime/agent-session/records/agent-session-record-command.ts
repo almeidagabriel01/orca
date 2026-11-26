@@ -7,6 +7,7 @@ import {
 } from '../../../../shared/agent-session/lifecycle/stopping/agent-session-usage-limit-continue'
 import type { AgentSessionRewindRecord } from '../../../../shared/agent-session/lifecycle/rewind/agent-session-rewind'
 import type { AgentSessionLastTurn } from '../../../../shared/agent-session/lifecycle/records/agent-session-last-turn'
+import type { AgentJournalCursor } from '../../../../shared/agent-session/journal/agent-session-journal-identity'
 import type { AgentSessionContinuedTo } from '../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
 import {
   withMovedAccountHome,
@@ -82,6 +83,7 @@ export type AgentSessionRecordCommand =
     }
   | { kind: 'cancel-continue'; cut: UsageLimitContinueIdentity }
   | { kind: 'handoff-given'; switchId: string }
+  | { kind: 'side-chat-delivered'; through: AgentJournalCursor }
   | { kind: 'skip-async-questions'; itemId: string }
   | { kind: 'continued-to'; continuedTo: AgentSessionContinuedTo }
   | { kind: 'last-turn'; lastTurn?: AgentSessionLastTurn }
@@ -197,6 +199,17 @@ export function applyAgentSessionRecordCommand(
     case 'handoff-given':
       next = withAgentSessionHandoffGiven(record, command.switchId)
       break
+    case 'side-chat-delivered': {
+      const forkedFrom = record.forkedFrom
+      const held = forkedFrom?.parentDelivered
+      // Only forward within an epoch; a new epoch re-anchors.
+      next =
+        forkedFrom?.sideChat &&
+        (!held || held.epoch !== command.through.epoch || held.sequence < command.through.sequence)
+          ? { ...record, forkedFrom: { ...forkedFrom, parentDelivered: command.through } }
+          : record
+      break
+    }
     case 'skip-async-questions':
       next = { ...record, asyncQuestionsSkippedThrough: command.itemId }
       break

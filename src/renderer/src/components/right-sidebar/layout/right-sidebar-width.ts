@@ -6,25 +6,24 @@ export const RIGHT_SIDEBAR_SIDE_ACTIVITY_BAR_WIDTH = 40
 
 export function computeMaxRightSidebarPanelWidth(
   windowWidth: number | null | undefined,
-  renderedExtraWidth: number
+  renderedExtraWidth: number,
+  minWidth = RIGHT_SIDEBAR_MIN_WIDTH
 ): number {
   if (typeof windowWidth !== 'number' || !Number.isFinite(windowWidth)) {
     return RIGHT_SIDEBAR_ABSOLUTE_FALLBACK_MAX_WIDTH
   }
 
-  return Math.max(
-    RIGHT_SIDEBAR_MIN_WIDTH,
-    windowWidth - RIGHT_SIDEBAR_MIN_NON_SIDEBAR_AREA - renderedExtraWidth
-  )
+  return Math.max(minWidth, windowWidth - RIGHT_SIDEBAR_MIN_NON_SIDEBAR_AREA - renderedExtraWidth)
 }
 
 export function clampRightSidebarPanelWidth(
   width: number,
   windowWidth: number | null | undefined,
-  renderedExtraWidth: number
+  renderedExtraWidth: number,
+  minWidth = RIGHT_SIDEBAR_MIN_WIDTH
 ): number {
   return Math.min(
-    computeMaxRightSidebarPanelWidth(windowWidth, renderedExtraWidth),
-    Math.max(RIGHT_SIDEBAR_MIN_WIDTH, width)
+    computeMaxRightSidebarPanelWidth(windowWidth, renderedExtraWidth, minWidth),
+    Math.max(minWidth, width)
   )
 }

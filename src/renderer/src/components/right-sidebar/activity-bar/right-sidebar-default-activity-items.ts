@@ -5,6 +5,7 @@ import {
   House,
   ListChecks,
   MessagesSquare,
+  MessageSquareText,
   Plug,
   Workflow
 } from 'lucide-react'
@@ -119,6 +120,12 @@ export function getDefaultRightSidebarActivityItems({
       title: t('auto.components.right.sidebar.index.83a10e3c44', 'Checks'),
       shortcut: checksShortcut === 'Unassigned' ? '' : checksShortcut,
       gitOnly: true
+    },
+    {
+      id: 'side-chat',
+      icon: MessageSquareText,
+      title: t('components.rightSidebar.sideChat.tab', 'Side chat'),
+      shortcut: ''
     },
     {
       id: 'ports',

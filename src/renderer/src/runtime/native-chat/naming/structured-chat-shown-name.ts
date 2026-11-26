@@ -3,6 +3,7 @@ import {
   agentSessionShownName
 } from '../../../../../shared/agent-session/conversation-naming/agent-session-fork-name'
 import type { AgentSessionConversationName } from '../../../../../shared/agent-session/agent-session-wire'
+import { isNativeChatSideChat, nativeChatSideChatTitle } from './native-chat-side-chat-marker'
 import type { StructuredAgentSessionStatusFeedOwner } from '../status/structured-agent-session-status-feed'
 
 type NamingFeed = Pick<StructuredAgentSessionStatusFeedOwner, 'getNamingSnapshot' | 'getSnapshot'>
@@ -38,7 +39,18 @@ export function structuredChatForkSourceSavedName(
 /** A chat's shown name from its host's feed as it stands now; null while unnamed. */
 export function structuredChatShownName(feed: NamingFeed, sessionId: string): string | null {
   const note = feed.getNamingSnapshot().get(sessionId)
-  return note ? agentSessionShownName(note, structuredChatForkSourceSavedName(feed, note)) : null
+  return note ? structuredChatTitled(note, structuredChatForkSourceSavedName(feed, note)) : null
+}
+
+/** The shown name, with a side chat's "Side chat ·" title unless the person named it. */
+export function structuredChatTitled(
+  note: AgentSessionConversationName,
+  sourceSavedName: string | undefined
+): string | null {
+  const shown = agentSessionShownName(note, sourceSavedName)
+  return isNativeChatSideChat(note) && note.conversationNameSource !== 'user'
+    ? nativeChatSideChatTitle(shown)
+    : shown
 }
 
 /** The chat this one was forked from, as its host last said; null when not a fork or unknown. */

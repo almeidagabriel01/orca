@@ -6,7 +6,7 @@ import type { LiveTerminalAdoption } from './commands/workspace-layout-terminal-
 import type { SleepingAgentSessionRecord } from '../agent-session/lifecycle/agent-session-resume'
 import type { AgentType } from '../agent-status/contracts/agent-status-types'
 import type { AiVaultSessionTitle } from '../ai-vault/contracts/ai-vault-session-title'
-import type { TabContentType, TabGroupLayoutNode } from './tab-groups/tab-types'
+import type { TabContentType, TabDock, TabGroupLayoutNode } from './tab-groups/tab-types'
 import type {
   TerminalGrid,
   TerminalPaneLayoutNode,
@@ -17,6 +17,9 @@ import type { SplitRatioIntent } from './tab-groups/split-ratio-intents'
 import type { PaneOutcomeChanges } from './commands/workspace-layout-pane-outcomes'
 import type { LayoutEditorView } from './editor-tabs/layout-editor-view'
 import type * as LayoutModel from './workspace-layout-model'
+import type { GroupSide, NewGroupSplit } from './tab-groups/new-group-split'
+
+export type { GroupSide, NewGroupSplit } from './tab-groups/new-group-split'
 
 type On = { workspace: string }
 
@@ -128,6 +131,8 @@ export type LayoutCommand =
       /** The tab's agent launched and ended: a restore must not launch it again. */
       clearLaunchAgent?: true
     })
+  /** Docks the tab out of the center, or (null) back into `groupId` when that group exists. */
+  | (On & { type: 'setTabDock'; tabId: string; dock: TabDock | null; groupId?: string })
   | (On & { type: 'setChatPane'; tabId: string; leafId: string | null })
   | (On & {
       type: 'openEditorTab'
@@ -265,16 +270,6 @@ export type EditorFileRename = {
   record?: { fromFilePath: string; file: LayoutModel.LayoutEditorFile }
   /** A non-plain tab's view under the file's new path. */
   view?: LayoutEditorView
-}
-
-export type GroupSide = 'left' | 'right' | 'up' | 'down'
-
-/** Create a split group and its first tab atomically, never storing an empty group.
- * An optional last-group ID expands the target to a branch, supporting window-retained empty groups beside later splits. */
-export type NewGroupSplit = {
-  besideGroupId: string
-  besideLastGroupId?: string
-  direction: GroupSide
 }
 
 export type TabTitle =

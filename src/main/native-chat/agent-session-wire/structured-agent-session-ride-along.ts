@@ -1,6 +1,7 @@
 // What rides ahead of a person's words, once: the host's turn context, then unread automation results.
 // Ahead of all that, what this message alone needs said, on every send of a person's message.
 // First of all, once, the chat so far when the chat just moved to another agent.
+// A side chat's turn also carries its parent's newer messages, once each.
 
 import { readFile } from 'node:fs/promises'
 import {
@@ -24,6 +25,7 @@ import {
   sendCarriesRideAlong,
   withRideAlong
 } from './structured-agent-session-automation-results'
+import type { SideChatParentRead } from './structured-agent-session-side-chat-parent'
 
 export type StructuredAgentSessionRideAlong = {
   /** Claims what rides, after the pending write. A fresh agent started for this send reads the host's
@@ -37,7 +39,7 @@ export type StructuredAgentSessionRideAlong = {
 // Synchronous to the pending write: a yield before it lets the loop hand over a settled send again.
 export function structuredAgentSessionRideAlong(
   ctx: Pick<AgentSessionHandoverContext, 'sessionId' | 'journal' | 'turnContext'> &
-    Partial<Pick<AgentSessionHandoverContext, 'record' | 'recordRanOptions'>>,
+    Partial<Pick<AgentSessionHandoverContext, 'record' | 'recordRanOptions' | 'sideChatParent'>>,
   submission: AgentJournalSubmission,
   body: AgentJournalMessageItem
 ): StructuredAgentSessionRideAlong {
@@ -68,6 +70,7 @@ export function structuredAgentSessionRideAlong(
   let context: string | null = null
   let held: string | null | undefined
   let handoff: { switchId: string; text: string } | null = null
+  let parent: SideChatParentRead | null = null
   return {
     claim: async (fence, scope) => {
       const record = ctx.record?.()
@@ -75,14 +78,18 @@ export function structuredAgentSessionRideAlong(
       held = record ? (record.instructionsKey ?? null) : undefined
       const pending =
         scope.kind === 'thread' && !isPromptCommand(body) ? record?.pendingHandoff : undefined
-      const [read, named, handedOff] = await Promise.all([
+      const [read, named, handedOff, parentRead] = await Promise.all([
         readPlan(scope),
         agentSessionSendDeliversStoppedHistory(submission, body)
           ? ctx.turnContext?.mentions?.(ctx.sessionId, body).catch(() => null)
           : null,
         // A swept snapshot leaves the agent without the earlier chat; the send still goes.
-        pending ? readFile(pending.promptPath, 'utf8').catch(() => null) : null
+        pending ? readFile(pending.promptPath, 'utf8').catch(() => null) : null,
+        record && scope.kind === 'thread' && !isPromptCommand(body)
+          ? (ctx.sideChatParent?.read(record) ?? null)
+          : null
       ])
+      parent = parentRead
       handoff = pending && handedOff ? { switchId: pending.operationId, text: handedOff } : null
       plan = read
       mentions = named ?? null
@@ -96,7 +103,7 @@ export function structuredAgentSessionRideAlong(
         carried || !text
           ? withRideAlong(sent, [...(text ? [text] : []), ...automationResultsRideAlong(results)])
           : { ...sent, blocks: [{ type: 'text' as const, text }, ...sent.blocks] }
-      return [mentions, handoff?.text].reduce<AgentJournalMessageItem>(
+      return [parent?.text, mentions, handoff?.text].reduce<AgentJournalMessageItem>(
         (item, part) =>
           !part
             ? item
@@ -109,6 +116,9 @@ export function structuredAgentSessionRideAlong(
     taken: async (fence) => {
       if (handoff) {
         await ctx.recordRanOptions?.handoffGiven?.(handoff.switchId)
+      }
+      if (parent) {
+        await ctx.sideChatParent?.delivered(ctx.sessionId, parent.through)
       }
       const writeReceipt = ctx.recordRanOptions?.instructions
       if (!plan) {

@@ -18,6 +18,7 @@ export type JournalForkStageBegin = {
   fingerprint: string
   source: JournalForkSourceProof
   historyOrigin?: NativeCopyOrigin
+  sideChat?: true
 }
 export type JournalForkInstall = { token: string; count: number; lastItemId: string | null }
 export type JournalForkStageOperation =
@@ -139,7 +140,7 @@ export class JournalForkStages {
       throw new Error('fork child changed before installation')
     }
     assertJournalFence(stage.fence, Number(head.highest_fence))
-    validateJournalForkSource(this.db, stage.source)
+    const { epoch: sourceEpoch } = validateJournalForkSource(this.db, stage.source)
     const forkedFrom = {
       sessionId: stage.source.sessionId,
       itemId: stage.source.throughItemId,
@@ -148,7 +149,16 @@ export class JournalForkStages {
           ? { kind: 'start' as const }
           : { kind: 'item' as const, itemId: stage.lastItemId },
       // New forks keep their source's name; the mark comes from this link, never a suffix.
-      plainName: true as const
+      plainName: true as const,
+      ...(stage.sideChat
+        ? {
+            sideChat: true as const,
+            parentDelivered: {
+              epoch: sourceEpoch,
+              sequence: journalForkUncopiedFloor(this.db, stage.source, sourceEpoch)
+            }
+          }
+        : {})
     }
     let receipt = false
     const effects = command.effects?.map((effect) => {
@@ -258,4 +268,19 @@ export class JournalForkStages {
     this.live.set(stage.token, stage)
     return { token: stage.token }
   }
+}
+
+/** Just below the source's first row past the copied one; its head when none follows. */
+function journalForkUncopiedFloor(
+  db: Database.Database,
+  source: JournalForkSourceProof,
+  epoch: string
+): number {
+  const row = db
+    .prepare(`SELECT COALESCE(
+      (SELECT MIN(sequence) - 1 FROM journal_items WHERE session_id=? AND epoch=? AND ordinal >
+        (SELECT ordinal FROM journal_items WHERE session_id=? AND epoch=? AND item_id=?)),
+      (SELECT last_sequence FROM journal_chat_state WHERE session_id=?)) AS sequence`)
+    .get(source.sessionId, epoch, source.sessionId, epoch, source.throughItemId, source.sessionId)
+  return Number(row?.sequence ?? 0)
 }

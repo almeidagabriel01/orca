@@ -44,6 +44,8 @@ export type StructuredAgentSessionLaunchIntent = {
   sendSelectionSupport?: boolean
   /** Client-only admission requirement; reacquired from the child after reload. */
   forkRequiresInheritedOriginal?: boolean
+  /** Sent as the create's `sideChat` only to a host advertising it. */
+  sideChat?: true
   sendSkillsSupport?: boolean
   createMessageSupport?: boolean
   createPrepared?: true
@@ -201,6 +203,7 @@ export function retryStructuredAgentSessionLaunchIntent(
       intent.params.tabId
     ),
     forkRequiresInheritedOriginal: intent.forkRequiresInheritedOriginal,
+    ...(intent.sideChat ? { sideChat: intent.sideChat } : {}),
     explicitLaunchOptions: intent.explicitLaunchOptions,
     ...(intent.accountChoice ? { accountChoice: intent.accountChoice } : {})
   }

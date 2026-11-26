@@ -27,6 +27,7 @@ function contentFields(entry: Tab) {
       'aiVaultTitle',
       'quickCommandLabel',
       'isPinned',
+      'dock',
       'viewMode',
       'isPreview',
       'agentSessionAgent'

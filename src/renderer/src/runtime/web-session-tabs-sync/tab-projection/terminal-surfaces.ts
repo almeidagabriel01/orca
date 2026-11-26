@@ -24,7 +24,7 @@ import type {
   ReadyTerminalSurface,
   MirroredAgentTab
 } from '../state'
-import type { Tab } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
+import type { Tab, TabDock } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
 import type { ExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { structuredAgentSessionTabId } from '../../../../../shared/agent-session/view/structured-agent-session-projection'
 import { hasStructuredAgentSessionLaunchCancellationTombstone } from '@/lib/agent-session/launch/structured-agent-session-launch-registry'
@@ -164,7 +164,8 @@ export function buildMirroredAgentTabs(
         createdAt: existing?.createdAt ?? now + sortOffset + index,
         // Focus visits are client-owned; host snapshots carry none, so rebuilding must not drop them.
         ...(existing?.lastFocusedAt !== undefined ? { lastFocusedAt: existing.lastFocusedAt } : {}),
-        isPinned: tab.isPinned !== undefined ? tab.isPinned : existing?.isPinned === true
+        isPinned: tab.isPinned !== undefined ? tab.isPinned : existing?.isPinned === true,
+        ...hostOrKeptDock(tab.dock, existing?.dock)
       }
     }
   })
@@ -287,4 +288,13 @@ export function shouldReplaceTerminalTab(
     (nextRemotePtyIds.has(tab.ptyId) ||
       nextMirroredTerminalIds.has(toWebTerminalSurfaceTabId(tab.id)))
   )
+}
+
+/** A host that names the dock decides it (null: center); an older one omits it and the client's stays. */
+function hostOrKeptDock(
+  hostDock: TabDock | null | undefined,
+  kept: TabDock | undefined
+): Pick<Tab, 'dock'> {
+  const dock = hostDock === undefined ? kept : (hostDock ?? undefined)
+  return dock ? { dock } : {}
 }

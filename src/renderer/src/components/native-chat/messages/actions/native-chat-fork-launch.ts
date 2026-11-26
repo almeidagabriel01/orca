@@ -87,6 +87,7 @@ export async function launchNativeChatFork(
       forkRequiresInheritedOriginal: request.forkRequiresInheritedOriginal,
       // A side chat is selected once it sits beside its source.
       activate: request.side === undefined,
+      ...(request.side ? { sideChat: true as const } : {}),
       surfaceAddress: request.surfaceAddress,
       ...(question ? { prompt: question, promptKeptByCaller: true as const } : {})
     })

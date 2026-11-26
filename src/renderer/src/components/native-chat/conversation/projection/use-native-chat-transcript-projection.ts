@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
@@ -6,6 +6,11 @@ import type {
 import type { NativeChatSubagentRow } from '../../../../../../shared/native-chat/transcript/native-chat-transcript-projection'
 import type { NativeChatMessage } from '../../../../../../shared/native-chat/native-chat-types'
 import type { AgentSessionLatestTurn } from '../../../../../../shared/agent-session/agent-session-wire'
+import { NativeChatSideChatContext } from '../../messages/actions/native-chat-fork-context'
+import {
+  useNativeChatInheritedHistory,
+  type NativeChatInheritedHistoryView
+} from './use-native-chat-inherited-history'
 import { createNativeChatMessageListProjection } from './native-chat-message-list-projection'
 import { createNativeChatConversationProjection } from './native-chat-conversation-projection'
 import type { NativeChatLiveSession } from '../../session/terminal/read/native-chat-live-session-contract'
@@ -21,9 +26,9 @@ export function useNativeChatTranscriptProjection(
   journalSubmissions: readonly AgentJournalSubmission[] | undefined,
   latestTurn?: AgentSessionLatestTurn | null
 ): {
-  messages: NativeChatMessage[]
+  conversation: NativeChatMessage[]
   subagentRows: ReadonlyMap<string, readonly NativeChatSubagentRow[]>
-} {
+} & Omit<NativeChatInheritedHistoryView, 'messages'> {
   const projectMessages = useMemo(
     () => createNativeChatMessageListProjection(),
     // Rebound sessions must release the previous transcript's cached rows.
@@ -62,5 +67,8 @@ export function useNativeChatTranscriptProjection(
       ),
     [hideGoals, projectConversation, projection.conversation]
   )
-  return { messages, subagentRows: projection.subagentRows }
+  const sideChat = useContext(NativeChatSideChatContext)
+  const history = useNativeChatInheritedHistory(messages, sideChat, session.hasMore === true)
+  const { messages: conversation, ...inheritance } = history
+  return { conversation, ...inheritance, subagentRows: projection.subagentRows }
 }

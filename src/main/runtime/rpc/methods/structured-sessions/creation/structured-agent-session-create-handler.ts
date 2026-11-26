@@ -128,6 +128,9 @@ async function resolveAndCommitStructuredAgentSessionCreate(
   if ('refusal' in prepared) {
     return { ok: false, refusal: prepared.refusal }
   }
+  if ('sideChat' in params && params.sideChat && prepared.attachParams.fork) {
+    prepared.attachParams.fork.sideChat = true
+  }
   try {
     // Nothing is created yet, so a close that came first refuses the create outright.
     if (

@@ -160,6 +160,7 @@ export function clientLayoutCommand(
     case 'setPaneGrid':
     case 'releasePaneTerminal':
     case 'setTabProps':
+    case 'setTabDock':
     case 'setChatPane':
     case 'promotePreviewTab':
     case 'renameEditorFiles':

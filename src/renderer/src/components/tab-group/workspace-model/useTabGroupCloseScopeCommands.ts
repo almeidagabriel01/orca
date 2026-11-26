@@ -29,8 +29,9 @@ export function useTabGroupCloseScopeCommands({
       if (!group) {
         return []
       }
+      // Docked tabs are not drawn here, so no bulk close of this strip reaches them.
       const tabs = (state.unifiedTabsByWorktree[worktreeId] ?? []).filter(
-        (tab) => tab.groupId === groupId
+        (tab) => tab.groupId === groupId && !tab.dock
       )
       if (scope === 'editors') {
         return tabs
@@ -56,8 +57,9 @@ export function useTabGroupCloseScopeCommands({
 
   const closeGroup = useCallback(() => {
     const whenEmptied = captureWorkspaceEmptiedReaction(worktreeId)
+    // Docked tabs outlive the pane: they move to another group as it closes.
     const items = [...(useAppStore.getState().unifiedTabsByWorktree[worktreeId] ?? [])].filter(
-      (item) => item.groupId === groupId
+      (item) => item.groupId === groupId && !item.dock
     )
     for (const item of items) {
       closeItem(item.id, { skipEmptyCheck: true })

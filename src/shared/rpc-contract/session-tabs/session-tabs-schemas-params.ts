@@ -150,6 +150,8 @@ export const SetTabProps = WorktreeTabSelector.extend({
   // undefined = leave unchanged; null = clear color / unset.
   color: z.string().max(64).nullable().optional(),
   isPinned: z.boolean().optional(),
+  // undefined = leave unchanged; null = back to the center. Older hosts strip it and change nothing.
+  dock: z.enum(['right-panel']).nullable().optional(),
   // undefined = leave unchanged; no "clear" semantic (absence means default 'terminal').
   viewMode: z.enum(['terminal', 'chat']).optional(),
   // A terminal tab's manual name; null clears it. Older hosts strip it and change nothing.

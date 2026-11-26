@@ -7,6 +7,7 @@ import {
   isWebTerminalSurfaceTabId,
   toHostSessionTabId
 } from '../../../../../shared/workspace-layout/terminal-surface-id'
+import type { TabDock } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
 import {
   captureRuntimeEnvironmentCall,
   isWebRuntimeSessionActive
@@ -18,6 +19,7 @@ export function setWebRuntimeTabProps(args: {
   tabId: string
   color?: string | null
   isPinned?: boolean
+  dock?: TabDock | null
   viewMode?: 'terminal' | 'chat'
   customTitle?: string | null
 }): boolean {
@@ -46,6 +48,7 @@ export function setWebRuntimeTabProps(args: {
           tabId: hostTabId,
           ...(args.color !== undefined ? { color: args.color } : {}),
           ...(args.isPinned !== undefined ? { isPinned: args.isPinned } : {}),
+          ...(args.dock !== undefined ? { dock: args.dock } : {}),
           ...(args.viewMode !== undefined ? { viewMode: args.viewMode } : {}),
           ...(args.customTitle !== undefined ? { customTitle: args.customTitle } : {})
         },

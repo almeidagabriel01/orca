@@ -19,12 +19,14 @@ import {
   type StructuredAgentSessionStatusFeedOwner
 } from '../status/structured-agent-session-status-feed'
 import type { AgentSessionContinuedTo } from '../../../../../shared/agent-session/lifecycle/records/agent-session-continued-to'
-import { agentSessionShownName } from '../../../../../shared/agent-session/conversation-naming/agent-session-fork-name'
 import {
   structuredChatForkSourceId,
   structuredChatForkSourceSavedName,
-  structuredChatNameReadsSource
+  structuredChatNameReadsSource,
+  structuredChatTitled
 } from './structured-chat-shown-name'
+import { isNativeChatSideChat } from './native-chat-side-chat-marker'
+import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 
 const noSubscription = (): (() => void) => () => {}
 
@@ -49,6 +51,20 @@ export type StructuredChatNaming = Readonly<{
   continuedTo: AgentSessionContinuedTo | null
 }>
 
+/** Whether this chat is a side chat, read from the naming feed of the target that serves it. */
+export function useNativeChatIsSideChat(target: RuntimeClientTarget, sessionId: string): boolean {
+  const feed = useMemo(() => getStructuredAgentSessionStatusFeed(target), [target])
+  const subscribe = useCallback(
+    (listener: () => void) => feed.subscribeSession(sessionId, listener),
+    [feed, sessionId]
+  )
+  return useAppViewExternalStore(
+    subscribe,
+    () => isNativeChatSideChat(feed.getNamingSnapshot().get(sessionId)),
+    () => false
+  )
+}
+
 /** The chat's shown name and fork mark. Reads its source only for an older fork's title, so a plain
  *  chat or new fork holds one session subscription, as the name alone did. */
 export function useStructuredChatNaming(
@@ -64,7 +80,7 @@ export function useStructuredChatNaming(
   )
   return useMemo(() => {
     // Unchecked wire data from a paired host: drop a name no record store would hold.
-    const shown = note ? agentSessionShownName(note, sourceSavedName ?? undefined) : null
+    const shown = note ? structuredChatTitled(note, sourceSavedName ?? undefined) : null
     return {
       name: isAgentSessionConversationName(shown) ? shown : null,
       forkSourceId: structuredChatForkSourceId(note ?? undefined),

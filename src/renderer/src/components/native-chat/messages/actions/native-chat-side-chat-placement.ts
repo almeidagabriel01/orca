@@ -10,6 +10,7 @@ import {
 } from '../../../tab-bar/pane-actions/tab-move-to-pane-column'
 import type { TabDropCompletion } from '../../../../runtime/workspace-layout/commands/tab-group-layout-owner-commands'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import { nativeChatSideChatPlacement } from '../../../../../../shared/native-chat/settings/native-chat-appearance-settings'
 
 // Moving a late tab would yank a pane the user may already be reading.
 const SIDE_CHAT_MOVE_MS = 5_000
@@ -27,7 +28,8 @@ export type NativeChatSideChatPlacement = {
 /** Starts at Send: any other selection in the workspace, or leaving it, retires the claim for good,
  *  and the side chat then stays in the background. Once drawn, it is moved beside its source as
  *  dragging it there would, then selected and focused where the move lands; a refused move leaves it
- *  selected where Fork puts it. The claim holds until then, however long main takes to draw the move. */
+ *  selected where Fork puts it. The claim holds until then, however long main takes to draw the move.
+ *  With the right-panel setting it is docked there instead of moved. */
 export function beginNativeChatSideChatPlacement(
   worktreeId: string,
   sourceTabId: string
@@ -77,11 +79,30 @@ export function beginNativeChatSideChatPlacement(
       }
     }
   }
+  /** Docks the side chat in the right panel; shows it only while the claim is fresh. */
+  const dock = (tabId: string): void => {
+    const reveal = Date.now() - settledAt <= SIDE_CHAT_MOVE_MS
+    retire()
+    const state = useAppStore.getState()
+    if (!state.unifiedTabsByWorktree[worktreeId]?.some((tab) => tab.id === tabId)) {
+      return
+    }
+    state.setTabDock(tabId, 'right-panel')
+    if (reveal) {
+      state.setRightSidebarTab('side-chat')
+      state.setRightSidebarOpen(true)
+      requestNativeChatComposerFocus(tabId)
+    }
+  }
   const place = (tabId: string): void => {
     if (retired) {
       return
     }
     forkTabId = tabId
+    if (nativeChatSideChatPlacement(useAppStore.getState().settings) === 'right-panel') {
+      dock(tabId)
+      return
+    }
     const tabs = useAppStore.getState().unifiedTabsByWorktree[worktreeId] ?? []
     const fork = tabs.find((tab) => tab.id === tabId)
     const sourceGroupId = tabs.find((tab) => tab.id === sourceTabId)?.groupId

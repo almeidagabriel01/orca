@@ -1,7 +1,10 @@
-import { GitFork } from 'lucide-react'
+import { ChevronDown, ChevronRight, GitFork } from 'lucide-react'
 import { useContext } from 'react'
 import { useTranslate } from '@/i18n/use-translate'
-import { NativeChatForkedFromContext } from '../actions/native-chat-fork-context'
+import {
+  NativeChatForkedFromContext,
+  NativeChatInheritedHistoryContext
+} from '../actions/native-chat-fork-context'
 import { ForkMarkedName } from '../../fork/ForkMarkedName'
 import {
   NATIVE_CHAT_NOTICE_COPY,
@@ -17,6 +20,7 @@ export function NativeChatForkedFromRow({
 }): React.JSX.Element {
   const t = useTranslate()
   const openForkSource = useContext(NativeChatForkedFromContext)
+  const inherited = useContext(NativeChatInheritedHistoryContext)
   const label = t('components.native-chat.notices.forkedFrom', NATIVE_CHAT_NOTICE_COPY.forkedFrom)
   const name = look.sourceForked ? (
     <ForkMarkedName name={look.sourceName} />
@@ -27,7 +31,39 @@ export function NativeChatForkedFromRow({
     // Plain text with decorative rules: a separator role would hide the source button from screen readers.
     <div className="flex items-center gap-3 py-2 text-xs text-chat-foreground-faint">
       <span aria-hidden className="h-px min-w-6 flex-1 bg-border" />
-      {look.sourceMissing ? (
+      {inherited ? (
+        <button
+          type="button"
+          aria-expanded={inherited.expanded}
+          className="inline-flex min-w-0 max-w-[80%] items-center gap-1.5 rounded-full border border-border bg-foreground/5 px-2.5 py-1 text-xs hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={inherited.toggle}
+        >
+          {inherited.expanded ? (
+            <ChevronDown aria-hidden className="size-3.5 shrink-0" />
+          ) : (
+            <ChevronRight aria-hidden className="size-3.5 shrink-0 rtl:rotate-180" />
+          )}
+          <span className="min-w-0 truncate">
+            {inherited.expanded
+              ? t(
+                  'components.native-chat.sideChat.hideEarlier',
+                  'Hide earlier messages from {{name}}',
+                  { name: look.sourceName }
+                )
+              : inherited.count === null
+                ? t(
+                    'components.native-chat.sideChat.showEarlier',
+                    'Show earlier messages from {{name}}',
+                    { name: look.sourceName }
+                  )
+                : t(
+                    'components.native-chat.sideChat.showEarlierCount',
+                    'Show earlier messages from {{name}} ({{total}})',
+                    { name: look.sourceName, total: inherited.count }
+                  )}
+          </span>
+        </button>
+      ) : look.sourceMissing ? (
         <span>
           {t(
             'components.native-chat.notices.forkedFromUnknown',

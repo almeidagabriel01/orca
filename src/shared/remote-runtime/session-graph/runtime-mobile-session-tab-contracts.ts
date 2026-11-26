@@ -7,6 +7,7 @@ import type { RuntimeBrowserPlacement } from '../../browser/client-hosting/runti
 import type { TerminalColorOverrides } from '../../terminal-themes/terminal-color-overrides'
 import type { TerminalLayoutSnapshot, TerminalTab } from '../../workspace-layout/terminal-tab-types'
 import type { TuiAgent } from '../../agent-launch/catalog/tui-agent'
+import type { TabDock } from '../../workspace-layout/tab-groups/tab-types'
 import type { StructuredAgentId } from '../../agent-session/lifecycle/provider-handles/agent-session-provider-handle'
 
 export type RuntimeMobileSessionTerminalTab = {
@@ -151,6 +152,8 @@ export type RuntimeMobileSessionAgentTab = {
   unread?: true
   color?: string | null
   isPinned?: boolean
+  /** Null: shown in the center. Absent (older hosts): the client keeps what it has. */
+  dock?: TabDock | null
   isActive: boolean
 }
 

@@ -182,8 +182,9 @@ export function getActiveTabNavOrder(
     : undefined
 
   if (group) {
+    // Docked tabs are not in the center strip, so keyboard navigation skips them.
     const groupTabs = (state.unifiedTabsByWorktree[worktreeId] ?? []).filter(
-      (tab) => tab.groupId === group.id
+      (tab) => tab.groupId === group.id && !tab.dock
     )
     // Unified terminal tabs render before legacy runtime hydration; keep them cyclable so activation can restore the runtime.
     const groupTerminalIds = new Set([

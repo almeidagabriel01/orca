@@ -91,8 +91,13 @@ export function useTabBarItemProjection({
     () => agentSessionTabs?.map((tab) => tab.id) ?? [],
     [agentSessionTabs]
   )
+  const dockedTabIds = useMemo(
+    () => new Set(unifiedTabs.filter((tab) => tab.dock).map((tab) => tab.id)),
+    [unifiedTabs]
+  )
   const orderedItems = useMemo(
     () =>
+      // A docked tab keeps its slot in the group's order but is drawn by its panel.
       buildOrderedTabItems({
         tabBarOrder,
         terminalIds,
@@ -106,8 +111,9 @@ export function useTabBarItemProjection({
         browserMap,
         agentSessionMap,
         unifiedTabByVisibleId
-      }),
+      }).filter((item) => !dockedTabIds.has(item.unifiedTabId)),
     [
+      dockedTabIds,
       tabBarOrder,
       terminalIds,
       editorFileIds,

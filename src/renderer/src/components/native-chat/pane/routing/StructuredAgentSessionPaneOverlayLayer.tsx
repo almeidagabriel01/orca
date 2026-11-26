@@ -15,6 +15,12 @@ import { NativeChatComposerEditorOwner } from '../../composer/editor/native-chat
 import { NativeChatHostOutageOwner } from '../../host-access/native-chat-host-outage-owner'
 import { NativeChatPaneLifetime } from '../ownership/native-chat-pane-lifetime'
 import { isStructuredTab } from '../../../../../../shared/agent-session/view/structured-agent-session-tab'
+import {
+  SIDE_CHAT_DOCK_ANCHOR_KEY,
+  isDockedChatTab,
+  resolveSelectedDockedTabId,
+  useSideChatDockStore
+} from '../../../right-sidebar/side-chat/side-chat-dock-state'
 
 type StructuredAgentSessionTab = Tab & {
   contentType: 'agent-session'
@@ -32,6 +38,7 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
   isFocusedGroup,
   preparingHandoff,
   hasSplitGroups,
+  docked,
   onFocusOwningGroup
 }: {
   tab: StructuredAgentSessionTab
@@ -40,6 +47,8 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
   isFocusedGroup: boolean
   preparingHandoff: boolean
   hasSplitGroups: boolean
+  /** Shown over the side chat panel instead of its group: same slot, so docking never remounts. */
+  docked: boolean
   onFocusOwningGroup: ((groupId: string) => void) | undefined
 }): React.JSX.Element | null {
   // Resolve from the tab’s recorded host because workspace ids can collide across hosts.
@@ -53,11 +62,14 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
   return (
     <RetainedPaneHost
       groupId={groupId}
+      anchorKey={docked ? SIDE_CHAT_DOCK_ANCHOR_KEY : groupId}
+      fixed={docked}
       isVisible={isActive}
       // Why not over a backdrop: dimming the translucent chat also dims its text.
-      dimmed={hasSplitGroups && !isFocusedGroup && !backdropActive}
+      dimmed={!docked && hasSplitGroups && !isFocusedGroup && !backdropActive}
       data-structured-agent-session-overlay-tab-id={tab.id}
-      onFocusOwningGroup={onFocusOwningGroup}
+      data-side-chat-dock={docked ? '' : undefined}
+      onFocusOwningGroup={docked ? undefined : onFocusOwningGroup}
     >
       <NativeChatPaneLifetime key={`${owner}:${tab.entityId}`} isVisible={effectsConnected}>
         <NativeChatHostOutageOwner target={target}>
@@ -138,6 +150,16 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
         )
       }))
     )
+    // The panel lists the active worktree's docked chats; a floating copy of this layer never shows them.
+    const dockShown = useAppStore(
+      (state) =>
+        isWorktreeActive &&
+        state.activeWorktreeId === worktreeId &&
+        state.rightSidebarOpen &&
+        state.rightSidebarEffectiveTab === 'side-chat'
+    )
+    const selectedDockTabId = useSideChatDockStore((s) => s.selectedTabIdByWorktree[worktreeId])
+    const dockFocused = useSideChatDockStore((s) => s.focused)
     const focusGroup = useAppStore((state) => state.focusGroup)
     const focusOwningGroup = useCallback(
       (groupId: string) => focusGroup(worktreeId, groupId),
@@ -155,16 +177,24 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
       () => unifiedTabs.filter((tab) => tab.contentType === 'room'),
       [unifiedTabs]
     )
+    const dockedTabId = useMemo(
+      () => resolveSelectedDockedTabId(structuredTabs.filter(isDockedChatTab), selectedDockTabId),
+      [structuredTabs, selectedDockTabId]
+    )
     const isActive = (tab: Tab) =>
       Boolean(isWorktreeActive && groupActiveTabById.get(tab.groupId) === tab.id)
+    const isShownInPlace = useCallback(
+      (tab: Tab) =>
+        isDockedChatTab(tab)
+          ? dockShown && tab.id === dockedTabId
+          : groupActiveTabById.get(tab.groupId) === tab.id,
+      [dockShown, dockedTabId, groupActiveTabById]
+    )
     // Why: a chat holds no view state until it is first shown, and mounting every restored chat runs the renderer out of memory at thousands of tabs.
     const [shownTabIds, setShownTabIds] = useState(NO_SHOWN_TAB_IDS)
     const mountedTabs = useMemo(
-      () =>
-        structuredTabs.filter(
-          (tab) => shownTabIds.has(tab.id) || groupActiveTabById.get(tab.groupId) === tab.id
-        ),
-      [structuredTabs, shownTabIds, groupActiveTabById]
+      () => structuredTabs.filter((tab) => shownTabIds.has(tab.id) || isShownInPlace(tab)),
+      [structuredTabs, shownTabIds, isShownInPlace]
     )
     let newlyShownCount = 0
     for (const tab of mountedTabs) {
@@ -179,22 +209,30 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
 
     return (
       <>
-        {mountedTabs.map((tab) => (
-          <StructuredAgentSessionOverlaySlot
-            key={tab.id}
-            tab={tab}
-            groupId={tab.groupId}
-            isActive={Boolean(isWorktreeActive && groupActiveTabById.get(tab.groupId) === tab.id)}
-            preparingHandoff={preparingHandoff && groupActiveTabById.get(tab.groupId) === tab.id}
-            isFocusedGroup={Boolean(
-              isWorktreeActive &&
-              groupActiveTabById.get(tab.groupId) === tab.id &&
-              tab.groupId === activeGroupId
-            )}
-            hasSplitGroups={groups.length > 1}
-            onFocusOwningGroup={focusOwningGroup}
-          />
-        ))}
+        {mountedTabs.map((tab) => {
+          const docked = isDockedChatTab(tab)
+          const shown = isShownInPlace(tab)
+          return (
+            <StructuredAgentSessionOverlaySlot
+              key={tab.id}
+              tab={tab}
+              groupId={tab.groupId}
+              docked={docked}
+              isActive={Boolean(isWorktreeActive && shown)}
+              preparingHandoff={!docked && preparingHandoff && shown}
+              // The docked chat and the center take turns owning the keyboard.
+              isFocusedGroup={Boolean(
+                isWorktreeActive &&
+                shown &&
+                (docked
+                  ? dockFocused
+                  : !(dockShown && dockFocused) && tab.groupId === activeGroupId)
+              )}
+              hasSplitGroups={groups.length > 1}
+              onFocusOwningGroup={focusOwningGroup}
+            />
+          )
+        })}
         {roomTabs.map((tab) => (
           <RoomOverlaySlot
             key={tab.id}

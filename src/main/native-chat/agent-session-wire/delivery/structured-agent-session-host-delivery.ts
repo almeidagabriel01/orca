@@ -42,6 +42,7 @@ import type { StructuredAgentSessionAcquireAborts } from '../startup/structured-
 import type { StructuredAgentSessionStopEnding } from '../termination/structured-agent-session-host-stop-event'
 import { settleStructuredAgentSessionLeftovers } from '../termination/structured-agent-session-leftover-settlement'
 import { createStructuredAgentSessionRanRecorder } from '../options/structured-agent-session-ran-options'
+import { createStructuredAgentSessionSideChatParent } from '../structured-agent-session-side-chat-parent'
 
 export type StructuredAgentSessionConversationDelivery = {
   loop: StructuredAgentSessionDeliveryLoop
@@ -142,6 +143,18 @@ export function createStructuredAgentSessionConversationDelivery(input: {
     conversationFence: (id) => structuredAgentSessionConversationFence(deps.store, id),
     closeWhatTheUserClosed: (sessionId) => closeWhatTheUserClosed(deps, sessions, sessionId),
     turnContext: deps.turnContext,
+    // Opened at rest like the host's own reads, to read a side chat's parent.
+    sideChatParent: createStructuredAgentSessionSideChatParent(deps, async (id) => {
+      const open =
+        sessions.get(id) ??
+        (await input.serialize(id, () =>
+          openStructuredAgentSessionConversation({ deps, sessions, adoptOpened }, id)
+        ))
+      if (!open) {
+        throw new Error('side chat parent is gone')
+      }
+      return open
+    }),
     failureTextContext: async (sessionId) =>
       readStructuredAgentSessionFailureWordsContext(
         deps.store.getConversation(sessionId),

@@ -58,6 +58,7 @@ export type AgentSessionAttachParams = {
     prepared: JournalSqlForkCopy
     withAdmission: <T>(run: () => Promise<T>) => Promise<T>
     historyOrigin?: NativeCopyOrigin
+    sideChat?: true
   }
   options?: Readonly<Record<string, string>>
   /** Exclude tab placement from conversation identity/fingerprints. */

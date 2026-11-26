@@ -33,6 +33,8 @@ export type StructuredAgentSessionCreateParams = {
   options?: Readonly<Record<string, string>>
   /** Sent only to a host advertising `AGENT_SESSION_CREATE_TAB_PLACEMENT_RUNTIME_CAPABILITY`. */
   tabPlacement?: { groupId?: string; afterTabId?: string }
+  /** With `forkFrom` only; sent only to a host advertising `AGENT_SESSION_CREATE_SIDE_CHAT_RUNTIME_CAPABILITY`. */
+  sideChat?: true
 }
 
 export type StructuredAgentSessionFirstMessage = {
@@ -56,11 +58,16 @@ export function structuredAgentSessionCreateParams(args: {
   options?: Readonly<Record<string, string>>
   /** A display hint, outside the fingerprint: a retry may name a place that moved. */
   tabPlacement?: StructuredAgentSessionCreateParams['tabPlacement']
+  /** Outside the fingerprint like tabPlacement: it marks the record, not the conversation. */
+  sideChat?: true
   randomUuid: () => string
   now?: number
 }): StructuredAgentSessionCreateParams {
   if (args.forkFrom && (args.resumeFrom || args.options || args.optionsMode)) {
     throw new Error('A fork inherits its source options and cannot also resume a conversation.')
+  }
+  if (args.sideChat && !args.forkFrom) {
+    throw new Error('A side chat is a fork.')
   }
   const fields = {
     worktree: args.worktree,
@@ -83,6 +90,7 @@ export function structuredAgentSessionCreateParams(args: {
       })
     },
     ...fields,
-    ...(args.tabPlacement ? { tabPlacement: args.tabPlacement } : {})
+    ...(args.tabPlacement ? { tabPlacement: args.tabPlacement } : {}),
+    ...(args.sideChat ? { sideChat: true as const } : {})
   }
 }

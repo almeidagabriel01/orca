@@ -9,7 +9,7 @@ import { findRenamableUnifiedTab } from './renamable-unified-tab'
 /** The change, for the tab-bar tab main knows it by. */
 export type TabChange = (
   tabBarTabId: string
-) => Extract<WindowLayoutCommand, { type: 'renameTab' | 'setTabProps' }>
+) => Extract<WindowLayoutCommand, { type: 'renameTab' | 'setTabProps' | 'setTabDock' }>
 
 type TabOwnerState = WorktreeRuntimeOwnerState & { unifiedTabsByWorktree: Record<string, Tab[]> }
 

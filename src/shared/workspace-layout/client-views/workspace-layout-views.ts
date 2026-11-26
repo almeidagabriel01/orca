@@ -4,6 +4,7 @@ import { collectLayoutLeafIdsInOrder } from '../terminal-topology/terminal-pane-
 import type { DesktopLayoutView } from '../persistence/workspace-layout-beside'
 import { holdsEditorFileId } from '../editor-tabs/workspace-layout-editor-tab-file'
 import type { WorkspaceLayout } from '../workspace-layout-model'
+import { centerTabIds } from '../tab-groups/tab-dock'
 
 /** The one workspace window of an app instance. */
 export const DESKTOP_VIEW_ID = 'desktop'
@@ -92,7 +93,11 @@ export function resolveWorkspaceSelection(
 ): ResolvedWorkspaceSelection {
   const groups: ResolvedWorkspaceSelection['groups'] = {}
   for (const group of workspace.groups) {
-    groups[group.id] = resolveGroupTab(group.tabOrder, record.groups[workspaceKey]?.[group.id])
+    // A docked tab is shown outside the center, so it is never a group's shown tab.
+    groups[group.id] = resolveGroupTab(
+      centerTabIds(group.tabOrder, workspace.tabs),
+      record.groups[workspaceKey]?.[group.id]
+    )
   }
   const panes: ResolvedWorkspaceSelection['panes'] = {}
   for (const tab of workspace.tabs) {

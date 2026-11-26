@@ -1,3 +1,5 @@
+import type { AgentJournalCursor } from '../../journal/agent-session-journal-identity'
+
 /** The chat a fork was copied from, saved on the fork's record. */
 export type AgentSessionForkedFrom = {
   sessionId: string
@@ -7,4 +9,8 @@ export type AgentSessionForkedFrom = {
   childBoundary: { kind: 'item'; itemId: string } | { kind: 'start' }
   /** Saved under the source's shown name; absent on forks older builds titled "<source> fork". */
   plainName?: true
+  /** A side chat: each turn carries the source's newer messages to its agent. */
+  sideChat?: true
+  /** The source journal position its newer messages were carried through. */
+  parentDelivered?: AgentJournalCursor
 }

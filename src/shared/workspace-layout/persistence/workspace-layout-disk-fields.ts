@@ -147,6 +147,7 @@ const ENTRY_FIELDS = {
   customLabel: tab('customTitle'),
   sortOrder: TAB_ORDER,
   isPreview: tab('isPreview'),
+  dock: tab('dock'),
   agentSessionAgent: tab('agentSessionAgent'),
   lastFocusedAt: own('view', 'lastFocusedAt')
 } as const

@@ -100,7 +100,8 @@ export async function importAdoptedTranscript(
       fence: record.lease.runtimeFence,
       operationId: params.envelope.clientOperationId,
       fingerprint: params.envelope.payloadFingerprint,
-      historyOrigin: params.fork.historyOrigin
+      historyOrigin: params.fork.historyOrigin,
+      ...(params.fork.sideChat ? { sideChat: true as const } : {})
     })
     if (options.uncommittedCreate) {
       return installation

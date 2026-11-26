@@ -50,10 +50,11 @@ export function pickNextActiveTab(
   tabOrder: string[],
   recentTabIds: string[] | undefined,
   closingTabId: string,
-  tabs?: readonly Pick<Tab, 'id'>[]
+  tabs?: readonly Pick<Tab, 'id' | 'dock'>[]
 ): string | null {
   if (tabs) {
-    const realIds = new Set(tabs.map((tab) => tab.id))
+    // A docked tab shows outside the center, so it never becomes the group's active tab.
+    const realIds = new Set(tabs.flatMap((tab) => (tab.dock ? [] : [tab.id])))
     tabOrder = tabOrder.filter((id) => realIds.has(id))
   }
   const sanitized = sanitizeRecentTabIds(recentTabIds, tabOrder)

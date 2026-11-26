@@ -3,6 +3,7 @@ import type { AppState } from '../../types'
 import type {
   Tab,
   TabContentType,
+  TabDock,
   TabGroup,
   TabGroupLayoutNode
 } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
@@ -141,6 +142,8 @@ export type TabsSlice = {
   ) => void
   pinTab: (tabId: string, opts?: { recordInteraction?: boolean }) => void
   unpinTab: (tabId: string, opts?: { recordInteraction?: boolean }) => void
+  /** Docks the tab out of the center (it stays in its group's order), or null: back into the active group, activated. */
+  setTabDock: (tabId: string, dock: TabDock | null) => void
   closeOtherTabs: (tabId: string) => string[]
   closeTabsToRight: (tabId: string) => string[]
   closeTabsToLeft: (tabId: string) => string[]

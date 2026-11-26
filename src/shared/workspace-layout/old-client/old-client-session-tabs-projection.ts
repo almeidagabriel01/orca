@@ -281,6 +281,7 @@ function agentSessionRow(tab: LayoutContentTab, scope: Scope): RuntimeMobileSess
     sessionId: tab.entityId,
     agent,
     ...tabProps(tab),
+    dock: tab.dock ?? null,
     isActive: scope.activeTabId === tab.id
   }
 }

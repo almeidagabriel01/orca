@@ -1,4 +1,5 @@
 import type { AgentJournalMessageItem } from '../../../../shared/agent-session/journal/agent-session-journal-types'
+import type { StructuredAgentSessionSideChatParent } from '../structured-agent-session-side-chat-parent'
 import type { WorkerDockPresence } from '../../../../shared/agent-session/background-tasks/agent-session-background-task-wire'
 import type {
   AgentModelCatalogSource,
@@ -323,6 +324,7 @@ export type AgentSessionHandoverContext = StructuredAgentSessionCommandHandoverC
   /** A message the agent took: a chat keeps, where it has none saved, the options it ran. */
   recordRanOptions?: ReturnType<StructuredAgentSessionRanRecorder>
   turnContext?: StructuredAgentSessionTurnContext | undefined
+  sideChatParent?: StructuredAgentSessionSideChatParent
 }
 
 export type StructuredAgentSessionConversationLifetime = ReturnType<

@@ -70,7 +70,10 @@ export abstract class RuntimeHeadlessTabProperties extends OrcaRuntimeWithHeadle
     const authoritativeWindow = this.hasAuthoritativeWindow()
     if (
       authoritativeWindow &&
-      (args.color !== undefined || args.isPinned !== undefined || args.viewMode !== undefined)
+      (args.color !== undefined ||
+        args.isPinned !== undefined ||
+        args.dock !== undefined ||
+        args.viewMode !== undefined)
     ) {
       throw Object.assign(
         new Error(
@@ -132,7 +135,7 @@ export abstract class RuntimeHeadlessTabProperties extends OrcaRuntimeWithHeadle
   protected persistHeadlessSessionTabProps(
     worktreeId: string,
     tabId: string,
-    props: { color?: string | null; isPinned?: boolean; viewMode?: 'terminal' | 'chat' }
+    props: Pick<SessionTabProps, 'color' | 'isPinned' | 'dock' | 'viewMode'>
   ): void {
     const session = this.getWorkspaceSessionForWorktree(worktreeId)
     if (!session || !this.store?.setWorkspaceSession) {
@@ -170,7 +173,8 @@ export abstract class RuntimeHeadlessTabProperties extends OrcaRuntimeWithHeadle
             ? {
                 ...tab,
                 ...(props.color !== undefined ? { color: props.color } : {}),
-                ...(props.isPinned !== undefined ? { isPinned: props.isPinned } : {})
+                ...(props.isPinned !== undefined ? { isPinned: props.isPinned } : {}),
+                ...(props.dock !== undefined ? { dock: props.dock ?? undefined } : {})
               }
             : tab
         )
@@ -191,6 +195,7 @@ export abstract class RuntimeHeadlessTabProperties extends OrcaRuntimeWithHeadle
       customTitle?: string | null
       color?: string | null
       isPinned?: boolean
+      dock?: SessionTabProps['dock']
       viewMode?: 'terminal' | 'chat'
     }
   ): void {
@@ -212,6 +217,7 @@ export abstract class RuntimeHeadlessTabProperties extends OrcaRuntimeWithHeadle
           : {}),
         ...(props.color !== undefined ? { color: props.color } : {}),
         ...(props.isPinned !== undefined ? { isPinned: props.isPinned } : {}),
+        ...(props.dock !== undefined && tab.type === 'agent-session' ? { dock: props.dock } : {}),
         ...(props.viewMode !== undefined ? { viewMode: props.viewMode } : {})
       }
     })

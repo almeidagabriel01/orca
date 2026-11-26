@@ -8,7 +8,7 @@ import { sliceAtCodeUnitLimit } from '../../text/surrogate-safe-text-slice'
 
 /** A chat's fork ancestry as naming frames carry it. `plainName` marks a fork saved under its
  *  source's name; older forks were saved as "<source> fork". */
-export type AgentSessionForkNaming = { sessionId: string; plainName?: true }
+export type AgentSessionForkNaming = { sessionId: string; plainName?: true; sideChat?: true }
 
 /** The "Forked from" row's link: the source, whether it is itself a fork, and whether this host
  *  has no readable record of it (then the row names no chat to open). */
@@ -65,5 +65,12 @@ export function agentSessionForkNamingEqual(
   a: AgentSessionForkNaming | null | undefined,
   b: AgentSessionForkNaming | null | undefined
 ): boolean {
-  return a === b || (!!a && !!b && a.sessionId === b.sessionId && a.plainName === b.plainName)
+  return (
+    a === b ||
+    (!!a &&
+      !!b &&
+      a.sessionId === b.sessionId &&
+      a.plainName === b.plainName &&
+      a.sideChat === b.sideChat)
+  )
 }

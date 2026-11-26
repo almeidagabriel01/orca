@@ -1,5 +1,6 @@
 import { structuredAgentSessionSettledSends } from '../../../../../shared/agent-session/requests/structured-agent-session-send-settlement'
 import {
+  AGENT_SESSION_CREATE_SIDE_CHAT_RUNTIME_CAPABILITY,
   AGENT_SESSION_SEND_SELECTION_RUNTIME_CAPABILITY,
   AGENT_SESSION_SEND_SKILLS_RUNTIME_CAPABILITY
 } from '../../../../../shared/agent-session/lifecycle/operations/agent-session-create-capabilities'
@@ -158,6 +159,13 @@ export async function launchStructuredAgentSession(
     onHostSeed?.(hostSeed)
   }
   await requireHostPermission(intent)
+  const sideChat =
+    intent.sideChat && intent.params.forkFrom
+      ? await structuredAgentSessionHostSupports(
+          intent.target,
+          AGENT_SESSION_CREATE_SIDE_CHAT_RUNTIME_CAPABILITY
+        ).catch(() => false)
+      : false
   if (!intent.createPrepared) {
     let supported = false
     let takesExplicitOptions = false
@@ -186,7 +194,10 @@ export async function launchStructuredAgentSession(
   }
   let result: AgentSessionMutationResult<AgentSessionAttachResult>
   // Typed so an async placement fails to compile: a tick here drops an eager joiner's create.
-  const params: StructuredAgentSessionCreateParams = withFrameDrawnChatTabPlacement(intent)
+  const placed: StructuredAgentSessionCreateParams = withFrameDrawnChatTabPlacement(intent)
+  const params: StructuredAgentSessionCreateParams = sideChat
+    ? { ...placed, sideChat: true }
+    : placed
   // Nothing is created for a chat closed while its host was asked, or whose source retired.
   if (isCancelled() || intent.beforeCreate?.() === false) {
     abandonStructuredAgentSessionLaunchIntent(intent)

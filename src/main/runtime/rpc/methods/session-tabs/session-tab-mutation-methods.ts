@@ -180,6 +180,7 @@ export const SESSION_TAB_MUTATION_METHODS = [
         tabId: params.tabId,
         ...(params.color !== undefined ? { color: params.color } : {}),
         ...(params.isPinned !== undefined ? { isPinned: params.isPinned } : {}),
+        ...(params.dock !== undefined ? { dock: params.dock } : {}),
         ...(params.viewMode !== undefined ? { viewMode: params.viewMode } : {}),
         ...(params.customTitle !== undefined ? { customTitle: params.customTitle } : {})
       })

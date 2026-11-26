@@ -29,6 +29,8 @@ export type StructuredAgentLaunchOptions = StructuredLaunchPromptOptions & {
   forkFrom?: StructuredAgentSessionForkSource
   /** Client-only admission requirement; reacquired from the child after reload. */
   forkRequiresInheritedOriginal?: boolean
+  /** With `forkFrom`: ask for a side chat; a host without the capability makes a plain fork. */
+  sideChat?: true
   /** The host the route decided on; read only by the caller that starts the launch. */
   executionHostId?: ExecutionHostId
   /** The saved selection a paired host reported it will seed; read only by the starting caller. */

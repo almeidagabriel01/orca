@@ -51,6 +51,7 @@ import {
   setTabProps
 } from './commands/workspace-layout-tab-commands'
 import { renameTab } from './commands/workspace-layout-tab-rename'
+import { rehomeDockedTabs, setTabDock } from './commands/workspace-layout-tab-dock'
 import { moveTabToWorkspace } from './editor-tabs/workspace-layout-workspace-move'
 import { applyDefaultTabs } from './commands/workspace-layout-default-tabs'
 
@@ -87,7 +88,7 @@ export function applyLayoutCommand(
   if (!result.ok) {
     return result
   }
-  const next = updateLegacyPersistence(model, result.model)
+  const next = updateLegacyPersistence(model, withDockedTabsRehomed(model, result.model))
   return {
     ...result,
     model: context.droppedLeafReason
@@ -149,6 +150,8 @@ function applyCommand(
       return releasePaneTerminal(model, command)
     case 'setTabProps':
       return setTabProps(model, command)
+    case 'setTabDock':
+      return setTabDock(model, command)
     case 'setChatPane':
       return setChatPane(model, command)
     case 'openEditorTab':
@@ -184,6 +187,24 @@ function applyCommand(
     case 'wake':
       return wake(model, command)
   }
+}
+
+/** Every command that leaves a group holding only docked tabs closes that group, keeping its tabs. */
+function withDockedTabsRehomed(
+  before: WorkspaceLayoutModel,
+  after: WorkspaceLayoutModel
+): WorkspaceLayoutModel {
+  let workspaces = after.workspaces
+  for (const [key, workspace] of Object.entries(after.workspaces)) {
+    if (workspace === before.workspaces[key]) {
+      continue
+    }
+    const rehomed = rehomeDockedTabs(workspace)
+    if (rehomed !== workspace) {
+      workspaces = { ...workspaces, [key]: rehomed }
+    }
+  }
+  return workspaces === after.workspaces ? after : { ...after, workspaces }
 }
 
 // A record, not a layout: a workspace with no tabs yet (zero templates) is marked, not created.

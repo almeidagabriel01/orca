@@ -21,6 +21,10 @@ function shouldUseCssAnchorPositioning(): boolean {
 
 type RetainedPaneHostProps = {
   groupId: string | undefined
+  /** Body the pane sits over (registered via `registerTabGroupBody`); defaults to the group's. */
+  anchorKey?: string
+  /** Positions against the viewport, so the pane can sit over a body outside the workbench clip. */
+  fixed?: boolean
   isVisible: boolean
   measureWhileHidden?: boolean
   fitTerminal?: boolean
@@ -30,10 +34,13 @@ type RetainedPaneHostProps = {
   children: React.ReactNode
   'data-terminal-overlay-tab-id'?: string
   'data-structured-agent-session-overlay-tab-id'?: string
+  'data-side-chat-dock'?: string
 }
 
 export function RetainedPaneHost({
   groupId,
+  anchorKey = groupId,
+  fixed = false,
   isVisible,
   measureWhileHidden = false,
   fitTerminal = false,
@@ -42,25 +49,25 @@ export function RetainedPaneHost({
   children,
   ...identity
 }: RetainedPaneHostProps): React.JSX.Element {
-  const anchorName = groupId !== undefined ? tabGroupBodyAnchorName(groupId) : undefined
+  const anchorName = anchorKey !== undefined ? tabGroupBodyAnchorName(anchorKey) : undefined
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [measuredFallbackRect, setMeasuredFallbackRect] = useState<TabGroupBodyRect | null>(null)
   // Why: a hidden host renders display:none, so it has no use for group geometry until shown.
   const measuresFallbackRect =
-    groupId !== undefined && !shouldUseCssAnchorPositioning() && (isVisible || measureWhileHidden)
+    anchorKey !== undefined && !shouldUseCssAnchorPositioning() && (isVisible || measureWhileHidden)
   // Measure before mounting child xterms: child layout effects run first and would fit a placeholder rectangle.
   const [awaitsFirstFallbackRect, setAwaitsFirstFallbackRect] = useState(measuresFallbackRect)
   useLayoutEffect(() => {
-    const container = overlayRef.current?.parentElement
-    if (!measuresFallbackRect || groupId === undefined || !container) {
+    const container = fixed ? document.documentElement : overlayRef.current?.parentElement
+    if (!measuresFallbackRect || anchorKey === undefined || !container) {
       setAwaitsFirstFallbackRect(false)
       return
     }
-    return subscribeTabGroupBodyRect(groupId, container, (rect) => {
+    return subscribeTabGroupBodyRect(anchorKey, container, (rect) => {
       setMeasuredFallbackRect(rect)
       setAwaitsFirstFallbackRect(false)
     })
-  }, [groupId, measuresFallbackRect])
+  }, [anchorKey, fixed, measuresFallbackRect])
 
   useLayoutEffect(() => {
     if (!fitTerminal || !isVisible || !anchorName) {
@@ -100,7 +107,7 @@ export function RetainedPaneHost({
     () =>
       anchorName && shouldUseCssAnchorPositioning()
         ? {
-            position: 'absolute',
+            position: fixed ? 'fixed' : 'absolute',
             positionAnchor: anchorName,
             // An unresolved anchor must stay clipped instead of painting a content-sized pane.
             top: `anchor(${anchorName} top, 0px)`,
@@ -114,11 +121,12 @@ export function RetainedPaneHost({
         : anchorName
           ? {
               // Without CSS anchors, measure the group body so terminals fit real geometry without covering its tab strip.
-              position: 'absolute',
-              top: measuredFallbackRect?.top ?? 32,
+              position: fixed ? 'fixed' : 'absolute',
+              // A fixed pane over a missing body would cover the window, so it collapses instead.
+              top: measuredFallbackRect?.top ?? (fixed ? 0 : 32),
               left: measuredFallbackRect?.left ?? 0,
-              width: measuredFallbackRect?.width ?? '100%',
-              height: measuredFallbackRect?.height ?? 'calc(100% - 32px)',
+              width: measuredFallbackRect?.width ?? (fixed ? 0 : '100%'),
+              height: measuredFallbackRect?.height ?? (fixed ? 0 : 'calc(100% - 32px)'),
               display: isVisible || measureWhileHidden ? 'flex' : 'none',
               opacity: isVisible ? visibleOpacity : 0,
               pointerEvents: isVisible ? 'auto' : 'none'
@@ -132,7 +140,7 @@ export function RetainedPaneHost({
               display: 'none',
               pointerEvents: 'none'
             },
-    [anchorName, isVisible, measuredFallbackRect, measureWhileHidden, visibleOpacity]
+    [anchorName, fixed, isVisible, measuredFallbackRect, measureWhileHidden, visibleOpacity]
   )
   const focusGroup = useCallback(() => {
     if (groupId !== undefined && onFocusOwningGroup) {

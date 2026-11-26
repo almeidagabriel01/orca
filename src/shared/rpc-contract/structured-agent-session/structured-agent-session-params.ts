@@ -128,11 +128,20 @@ export const CreateIntentParams = z
       .strict()
       .optional(),
     options: AgentSessionOptions.optional(),
-    optionsMode: z.literal('replace-model-selection').optional()
+    optionsMode: z.literal('replace-model-selection').optional(),
+    /** Requires `agentSession.create.side-chat.v1`; only with `forkFrom`. */
+    sideChat: z.literal(true).optional()
   })
   .strict()
 
-export const CreateParams = z.union([AttachParams, CreateIntentParams])
+// On the union, not the object: `.omit` below refuses a refined object.
+export const CreateParams = z
+  .union([AttachParams, CreateIntentParams])
+  .refine(
+    (value) =>
+      !('sideChat' in value && value.sideChat) || ('forkFrom' in value && !!value.forkFrom),
+    'A side chat is a fork'
+  )
 
 export const CancelParams = z
   .object({

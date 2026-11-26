@@ -8,6 +8,7 @@ import { createTabsBulkCloseActions } from './tabs-bulk-close-actions'
 import { createTabsLabelActions } from './tabs-label-actions'
 import { createTabsGroupActions } from './tabs-group-actions'
 import { createTabsMoveActions } from './tabs-move-actions'
+import { createTabsDockActions, followDockedTabs } from './docked-tab-placement'
 import { createTabsDropActions } from './tabs-drop-actions'
 import { createTabsSplitRatioActions } from './tabs-split-ratio-actions'
 import { createTabsDragPreviewActions } from './tabs-drag-preview-actions'
@@ -18,6 +19,7 @@ import { runtimeStatusSubscriptionsFor } from '../runtime-status/views/runtime-s
 
 export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, get, api) => {
   pruneSplitLandingGroupsOnGroupRemoval(api)
+  followDockedTabs(api)
   const labelActions = createTabsLabelActions(set, get)
   return {
     unifiedTabsByWorktree: {},
@@ -37,6 +39,7 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
     ),
     ...createTabsGroupActions(set, get),
     ...createTabsMoveActions(set, get),
+    ...createTabsDockActions(set, get),
     ...createTabsDropActions(set, get),
     ...createTabsSplitRatioActions(set),
     ...createTabsDragPreviewActions(set),

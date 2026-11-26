@@ -183,12 +183,17 @@ export function projectStructuredSessionTab(
     }
     return
   }
+  // A restart rebuilds the row from the saved layout, which holds its dock.
+  const saved = input.savedOrder?.tabs.find(
+    (row): row is RuntimeMobileSessionAgentTab => row.type === 'agent-session' && row.id === id
+  )
   const tab: RuntimeMobileSessionAgentTab = {
     type: 'agent-session',
     id,
     title: defaultAgentChatLabel(input.agent),
     sessionId: input.sessionId,
     agent: input.agent,
+    ...(saved?.dock ? { dock: saved.dock } : {}),
     isActive: input.activate
   }
   const tabs = [...(existing?.tabs ?? [])].map((candidate) => ({

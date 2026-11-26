@@ -51,6 +51,11 @@ import {
 import { useRightSidebarActivityItems } from './activity-bar/use-right-sidebar-activity-items'
 import { useRightSidebarTabRouting } from './activity-bar/use-right-sidebar-tab-routing'
 import { useWindowWidth } from './layout/use-window-width'
+import {
+  SIDE_CHAT_PANEL_MIN_WIDTH,
+  setSideChatPanelWidth,
+  useSideChatPanelWidth
+} from './layout/side-chat-panel-width'
 import { useBotPanelMemory } from '../bots/use-bot-panel-memory'
 import { usePluginViewCaptureStore } from '@/store/plugins/capture/plugin-view-capture'
 import { selectWorktreeCreationSurfaceShown } from '@/lib/workspace/creation/worktree-creation-surface'
@@ -73,10 +78,10 @@ function RightSidebarInner(): React.JSX.Element {
   const lastRouteRequestId = useRef(routeRequestId)
   const [focusVaultSearch, setFocusVaultSearch] = useState(false)
   const userRightSidebarWidth = useAppStore((s) => s.rightSidebarWidth)
+  const sideChatPanelWidth = useSideChatPanelWidth()
   // `orca plugin shot --width` sizes the panel for one capture without touching the saved width.
   const captureWidth = usePluginViewCaptureStore((s) => s.panelWidth)
-  const rightSidebarWidth = captureWidth ?? userRightSidebarWidth
-  const setRightSidebarWidth = useAppStore((s) => s.setRightSidebarWidth)
+  const setUserRightSidebarWidth = useAppStore((s) => s.setRightSidebarWidth)
   const toggleRightSidebar = useAppStore((s) => s.toggleRightSidebar)
   // Creation keeps the prior worktree active until handoff, so its panels would show that worktree.
   const creatingWorktree = useAppStore(selectWorktreeCreationSurfaceShown)
@@ -166,18 +171,29 @@ function RightSidebarInner(): React.JSX.Element {
     }
   }, [focusVaultSearch])
 
+  // A chat needs more room than the file panels, so the side chat keeps its own width and minimum.
+  const showsSideChat = effectiveTab === 'side-chat'
+  const panelMinWidth = showsSideChat ? SIDE_CHAT_PANEL_MIN_WIDTH : RIGHT_SIDEBAR_MIN_WIDTH
+  const rightSidebarWidth =
+    captureWidth ?? (showsSideChat ? sideChatPanelWidth : userRightSidebarWidth)
+  const setRightSidebarWidth = showsSideChat ? setSideChatPanelWidth : setUserRightSidebarWidth
   const activityBarSideWidth = activityBarPosition === 'side' ? ACTIVITY_BAR_SIDE_WIDTH : 0
   const windowWidth = useWindowWidth()
-  const maxWidth = computeMaxRightSidebarPanelWidth(windowWidth, activityBarSideWidth)
+  const maxWidth = computeMaxRightSidebarPanelWidth(
+    windowWidth,
+    activityBarSideWidth,
+    panelMinWidth
+  )
   const renderedRightSidebarWidth = clampRightSidebarPanelWidth(
     rightSidebarWidth,
     windowWidth,
-    activityBarSideWidth
+    activityBarSideWidth,
+    panelMinWidth
   )
   const { containerRef, isResizing, onResizeStart } = useSidebarResize<HTMLDivElement>({
     isOpen: rightSidebarOpen,
     width: renderedRightSidebarWidth,
-    minWidth: RIGHT_SIDEBAR_MIN_WIDTH,
+    minWidth: panelMinWidth,
     maxWidth,
     deltaSign: -1,
     renderedExtraWidth: activityBarSideWidth,

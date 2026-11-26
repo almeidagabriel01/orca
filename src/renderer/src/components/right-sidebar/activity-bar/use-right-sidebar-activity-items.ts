@@ -32,6 +32,7 @@ import { useFocusedChatWorkers } from '@/lib/focused-chat-workers'
 import { useBotNeedsYouCount, useBotNow } from '../../bots/use-bot-now'
 import { usePublishedBotsNeedsYou } from '../../bots/bot-needs-you-published'
 import { useBotGroupMembers } from '../../bots/use-bot-group-members'
+import { isDockedChatTab } from '../side-chat/side-chat-dock-state'
 
 export type RightSidebarActivityItems = {
   visibleItems: ActivityBarItem[]
@@ -83,6 +84,11 @@ export function useRightSidebarActivityItems({
     portsPanelReachesRemoteHost(
       portsPanelHostForOwnerKey(getPortsPanelOwnerKey(s, activeWorktreeId))
     )
+  )
+  const hasDockedChats = useAppStore((s) =>
+    activeWorktreeId
+      ? (s.unifiedTabsByWorktree[activeWorktreeId] ?? []).some(isDockedChatTab)
+      : false
   )
   const pluginSystemEnabled = useAppStore((s) => s.settings?.pluginSystemEnabled === true)
   const pluginPanels = usePluginPanels()
@@ -155,12 +161,14 @@ export function useRightSidebarActivityItems({
           hasRemoteHost,
           isBot,
           isGroupHome,
-          hasChatWorkers
+          hasChatWorkers,
+          hasDockedChats
         }),
         (item) => item.statusIndicator ?? (item.id === 'checks' ? checksStatus : null)
       ),
     [
       activityItems,
+      hasDockedChats,
       isFolder,
       isFolderWorkspace,
       hasRemoteHost,

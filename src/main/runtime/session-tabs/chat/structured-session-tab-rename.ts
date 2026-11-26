@@ -1,10 +1,12 @@
 import { getStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/host/structured-agent-session-registry'
+import type { TabDock } from '../../../../shared/workspace-layout/tab-groups/tab-types'
 import type { RuntimeMobileSessionTabsSnapshot } from '../../../../shared/remote-runtime/session-graph/runtime-session-contracts'
 
 export type SessionTabProps = {
   tabId: string
   color?: string | null
   isPinned?: boolean
+  dock?: TabDock | null
   viewMode?: 'terminal' | 'chat'
   customTitle?: string | null
 }

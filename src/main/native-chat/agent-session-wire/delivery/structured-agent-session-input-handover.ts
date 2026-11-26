@@ -78,6 +78,7 @@ export async function beginStructuredAgentSessionInputHandover(
       failureTextContext: failureTextContext,
       record: () => deps.record(sessionId),
       turnContext: deps.turnContext,
+      sideChatParent: deps.sideChatParent,
 
       admitFreshInput: async (enqueue, signal, prepare, kind = 'fresh') => {
         let admission: StructuredAgentSessionInputAdmission | undefined

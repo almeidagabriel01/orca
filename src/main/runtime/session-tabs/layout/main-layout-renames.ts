@@ -5,6 +5,7 @@ import type {
   RuntimeTerminalRename,
   RuntimeTerminalSetPaneTitle
 } from '../../../../shared/terminal/runtime/runtime-terminal-contracts'
+import type { TabDock } from '../../../../shared/workspace-layout/tab-groups/tab-types'
 import type { TerminalPaneLayoutNode } from '../../../../shared/workspace-layout/terminal-tab-types'
 import type { WindowLayoutCommand } from '../../terminal/layout/runtime-layout-apply'
 import type { RuntimePtyWorktreeRecord } from '../../terminal/records/runtime-terminal-state-records'
@@ -133,6 +134,7 @@ export abstract class OrcaRuntimeWithMainLayoutRenames extends OrcaRuntimeWithMa
     props: {
       color?: string | null
       isPinned?: boolean
+      dock?: TabDock | null
       viewMode?: 'terminal' | 'chat'
       customTitle?: string | null
     }
@@ -141,9 +143,12 @@ export abstract class OrcaRuntimeWithMainLayoutRenames extends OrcaRuntimeWithMa
     if (!panes) {
       return false
     }
-    const { customTitle, ...tabProps } = props
+    const { customTitle, dock, ...tabProps } = props
     if (Object.values(tabProps).some((value) => value !== undefined)) {
       await this.applyMainRename({ type: 'setTabProps', workspace: worktreeId, tabId, ...tabProps })
+    }
+    if (dock !== undefined) {
+      await this.applyMainRename({ type: 'setTabDock', workspace: worktreeId, tabId, dock })
     }
     if (customTitle !== undefined) {
       // Why by tab: a sleeping or starting pane has no handle for terminal.rename to name (#29975).

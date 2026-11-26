@@ -1,5 +1,6 @@
 import type { AppState } from '../../types'
 import type { TerminalTab } from '../../../../../shared/workspace-layout/terminal-tab-types'
+import type { TabDock } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
 import { findTabAndWorktree } from './tab-group-state'
 import { runtimeEnvironmentIdOrLocalUnlessTwin } from '@/lib/workspace/ownership/worktree-runtime-owner'
 import { locateTerminalTab } from '../../terminals/ownership/terminal-tab-location'
@@ -34,6 +35,18 @@ export function mirrorTabPinnedToHost(state: AppState, tabId: string, isPinned: 
   const worktreeId = found.worktreeId
   void import('@/runtime/hosted-terminals/actions/web-runtime-tab-properties').then(
     ({ setWebRuntimeTabProps }) => setWebRuntimeTabProps({ worktreeId, tabId, isPinned })
+  )
+}
+
+/** A paired host keeps the dock so its snapshots, and its other clients, show the tab where it was put. */
+export function mirrorTabDockToHost(state: AppState, tabId: string, dock: TabDock | null): void {
+  const found = findTabAndWorktree(state.unifiedTabsByWorktree, tabId)
+  if (!found || !runtimeEnvironmentIdOrLocalUnlessTwin(state, found.worktreeId)) {
+    return
+  }
+  const worktreeId = found.worktreeId
+  void import('@/runtime/hosted-terminals/actions/web-runtime-tab-properties').then(
+    ({ setWebRuntimeTabProps }) => setWebRuntimeTabProps({ worktreeId, tabId, dock })
   )
 }
 

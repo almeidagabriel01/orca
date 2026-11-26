@@ -162,7 +162,8 @@ export function structuredSummaryConversationNaming(
     forkedFrom: record.forkedFrom
       ? {
           sessionId: record.forkedFrom.sessionId,
-          ...(record.forkedFrom.plainName ? { plainName: true as const } : {})
+          ...(record.forkedFrom.plainName ? { plainName: true as const } : {}),
+          ...(record.forkedFrom.sideChat ? { sideChat: true as const } : {})
         }
       : null,
     ...(record.conversationNameSource === 'user'

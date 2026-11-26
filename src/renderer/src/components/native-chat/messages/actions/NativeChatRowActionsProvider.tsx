@@ -6,9 +6,11 @@ import { openDesktopStructuredSession } from '@/lib/agent-session/open/activate-
 import {
   NativeChatForkContext,
   NativeChatForkedFromContext,
+  NativeChatSideChatContext,
   NativeChatSideChatForkPointContext
 } from '@/components/native-chat/messages/actions/native-chat-fork-context'
 import { NativeChatRewindContext } from '@/components/native-chat/messages/actions/native-chat-rewind-context'
+import { useNativeChatIsSideChat } from '@/runtime/native-chat/naming/structured-conversation-name'
 import { useNativeChatTabOwnerWorktreeId } from '@/components/native-chat/pane/ownership/use-native-chat-tab-owner'
 import type { NativeChatStructuredViewProps } from '@/components/native-chat/native-chat-view-types'
 import type { NativeChatRewindSurface } from '@/components/native-chat/messages/actions/use-native-chat-rewind-host'
@@ -27,7 +29,7 @@ export function NativeChatRowActionsProvider({
   forks,
   children
 }: {
-  pane: Pick<NativeChatStructuredViewProps, 'tabId' | 'agent' | 'target'>
+  pane: Pick<NativeChatStructuredViewProps, 'tabId' | 'agent' | 'target' | 'sessionId'>
   chat: {
     rewind: { surface: NativeChatRewindSurface | undefined }
     waitingAgentMail: NativeChatWaitingAgentMail
@@ -39,6 +41,7 @@ export function NativeChatRowActionsProvider({
 }): React.JSX.Element {
   const worktreeId = useNativeChatTabOwnerWorktreeId(pane.tabId)
   const { agent, target } = pane
+  const sideChat = useNativeChatIsSideChat(target, pane.sessionId)
   // An unreachable host cannot open the source, so its divider shows plain words until it returns.
   const sourceOpenable = useAppStoreWithHostStatuses(
     (state, statuses) =>
@@ -65,11 +68,13 @@ export function NativeChatRowActionsProvider({
       <NativeChatForkContext.Provider value={forks.fork}>
         <NativeChatSideChatForkPointContext.Provider value={forks.sideChat?.reportForkPoint}>
           <NativeChatForkedFromContext.Provider value={openSource}>
-            <NativeChatWaitingAgentMailContext.Provider value={chat.waitingAgentMail}>
-              <NativeChatWaitingAgentMailRowsContext.Provider value={chat.waitingAgentRows}>
-                {children}
-              </NativeChatWaitingAgentMailRowsContext.Provider>
-            </NativeChatWaitingAgentMailContext.Provider>
+            <NativeChatSideChatContext.Provider value={sideChat}>
+              <NativeChatWaitingAgentMailContext.Provider value={chat.waitingAgentMail}>
+                <NativeChatWaitingAgentMailRowsContext.Provider value={chat.waitingAgentRows}>
+                  {children}
+                </NativeChatWaitingAgentMailRowsContext.Provider>
+              </NativeChatWaitingAgentMailContext.Provider>
+            </NativeChatSideChatContext.Provider>
           </NativeChatForkedFromContext.Provider>
         </NativeChatSideChatForkPointContext.Provider>
       </NativeChatForkContext.Provider>

@@ -20,6 +20,7 @@ const FolderWorkspaceWorktreesPanel = lazy(
 const FolderWorkspacePrChecksPanel = lazy(
   () => import('./hosted-review/folder-checks/FolderWorkspacePrChecksPanel')
 )
+const SideChatPanel = lazy(() => import('./side-chat/SideChatPanel'))
 const PluginPanel = lazy(() => import('./plugin-panels/PluginPanel'))
 const BotActivityPanel = lazy(() => import('../bots/BotActivityPanel'))
 const BotConnectorsPanel = lazy(() => import('../bots/BotConnectorsPanel'))
@@ -74,6 +75,7 @@ export function RightSidebarPanelContent({
             isVisible={rightSidebarOpen && effectiveTab === 'pr-checks'}
           />
         )}
+        {effectiveTab === 'side-chat' && <SideChatPanel />}
         {effectiveTab === 'bot-activity' && <BotActivityPanel />}
         {effectiveTab === 'bot-connectors' && <BotConnectorsPanel />}
         {effectiveTab === 'bot-chats' && <BotChatsPanel />}

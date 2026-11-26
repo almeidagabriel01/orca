@@ -18,6 +18,7 @@ const SIDE_CHAT_MOVE_MS = 5_000
 const SIDE_CHAT_WATCH_MS = 60_000
 // Narrower than this a chat wraps words mid-line; such a split docks in the right panel instead.
 const CENTER_CHAT_MIN_WIDTH = 360
+const SPLIT_SLACK_PX = 8
 
 type SideChat = { sessionId: string; executionHostId: ExecutionHostId }
 type SelectionState = Pick<AppState, 'activeGroupIdByWorktree' | 'groupsByWorktree'>
@@ -146,7 +147,8 @@ export function beginNativeChatSideChatPlacement(
         ? null
         : sourceWidth / 2
     // Unmeasured (a hidden window): keep the chosen placement.
-    return width === null || width >= CENTER_CHAT_MIN_WIDTH
+    // Sub-pixel borders and the split handle shave a few px off an exact fit.
+    return width === null || width + SPLIT_SLACK_PX >= CENTER_CHAT_MIN_WIDTH
   }
   const moveBeside = (tabId: string, sourceGroupId: string): 'owner' | 'moved' | false => {
     const layout = useAppStore.getState().layoutByWorktree[worktreeId]

@@ -45,7 +45,7 @@ export function useStructuredConversationName(
 export type StructuredChatNaming = Readonly<{
   /** The shown name: an older fork's appended " fork" is dropped, as its mark replaces it. */
   name: string | null
-  /** The chat this one was forked from; null when it is not a fork or its host predates the mark. */
+  /** The chat this one was forked from; null for side chats, non-forks, and hosts predating the mark. */
   forkSourceId: string | null
   /** Where the chat was handed off to; null while it is the live one or its host predates the mark. */
   continuedTo: AgentSessionContinuedTo | null
@@ -83,7 +83,10 @@ export function useStructuredChatNaming(
     const shown = note ? structuredChatTitled(note, sourceSavedName ?? undefined) : null
     return {
       name: isAgentSessionConversationName(shown) ? shown : null,
-      forkSourceId: structuredChatForkSourceId(note ?? undefined),
+      // A side chat's "Side chat ·" title already says where it came from; no second "Fork ·" mark.
+      forkSourceId: isNativeChatSideChat(note)
+        ? null
+        : structuredChatForkSourceId(note ?? undefined),
       continuedTo: note?.continuedTo ?? null
     }
   }, [note, sourceSavedName])

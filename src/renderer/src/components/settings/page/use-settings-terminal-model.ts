@@ -13,7 +13,10 @@ import {
 } from '../navigation/settings-project-list'
 import type { SettingsStoreModel } from './use-settings-store-model'
 import type { SettingsNavigationModel } from '../navigation/use-settings-navigation-model'
-import { runtimeTargetEnvironmentId } from '@/runtime/rpc/targets/runtime-client-target'
+import {
+  getRuntimeTargetHostId,
+  runtimeTargetEnvironmentId
+} from '@/runtime/rpc/targets/runtime-client-target'
 
 export function useSettingsTerminalModel(
   model: SettingsStoreModel,
@@ -91,7 +94,8 @@ export function useSettingsTerminalModel(
       const hostSelection = getSettingsEntryHostSelection(
         settingsProject,
         model.settingsProjectHostSelection,
-        model.settingsProjectSetupSelection
+        model.settingsProjectSetupSelection,
+        getRuntimeTargetHostId(runtimeTarget)
       )
       const repo = getSettingsProjectHostRepo(
         settingsProject,
@@ -109,7 +113,8 @@ export function useSettingsTerminalModel(
     model.repos,
     model.settingsProjectHostSelection,
     model.settingsProjectList,
-    model.settingsProjectSetupSelection
+    model.settingsProjectSetupSelection,
+    runtimeTarget
   ])
 
   return {

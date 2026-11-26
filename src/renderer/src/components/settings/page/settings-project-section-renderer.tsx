@@ -13,6 +13,7 @@ import {
   getSettingsProjectRemovalScope
 } from '../navigation/settings-project-list'
 import { translate } from '@/i18n/i18n'
+import { getRuntimeTargetHostId } from '@/runtime/rpc/targets/runtime-client-target'
 import type { Translate } from '@/i18n/use-translate'
 import type { SettingsRenderContext } from './settings-render-context'
 
@@ -51,7 +52,8 @@ export function renderProjectSettingsSections(
         const hostSelection = getSettingsEntryHostSelection(
           settingsProject,
           model.settingsProjectHostSelection,
-          model.settingsProjectSetupSelection
+          model.settingsProjectSetupSelection,
+          getRuntimeTargetHostId(model.settingsHostScope.target)
         )
         const repo = getSettingsProjectHostRepo(
           settingsProject,

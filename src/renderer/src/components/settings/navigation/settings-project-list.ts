@@ -35,7 +35,9 @@ function getCheckoutSelectionKey(projectId: string, repoId: string): string {
 export function getSettingsEntryHostSelection(
   settingsProject: SettingsProject,
   hostSelection: Readonly<Record<string, ExecutionHostId>>,
-  setupSelection: Readonly<Record<string, string>>
+  setupSelection: Readonly<Record<string, string>>,
+  /** The host chosen at the top of Settings; without a pick in the pane, its record is the one shown. */
+  scopeHostId?: ExecutionHostId
 ): { hostId: ExecutionHostId | undefined; setupId: string | undefined } {
   const { projectId, selectionKey, setups } = settingsProject
   const keys = new Set([
@@ -54,7 +56,9 @@ export function getSettingsEntryHostSelection(
       return { hostId, setupId }
     }
   }
-  return { hostId: undefined, setupId: undefined }
+  return scopeHostId && setups.some((setup) => setup.hostId === scopeHostId)
+    ? { hostId: scopeHostId, setupId: undefined }
+    : { hostId: undefined, setupId: undefined }
 }
 
 /** What a pane's "Remove Project" removes: the project, one clone, or a split project's remainder. */
@@ -287,12 +291,8 @@ export function getSettingsProjectHostRepo(
     ) ??
     settingsProject.setups.find((setup) => setup.hostId === effectiveHostId) ??
     settingsProject.setups[0]
-  return (
-    repos.find(
-      (repo) =>
-        repo.id === effectiveSetup.repoId && getRepoExecutionHostId(repo) === effectiveHostId
-    ) ??
-    repos.find((repo) => repo.id === effectiveSetup.repoId) ??
-    repos.find((repo) => repo.id === settingsProject.representativeRepoId)
+  // Why only this host's row: another host's record would show, and save, the wrong host's settings.
+  return repos.find(
+    (repo) => repo.id === effectiveSetup.repoId && getRepoExecutionHostId(repo) === effectiveHostId
   )
 }

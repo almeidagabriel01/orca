@@ -1,11 +1,5 @@
 import { Fragment } from 'react'
-import {
-  MessageSquarePlus,
-  PanelRightClose,
-  PanelRightOpen,
-  SquareSplitVertical,
-  X
-} from 'lucide-react'
+import { MessageSquarePlus, PanelRightOpen, SquareSplitVertical } from 'lucide-react'
 import { ShortcutKeyCombo } from '@/components/ui/ShortcutKeyCombo'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -49,7 +43,7 @@ export function NativeChatPaneHeader({
   focused: boolean
   colorScheme: React.CSSProperties['colorScheme']
   handOff?: NativeChatHeaderHandOff
-}): React.JSX.Element {
+}): React.JSX.Element | null {
   const t = useTranslate()
   const actions = useStructuredChatPaneActions(tabId, worktreeId, groupId)
   const paneTab = useAppStore((state) =>
@@ -80,18 +74,15 @@ export function NativeChatPaneHeader({
     'Hand off to agent'
   )
   const homeBot = hostedChat && homeRule && bot?.chatSessionId === nativeChat.sessionId ? bot : null
-  // A bot's page hides the side chat panel, so a chat there only ever moves back to the center.
-  const canMove = docked || (sideChat && !onBotPage)
-  const moveLabel = docked
-    ? t('components.native-chat.sideChat.moveToCenter', 'Move to center')
-    : t('components.native-chat.sideChat.moveToRightPanel', 'Move to right panel')
-  const closeLabel = t('auto.components.tab.bar.SortableTab.95db5f2f7d', 'Close tab')
+  // A bot's page hides the side chat panel, so a chat there never moves into it.
+  const canMove = sideChat && !onBotPage
+  const moveLabel = t('components.native-chat.sideChat.moveToRightPanel', 'Move to right panel')
+  if (docked) {
+    // The side chat panel's header carries a docked chat's title, move and close.
+    return null
+  }
   const moveDock = (): void => {
     const store = useAppStore.getState()
-    if (docked) {
-      store.setTabDock(tabId, null)
-      return
-    }
     store.setTabDock(tabId, 'right-panel')
     useSideChatDockStore.getState().selectTab(worktreeId, tabId)
     store.setRightSidebarOpen(true)
@@ -149,7 +140,7 @@ export function NativeChatPaneHeader({
                   moveDock()
                 }}
               >
-                {docked ? <PanelRightClose /> : <PanelRightOpen />}
+                <PanelRightOpen />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
@@ -157,67 +148,44 @@ export function NativeChatPaneHeader({
             </TooltipContent>
           </Tooltip>
         ) : null}
-        {docked ? null : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="pane-title"
-                size="icon-xs"
-                aria-label={split}
-                data-contextual-tour-target={focused ? 'chat-pane-split-target' : undefined}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  actions.onSplitRight()
-                }}
-              >
-                <SquareSplitVertical className="size-3" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={4}>
-              <span className="inline-flex items-center gap-1.5">
-                <span>
-                  {split}
-                  {splitShortcutCombos.length > 0 ? ': ' : null}
-                </span>
-                {splitShortcutCombos.map((shortcut, index) => (
-                  <Fragment key={JSON.stringify([shortcut.keys, shortcut.doubleTap])}>
-                    {index > 0 ? <span>{', '}</span> : null}
-                    <ShortcutKeyCombo
-                      keys={shortcut.keys}
-                      doubleTap={shortcut.doubleTap}
-                      className="gap-0.5"
-                      keyCapClassName="min-w-0 border-background/30 bg-background/10 px-1 py-0 text-3xs text-background shadow-none"
-                      separatorClassName="mx-0 text-3xs text-background/70"
-                    />
-                  </Fragment>
-                ))}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="pane-title"
+              size="icon-xs"
+              aria-label={split}
+              data-contextual-tour-target={focused ? 'chat-pane-split-target' : undefined}
+              onClick={(event) => {
+                event.stopPropagation()
+                actions.onSplitRight()
+              }}
+            >
+              <SquareSplitVertical className="size-3" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" sideOffset={4}>
+            <span className="inline-flex items-center gap-1.5">
+              <span>
+                {split}
+                {splitShortcutCombos.length > 0 ? ': ' : null}
               </span>
-            </TooltipContent>
-          </Tooltip>
-        )}
+              {splitShortcutCombos.map((shortcut, index) => (
+                <Fragment key={JSON.stringify([shortcut.keys, shortcut.doubleTap])}>
+                  {index > 0 ? <span>{', '}</span> : null}
+                  <ShortcutKeyCombo
+                    keys={shortcut.keys}
+                    doubleTap={shortcut.doubleTap}
+                    className="gap-0.5"
+                    keyCapClassName="min-w-0 border-background/30 bg-background/10 px-1 py-0 text-3xs text-background shadow-none"
+                    separatorClassName="mx-0 text-3xs text-background/70"
+                  />
+                </Fragment>
+              ))}
+            </span>
+          </TooltipContent>
+        </Tooltip>
         <NativeChatSettingsButton />
-        {docked ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost-muted"
-                size="icon-xs"
-                aria-label={closeLabel}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  actions.onClosePane()
-                }}
-              >
-                <X />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={4}>
-              {closeLabel}
-            </TooltipContent>
-          </Tooltip>
-        ) : null}
       </div>
     </div>
   )

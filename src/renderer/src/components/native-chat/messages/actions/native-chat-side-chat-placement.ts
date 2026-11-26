@@ -10,11 +10,14 @@ import {
 } from '../../../tab-bar/pane-actions/tab-move-to-pane-column'
 import type { TabDropCompletion } from '../../../../runtime/workspace-layout/commands/tab-group-layout-owner-commands'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import { tabGroupBodyWidth } from '../../../tab-group/retained-pane/tab-group-body-geometry'
 import { nativeChatSideChatPlacement } from '../../../../../../shared/native-chat/settings/native-chat-appearance-settings'
 
 // Moving a late tab would yank a pane the user may already be reading.
 const SIDE_CHAT_MOVE_MS = 5_000
 const SIDE_CHAT_WATCH_MS = 60_000
+// Narrower than this a chat wraps words mid-line; such a split docks in the right panel instead.
+const CENTER_CHAT_MIN_WIDTH = 360
 
 type SideChat = { sessionId: string; executionHostId: ExecutionHostId }
 type SelectionState = Pick<AppState, 'activeGroupIdByWorktree' | 'groupsByWorktree'>
@@ -99,7 +102,10 @@ export function beginNativeChatSideChatPlacement(
       return
     }
     forkTabId = tabId
-    if (nativeChatSideChatPlacement(useAppStore.getState().settings) === 'right-panel') {
+    if (
+      nativeChatSideChatPlacement(useAppStore.getState().settings) === 'right-panel' ||
+      !centerHasRoom()
+    ) {
       dock(tabId)
       return
     }
@@ -122,6 +128,25 @@ export function beginNativeChatSideChatPlacement(
     if (moveBeside(tabId, sourceGroupId) !== 'owner') {
       finish()
     }
+  }
+  /** Whether a pane beside the source keeps both chats at least CENTER_CHAT_MIN_WIDTH wide. */
+  const centerHasRoom = (): boolean => {
+    const sourceGroupId = useAppStore
+      .getState()
+      .unifiedTabsByWorktree[worktreeId]?.find((tab) => tab.id === sourceTabId)?.groupId
+    if (!sourceGroupId) {
+      return true
+    }
+    const layout = useAppStore.getState().layoutByWorktree[worktreeId]
+    const sibling = layout ? findSiblingGroupId(layout, sourceGroupId) : null
+    const sourceWidth = tabGroupBodyWidth(sourceGroupId)
+    const width = sibling
+      ? tabGroupBodyWidth(sibling)
+      : sourceWidth === null
+        ? null
+        : sourceWidth / 2
+    // Unmeasured (a hidden window): keep the chosen placement.
+    return width === null || width >= CENTER_CHAT_MIN_WIDTH
   }
   const moveBeside = (tabId: string, sourceGroupId: string): 'owner' | 'moved' | false => {
     const layout = useAppStore.getState().layoutByWorktree[worktreeId]

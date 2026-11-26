@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { X } from 'lucide-react'
+import { PanelRightClose, X } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/class-names'
@@ -141,6 +141,7 @@ export default function SideChatPanel(): React.JSX.Element {
     [dockedTabs, selectedTabId]
   )
   const { closeItem } = useTabGroupTabCloseCommands({ worktreeId: worktreeId ?? '' })
+  const moveToCenter = t('components.native-chat.sideChat.moveToCenter', 'Move to center')
 
   if (!worktreeId || dockedTabs.length === 0) {
     return (
@@ -154,17 +155,39 @@ export default function SideChatPanel(): React.JSX.Element {
   }
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-side-chat-panel="">
-      {/* Always drawn, so even one docked chat shows its name and status; wraps instead of scrolling. */}
-      <div className="flex shrink-0 flex-wrap gap-1 border-b border-border px-2 py-1">
-        {dockedTabs.map((tab) => (
-          <DockedChatStripItem
-            key={tab.id}
-            tab={tab}
-            current={tab.id === currentTabId}
-            onSelect={() => selectTab(worktreeId, tab.id)}
-            onClose={() => closeItem(tab.id)}
-          />
-        ))}
+      {/* The docked chats' only header: names, status, close, and moving the shown one back. */}
+      <div className="flex shrink-0 items-start gap-1 border-b border-border px-2 py-1">
+        {/* Wraps instead of scrolling, so the transcript stays the only scroller. */}
+        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+          {dockedTabs.map((tab) => (
+            <DockedChatStripItem
+              key={tab.id}
+              tab={tab}
+              current={tab.id === currentTabId}
+              onSelect={() => selectTab(worktreeId, tab.id)}
+              onClose={() => closeItem(tab.id)}
+            />
+          ))}
+        </div>
+        {currentTabId ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost-muted"
+                size="icon-xs"
+                className="shrink-0"
+                aria-label={moveToCenter}
+                onClick={() => useAppStore.getState().setTabDock(currentTabId, null)}
+              >
+                <PanelRightClose />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={4}>
+              {moveToCenter}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
       </div>
       <div ref={registerBody} className="min-h-0 flex-1" style={BODY_ANCHOR_STYLE} />
     </div>

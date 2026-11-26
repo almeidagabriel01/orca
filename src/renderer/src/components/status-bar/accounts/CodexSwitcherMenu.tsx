@@ -129,7 +129,6 @@ function CodexSwitcherForOwner({
     <AccountSwitchRowItem
       label={target.name}
       detail={target.detail}
-      active={target.active}
       isDefault={target.active}
       key={`${selectedGroup?.key}:${target.id ?? 'system'}`}
       action={

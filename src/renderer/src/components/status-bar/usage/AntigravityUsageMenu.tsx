@@ -72,8 +72,6 @@ export function AntigravityUsageMenu({
                   })
                 : t('auto.components.status.bar.antigravity.notRead', 'Usage unknown: not read yet')
             }
-            active={entry.active}
-            onSelect={onManageAccounts}
           >
             {entry.rateLimits ? (
               <InlineUsageBars limits={entry.rateLimits} isFetching={false} />

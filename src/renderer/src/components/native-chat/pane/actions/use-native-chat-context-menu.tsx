@@ -53,6 +53,9 @@ import type { NativeChatFileLinkContext } from '../../links/actions/native-chat-
 import type { NativeChatMessageListHandle } from '../../messages/actions/use-native-chat-reveal-latest'
 import type { NativeChatRewindSurface } from '../../messages/actions/use-native-chat-rewind-host'
 import { useNativeChatStandaloneMenu } from './use-native-chat-standalone-menu'
+import { NativeChatContinueOnHostItems } from './NativeChatContinueOnHostItems'
+import type { NativeChatHandOffTarget } from './use-native-chat-hand-off'
+import { executionHostIdForStructuredTarget } from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
 import type { NativeChatSessionMenuSource } from './use-native-chat-session-context-actions'
 
 type NativeChatContextMenuState = {
@@ -74,6 +77,8 @@ export type UseNativeChatContextMenuArgs = {
   /** Hand off a standalone structured chat; terminal panes supply their own action. */
   onHandOff?: () => void
   handOffDisabled?: boolean
+  /** Continue this conversation on another host; null where the chat cannot hand off. */
+  handOffTo?: NativeChatHandOffTarget | null
   actions: NativeChatContextMenuActions
   showTerminalPaneActions?: boolean
   splitShortcutLabels?: { right: string; down: string }
@@ -143,6 +148,7 @@ export function useNativeChatContextMenu({
   onSwitchToTerminal,
   onHandOff,
   handOffDisabled,
+  handOffTo,
   actions,
   showTerminalPaneActions = true,
   splitShortcutLabels,
@@ -313,6 +319,13 @@ export function useNativeChatContextMenu({
           {standaloneMenu.quickCommands}
           {onHandOff ? (
             <AgentSessionContinuationMenuItem disabled={handOffDisabled} onSelect={onHandOff} />
+          ) : null}
+          {handOffTo && chatSession ? (
+            <NativeChatContinueOnHostItems
+              worktreeId={chatSession.worktreeId}
+              hostId={executionHostIdForStructuredTarget(chatSession.target)}
+              handOff={handOffTo}
+            />
           ) : null}
           {standaloneMenu.sessionItems}
           {showTerminalPaneActions ? (

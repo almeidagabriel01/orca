@@ -11,9 +11,10 @@ import NewWorkspaceComposerModal from '../components/new-workspace/composer/NewW
 import { CrashReportDialog } from '../components/crash-report/CrashReportDialog'
 import { MarkdownTemplatePicker } from '../components/editor/markdown/documents/MarkdownTemplatePicker'
 import RecentTabSwitcher from '../components/tab-bar/recent-switcher/RecentTabSwitcher'
-import { SkillFreshnessUpdateDialog } from '../components/skills/freshness/SkillFreshnessUpdateDialog'
+import { SkillFreshnessUpdateDialogHost } from '../components/skills/freshness/SkillFreshnessUpdateDialogHost'
 import { StarNagAgentValueMomentObserver } from '../components/star-nag/StarNagAgentValueMomentObserver'
 import { NativeChatResumeToasts } from '../components/native-chat-recovery/toast/NativeChatResumeToastHost'
+import { McpStaleTerminalsStartupOffer } from '../components/settings/mcp-servers/McpStaleTerminalsStartupOffer'
 import { StarNagToastHost } from '../components/star-nag/StarNagToastHost'
 import { LanguagePackDiscoveryHost } from '../components/languages/LanguagePackDiscoveryHost'
 import { PluginInstallTrustDialogHost } from '../components/plugins/dialogs/PluginInstallTrustDialog'
@@ -39,7 +40,6 @@ import {
   selectAppRootSurfaceTelemetryOptedIn,
   selectAppRootSurfaceVoiceEnabled
 } from './root-surfaces/app-root-surface-settings'
-import { HeavyJobAutoRouterHost } from '../components/status-bar/resources/HeavyJobAutoRouterHost'
 import type { FloatingWorkspacePanelState } from '../components/floating-terminal/workspace/use-floating-workspace-panel'
 import type { OnboardingGate } from './startup/use-onboarding-and-feature-tips'
 
@@ -181,7 +181,6 @@ export const AppRootSurfaces = memo(function AppRootSurfaces(props: {
           </OverlayBoundary>
         </Suspense>
       ) : null}
-      <HeavyJobAutoRouterHost />
       {/* Keep Create in the entry bundle so a stale lazy chunk cannot strand users. */}
       {activeModal === 'new-workspace-composer' ? (
         <ModalBoundary boundaryId="modal.new-workspace-composer" resetKey>
@@ -305,6 +304,7 @@ export const AppRootSurfaces = memo(function AppRootSurfaces(props: {
       />
       <OverlayBoundary boundaryId="overlay.native-chat-resume-on-restart" resetKey={activeView}>
         <NativeChatResumeToasts />
+        <McpStaleTerminalsStartupOffer />
       </OverlayBoundary>
       <OverlayBoundary boundaryId="overlay.star-nag-toast" resetKey={activeView}>
         <StarNagToastHost />
@@ -396,7 +396,7 @@ export const AppRootSurfaces = memo(function AppRootSurfaces(props: {
       </OverlayBoundary>
       {/* Its live terminal requires the link-routing preference context. */}
       <OverlayBoundary boundaryId="overlay.skill-freshness-update-dialog">
-        <SkillFreshnessUpdateDialog />
+        <SkillFreshnessUpdateDialogHost />
       </OverlayBoundary>
       <Suspense fallback={null}>
         <OverlayBoundary boundaryId="overlay.remote-server-update-dialog">

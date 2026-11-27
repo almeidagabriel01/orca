@@ -12,7 +12,6 @@ import type {
 } from '../../../../../shared/agent-accounts/managed-account-types'
 import { translate } from '@/i18n/i18n'
 import { getAccountDisplayName } from '../../../../../shared/agent-accounts/managed-account-display-names'
-import { getAntigravityUsageEntries } from './antigravity-usage-entries'
 import type { Translate } from '@/i18n/use-translate'
 import { getOwnerInactiveAccounts } from '../accounts/owner-account-rows'
 import {
@@ -313,10 +312,6 @@ export function getOwnerUsageAccounts(
   }
   if (codexState?.accounts.length && !ownerUsage.accounts?.failedProviders?.includes('codex')) {
     result.codex = codexEntries(codexState, ownerUsage, ownLoginLabel)
-  }
-  const antigravity = getAntigravityUsageEntries(ownerUsage.rateLimits, settings, t)
-  if (antigravity.length > 0) {
-    result.antigravity = antigravity
   }
   return result
 }

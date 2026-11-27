@@ -81,7 +81,6 @@ export abstract class RateLimitServicePolling extends RateLimitServiceFetchQueue
       kimi: this.state.kimi,
       minimax: this.state.minimax,
       grok: this.state.grok,
-      antigravity: this.state.antigravity,
       cursor: this.state.cursor,
       zcode: this.state.zcode,
       muse: this.state.muse

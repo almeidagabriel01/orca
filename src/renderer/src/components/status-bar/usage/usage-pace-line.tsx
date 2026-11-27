@@ -107,7 +107,7 @@ export function ChipWindow({
   showLabel: boolean
   wide: boolean
   short: boolean
-  /** Compact bar: a bold number with a smaller, regular-weight muted unit. */
+  /** Compact bar: a regular-weight number with a smaller unit at 70% of its color. */
   compact?: boolean
 }): React.JSX.Element {
   const t = useTranslate()
@@ -129,7 +129,7 @@ export function ChipWindow({
       ) : null}
       <span className="inline-flex items-center gap-1 tabular-nums">
         {section.labelFirst ? name : null}
-        <span className={cn(SEVERITY_TEXT_CLASS[severity], compact && 'font-semibold')}>
+        <span className={SEVERITY_TEXT_CLASS[severity]}>
           {compact ? <CompactPercent text={text} value={value} /> : text}
         </span>
         {section.labelFirst ? null : name}
@@ -156,11 +156,7 @@ function CompactPercent({ text, value }: { text: string; value: string }): React
     return text
   }
   const unit = (part: string) =>
-    part.trim() ? (
-      <span className="text-[0.82em] font-normal text-muted-foreground">{part}</span>
-    ) : (
-      part
-    )
+    part.trim() ? <span className="text-[0.82em] opacity-70">{part}</span> : part
   return (
     <>
       {unit(text.slice(0, at))}

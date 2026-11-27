@@ -39,13 +39,18 @@ export function AccountSwitchRowItem({
   const t = useTranslate()
   const title = detail ? `${label}\n${detail}` : label
   return (
-    <div className="flex items-center">
+    // Why the wrapper owns the fill: the row and its action are two menu items that must hover as one.
+    <div
+      data-current={active ? 'true' : undefined}
+      className="flex items-center rounded-[8px] data-[current=true]:bg-accent not-data-[current=true]:hover:has-[[role=menuitem]:not([data-disabled])]:bg-black/8 not-data-[current=true]:has-[[data-highlighted]]:bg-black/8 dark:not-data-[current=true]:hover:has-[[role=menuitem]:not([data-disabled])]:bg-white/14 dark:not-data-[current=true]:has-[[data-highlighted]]:bg-white/14"
+    >
       <DropdownMenuItem
         title={title}
         {...props}
         aria-current={active ? 'true' : undefined}
         data-current={active ? 'true' : undefined}
-        className={cn('min-h-9 min-w-0 flex-1', className)}
+        variant="account-row"
+        className={cn('min-w-0 flex-1', className)}
       >
         <span className="flex w-4 shrink-0 justify-center">
           {active ? (
@@ -68,7 +73,7 @@ export function AccountSwitchRowItem({
         </span>
         {children ? <div className="w-1/2 max-w-48 shrink-0 text-xs">{children}</div> : null}
       </DropdownMenuItem>
-      {action ? <div className="shrink-0 pr-1.5">{action}</div> : null}
+      {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   )
 }

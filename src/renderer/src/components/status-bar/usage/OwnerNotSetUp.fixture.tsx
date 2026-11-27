@@ -36,18 +36,18 @@ function unavailable(
   }
 }
 
-// This Mac uses Antigravity; the vps host has no agy binary.
+// This Mac uses Kimi; the vps host has no kimi binary.
 const LOCAL: RateLimitState = createEmptyRateLimitState({
   claude: ok('claude', 18),
-  antigravity: ok('antigravity', 40)
+  kimi: ok('kimi', 40)
 })
 const REMOTE: RateLimitState = createEmptyRateLimitState({
   claude: ok('claude', 18),
-  antigravity: unavailable('antigravity', 'cli-unavailable')
+  kimi: unavailable('kimi', 'cli-unavailable')
 })
 
 function bar(rateLimits: RateLimitState): React.JSX.Element {
-  const shown = [rateLimits.claude, rateLimits.antigravity].filter(isProviderConfigured)
+  const shown = [rateLimits.claude, rateLimits.kimi].filter(isProviderConfigured)
   return (
     <div className="flex items-center gap-3 whitespace-nowrap bg-background px-2 py-1 text-xs">
       {shown.map((p) => (
@@ -57,8 +57,8 @@ function bar(rateLimits: RateLimitState): React.JSX.Element {
   )
 }
 
-/** Focused workspace on vps, which has no agy: no Antigravity chip. */
-export const vpsWithoutAgy = defineFixture({
+/** Focused workspace on vps, which has no kimi: no Kimi chip. */
+export const vpsWithoutKimi = defineFixture({
   width: 520,
   render: () =>
     bar(
@@ -71,8 +71,8 @@ export const vpsWithoutAgy = defineFixture({
     )
 })
 
-/** agy installed on vps but signed out: the chip still says so. */
-export const vpsWithAgySignedOut = defineFixture({
+/** kimi installed on vps but signed out: the chip still says so. */
+export const vpsWithKimiSignedOut = defineFixture({
   width: 520,
   render: () =>
     bar(
@@ -81,9 +81,9 @@ export const vpsWithAgySignedOut = defineFixture({
         ownerLabel: 'vps',
         rateLimits: {
           ...REMOTE,
-          antigravity: unavailable('antigravity', 'missing-credentials')
+          kimi: unavailable('kimi', 'missing-credentials')
         },
-        installedAgents: ['claude', 'antigravity']
+        installedAgents: ['claude', 'kimi']
       })
     )
 })

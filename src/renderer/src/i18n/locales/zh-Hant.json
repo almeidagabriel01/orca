@@ -1231,7 +1231,10 @@
     },
     "followSymlinkedDirectories": "跟隨符號連結目錄",
     "followSymlinkedDirectoriesDescription": "在快速開啟中搜尋連結資料夾，並在檔案總管中展開本機連結資料夾。",
-    "accounts": {},
+    "accounts": {
+      "codexRemoveHome": "Orca 會刪除此帳戶在 {{host}} 上的 Codex 資料夾，包括其中的登入資訊和 MCP 登入。此操作無法復原。如果目前選取的是此帳戶，下次啟動 Codex 時會改用「系統預設」。",
+      "claudeRemoveProfile": "Orca 會刪除 {{host}} 上此帳戶專屬的 Claude 資料夾，以及其中儲存的登入資訊。「系統預設」的登入資訊，以及與它共用的聊天記錄都會保留。如果目前選取的是此帳戶，下次啟動 Claude 時會改用「系統預設」。"
+    },
     "sourceControl": {
       "gitOperationInAnotherWorkspace": "其他工作區正在執行 Git 操作",
       "remoteOperationInAnotherWorkspace": "其他工作區正在執行 Git 操作（例如推送、拉取或強制推送）。請等待其完成後再使用此動作，以免操作重疊。",
@@ -1254,6 +1257,8 @@
       "claudeWorkspace": "Claude 工作區",
       "httpServer": "HTTP 伺服器",
       "inspectFailed": "無法檢查 {{directory}}。",
+      "inspectConfigsFailed": "無法檢查 MCP 設定檔。",
+      "createConfigFailed": "建立 MCP 設定檔失敗。",
       "invalidJson": "JSON 無效",
       "invalidServer": "伺服器無效",
       "noServers": "沒有伺服器",
@@ -1631,6 +1636,12 @@
         "workspaces": "{{name}}：{{workspaces}}",
         "added": "已新增 {{name}}",
         "newSessions": "將套用至新的工作階段",
+        "restart_other": "重新啟動 {{count}} 個工作階段",
+        "staleTerminals_other": "{{count}} 個代理程式終端機使用的是舊的 MCP 設定",
+        "staleTerminalsOnHost_other": "{{host}} 上有 {{count}} 個代理程式終端機使用的是舊的 MCP 設定",
+        "staleTerminalsRestart_other": "重新啟動它們以重新連線 Orca 的 MCP 伺服器。",
+        "staleTerminalsRestartManual_other": "請手動重新啟動它們以重新連線 Orca 的 MCP 伺服器。",
+        "staleTerminalsRestartSome_other": "其中 {{restartable}} 個可在此繼續，其餘 {{count}} 個請手動重新啟動。",
         "restart": "重新啟動 {{count}} 個工作階段",
         "addedMany": "已新增 {{count}} 個伺服器",
         "repoOn": "已在 {{repo}} 中開啟 {{name}}",
@@ -2159,6 +2170,12 @@
           "localBaseRefRefreshFailedDetailDirty": "檢出本機 {{value0}} 的工作樹有未提交的變更。請提交、儲藏或丟棄這些變更，然後手動更新本機 {{value0}}。",
           "localBaseRefRefreshFailedDetailNotFastForward": "本機 {{value0}} 不存在，或無法從遠端基線順利快轉。手動更新前請檢查是否有僅存在於本機的提交。",
           "localBaseRefRefreshFailedDetailError": "更新本機 {{value0}} 時 Git 傳回錯誤。請檢查存放庫是否有鎖定的參照或異常工作樹狀態，然後手動更新本機 {{value0}}。",
+          "localBaseRefNotUpdated": "{{value0}} 未更新",
+          "localBaseRefNotUpdatedDirty": "{{value0}} 有未提交的變更。",
+          "localBaseRefNotUpdatedNotFastForward": "{{value0}} 有僅存在於本機的提交。",
+          "localBaseRefNotUpdatedError": "Git 錯誤。",
+          "localBaseRefHideDetails": "隱藏詳細資料",
+          "localBaseRefShowDetails": "詳細資料",
           "localBaseRefShallowHistoryTitle": "本機 {{value0}} 未更新：淺層複製",
           "localBaseRefShallowHistoryNamed": "「{{value0}}」已從 {{value1}} 建立，不受影響。Orca 無法同時更新本機 {{value2}} 分支，因為此複製僅包含近期的歷史記錄，Git 無法確認本機 {{value2}} 是否只是落後。若要避免之後建立工作區時再發生此問題，請執行一次：",
           "localBaseRefShallowHistory": "工作區已從 {{value0}} 建立，不受影響。Orca 無法同時更新本機 {{value1}} 分支，因為此複製僅包含近期的歷史記錄，Git 無法確認本機 {{value1}} 是否只是落後。若要避免之後建立工作區時再發生此問題，請執行一次：",
@@ -2675,6 +2692,7 @@
       "codex": {
         "session": {
           "restart": {
+            "4bd4a3a9c7": "系統預設",
             "9f0b1c2d3e": "Codex 帳戶"
           }
         }
@@ -3673,9 +3691,9 @@
         "setLocationTooltip": "選擇一個資料夾或將此專案複製到 {{host}} 上。",
         "addHost": "新增主機",
         "addSshHost": "新增 SSH 主機",
-        "addSshHostHint": "透過 SSH 使用現有機器",
+        "addSshHostHint": "透過 SSH 連線",
         "addRemoteOrcaServer": "新增遠端 Orca 伺服器",
-        "addRemoteOrcaServerHint": "配對另一個 Orca 執行環境",
+        "addRemoteOrcaServerHint": "另一台電腦上的 Orca",
         "hostConnectionFailed": "連線失敗",
         "connect": "連線",
         "reconnect": "重新連線",
@@ -5244,6 +5262,11 @@
             "waitingTitle": "正在等待 {{server}}",
             "waitingBody": "伺服器再次提供此終端機或連線狀態變更時，Orca 會重新連接此終端機。點選「重新連線」可立即重試。",
             "downFor": "已中斷連線 {{duration}}",
+            "cantReachTitle": "無法連線至 {{server}}",
+            "detailsButton": "詳細資訊",
+            "tailscaleHintTitle": "檢查 Tailscale 連線路徑",
+            "reconnectNowButton": "立即重新連線",
+            "copyPingCommand": "複製指令",
             "tailscaleHint": "檢查 Tailscale 連線路徑：",
             "fallbackServerName": "伺服器",
             "connectionLostTitle": "正在重新連線至 {{server}}",
@@ -5655,6 +5678,7 @@
             "11e2354daf": "Claude 用量執行環境",
             "3dd7ddfae1": "開啟 Claude 詳情和帳戶切換器",
             "59c6e7b4e0": "可見工作階段將立即重新啟動。其他工作階段會在其工作樹變為作用中狀態時重新啟動。",
+            "c676918adc": "系統預設",
             "3325d996cb": "重新整理速率限制",
             "cd9d7b40ff": "重新啟動 {{value0}} 工作階段",
             "6cd6650b4c": "重新啟動工作階段",
@@ -5673,6 +5697,7 @@
             "4fba7dc1e7": "餘額 {{value0}}",
             "4025a6f62f": "無限制",
             "a95969101f": "額度：{{value0}}",
+            "codexSignInSuccess": "已登入 Codex",
             "codexSignInError": "Codex 登入失敗。請再試一次。",
             "cursorUsageMenu": "Cursor 用量",
             "hiddenUsageProviders": "另有：{{value0}}",
@@ -6964,8 +6989,8 @@
           "addSshHost": "新增 SSH 主機",
           "addRemoteServer": "新增遠端伺服器",
           "addRemoteHost": "新增遠端主機",
-          "addSshHostDetail": "透過 SSH 使用現有機器。",
-          "addRemoteServerDetail": "與另一台電腦上執行的 Orca 配對。",
+          "addSshHostDetail": "透過 SSH 連線到機器。",
+          "addRemoteServerDetail": "另一台電腦的 Orca，不需 SSH。",
           "addRemoteHostDetail": "SSH 主機或 Orca 伺服器",
           "addWslHost": "新增 WSL 發行版",
           "addWslHostDetail": "在 WSL 2 發行版內執行 Orca 伺服器。實驗性。",
@@ -7601,7 +7626,8 @@
           "lineageSubmenu": "父層與子層",
           "projectGroupSubmenu": "專案群組",
           "muteNotifications": "將通知靜音",
-          "unmuteNotifications": "取消通知靜音"
+          "unmuteNotifications": "取消通知靜音",
+          "copyAutoNameError": "自動命名錯誤"
         },
         "WorktreeList": {
           "7a8b9c0d1e": "需要更新",
@@ -8055,7 +8081,7 @@
           "serverSaveFailed": "新增遠端伺服器失敗。",
           "serverTitle": "新增遠端伺服器",
           "sshTitle": "新增 SSH 主機",
-          "serverDescription": "與另一台電腦上執行的 Orca 配對。",
+          "serverDescription": "與同一網路中另一台電腦上的 Orca 配對。",
           "serverRunsAsYou": "此裝置將能夠在此伺服器上以你的身分執行命令。",
           "sshDescription": "新增一台可透過 SSH 登入的常設主機。",
           "serverSshTitle": "向 {{server}} 新增 SSH 主機",
@@ -8394,6 +8420,26 @@
           "browseFolder": "瀏覽資料夾…",
           "cloneFromUrl": "從 URL 複製…",
           "createNewProject": "建立新專案…"
+        },
+        "AutoNameFailed": {
+          "naming": "正在為此工作區命名…",
+          "title": "無法自動命名",
+          "dismiss": "關閉",
+          "modelUnavailableOnAccount": "此 {{agent}} 帳戶無法使用 {{model}}",
+          "modelUnavailableForAgent": "{{agent}} 無法使用 {{model}}",
+          "modelUnavailable": "無法使用 {{model}}",
+          "timedOut": "{{seconds}} 秒後逾時",
+          "agentMissing": "尚未安裝 {{agent}}",
+          "usageLimitAgent": "{{agent}} 已達用量上限",
+          "usageLimit": "命名代理程式已達用量上限",
+          "signedOutAgent": "尚未登入 {{agent}}",
+          "signedOut": "命名代理程式尚未登入",
+          "agentFailed": "{{agent}} 因錯誤而結束",
+          "noAgent": "尚未設定命名代理程式",
+          "publishCheck": "無法確認分支是否已推送",
+          "environment": "無法啟動命名代理程式",
+          "emptyName": "代理程式未傳回可用的名稱",
+          "unknown": "命名代理程式發生錯誤"
         }
       },
       "shared": {
@@ -8496,13 +8542,16 @@
           "3d245ef7d9": "Codex 報告此登入已過時",
           "589eba1eee": "需要重新驗證",
           "e74831fb6b": "目前",
+          "b4c9450319": "{{value0}} 沒有受管理的 Codex 帳戶。Orca 將使用該環境的系統預設 Codex 登入，直到你在此處新增一個。",
           "93c47b333a": "需要登入",
+          "f2a265f8c7": "系統預設",
           "c0a52abfc5": "正在顯示 {{value0}} 的帳戶。新帳戶會新增到此處。",
           "94d351af4a": "帳戶",
           "d0d53b7eb0": "管理 Orca 使用哪個 Codex 帳戶進行即時速率限制擷取。",
           "340d6f7a85": "每個帳戶在 Orca 中都保留自己的本機登入上下文。帳戶身分驗證資訊保留在此裝置上。",
           "cedfab35ab": "可選。Orca 可使用系統預設 Codex 登入；僅當你需要在 Orca 中快速切換帳戶時才新增帳戶。",
           "ef91cfa06b": "Codex",
+          "3fe7862418": "{{value0}} 沒有受管理的 Claude 帳戶。Orca 將使用該環境的系統預設 Claude 登入，直到你在此處新增一個。",
           "fcc4093fc1": "使用你目前在 {{value0}} 的 Codex 登入資訊。",
           "72b36ea174": "可選。Orca 可使用系統預設 Claude 登入；僅當你需要快速切換且不想搬移聊天工作階段時才新增帳戶。",
           "26ef4b55be": "Claude",
@@ -8558,6 +8607,8 @@
           "accountScopePrefix": "帳戶範圍",
           "accountScopeRemoteServerUnnamed": "遠端伺服器",
           "remoteScopeAuthContext": "每個帳戶在 {{value0}} 上保留自己的登入上下文。",
+          "remoteEmptyClaudeAccounts": "{{value0}} 上沒有受管理的 Claude 帳戶。它使用其系統預設的 Claude 登入；請在該伺服器上新增帳戶。",
+          "remoteEmptyCodexAccounts": "{{value0}} 上沒有受管理的 Codex 帳戶。它使用其系統預設的 Codex 登入；請在該伺服器上新增帳戶。",
           "codexSystemDefaultCustomProvider": "自訂供應商 — 不追蹤用量。",
           "codexSystemDefaultNeedsSignIn": "未找到 {{value0}} 的 Codex 登入資訊。",
           "codexConfigSyncMissingSource": "由於缺少 {{value0}}，Codex 仍在使用上次同步的設定。請恢復該檔案以恢復同步。",
@@ -15240,7 +15291,8 @@
             "scopeOlderHistory": "在 Git Graph 中查看更早的歷史",
             "scopeNoUncommitted": "沒有未提交的變更。",
             "scopeCommitFiles": "檔案",
-            "gitGraphButton": "圖譜"
+            "gitGraphButton": "圖譜",
+            "compareLoadingAgainst": "正在與 {{base}} 比較"
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "無法啟動選定的代理程式。",
@@ -17141,6 +17193,7 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "未設定追蹤",
+                  "cc39a87288": "已連線·系統預設",
                   "00087eecb2": "已連線 · {{value0}}"
                 }
               }
@@ -21360,6 +21413,7 @@
         "nextQuestion": "下一個問題",
         "back": "返回",
         "skipAndSubmit": "略過並提交",
+        "questionStepLabel": "{{value0}}，第 {{value1}} 個，共 {{value2}} 個",
         "stepLabel": "{{value0}}，第 {{value1}} 個，共 {{value2}} 個：{{value3}}"
       },
       "ask": {
@@ -21501,6 +21555,11 @@
       "copyCode": "複製程式碼",
       "wrapLines": "自動換行",
       "disableLineWrap": "停用自動換行",
+      "htmlPreview": "HTML 預覽",
+      "htmlView": "HTML 檢視",
+      "htmlViewCode": "程式碼",
+      "htmlViewPreview": "預覽",
+      "htmlViewPreviewWaiting": "此程式碼區塊完成後即可預覽。",
       "context": {
         "unavailable": "上下文用量暫時未知，將在代理程式下次回應後提供。",
         "summary": "上下文：{{used}}/{{window}} token（{{percent}}%），根據上一次回應的估算值。",
@@ -22272,16 +22331,19 @@
         "restore": "重新顯示於停駐區",
         "alreadyStopped": "已停止",
         "cantStop": "目前無法停止",
+        "clearAllLabel_other": "清除全部 {{count}} 個失敗的工作者",
         "loadingWorker": "正在載入工作者…",
         "resultUnavailable": "無法取得工作者結果",
         "showDetails": "顯示詳細資訊",
         "hideDetails": "隱藏詳細資訊",
         "close": "關閉",
         "workersRegion": "工作者",
+        "clearName": "清除 {{name}}",
         "doneResult": "完成 · 開啟結果",
         "stopUnavailable": "停止 {{name}} · {{title}} 無法使用 · {{reason}}",
         "stopName": "停止 {{name}} · {{title}}",
         "stopping": "正在停止…",
+        "clear": "清除",
         "stop": "停止",
         "coordinator": "等待協調者",
         "starting": "啟動中",
@@ -22312,6 +22374,7 @@
         "show": "顯示",
         "runningCount": "{{count}} 個執行中",
         "stopAll": "全部停止",
+        "clearFailed": "清除失敗的項目",
         "unlistedDetail": "部分背景工作未列於此處",
         "unlisted": "背景工作執行中",
         "unread": "無法載入工作者",
@@ -22912,6 +22975,9 @@
       },
       "hostFile": {
         "updateHostForOutsideFiles": "更新 {{value0}} 上的 Orca，以開啟其工作區以外的檔案"
+      },
+      "paste": {
+        "clipboardUnpastable": "無法貼上複製的檔案。請試著將它拖曳到終端機中。"
       }
     },
     "settings": {
@@ -24641,7 +24707,8 @@
       "scannerMissing": "此 Orca 安裝中缺少工作階段掃描器。重新安裝 Orca 即可還原。",
       "scannerStopped": "工作階段掃描器意外停止。請重新整理以重試。"
     },
-    "sessionAccount": "帳戶"
+    "sessionAccount": "帳戶",
+    "sessionAccountUnknown": "未知"
   },
   "common": {
     "retry": "重試",
@@ -24703,8 +24770,10 @@
       "failed": "無法將窗格移動到新分頁。"
     },
     "claudeOldTerminalBanner": {
+      "title": "此終端機是在 Orca 的 Claude 帳戶更新之前開啟的，因此這裡的 claude 使用系統預設的登入資訊。",
       "dialogTitle": "為何這裡的 claude 不使用所選帳戶",
-      "dialogDescription": "Orca 現在將每個 Claude 帳戶儲存在各自的資料夾中，新終端機中的 claude 會使用你選擇的帳戶。"
+      "dialogDescription": "Orca 現在將每個 Claude 帳戶儲存在各自的資料夾中，新終端機中的 claude 會使用你選擇的帳戶。",
+      "dialogCause": "在此更新之前開啟的終端機不會如此，因此這裡的 claude 使用系統預設的登入資訊登入。請開啟新終端機以使用所選帳戶。"
     },
     "claudeDiffPanelNotice": {
       "title": "終端機較寬時，Claude Code 可在聊天旁開啟自己的差異面板。此面板屬於 Claude，並非 Orca。",
@@ -24936,7 +25005,10 @@
       "added": "已新增帳戶。選擇它即可將其用於你下次啟動的 Claude。",
       "nextLaunch": "{{value0}} → {{value1}}。你下次啟動的 Claude 終端機將使用它。正在執行的 Claude 終端機會保留其帳戶。",
       "profileSwitching": "下次在任何分頁中啟動 Claude 時，就會套用這次切換。",
+      "systemDefault": "系統預設",
       "unnamedAccount": "Claude 帳戶",
+      "systemDefaultNamed": "系統預設：{{value0}}",
+      "systemDefaultIsSaved": "系統預設已登入為 {{value0}}，它同時也是一個已儲存的帳戶。較早版本的 Orca 可能已將那個登入資訊複製到那裡。如果它不是你自己的登入資訊，請選擇系統預設並執行 claude /login。",
       "systemDefaultIsSavedDismiss": "關閉",
       "signInRequired": "請重新登入以使用此帳戶",
       "signInAgain": "重新登入",
@@ -25013,6 +25085,7 @@
       "add": "複製設定指令",
       "refresh": "重新整理帳戶",
       "upgrade": "如果帳戶未顯示，請更新或重新啟動 Orca 主機。",
+      "system": "系統預設",
       "active": "目前使用中",
       "select": "選擇",
       "remove": "移除",
@@ -25049,7 +25122,12 @@
     },
     "rename": {
       "action": "重新命名",
+      "title": "重新命名帳戶",
+      "description": "只會變更 Orca 顯示的名稱。留空則顯示 {{email}}。",
       "label": "顯示名稱",
+      "reset": "重設為預設值",
+      "cancel": "取消",
+      "save": "儲存",
       "unsupportedHost": "請更新 {{host}} 上的 Orca，才能在那裡變更此設定。"
     }
   },
@@ -25306,7 +25384,18 @@
       "addEmoji": "新增表情符號",
       "addEmojiTooltip": "新增表情符號（或輸入 :）",
       "noEmojiFound": "找不到表情符號",
-      "labels": "標籤：{{labels}}"
+      "labels": "標籤：{{labels}}",
+      "peek": {
+        "closed": "已關閉",
+        "open": "開啟中",
+        "merged": "已合併",
+        "draft": "草稿",
+        "failing": "失敗",
+        "running": "待處理",
+        "cancelled": "已取消",
+        "passing": "通過",
+        "more": "另有 {{count}} 個"
+      }
     },
     "attachments": {
       "updateRuntime": "更新遠端執行環境以更改工作區連結",
@@ -26997,6 +27086,7 @@
       "computerHint": "機器人執行的位置。",
       "computerAccountHint": "機器人執行的位置，以 {{account}} 身分登入 Orca。",
       "useChatDefaults": "使用聊天預設設定",
+      "chatDefault": "聊天預設",
       "agent": "代理程式",
       "folder": "資料夾：{{path}}",
       "name": "名稱",
@@ -27052,7 +27142,12 @@
       "filters": "應用程式篩選器",
       "composio": {
         "withComposio": "透過 Composio",
-        "signsIn": "透過你的 Composio 帳戶登入。"
+        "signsIn": "透過你的 Composio 帳戶登入。",
+        "changeKeyTitle": "更換你的 Composio 金鑰",
+        "replacesKeyEnding": "取代末尾為 {{hint}} 的金鑰，適用於你所有的機器人。",
+        "replacesKey": "取代你已儲存的金鑰，適用於你所有的機器人。",
+        "newKeyNeeds": "新金鑰需要 <permission/>。",
+        "replaceKey": "更換金鑰並繼續"
       },
       "mcp": {
         "addTitle": "新增 {{app}}",
@@ -27143,6 +27238,7 @@
       },
       "setUpNamed": "設定 {{name}}",
       "setUp": "設定",
+      "couldNotConnect": "無法連線到 {{app}}",
       "webhooks": {
         "line": "來自任何工具或指令碼的事件"
       },
@@ -27303,6 +27399,7 @@
     "usageLimit": {
       "continuesAt": "將於 {{time}} 繼續",
       "continuesShort": "{{time}} 繼續",
+      "rowLine": "使用上限 · {{time}}",
       "continuesTip": "將於 {{time}} 自動繼續",
       "hitLimit": "已達上限 · {{time}} 重設",
       "hitShort": "已達上限",
@@ -27490,6 +27587,11 @@
       "nudgeDismiss": "不再顯示",
       "menu": "從其他應用程式匯入…"
     },
+    "composio": {
+      "key": {
+        "changeKey": "更換金鑰"
+      }
+    },
     "share": {
       "linkStatusUnavailable": "無法檢查分享連結",
       "linkNoLongerAvailable": "此分享連結已無法使用。",
@@ -27642,7 +27744,10 @@
       "groupReplierNotMember": "請在「聊天室回覆」中選擇一位目前的聊天室成員。",
       "groupMailNeverStarted": "這封郵件從未開始一輪對話。",
       "groupRemoteUnreachable": "無法連線到 {{host}}。{{detail}}",
-      "groupRemoteUnreachableRetry": "無法連線到 {{host}}。{{detail}} 重新發布即可重試。"
+      "groupRemoteUnreachableRetry": "無法連線到 {{host}}。{{detail}} 重新發布即可重試。",
+      "composioKeyCantCreateSessions": "此 Composio 金鑰無法建立工作階段。所需權限：{{permission}}。",
+      "composioKeyNeedsPermission": "此 Composio 金鑰缺少下列權限：{{permission}}。",
+      "composioKeyMissingPermission": "此 Composio 金鑰缺少 Orca 所需的權限。"
     },
     "lookAroundEvery": {
       "every4h": "上午 8 點到晚上 8 點，每 4 小時",

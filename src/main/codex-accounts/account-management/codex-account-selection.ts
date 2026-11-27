@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util'
 import type {
   CodexManagedAccount,
   CodexRateLimitAccountsState,
@@ -105,10 +106,8 @@ export class CodexAccountSelection {
     const account = this.requireAccount(accountId)
     const settings = this.dependencies.store.getSettings()
     const nextAccounts = settings.codexManagedAccounts.filter((entry) => entry.id !== accountId)
-    const nextSelection = removeCodexAccountIdFromSelection(
-      normalizeCodexRuntimeSelection(settings),
-      accountId
-    )
+    const previousSelection = normalizeCodexRuntimeSelection(settings)
+    const nextSelection = removeCodexAccountIdFromSelection(previousSelection, accountId)
     const nextActiveId =
       settings.activeCodexManagedAccountId === accountId ? null : nextSelection.host
     // The login's name stays: it is global, not this row's.
@@ -118,6 +117,11 @@ export class CodexAccountSelection {
       activeCodexManagedAccountIdsByRuntime: nextSelection
     })
     this.dependencies.runtimeHome.syncForCurrentSelection()
+    // Why: refresh blanks active usage bars, so run it only if a lane's selection changed (#24942).
+    const selectionChanged = !isDeepStrictEqual(
+      previousSelection,
+      normalizeCodexRuntimeSelection(this.dependencies.store.getSettings())
+    )
     if (account.managedHomeRuntime === 'host' && nextSelection.host === null) {
       this.dependencies.lifecycle.onHostSystemDefaultSelected?.()
     }
@@ -130,13 +134,15 @@ export class CodexAccountSelection {
       // Removal already succeeded; retain the ledger's safety guards if cleanup fails.
       console.warn('[codex-accounts] Removed account, but credit ledger cleanup failed:', error)
     }
-    const accountTarget = getCodexSelectionTargetForAccount(account)
-    this.startQuotaRefresh(
-      getSelectedCodexAccountIdForTarget(settings, accountTarget) === accountId
-        ? accountId
-        : undefined,
-      accountTarget
-    )
+    if (selectionChanged) {
+      const accountTarget = getCodexSelectionTargetForAccount(account)
+      this.startQuotaRefresh(
+        getSelectedCodexAccountIdForTarget(settings, accountTarget) === accountId
+          ? accountId
+          : undefined,
+        accountTarget
+      )
+    }
     return this.snapshot()
   }
 
@@ -249,10 +255,7 @@ export class CodexAccountSelection {
       selection,
       settings.codexManagedAccounts
     )
-    const changed =
-      nextSelection.host !== selection.host ||
-      JSON.stringify(nextSelection.wsl) !== JSON.stringify(selection.wsl)
-    if (!changed) {
+    if (isDeepStrictEqual(selection, nextSelection)) {
       return
     }
     this.dependencies.store.updateSettings({

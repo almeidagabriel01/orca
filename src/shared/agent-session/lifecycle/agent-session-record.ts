@@ -3,8 +3,7 @@ import type { AgentSessionDeathEvidence } from './leases/agent-session-death-evi
 import { isAgentSessionRewindRecord } from './rewind/agent-session-rewind'
 import type { AgentSessionRewindRecord } from './rewind/agent-session-rewind'
 import { isAgentSessionLaunchArgs } from './records/agent-session-launch-args'
-import { isAgentSessionSwitchFields } from '../conversation-context/agent-session-agent-switch'
-import type { AgentSessionSwitchFields } from '../conversation-context/agent-session-agent-switch'
+import { isForkRecordFields, type ForkRecordFields } from './records/fork-record-fields'
 import { isAgentSessionConversationName } from '../conversation-naming/agent-session-conversation-name'
 import {
   isPersistedAgentSessionHandoffStage,
@@ -17,7 +16,6 @@ import {
 
 import type { AgentSessionLastTurn } from './records/agent-session-last-turn'
 import type { AgentSessionForkedFrom } from './records/agent-session-forked-from'
-import type { AgentSessionContinuation } from './records/agent-session-continued-to'
 export type { AgentSessionForkedFrom }
 import type { ExecutionHostId } from '../../execution-host/execution-host'
 import { isAgentSessionConversationCommandRecord } from '../conversation-context/agent-session-conversation-command'
@@ -39,6 +37,8 @@ import {
   type AgentSessionAccountHome,
   type AgentSessionLaunchedAccount
 } from './accounts/agent-session-account-home'
+
+import type { AgentSessionRunPlacement } from './agent-session-run-placement'
 
 export const AGENT_SESSION_RECORD_SCHEMA_VERSION = 2 as const
 
@@ -108,7 +108,7 @@ export type AgentSessionLease = {
   deathEvidence: AgentSessionDeathEvidence | null
 }
 
-export type AgentSessionRecord = AgentSessionSwitchFields & {
+export type AgentSessionRecord = ForkRecordFields & {
   schemaVersion: typeof AGENT_SESSION_RECORD_SCHEMA_VERSION
   sessionId: string
   location: AgentSessionExecutionLocation
@@ -119,6 +119,9 @@ export type AgentSessionRecord = AgentSessionSwitchFields & {
   accountHome: AgentSessionAccountHome
   /** Where the latest proven runtime actually launched; absent before any or from older hosts. */
   launchedAccount?: AgentSessionLaunchedAccount
+  /** Where the last run started (in this app or under which daemon start); read through
+   *  `agentSessionRunPlacement`, which drops a malformed one. */
+  lastRunPlacement?: AgentSessionRunPlacement
   /** Optional host-written construction observation; checked independently of record readability. */
   acquiredAccount?: unknown
   /** Initial launch directory in host path syntax. Floating sessions resume here; worktree/folder IDs resolve their durable location. */
@@ -152,7 +155,7 @@ export type AgentSessionRecord = AgentSessionSwitchFields & {
   lease: AgentSessionLease
   createdAt: number
   updatedAt: number
-} & AgentSessionContinuation
+}
 
 const MAX_ID_LENGTH = 512
 /** A death evidence's `detail` past this fails a load, so whoever writes one cuts it here. */
@@ -262,6 +265,7 @@ function isAgentSessionDeathEvidence(value: unknown): value is AgentSessionDeath
     isBoundedString(evidence.detail, MAX_AGENT_SESSION_DEATH_DETAIL_CHARS) &&
     isNonNegativeSafeInteger(observedAt) &&
     (ownerFence === undefined || isNonNegativeSafeInteger(ownerFence)) &&
+    (evidence.resumeByMail === undefined || evidence.resumeByMail === true) &&
     (lastProvenAliveAt === undefined ||
       (isNonNegativeSafeInteger(lastProvenAliveAt) && lastProvenAliveAt <= observedAt)) &&
     (runtimeEnd === undefined || isBoundedString(runtimeEnd, MAX_ID_LENGTH))
@@ -305,7 +309,7 @@ function isPersistedAgentSessionObservationLease(
 export function isPersistedAgentSessionObservationRecord(
   value: unknown
 ): value is PersistedAgentSessionObservationRecord {
-  if (!isStoredRecordObject(value)) {
+  if (!isStoredRecordObject(value) || !isForkRecordFields(value)) {
     return false
   }
   const record = value
@@ -332,7 +336,6 @@ export function isPersistedAgentSessionObservationRecord(
         isAgentSessionConversationName(record.conversationName)) &&
       (record.conversationNameSource === undefined || record.conversationNameSource === 'user') &&
       (record.launchArgs === undefined || isAgentSessionLaunchArgs(record.launchArgs)) &&
-      isAgentSessionSwitchFields(record) &&
       !Object.hasOwn(record, 'launchEnv') &&
       isPersistedAgentSessionObservationLease(record.lease) &&
       record.lease.sessionId === record.sessionId &&

@@ -127,7 +127,7 @@ export type StructuredAgentSessionSideChatParent = {
 
 export function createStructuredAgentSessionSideChatParent(
   deps: Pick<StructuredAgentSessionHostDeps, 'store' | 'logger'>,
-  conversation: (sessionId: string) => Promise<StructuredAgentSessionHostSession>
+  conversation: (sessionId: string) => Promise<StructuredAgentSessionHostSession | null | undefined>
 ): StructuredAgentSessionSideChatParent {
   return {
     read: async (record) => {
@@ -137,9 +137,11 @@ export function createStructuredAgentSessionSideChatParent(
         return null
       }
       try {
-        const { snapshot } = await (
-          await conversation(from.sessionId)
-        ).journal.reads.operationWindow({
+        const parent = await conversation(from.sessionId)
+        if (!parent) {
+          throw new Error('side chat parent is gone')
+        }
+        const { snapshot } = await parent.journal.reads.operationWindow({
           afterSequence: cursor.sequence,
           anchorsOnly: true,
           withoutTurnAhead: true,

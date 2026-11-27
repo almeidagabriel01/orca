@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { NativeChatNoticeAuthRecovery } from '../antigravity-auth/NativeChatAntigravityAuthRecovery'
-import { Check, Gauge, Loader2, MessageSquarePlus } from 'lucide-react'
+import { Check, Loader2, MessageSquarePlus } from 'lucide-react'
+import { GaugeMaxIcon } from '@/components/icons/GaugeMaxIcon'
 import { toast } from 'sonner'
 import { useIntlLocale, useTranslate, type Translate } from '@/i18n/use-translate'
 import { cn } from '@/lib/class-names'
@@ -295,10 +296,7 @@ function UsageLimitCard({
           className="mt-px size-4 shrink-0 text-status-success @max-[260px]:hidden"
         />
       ) : (
-        <Gauge
-          aria-hidden="true"
-          className="mt-px size-4 shrink-0 text-chat-warning @max-[260px]:hidden"
-        />
+        <GaugeMaxIcon className="mt-px size-4 shrink-0 text-status-warning-text @max-[260px]:hidden" />
       )}
       <div
         aria-hidden="true"

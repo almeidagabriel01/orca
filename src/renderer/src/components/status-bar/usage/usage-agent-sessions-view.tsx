@@ -113,7 +113,6 @@ const RING_ICON_SIZE: Partial<Record<string, number>> = {
   minimax: 7,
   'opencode-go': 6,
   kimi: 7,
-  antigravity: 7,
   grok: 7,
   zcode: 7,
   muse: 7,

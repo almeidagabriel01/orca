@@ -19,6 +19,7 @@ import {
   BotGroupStop,
   BotGroupUpdate
 } from '../bots/bot-group'
+import { BotOfferAnswerParams } from '../bots/bot-offer-answers'
 import {
   BrowserClientFileChannelAbortParams,
   BrowserClientFileChannelBeginParams,
@@ -70,6 +71,7 @@ import { DelegatedMobileDeviceSyncParamsSchema } from '../remote-runtime/pairing
 import { RegisterDeviceKeyParamsSchema } from '../remote-runtime/pairing/device-key-registration-contract'
 import { DeclareOrcaAccountParamsSchema } from '../remote-runtime/pairing/paired-desktop-account-contract'
 import { PairingCreateOfferParamsSchema } from '../remote-runtime/pairing/pairing-create-offer-contract'
+import { PairingGetDirectEndpointsParamsSchema } from '../remote-runtime/pairing/pairing-direct-endpoints-contract'
 import { ExchangePairingTicketParamsSchema } from '../remote-runtime/pairing/ticket-exchange-contract'
 import {
   PairingGetEndpointsParamsSchema,
@@ -273,7 +275,9 @@ import { ExtensionList, ExtensionReload } from './browser/browser-extension-para
 import { DropFiles, MouseClick } from './browser/browser-extras-params'
 import {
   GrabAwait,
+  GrabCancel,
   GrabCaptureSelection,
+  GrabPickedPresent,
   GrabSetMode,
   GrabViewportBridge
 } from './browser/browser-grab-params'
@@ -389,7 +393,8 @@ import {
   ConnectorReply,
   ConnectorSlackMirrorPost,
   ConnectorSlackMirrorSet,
-  ConnectorSlackMirrorStatus
+  ConnectorSlackMirrorStatus,
+  ConnectorWakeReplyPlace
 } from './connectors/connector-params'
 import {
   DiagnosticsHeavyJobMoveSourceParams,
@@ -1093,6 +1098,8 @@ import { WorktreeCreate, WorktreePrefetchCreateBase } from './workspaces/worktre
 import {
   WorktreeActivate,
   WorktreeArchive,
+  WorktreeAutoNameParams,
+  WorktreeAutoNameWaitParams,
   WorktreeDetectedListParams,
   WorktreeForceDeleteBranch,
   WorktreeListParams,
@@ -1382,6 +1389,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'bots.memory.forget': BotMemoryForget,
   'bots.memory.history': BotChat,
   'bots.memory.undo': BotMemoryUndo,
+  'bots.offer.answer': BotOfferAnswerParams,
   'bots.request.outcome': BotRequestOutcomeParams,
   'bots.roster': BotRoster,
   'bots.sendRunAgain': BotRunSendAgainParams,
@@ -1477,9 +1485,10 @@ export const RPC_PARAMS_BY_METHOD = {
   'browser.get': Get,
   'browser.goto': Goto,
   'browser.grab.await': GrabAwait,
-  'browser.grab.cancel': BrowserTarget,
+  'browser.grab.cancel': GrabCancel,
   'browser.grab.captureSelection': GrabCaptureSelection,
   'browser.grab.extractHover': BrowserTarget,
+  'browser.grab.pickedPresent': GrabPickedPresent,
   'browser.grab.setMode': GrabSetMode,
   'browser.grab.viewportBridge': GrabViewportBridge,
   'browser.grab.watch': BrowserTarget,
@@ -1586,6 +1595,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'connector.slackMirror.post': ConnectorSlackMirrorPost,
   'connector.slackMirror.set': ConnectorSlackMirrorSet,
   'connector.slackMirror.status': ConnectorSlackMirrorStatus,
+  'connector.wakeReplyPlace': ConnectorWakeReplyPlace,
   'desktop.openWindowInBackground': null,
   'desktopBrowserBridge.attach': DesktopBrowserBridgeAttachParams,
   'desktopBrowserBridge.downloadAbort': DesktopBrowserBridgeDownloadAbortParams,
@@ -1965,6 +1975,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'mcpServers.signOut': McpServerTarget,
   'mcpServers.update': McpServerUpdate,
   'mobileRelay.hosts.list': null,
+  'mobileRelay.hosts.unwatchRows': null,
   'mobileRelay.hosts.worktrees': MobileRelayHostWorktreesParamsSchema,
   'mobileRelay.projectSections': null,
   'mobileWeb.bundle.brotliRange': MobileWebBundleChunkParamsSchema,
@@ -2074,6 +2085,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'pairing.createOffer': PairingCreateOfferParamsSchema,
   'pairing.delegatedMobileDevice.sync': DelegatedMobileDeviceSyncParamsSchema,
   'pairing.exchangeTicket': ExchangePairingTicketParamsSchema,
+  'pairing.getDirectEndpoints': PairingGetDirectEndpointsParamsSchema,
   'pairing.getEndpoints': PairingGetEndpointsParamsSchema,
   'pairing.provisionRelay': PairingProvisionRelayParamsSchema,
   'pairing.registerDeviceKey': RegisterDeviceKeyParamsSchema,
@@ -2327,6 +2339,10 @@ export const RPC_PARAMS_BY_METHOD = {
   'worktree.activate': WorktreeActivate,
   'worktree.adoptProvisionedRoot': WorktreeAdoptProvisionedRoot,
   'worktree.archive': WorktreeArchive,
+  'worktree.autoName.availability': WorktreeAutoNameParams,
+  'worktree.autoName.dismiss': WorktreeAutoNameParams,
+  'worktree.autoName.retry': WorktreeAutoNameParams,
+  'worktree.autoName.wait': WorktreeAutoNameWaitParams,
   'worktree.create': WorktreeCreate,
   'worktree.detectedList': WorktreeDetectedListParams,
   'worktree.forceDeleteBranch': WorktreeForceDeleteBranch,

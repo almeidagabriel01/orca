@@ -3,8 +3,7 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import {
   agentSessionAccountHome,
-  isLegacyAgentSessionAccountHome,
-  type AgentSessionAccountHome
+  isLegacyAgentSessionAccountHome
 } from '../../../shared/agent-session/lifecycle/accounts/agent-session-account-home'
 import { acquiredAgentSessionAccount } from '../../../shared/agent-session/lifecycle/accounts/agent-session-acquired-account'
 import { CLAUDE_STRUCTURED_AGENT } from '../../claude/structured/claude-structured-agent-definition'
@@ -26,7 +25,9 @@ import { getStructuredAgentSessionHost } from '../../native-chat/agent-session-w
 import {
   historyRowOfDeletedChat,
   historyRowOwners,
-  historyRowOwnershipLookup
+  historyRowOwnershipLookup,
+  oneRowPerChat,
+  type HistoryRowWithOwner
 } from './history-row-ownership-lookup'
 import { ensureStructuredAgentSessionHostUnlessRefused } from '../../runtime/agent-session/installation/structured-agent-session-host-refusal'
 import { listChatProviderSessionOwnership } from '../../native-chat/conversation-adoption/retired-conversation-ownership'
@@ -51,40 +52,47 @@ export const OPENS_EVERY_STRUCTURED_CHAT: StructuredChatOpener = () => true
 
 export function projectStructuredAiVaultSessions(
   result: AiVaultListResult,
-  opensChat: StructuredChatOpener
+  opensChat: StructuredChatOpener,
+  // Older clients size Show more by row count alone, so they keep a row per conversation.
+  listsChatOnce = true
 ): AiVaultListResult {
   const owner = historyRowOwnershipLookup()
   const deleted = historyRowOfDeletedChat()
   if (!owner) {
     return result
   }
-  const sessions = result.sessions.flatMap((session) => {
-    const local = session.executionHostId === LOCAL_EXECUTION_HOST_ID
-    if (local && deleted?.(session)) {
-      return []
-    }
-    const ownership = local ? owner(session) : null
-    if (!ownership) {
-      // A chat forgotten since the scan: its ACP session no longer opens anywhere.
-      return local && isCursorAcpSessionRow(session) ? [] : [session]
-    }
-    if (!opensChat(ownership.provider)) {
-      return []
-    }
-    return [
-      {
+  const rows = result.sessions.flatMap(
+    (session): HistoryRowWithOwner<(typeof result.sessions)[number]>[] => {
+      const local = session.executionHostId === LOCAL_EXECUTION_HOST_ID
+      if (local && deleted?.(session)) {
+        return []
+      }
+      const ownership = local ? owner(session) : null
+      if (!ownership) {
+        // A chat forgotten since the scan: its ACP session no longer opens anywhere.
+        return local && isCursorAcpSessionRow(session) ? [] : [{ row: session, ownership }]
+      }
+      if (!opensChat(ownership.provider)) {
+        return []
+      }
+      const row = {
         ...session,
         ...ownedRow(session.agent, ownership),
         ...(ownership.role === 'head' && isCursorAcpSessionRow(session)
           ? ownedRowLastTurnPreview(session, ownership.sessionId)
           : null)
       }
-    ]
-  })
-  return sessions.length === result.sessions.length &&
-    sessions.every((row, index) => row === result.sessions[index])
-    ? result
-    : { ...result, sessions }
+      return [{ row, ownership }]
+    }
+  )
+  const sessions = listsChatOnce ? oneRowPerChat(rows) : rows.map(({ row }) => row)
+  const hidden = result.sessions.length - sessions.length
+  if (hidden === 0 && sessions.every((row, index) => row === result.sessions[index])) {
+    return result
+  }
+  return hidden === 0
+    ? { ...result, sessions }
+    : { ...result, sessions, hiddenRowCount: (result.hiddenRowCount ?? 0) + hidden }
 }
 
 /** Owned search hits open their chat and omit terminal resume commands, matching history rows. */
@@ -100,20 +108,23 @@ export function projectStructuredAiVaultSearchResponse(
   }
   return {
     ...response,
-    hits: response.hits.flatMap((hit) => {
-      if (deleted?.(hit)) {
-        return []
-      }
-      const ownership = owner(hit)
-      if (!ownership) {
-        return [hit]
-      }
-      if (!opensChat(ownership.provider)) {
-        return []
-      }
-      const { resumeCommand: _resumeCommand, ...owned } = hit
-      return [redactForTransport({ ...owned, ...ownedRow(hit.agent, ownership) }, transport)]
-    })
+    hits: oneRowPerChat(
+      response.hits.flatMap((hit): HistoryRowWithOwner<(typeof response.hits)[number]>[] => {
+        if (deleted?.(hit)) {
+          return []
+        }
+        const ownership = owner(hit)
+        if (!ownership) {
+          return [{ row: hit, ownership }]
+        }
+        if (!opensChat(ownership.provider)) {
+          return []
+        }
+        const { resumeCommand: _resumeCommand, ...owned } = hit
+        const row = redactForTransport({ ...owned, ...ownedRow(hit.agent, ownership) }, transport)
+        return [{ row, ownership }]
+      })
+    )
   }
 }
 
@@ -191,19 +202,15 @@ function projectedAccountHome(ownership: StructuredProviderSessionOwnership) {
 }
 
 /** The account the host last launched this chat under, when it observed one; the founding home otherwise. */
-function acquiredAccountHome(
-  ownership: StructuredProviderSessionOwnership
-): AgentSessionAccountHome | undefined {
+function acquiredAccountHome({ sessionId, provider }: StructuredProviderSessionOwnership) {
   const store = getStructuredAgentSessionHost()?.deps.store
-  const record = store?.getRecord(ownership.sessionId)
+  const record = store?.getRecord(sessionId)
   // A conversation of an agent the chat switched away from keeps the home it was written under.
   const acquired =
-    store && record?.provider === ownership.provider
+    store && record?.provider === provider
       ? acquiredAgentSessionAccount(record, store.hostId)
       : null
-  return acquired
-    ? agentSessionAccountHome(CLAUDE_STRUCTURED_AGENT, acquired.recipe.home)
-    : undefined
+  return acquired && agentSessionAccountHome(CLAUDE_STRUCTURED_AGENT, acquired.recipe.home)
 }
 
 export function assertLegacyAiVaultResumeAllowed(args: AiVaultPrepareSessionResumeArgs): void {

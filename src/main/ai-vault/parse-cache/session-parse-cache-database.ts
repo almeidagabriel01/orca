@@ -68,6 +68,11 @@ const ROWS_REPAIR_SQL =
   rowsRepairSql(
     'claude_synthetic_model_rows_version',
     `instr(rows.session, '"model":"<synthetic>"') > 0`
+  ) +
+  // Claude rows titled with harness markup (such as /clear's command caveat) before it stopped naming sessions.
+  rowsRepairSql(
+    'claude_harness_title_rows_version',
+    `instr(rows.session, '"agent":"claude"') > 0 AND instr(rows.session, '"title":"<') > 0`
   )
 // Rows hold transcript-derived preview text; keep the directory user-only.
 const PRIVATE_DIRECTORY_MODE = 0o700

@@ -194,7 +194,6 @@ const RING_PROVIDERS = [
   'gemini',
   'opencode-go',
   'kimi',
-  'antigravity',
   'minimax',
   'grok',
   'zcode',

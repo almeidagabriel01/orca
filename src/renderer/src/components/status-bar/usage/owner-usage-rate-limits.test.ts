@@ -22,7 +22,7 @@ it('treats only a remote-to-local owner change as a return to this device', () =
 })
 
 it('shows a not-set-up chip only for providers whose CLI the owning host has', () => {
-  const ok = (provider: 'claude' | 'antigravity'): ProviderRateLimits => ({
+  const ok = (provider: 'claude' | 'kimi'): ProviderRateLimits => ({
     provider,
     status: 'ok',
     error: null,
@@ -30,25 +30,25 @@ it('shows a not-set-up chip only for providers whose CLI the owning host has', (
     weekly: null,
     session: { usedPercent: 10, windowMinutes: 300, resetsAt: null, resetDescription: null }
   })
-  const local = createEmptyRateLimitState({ claude: ok('claude'), antigravity: ok('antigravity') })
+  const local = createEmptyRateLimitState({ claude: ok('claude'), kimi: ok('kimi') })
   const missing: ProviderRateLimits = {
-    ...ok('antigravity'),
+    ...ok('kimi'),
     status: 'unavailable',
     session: null,
     usageMetadata: { failureKind: 'cli-unavailable' }
   }
-  const remote = createEmptyRateLimitState({ claude: ok('claude'), antigravity: missing })
+  const remote = createEmptyRateLimitState({ claude: ok('claude'), kimi: missing })
   const resolve = (installedAgents: TuiAgent[] | null) =>
     resolveOwnerUsageRateLimits(local, {
       kind: 'remote',
       ownerLabel: 'vps',
       rateLimits: remote,
       installedAgents
-    }).antigravity
+    }).kimi
 
   expect(resolve(['claude'])).toBe(missing)
   expect(resolve(null)).toBe(missing)
-  expect(resolve(['claude', 'antigravity'])?.usageMetadata?.ownerNotSetUp).toEqual({
+  expect(resolve(['claude', 'kimi'])?.usageMetadata?.ownerNotSetUp).toEqual({
     kind: 'not-configured',
     ownerLabel: 'vps',
     signInSavedHereOnly: false

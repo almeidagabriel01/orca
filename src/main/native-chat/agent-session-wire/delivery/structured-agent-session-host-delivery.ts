@@ -9,6 +9,7 @@ import type { SqlAgentSessionJournal as AgentSessionJournal } from '../../agent-
 import {
   openStructuredAgentSessionConversation,
   resettleOpenStructuredAgentSessionConversation,
+  settleGoneStructuredAgentSessionGeneration,
   type OpenedStructuredAgentSessionConversation,
   type StructuredAgentSessionConversationOpenOptions
 } from '../host/structured-agent-session-conversation-open'
@@ -21,12 +22,9 @@ import {
   type StructuredAgentSessionDeliveryLoopDeps
 } from './structured-agent-session-delivery-loop-deps'
 import { structuredAgentSessionCommandRunning } from '../operations/structured-agent-session-command-turn'
-import type { StructuredAgentSessionStartClaim } from '../startup/structured-agent-session-agent-start'
-import type { StructuredAgentSessionStartReadiness } from '../startup/structured-agent-session-start-readiness'
 import type {
   StructuredAgentSessionHostDeps,
-  StructuredAgentSessionHostSession,
-  StructuredAgentSessionProviderChildIdentity
+  StructuredAgentSessionHostSession
 } from '../host/structured-agent-session-host-types'
 import { structuredAgentSessionConversationFence } from '../host/structured-agent-session-provider-child'
 import { readStructuredAgentSessionFailureWordsContext } from '../operations/structured-agent-session-send-preparation'
@@ -38,6 +36,8 @@ import {
   retireStructuredAgentSessionChildOnOtherAccount
 } from './structured-agent-session-outgrown-retirement'
 import { closeWhatTheUserClosed } from '../structured-agent-session-user-closed-sends'
+import { recoverStructuredAgentSessionKeptOpen } from '../host/structured-agent-session-kept-at-open'
+import { StructuredAgentSessionKeptOpens } from './structured-agent-session-kept-open-reconciler'
 import type { StructuredAgentSessionAcquireAborts } from '../startup/structured-agent-session-acquire-aborts'
 import type { StructuredAgentSessionStopEnding } from '../termination/structured-agent-session-host-stop-event'
 import { settleStructuredAgentSessionLeftovers } from '../termination/structured-agent-session-leftover-settlement'
@@ -46,6 +46,8 @@ import { createStructuredAgentSessionSideChatParent } from '../structured-agent-
 
 export type StructuredAgentSessionConversationDelivery = {
   loop: StructuredAgentSessionDeliveryLoop
+  /** The chat closed: a run it waited on stops being asked about for it. */
+  closed: (sessionId: string) => void
   open: (
     sessionId: string,
     options?: StructuredAgentSessionConversationOpenOptions
@@ -69,16 +71,10 @@ export function createStructuredAgentSessionConversationDelivery(input: {
   sessions: Map<string, StructuredAgentSessionHostSession>
   serialize: <T>(sessionId: string, task: () => Promise<T>) => Promise<T>
   trackStart: <T>(start: Promise<T>) => Promise<T>
-  startProviderChild: (
-    sessionId: string,
-    startedFor: string
-  ) => Promise<StructuredAgentSessionStartClaim>
+  startProviderChild: StructuredAgentSessionDeliveryLoopDeps['startProviderChild']
   deliveryOrder: StructuredAgentSessionDeliveryOrder
   startFlights?: StructuredAgentSessionDeliveryLoopDeps['startFlights']
-  readiness: (
-    sessionId: string,
-    child: StructuredAgentSessionProviderChildIdentity
-  ) => StructuredAgentSessionStartReadiness | null
+  readiness: StructuredAgentSessionDeliveryLoopDeps['readiness']
   /** Stops a chat's child as its lifetime does, for one the chat outgrew (a new login, account or
    *  permission mode) or one a permission change replaces. */
   stopAgent: (sessionId: string, ending: StructuredAgentSessionStopEnding) => Promise<void>
@@ -144,17 +140,14 @@ export function createStructuredAgentSessionConversationDelivery(input: {
     closeWhatTheUserClosed: (sessionId) => closeWhatTheUserClosed(deps, sessions, sessionId),
     turnContext: deps.turnContext,
     // Opened at rest like the host's own reads, to read a side chat's parent.
-    sideChatParent: createStructuredAgentSessionSideChatParent(deps, async (id) => {
-      const open =
+    sideChatParent: createStructuredAgentSessionSideChatParent(
+      deps,
+      async (id) =>
         sessions.get(id) ??
-        (await input.serialize(id, () =>
+        input.serialize(id, () =>
           openStructuredAgentSessionConversation({ deps, sessions, adoptOpened }, id)
-        ))
-      if (!open) {
-        throw new Error('side chat parent is gone')
-      }
-      return open
-    }),
+        )
+    ),
     failureTextContext: async (sessionId) =>
       readStructuredAgentSessionFailureWordsContext(
         deps.store.getConversation(sessionId),
@@ -208,12 +201,25 @@ export function createStructuredAgentSessionConversationDelivery(input: {
         fence
       )
   })
+  const keptOpens = new StructuredAgentSessionKeptOpens({
+    sessions,
+    serialize: input.serialize,
+    trackStart: input.trackStart,
+    record: (id) => deps.store.getConversation(id) ?? null,
+    fence: (id) => deps.store.getConversation(id)?.currentFence,
+    settle: async (id, open, fence, openedSince) => {
+      await settleGoneStructuredAgentSessionGeneration(deps, id, open)
+      await recoverStructuredAgentSessionKeptOpen(open.journal, fence, openedSince)
+    },
+    logger: deps.logger
+  })
   const adoptOpened = async (
     sessionId: string,
     { session }: OpenedStructuredAgentSessionConversation
   ): Promise<void> => {
     sessions.set(sessionId, session)
     input.clientDelivery.publishRestored(sessionId)
+    keptOpens.adopted(sessionId, session)
     await settleInterruptedStructuredAgentSessionCommands(deps, sessionId, session)
     input.clientDelivery.publishRestored(sessionId)
     if (
@@ -277,6 +283,7 @@ export function createStructuredAgentSessionConversationDelivery(input: {
   })
   return {
     loop,
+    closed: (sessionId) => keptOpens.closed(sessionId),
     afterCommit,
     afterSettleEdge: (sessionId, journal) => {
       input.clientDelivery.publishStatusAndSettlement(sessionId)
@@ -294,6 +301,7 @@ export function createStructuredAgentSessionConversationDelivery(input: {
     dispose: () => {
       loop.dispose()
       stopResettling()
+      keptOpens.dispose()
     },
     open: (sessionId, options) =>
       openStructuredAgentSessionConversation({ deps, sessions, adoptOpened }, sessionId, options)

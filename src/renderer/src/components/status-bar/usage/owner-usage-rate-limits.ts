@@ -52,7 +52,6 @@ const USAGE_PROVIDER_IDS: Record<UsageProviderKey, ProviderRateLimits['provider'
   codex: 'codex',
   opencodeGo: 'opencode-go',
   kimi: 'kimi',
-  antigravity: 'antigravity',
   minimax: 'minimax',
   grok: 'grok',
   cursor: 'cursor',
@@ -66,7 +65,6 @@ const USAGE_PROVIDER_AGENTS: Record<UsageProviderKey, TuiAgent | null> = {
   codex: 'codex',
   opencodeGo: null,
   kimi: 'kimi',
-  antigravity: 'antigravity',
   minimax: null,
   grok: 'grok',
   cursor: 'cursor',
@@ -127,8 +125,7 @@ function adoptRemoteRateLimits(remote: RateLimitState): RateLimitState {
     claudeTarget: partial.claudeTarget ?? { runtime: 'host', wslDistro: null },
     codexTarget: partial.codexTarget ?? { runtime: 'host', wslDistro: null },
     inactiveClaudeAccounts: partial.inactiveClaudeAccounts ?? [],
-    inactiveCodexAccounts: partial.inactiveCodexAccounts ?? [],
-    antigravityAccounts: partial.antigravityAccounts ?? []
+    inactiveCodexAccounts: partial.inactiveCodexAccounts ?? []
   }
 }
 
@@ -173,7 +170,6 @@ const NOT_SET_UP_NEEDS_REASON: ReadonlySet<UsageProviderKey> = new Set([
   'minimax',
   'zcode',
   'cursor',
-  'antigravity',
   'muse'
 ])
 

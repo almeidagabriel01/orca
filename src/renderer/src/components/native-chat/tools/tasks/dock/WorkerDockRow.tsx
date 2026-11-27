@@ -68,11 +68,9 @@ export const WorkerDockRow = memo(function WorkerDockRow({
   // An unreadable state has no label anywhere: the row reads as its title and time only.
   const state = !row
     ? ''
-    : row.retired
-      ? // A retired worker has a saved result to open; other retired work (a subagent, a command) just ended.
-        row.kind === 'worker'
-        ? t('components.native-chat.workerDock.doneResult', 'Done · open result')
-        : t('components.native-chat.workerDock.finished', 'Finished')
+    : // Retired work other than a worker (a subagent, a command) has no live state left: it just ended.
+      row.retired && row.kind !== 'worker'
+      ? t('components.native-chat.workerDock.finished', 'Finished')
       : row.state === 'unavailable'
         ? ''
         : workerDockStateLabel(t, row.state)
@@ -84,17 +82,26 @@ export const WorkerDockRow = memo(function WorkerDockRow({
           'Stop or clear this from the computer it runs on'
         )
       : ''
-  const reason =
+  const progress =
     row &&
-    (row.state === 'failed' || row.state === 'unexpected' || row.state === 'stopping') &&
-    row.reason
-      ? row.reason
+    !row.retired &&
+    row.state !== 'failed' &&
+    row.state !== 'unexpected' &&
+    row.state !== 'stopping' &&
+    row.progressNote
+      ? row.progressNote
       : ''
-  const label = [mixed && row ? workerDockKindLabel(t, row.kind) : '', title, state, reason, remote]
+  const label = [
+    mixed && row ? workerDockKindLabel(t, row.kind) : '',
+    title,
+    state,
+    progress,
+    remote
+  ]
     .filter(Boolean)
     .join(' · ')
   const tooltip = row
-    ? [row.name, title === row.title ? '' : row.title, title, state, reason, remote]
+    ? [row.name, title === row.title ? '' : row.title, title, state, progress, remote]
         .filter(Boolean)
         .join(' · ')
     : undefined
@@ -122,6 +129,9 @@ export const WorkerDockRow = memo(function WorkerDockRow({
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="line-clamp-3 break-words">{title}</span>
+          {progress ? (
+            <span className="truncate text-xs text-muted-foreground">{progress}</span>
+          ) : null}
           {row && (row.model || row.changedAt !== null) ? (
             <span className="truncate text-xs text-muted-foreground">
               {row.model}

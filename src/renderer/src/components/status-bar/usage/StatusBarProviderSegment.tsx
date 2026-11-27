@@ -28,9 +28,6 @@ import { formatUsageChipTitle } from './usage-chip-title'
 import { translate } from '@/i18n/i18n'
 import { useTranslate, useIntlLocale, type Translate } from '@/i18n/use-translate'
 import { getStatusBarUsageSections } from '../composition/status-bar-usage-sections'
-import { GroupedPoolUsage } from './usage-grouped-pools'
-import { formatStatusBarSectionLabel } from './usage-pool-label'
-import { isGroupedUsagePool } from '../../../../../shared/agent-usage/display/grouped-usage-pool'
 import { useResetCountdownClock } from '@/components/status-bar/usage/useResetCountdownClock'
 import { useNow } from '@/lib/window-activity/use-now'
 import { getAccountChipSections } from '../composition/status-bar-usage-chips'
@@ -104,8 +101,6 @@ function getProviderLetter(provider: ProviderRateLimits['provider']): string {
       return 'O'
     case 'kimi':
       return 'K'
-    case 'antigravity':
-      return 'A'
     case 'minimax':
       return 'M'
     case 'grok':
@@ -263,7 +258,6 @@ function ProviderSegmentBody({
     : null
   const sections =
     isAccountChip && p ? getAccountChipSections(p, mode, t) : getStatusBarUsageSections(p, mode, t)
-  const groupedBuckets = sections.map((section) => section.window).filter(isGroupedUsagePool)
   // Why: an account chip's narrow form drops its window names; its tooltip still spells them out.
   const showLabels = isAccountChip ? !compact : mode === 'verbose' || !compact
   // Why: gate only the clock, never the label, so visibility can't change width and re-trigger itself.
@@ -272,13 +266,10 @@ function ProviderSegmentBody({
       ? []
       : template && p
         ? [p.session?.resetsAt, p.weekly?.resetsAt, p.fableWeekly?.resetsAt, p.monthly?.resetsAt]
-        : [
-            ...(mode === 'verbose' ? groupedBuckets : [])
-              .filter((bucket) => clampUsedPercent(bucket.usedPercent) >= USAGE_WARNING_PERCENT)
-              .map((bucket) => bucket.resetsAt),
-            // Why: a wide account chip shows its session reset, which must count down.
-            isAccountChip && showLabels ? p?.session?.resetsAt : null
-          ]
+        : // Why: a wide account chip shows its session reset, which must count down.
+          isAccountChip && showLabels
+          ? [p?.session?.resetsAt]
+          : []
   )
 
   const compactBar = barMode === 'compact'
@@ -328,8 +319,6 @@ function ProviderSegmentBody({
   const showBalance = isExtraUsageActive(p)
   // Why the first window: the bar sits beside that number, so it must show the same window.
   const barWindow = sections[0]?.window ?? tightest?.window
-  const showGroupedPools =
-    mode === 'verbose' && groupedBuckets.length > 0 && groupedBuckets.length === sections.length
 
   // Why the form, not barMode: a narrow Detailed chip is a bare percent too, so it needs the name.
   // Why unwrapped only: an account or read-on wrapper's own tooltip would be shadowed.
@@ -358,13 +347,6 @@ function ProviderSegmentBody({
       ) : null}
       {template ? (
         <CustomUsageText template={template} limits={p} display={display} now={now} />
-      ) : showGroupedPools ? (
-        <GroupedPoolUsage
-          visibleBuckets={groupedBuckets}
-          allBuckets={p.buckets ?? []}
-          display={display}
-          now={now}
-        />
       ) : (
         sections.map((section, index) => (
           <ChipWindow
@@ -372,9 +354,7 @@ function ProviderSegmentBody({
             p={p}
             section={section}
             divider={index > 0}
-            label={
-              mode === 'compact' ? section.label : formatStatusBarSectionLabel(p, section, now, t)
-            }
+            label={section.label}
             display={display}
             now={now}
             showLabel={showLabels && section.label !== '' && !(compactBar && section.labelFirst)}

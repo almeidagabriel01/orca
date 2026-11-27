@@ -17,6 +17,7 @@ import { agentTypeToIconAgent } from '../../../../../shared/agent-status/present
 import { useTerminalTabActivity } from '../../tab-bar/terminal-tabs/use-terminal-tab-activity'
 import { selectFocusedChatTab } from '@/lib/focused-chat-workers'
 import { useSideChatSourceStore } from './side-chat-sources'
+import type { NativeChatSideChat } from '../../native-chat/messages/actions/use-native-chat-side-chat'
 import {
   SIDE_CHAT_DOCK_ANCHOR_KEY,
   isDockedChatTab,
@@ -83,7 +84,10 @@ function useNewSideChat(worktreeId: string): NewSideChat {
   const sourceTabId = sourceTab?.id
   const sideChat = useSideChatSourceStore((s) => (sourceTabId ? s.byTabId[sourceTabId] : undefined))
   const [starting, setStarting] = useState(false)
-  const [failure, setFailure] = useState<{ tabId: string; reason: string } | null>(null)
+  const [failure, setFailure] = useState<{
+    source: NativeChatSideChat | undefined
+    reason: string
+  } | null>(null)
   const unavailable = !sourceTab
     ? t(
         'components.rightSidebar.sideChat.noSource',
@@ -97,7 +101,7 @@ function useNewSideChat(worktreeId: string): NewSideChat {
       return
     }
     if (!sideChat || sideChat.notReadyReason) {
-      setFailure({ tabId: sourceTabId, reason: unavailable ?? '' })
+      setFailure({ source: sideChat, reason: unavailable ?? '' })
       return
     }
     setFailure(null)
@@ -107,7 +111,7 @@ function useNewSideChat(worktreeId: string): NewSideChat {
       .then((result) => {
         if ('refused' in result || !result.started) {
           setFailure({
-            tabId: sourceTabId,
+            source: sideChat,
             reason:
               'refused' in result
                 ? result.refused
@@ -120,7 +124,8 @@ function useNewSideChat(worktreeId: string): NewSideChat {
       })
       .finally(() => setStarting(false))
   }
-  const error = failure && failure.tabId === sourceTabId ? failure.reason : null
+  // A new focused chat or a change in its fork point (a reply finished) retires the old reason.
+  const error = failure && failure.source === sideChat ? failure.reason : null
   return { sourceTab, unavailable, starting, error, start }
 }
 

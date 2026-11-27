@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Activity, Files, GitBranch, ListChecks, Lock, Plug, SquareStack } from 'lucide-react'
 import { SidebarToggleIcon } from '@/components/icons/SidebarToggleIcon'
+import { translate } from '@/i18n/i18n'
+import { getDefaultRightSidebarActivityItems } from './activity-bar/right-sidebar-default-activity-items'
 import { defineFixture } from '../../component-fixtures/component-fixture'
 import type { ActiveRightSidebarTab } from '../../../../shared/ui-chrome/ui-chrome-types'
 import type { CheckStatus } from '../../../../shared/github/pull-requests/pull-request-types'
@@ -280,4 +282,25 @@ export const checksOverflowFailingMenuOpen = defineFixture({
     />
   ),
   interact: openMore
+})
+
+const WORKSPACE_ITEMS = getVisibleRightSidebarActivityItems(
+  getDefaultRightSidebarActivityItems({
+    t: translate,
+    explorerShortcut: '⌘⇧E',
+    sourceControlShortcut: '⌃⇧G',
+    checksShortcut: '',
+    portsShortcut: ''
+  }),
+  { isFolder: false, isFolderWorkspace: false, hasRemoteHost: true, isBot: false }
+)
+
+export const workspaceTabs = defineFixture({
+  width: 440,
+  render: () => <BotPageBar width={400} activeTab="explorer" items={WORKSPACE_ITEMS} />
+})
+
+export const workspaceTabsNarrowest = defineFixture({
+  width: 260,
+  render: () => <BotPageBar width={220} activeTab="side-chat" items={WORKSPACE_ITEMS} />
 })

@@ -5388,8 +5388,7 @@
             "cabdc2a9e0": "Die Zugangsdaten für die Claude-Anmeldung konnten nicht gelesen werden.",
             "a7517cccb6": "Die Claude-Nutzung ist derzeit nicht verfügbar.",
             "8418ec448d": "Die Nutzung von {{value0}} konnte nicht aktualisiert werden. Agentensitzungen sind möglicherweise weiterhin angemeldet."
-          },
-          "StatusBar": {}
+          }
         }
       }
     },

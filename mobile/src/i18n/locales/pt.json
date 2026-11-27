@@ -5541,8 +5541,7 @@
             "cabdc2a9e0": "Não foi possível ler as credenciais de login do Claude.",
             "a7517cccb6": "O uso do Claude está indisponível agora.",
             "8418ec448d": "Não foi possível atualizar o uso de {{value0}}. As sessões de agente podem continuar conectadas."
-          },
-          "StatusBar": {}
+          }
         }
       }
     },

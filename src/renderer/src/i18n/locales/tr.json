@@ -22926,7 +22926,6 @@
         "commandsRegion": "Arka plan komutları",
         "stopSubagentsAndCommands": "Alt ajanları ve komutları durdur",
         "workersKeepRunning": "Çalışanlar çalışmaya devam eder",
-        "clearFailedWorkers": "Başarısız çalışanları temizle",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}, {{commands}}"
       },

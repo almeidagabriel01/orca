@@ -22595,7 +22595,6 @@
         "commandsRegion": "Hintergrundbefehle",
         "stopSubagentsAndCommands": "Subagenten und Befehle stoppen",
         "workersKeepRunning": "Worker laufen weiter",
-        "clearFailedWorkers": "Fehlgeschlagene Worker entfernen",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}, {{commands}}"
       },

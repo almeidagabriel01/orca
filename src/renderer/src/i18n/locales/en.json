@@ -23210,7 +23210,6 @@
         "commandsRegion": "Background commands",
         "stopSubagentsAndCommands": "Stop subagents and commands",
         "workersKeepRunning": "Workers keep running",
-        "clearFailedWorkers": "Clear failed workers",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}, {{commands}}"
       },

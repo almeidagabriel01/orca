@@ -21406,7 +21406,6 @@
         "commandsRegion": "バックグラウンドコマンド",
         "stopSubagentsAndCommands": "サブ Agent とコマンドを停止",
         "workersKeepRunning": "ワーカーは実行を続けます",
-        "clearFailedWorkers": "失敗したワーカーをクリア",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}、{{commands}}"
       },

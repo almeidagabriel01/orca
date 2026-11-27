@@ -918,10 +918,6 @@
     },
     "followSymlinkedDirectories": "Suivre les dossiers liés symboliquement",
     "followSymlinkedDirectoriesDescription": "Recherchez les dossiers liés dans Quick Open et développez les dossiers liés locaux dans l'Explorateur de fichiers.",
-    "accounts": {
-      "codexRemoveHome": "Orca supprime le dossier Codex de ce compte sur {{host}}, y compris sa connexion et ses connexions MCP. Cette action est irréversible. Si ce compte est sélectionné, le prochain Codex que vous démarrez utilise la valeur par défaut du système.",
-      "claudeRemoveProfile": "Orca supprime le dossier Claude propre à ce compte et la connexion qui y est enregistrée sur {{host}}. Votre connexion par défaut du système et l'historique de chat partagé avec elle sont conservés. Si ce compte est sélectionné, le prochain Claude que vous démarrez utilise la valeur par défaut du système."
-    },
     "sourceControl": {
       "gitOperationInAnotherWorkspace": "Opération Git en cours ailleurs",
       "remoteOperationInAnotherWorkspace": "Un autre espace de travail exécute une opération Git, par exemple un push, un pull ou un force push. Attendez qu’elle se termine avant d’utiliser cette action pour éviter des opérations simultanées.",
@@ -22497,7 +22493,6 @@
         "commandsRegion": "Commandes en arrière-plan",
         "stopSubagentsAndCommands": "Arrêter les sous-agents et les commandes",
         "workersKeepRunning": "Les workers continuent de tourner",
-        "clearFailedWorkers": "Effacer les workers en échec",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}, {{commands}}"
       },

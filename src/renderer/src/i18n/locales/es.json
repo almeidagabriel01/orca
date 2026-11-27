@@ -22179,7 +22179,6 @@
         "commandsRegion": "Comandos en segundo plano",
         "stopSubagentsAndCommands": "Detener subagentes y comandos",
         "workersKeepRunning": "Los trabajadores siguen en ejecución",
-        "clearFailedWorkers": "Borrar trabajadores con error",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}, {{commands}}"
       },

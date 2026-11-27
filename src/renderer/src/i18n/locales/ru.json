@@ -23699,7 +23699,6 @@
         "commandsRegion": "Фоновые команды",
         "stopSubagentsAndCommands": "Остановить субагентов и команды",
         "workersKeepRunning": "Исполнители продолжат работу",
-        "clearFailedWorkers": "Очистить исполнителей с ошибками",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}, {{commands}}"
       },

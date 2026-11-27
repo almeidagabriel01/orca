@@ -3166,7 +3166,6 @@
       "workerDock": {
         "backgroundCommandCount_one": "{{count}} background command",
         "backgroundCommandCount_other": "{{count}} background commands",
-        "clearFailedWorkers": "Clear failed workers",
         "commandCount_one": "{{count}} command",
         "commandCount_other": "{{count}} commands",
         "dismissed_one": "Dismissed 1 worker",

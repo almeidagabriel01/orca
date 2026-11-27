@@ -5534,8 +5534,7 @@
             "cabdc2a9e0": "Les identifiants de connexion Claude n'ont pas pu être lus.",
             "a7517cccb6": "L'utilisation de Claude est indisponible pour le moment.",
             "8418ec448d": "L'utilisation de {{value0}} n'a pas pu être actualisée. Des sessions d'agent sont peut-être encore connectées."
-          },
-          "StatusBar": {}
+          }
         }
       }
     },

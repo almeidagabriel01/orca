@@ -22292,7 +22292,6 @@
         "commandsRegion": "背景命令",
         "stopSubagentsAndCommands": "停止子代理和命令",
         "workersKeepRunning": "工作者會繼續執行",
-        "clearFailedWorkers": "清除失敗的工作者",
         "mixedCount": "{{workers}} · {{commands}}",
         "mixedCountSpoken": "{{workers}}，{{commands}}"
       },

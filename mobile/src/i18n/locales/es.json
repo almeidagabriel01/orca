@@ -5534,9 +5534,6 @@
             "cabdc2a9e0": "No se pudieron leer las credenciales de inicio de sesión de Claude.",
             "a7517cccb6": "El uso de Claude no está disponible ahora.",
             "8418ec448d": "No se pudo actualizar el uso de {{value0}}. Es posible que las sesiones de agentes sigan iniciadas."
-          },
-          "StatusBar": {
-            "c676918adc": "Predeterminado del sistema"
           }
         }
       }

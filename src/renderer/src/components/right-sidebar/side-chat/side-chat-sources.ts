@@ -21,8 +21,9 @@ export function usePublishSideChatSource(
         if (s.byTabId[tabId] !== sideChat) {
           return s
         }
-        const { [tabId]: _removed, ...rest } = s.byTabId
-        return { byTabId: rest }
+        const byTabId = { ...s.byTabId }
+        delete byTabId[tabId]
+        return { byTabId }
       })
   }, [tabId, sideChat])
 }

@@ -149,7 +149,11 @@ function SideChatStart({ newChat }: { newChat: NewSideChat }): React.JSX.Element
   const { sourceTab, unavailable, starting, error, start } = newChat
   const reason = error ?? (starting ? null : unavailable)
   return (
-    <div className="scrollbar-sleek flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+    // Marked as the panel, so pressing New hands the keyboard to the chat it docks.
+    <div
+      className="scrollbar-sleek flex min-h-0 flex-1 flex-col overflow-y-auto p-4"
+      data-side-chat-panel=""
+    >
       {/* m-auto, not justify-center, so a short panel scrolls to the top instead of clipping it. */}
       <div className="m-auto flex w-full max-w-xs flex-col items-center gap-3 text-center">
         <MessageSquareText className="size-5 text-muted-foreground" aria-hidden />

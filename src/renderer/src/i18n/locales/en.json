@@ -22797,7 +22797,7 @@
       "splitRight": "Split Right",
       "splitDown": "Split Down",
       "sideChat": {
-        "description": "Ask a side question in a fork beside this chat",
+        "description": "Ask a side question in a side chat in the right panel",
         "argumentHint": "<question>",
         "pill": "Side chat",
         "placeholder": "Ask a side question",
@@ -22806,7 +22806,7 @@
         "noReply": "Available after the first reply.",
         "textOnly": "Side chats take text only. Remove attachments, then send it again.",
         "questionNotSent": "{{agent}} didn't get your question",
-        "questionNotSentDetail": "Your question is still in this chat. Send /btw again to retry.",
+        "questionNotSentDetail": "Your question is still in this chat. Send /side or /btw again to retry.",
         "questionUnconfirmed": "{{agent}} couldn't confirm the side chat got your question",
         "questionUnconfirmedDetail": "Check the side chat before asking again. Your question is still in this chat.",
         "hideEarlier": "Hide earlier messages from {{name}}",
@@ -23772,13 +23772,7 @@
         "promptSuggestionsTitle": "Suggested prompts",
         "promptSuggestionsCopy": "After Claude or Codex replies, its guess at your next message shows in the empty message box. Press Tab to use it. Each guess is an extra request that counts toward that agent's usage.",
         "promptSuggestionsSearchNext": "next prompt",
-        "promptSuggestionsSearchGhost": "ghost text",
-        "sideChatPlacementRightPanel": "Right panel",
-        "sideChatPlacementCenter": "Center",
-        "sideChatPlacementTitle": "Open side chats in",
-        "sideChatPlacementCopy": "Where /btw opens its side chat. You can move each one between the right panel and the center from its header.",
-        "sideChatPlacementSearchBtw": "btw",
-        "sideChatPlacementSearchRightPanel": "right panel"
+        "promptSuggestionsSearchGhost": "ghost text"
       },
       "voice": {
         "dictationLanguage": {
@@ -24697,7 +24691,7 @@
       "sideChat": {
         "tab": "Side chat",
         "close": "Close {{name}}",
-        "empty": "No side chats here. Type /btw in a chat to start one."
+        "empty": "No side chats here. Type /side or /btw in a chat to start one."
       }
     }
   },

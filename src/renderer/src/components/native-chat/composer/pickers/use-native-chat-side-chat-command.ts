@@ -25,7 +25,7 @@ export function withNativeChatSideChatRows(
 ): SlashCommandSuggestion[] {
   const side = translate(
     'components.native-chat.sideChat.description',
-    'Ask a side question in a fork beside this chat'
+    'Ask a side question in a side chat in the right panel'
   )
   return withNativeChatSideChatCommands(commands, {
     side,

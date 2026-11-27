@@ -16,15 +16,9 @@ import { nativeChatQueueFollowUps } from '../../../../../shared/native-chat/inpu
 import {
   nativeChatMarksNewMessages,
   nativeChatScrollsToLatestOnSend,
-  nativeChatSideChatPlacement,
-  type NativeChatSideChatPlacement,
   nativeChatShowsPromptSuggestions
 } from '../../../../../shared/native-chat/settings/native-chat-appearance-settings'
-import {
-  SettingsRow,
-  SettingsSegmentedControl,
-  SettingsSwitchRow
-} from '../form-controls/SettingsFormControls'
+import { SettingsSwitchRow } from '../form-controls/SettingsFormControls'
 import type { SettingsHostScope } from '../host-scope/settings-host-scope'
 import { NativeChatUsageLimitContinueSetting } from './NativeChatUsageLimitContinueSetting'
 import { SettingsGroup } from '../section-layout/SettingsGroup'
@@ -69,7 +63,6 @@ export function ChatBehaviorSetting({
     ...(hostContinuesUsageLimits ? [entries.autoContinueAfterUsageLimit] : []),
     ...(hostQueuesMessages ? [entries.queueFollowUps] : []),
     entries.scrollToLatestOnSend,
-    entries.sideChatPlacement,
     entries.markNewMessages,
     entries.linkPreviews,
     entries.composerSpellcheck,
@@ -83,7 +76,6 @@ export function ChatBehaviorSetting({
   const queueFollowUps = nativeChatQueueFollowUps(settings)
   const scrollToLatestOnSend = nativeChatScrollsToLatestOnSend(settings)
   const markNewMessages = nativeChatMarksNewMessages(settings)
-  const sideChatPlacement = nativeChatSideChatPlacement(settings)
   const linkPreviewsEnabled = settings.nativeChatLinkPreviews !== false
   const composerSpellcheckEnabled = settings.nativeChatComposerSpellcheck !== false
   const promptSuggestions = nativeChatShowsPromptSuggestions(settings)
@@ -170,38 +162,6 @@ export function ChatBehaviorSetting({
           checked={scrollToLatestOnSend}
           ariaLabel={entries.scrollToLatestOnSend.title}
           onChange={() => updateSettings({ nativeChatScrollToLatestOnSend: !scrollToLatestOnSend })}
-        />
-      </SearchableSetting>
-      <SearchableSetting
-        {...entries.sideChatPlacement}
-        id={entries.sideChatPlacement.targetSectionId}
-        forceVisible={forceVisible}
-        className="max-w-none"
-      >
-        <SettingsRow
-          label={entries.sideChatPlacement.title}
-          description={entries.sideChatPlacement.description}
-          control={
-            <SettingsSegmentedControl<NativeChatSideChatPlacement>
-              value={sideChatPlacement}
-              onChange={(next) => updateSettings({ nativeChatSideChatPlacement: next })}
-              ariaLabel={entries.sideChatPlacement.title}
-              size="sm"
-              options={[
-                {
-                  value: 'right-panel',
-                  label: t(
-                    'components.settings.nativeChat.sideChatPlacementRightPanel',
-                    'Right panel'
-                  )
-                },
-                {
-                  value: 'center',
-                  label: t('components.settings.nativeChat.sideChatPlacementCenter', 'Center')
-                }
-              ]}
-            />
-          }
         />
       </SearchableSetting>
       <SearchableSetting

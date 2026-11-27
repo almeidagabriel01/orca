@@ -58,67 +58,115 @@ function useSideChatDockFocusTracking(): void {
   }, [setFocused])
 }
 
-function DockedChatStripItem({
-  tab,
-  current,
-  onSelect,
-  onClose
-}: {
-  tab: Tab
-  current: boolean
-  onSelect: () => void
-  onClose: () => void
-}): React.JSX.Element {
-  const t = useTranslate()
+function useDockedChatTitle(tab: Tab): string {
   const name = useStructuredChatTabConversationName(tab)
-  const title = tab.customLabel?.trim() || name || tab.label
+  return tab.customLabel?.trim() || name || tab.label
+}
+
+function DockedChatIcon({ tab, current }: { tab: Tab; current: boolean }): React.JSX.Element {
   const { activityStatus, programProgress } = useTerminalTabActivity({
     id: structuredAgentSessionAddressTabId(tab.id, tab.entityId),
     title: tab.label
   })
-  const closeLabel = t('components.rightSidebar.sideChat.close', 'Close {{name}}', { name: title })
   return (
-    <div
+    <TerminalTabLeadingIcon
+      agent={agentTypeToIconAgent(tab.agentSessionAgent)}
+      activityStatus={activityStatus}
+      shell={undefined}
+      showUnreadActivity={false}
+      isActive={current}
+      progress={programProgress}
+    />
+  )
+}
+
+function IconAction({
+  label,
+  onClick,
+  children
+}: {
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}): React.JSX.Element {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost-muted"
+          size="icon-xs"
+          className="shrink-0"
+          aria-label={label}
+          onClick={onClick}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={4}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+/** The shown side chat's title, in front, with its two actions spelled out. */
+function DockedChatHeader({ tab, onClose }: { tab: Tab; onClose: () => void }): React.JSX.Element {
+  const t = useTranslate()
+  const title = useDockedChatTitle(tab)
+  const moveToCenter = t('components.native-chat.sideChat.moveToCenter', 'Move to center')
+  return (
+    <div className="flex h-10 shrink-0 items-center gap-2 pl-3 pr-2">
+      <DockedChatIcon tab={tab} current />
+      <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground" title={title}>
+        {title}
+      </h2>
+      <Button
+        type="button"
+        variant="outline"
+        size="xs"
+        className="shrink-0"
+        aria-label={moveToCenter}
+        onClick={() => useAppStore.getState().setTabDock(tab.id, null)}
+      >
+        <PanelRightClose />
+        {/* A narrow panel keeps its room for the title; the icon stays. */}
+        <span className="hidden @[27.5rem]:inline">{moveToCenter}</span>
+      </Button>
+      <IconAction
+        label={t('components.rightSidebar.sideChat.close', 'Close {{name}}', { name: title })}
+        onClick={onClose}
+      >
+        <X />
+      </IconAction>
+    </div>
+  )
+}
+
+/** One more docked chat to switch to; shown only when there is more than one. */
+function DockedChatSwitchItem({
+  tab,
+  current,
+  onSelect
+}: {
+  tab: Tab
+  current: boolean
+  onSelect: () => void
+}): React.JSX.Element {
+  const title = useDockedChatTitle(tab)
+  return (
+    <button
+      type="button"
       className={cn(
-        'flex h-6 min-w-0 max-w-full items-center rounded-md pl-1.5 text-xs text-muted-foreground hover:bg-accent',
+        'flex h-6 min-w-0 max-w-full items-center rounded-md px-1.5 text-xs text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring',
         current && 'bg-accent text-foreground'
       )}
-      data-current={current ? 'true' : undefined}
+      aria-current={current ? 'page' : undefined}
+      onClick={onSelect}
     >
-      <button
-        type="button"
-        className="flex min-w-0 items-center outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-        aria-current={current ? 'page' : undefined}
-        onClick={onSelect}
-      >
-        <TerminalTabLeadingIcon
-          agent={agentTypeToIconAgent(tab.agentSessionAgent)}
-          activityStatus={activityStatus}
-          shell={undefined}
-          showUnreadActivity={false}
-          isActive={current}
-          progress={programProgress}
-        />
-        <span className="truncate">{title}</span>
-      </button>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="size-5 shrink-0"
-            aria-label={closeLabel}
-            onClick={onClose}
-          >
-            <X />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={4}>
-          {closeLabel}
-        </TooltipContent>
-      </Tooltip>
-    </div>
+      <DockedChatIcon tab={tab} current={current} />
+      <span className="truncate">{title}</span>
+    </button>
   )
 }
 
@@ -141,55 +189,38 @@ export default function SideChatPanel(): React.JSX.Element {
     [dockedTabs, selectedTabId]
   )
   const { closeItem } = useTabGroupTabCloseCommands({ worktreeId: worktreeId ?? '' })
-  const moveToCenter = t('components.native-chat.sideChat.moveToCenter', 'Move to center')
 
   if (!worktreeId || dockedTabs.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center px-4 text-center text-xs text-muted-foreground">
         {t(
           'components.rightSidebar.sideChat.empty',
-          'No side chats here. Type /btw in a chat to start one.'
+          'No side chats here. Type /side or /btw in a chat to start one.'
         )}
       </div>
     )
   }
+  const currentTab = dockedTabs.find((tab) => tab.id === currentTabId) ?? dockedTabs[0]
   return (
-    <div className="flex min-h-0 flex-1 flex-col" data-side-chat-panel="">
-      {/* The docked chats' only header: names, status, close, and moving the shown one back. */}
-      <div className="flex shrink-0 items-start gap-1 border-b border-border px-2 py-1">
-        {/* Wraps instead of scrolling, so the transcript stays the only scroller. */}
-        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+    <div className="@container flex min-h-0 flex-1 flex-col bg-muted" data-side-chat-panel="">
+      <DockedChatHeader tab={currentTab} onClose={() => closeItem(currentTab.id)} />
+      {dockedTabs.length > 1 ? (
+        // Wraps instead of scrolling, so the transcript stays the only scroller.
+        <div className="flex shrink-0 flex-wrap gap-1 px-2 pb-2">
           {dockedTabs.map((tab) => (
-            <DockedChatStripItem
+            <DockedChatSwitchItem
               key={tab.id}
               tab={tab}
-              current={tab.id === currentTabId}
+              current={tab.id === currentTab.id}
               onSelect={() => selectTab(worktreeId, tab.id)}
-              onClose={() => closeItem(tab.id)}
             />
           ))}
         </div>
-        {currentTabId ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost-muted"
-                size="icon-xs"
-                className="shrink-0"
-                aria-label={moveToCenter}
-                onClick={() => useAppStore.getState().setTabDock(currentTabId, null)}
-              >
-                <PanelRightClose />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={4}>
-              {moveToCenter}
-            </TooltipContent>
-          </Tooltip>
-        ) : null}
+      ) : null}
+      {/* A card on the panel's muted surface, so it never reads as a center split. */}
+      <div className="mx-2 mb-2 flex min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-background shadow-xs">
+        <div ref={registerBody} className="min-h-0 flex-1" style={BODY_ANCHOR_STYLE} />
       </div>
-      <div ref={registerBody} className="min-h-0 flex-1" style={BODY_ANCHOR_STYLE} />
     </div>
   )
 }

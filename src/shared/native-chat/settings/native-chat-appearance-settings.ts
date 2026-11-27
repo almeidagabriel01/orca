@@ -37,17 +37,6 @@ export type NativeChatGlobalSettings = {
   nativeChatMarkNewMessages?: boolean
   /** The agent's suggested next prompt in an empty composer. Absent means on. */
   nativeChatPromptSuggestions?: boolean
-  /** Where `/btw` opens its side chat. Absent means the right panel. */
-  nativeChatSideChatPlacement?: NativeChatSideChatPlacement
-}
-
-export const NATIVE_CHAT_SIDE_CHAT_PLACEMENTS = ['right-panel', 'center'] as const
-export type NativeChatSideChatPlacement = (typeof NATIVE_CHAT_SIDE_CHAT_PLACEMENTS)[number]
-
-export function nativeChatSideChatPlacement(
-  settings: { readonly nativeChatSideChatPlacement?: unknown } | null | undefined
-): NativeChatSideChatPlacement {
-  return settings?.nativeChatSideChatPlacement === 'center' ? 'center' : 'right-panel'
 }
 
 /** Not written into default settings, so flipping this reaches everyone who never chose. */

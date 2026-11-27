@@ -88,11 +88,6 @@ function onGroupBodyChanged(groupId: string): void {
   }
 }
 
-/** The drawn width of a group's body, or null while it is not mounted. */
-export function tabGroupBodyWidth(groupId: string): number | null {
-  return bodiesByGroupId.get(groupId)?.getBoundingClientRect().width ?? null
-}
-
 export function registerTabGroupBody(groupId: string, body: HTMLElement): () => void {
   bodiesByGroupId.set(groupId, body)
   onGroupBodyChanged(groupId)

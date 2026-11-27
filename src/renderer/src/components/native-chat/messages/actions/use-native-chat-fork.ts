@@ -117,7 +117,7 @@ export function useNativeChatFork(input: {
       }
       inFlight.current = true
       setPendingItemId(throughItemId)
-      const placement = side ? beginNativeChatSideChatPlacement(worktreeId, tabId) : undefined
+      const placement = side ? beginNativeChatSideChatPlacement(worktreeId) : undefined
       let outcome: NativeChatForkOutcome = {}
       return launchNativeChatFork({
         agent,

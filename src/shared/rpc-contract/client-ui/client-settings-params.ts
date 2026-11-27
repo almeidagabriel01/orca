@@ -16,7 +16,6 @@ import { AGENT_CHAT_PERMISSION_MODES } from '../../agent-launch/permissions/agen
 import { PR_AUTO_REFRESH_CADENCES } from '../../source-control/hosted-review/review-refresh-policy'
 import { COMPUTER_AWAKE_MODES } from '../../app-lifecycle/computer-awake-mode'
 import { HOST_OWNED_SETTING_UPDATE_SHAPE } from '../../settings/host-owned-settings'
-import { NATIVE_CHAT_SIDE_CHAT_PLACEMENTS } from '../../native-chat/settings/native-chat-appearance-settings'
 
 export const TaskProviderParam = z.custom<TaskProvider>(isTaskProvider, {
   message: 'Unknown task provider'
@@ -153,7 +152,6 @@ export const SettingsUpdate = z
     nativeChatQueueFollowUps: z.boolean().optional(),
     nativeChatCiResultLines: z.boolean().optional(),
     nativeChatAutoName: z.boolean().optional(),
-    nativeChatSideChatPlacement: z.enum(NATIVE_CHAT_SIDE_CHAT_PLACEMENTS).optional(),
     /** This host's own notification switches; see HOST_NOTIFICATION_SETTINGS_RUNTIME_CAPABILITY. */
     hostNotifications: HostNotificationSettingsUpdate.optional(),
     workspaceCleanupPolicy: WorkspaceCleanupRulesParam.optional(),

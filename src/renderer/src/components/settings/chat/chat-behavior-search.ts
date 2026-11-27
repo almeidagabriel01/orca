@@ -91,21 +91,6 @@ export const getChatBehaviorEntriesByKey = createLocalizedCatalog(() => ({
       )
     ]
   },
-  sideChatPlacement: {
-    targetSectionId: 'chat-side-chat-placement',
-    title: translate('components.settings.nativeChat.sideChatPlacementTitle', 'Open side chats in'),
-    description: translate(
-      'components.settings.nativeChat.sideChatPlacementCopy',
-      'Where /btw opens its side chat. You can move each one between the right panel and the center from its header.'
-    ),
-    keywords: [
-      ...translateSearchKeyword('components.settings.nativeChat.sideChatPlacementSearchBtw', 'btw'),
-      ...translateSearchKeyword(
-        'components.settings.nativeChat.sideChatPlacementSearchRightPanel',
-        'right panel'
-      )
-    ]
-  },
   markNewMessages: {
     targetSectionId: 'chat-mark-new-messages',
     title: translate(

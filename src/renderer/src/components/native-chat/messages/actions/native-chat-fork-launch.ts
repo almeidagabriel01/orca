@@ -166,7 +166,7 @@ function reportSideQuestion(agent: TuiAgent, delivery: 'failed' | 'unconfirmed')
     {
       description: translate(
         'components.native-chat.sideChat.questionNotSentDetail',
-        'Your question is still in this chat. Send /btw again to retry.'
+        'Your question is still in this chat. Send /side or /btw again to retry.'
       )
     }
   )

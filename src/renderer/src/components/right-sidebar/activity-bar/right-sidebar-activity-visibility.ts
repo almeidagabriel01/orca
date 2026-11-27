@@ -11,8 +11,6 @@ type RightSidebarActivityVisibilityState = {
   isGroupHome?: boolean
   /** The focused native chat has started orchestration workers, which the Activity panel lists. */
   hasChatWorkers?: boolean
-  /** The active worktree has a chat docked in the right panel. */
-  hasDockedChats?: boolean
 }
 
 export function getVisibleRightSidebarActivityItems(
@@ -23,8 +21,7 @@ export function getVisibleRightSidebarActivityItems(
     hasRemoteHost,
     isBot,
     isGroupHome = false,
-    hasChatWorkers = false,
-    hasDockedChats = false
+    hasChatWorkers = false
   }: RightSidebarActivityVisibilityState
 ): ActivityBarItem[] {
   if (isGroupHome) {
@@ -41,7 +38,6 @@ export function getVisibleRightSidebarActivityItems(
   return items.filter(
     (item) =>
       !item.botPageOnly &&
-      (item.id !== 'side-chat' || hasDockedChats) &&
       (item.botOnly
         ? hasChatWorkers
         : (!item.gitOnly ||

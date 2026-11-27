@@ -52,13 +52,11 @@ function readForkNaming(value: unknown): AgentSessionForkNaming | null | undefin
     return undefined
   }
   const plainName = 'plainName' in value ? value.plainName : undefined
-  const sideChat = 'sideChat' in value ? value.sideChat : undefined
-  return (plainName === undefined || plainName === true) &&
-    (sideChat === undefined || sideChat === true)
+  return plainName === undefined || plainName === true
     ? {
         sessionId: value.sessionId,
         ...(plainName ? { plainName } : {}),
-        ...(sideChat ? { sideChat } : {})
+        ...('sideChat' in value && value.sideChat === true ? { sideChat: true } : {})
       }
     : undefined
 }

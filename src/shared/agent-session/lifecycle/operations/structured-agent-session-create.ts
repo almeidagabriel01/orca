@@ -66,9 +66,6 @@ export function structuredAgentSessionCreateParams(args: {
   if (args.forkFrom && (args.resumeFrom || args.options || args.optionsMode)) {
     throw new Error('A fork inherits its source options and cannot also resume a conversation.')
   }
-  if (args.sideChat && !args.forkFrom) {
-    throw new Error('A side chat is a fork.')
-  }
   const fields = {
     worktree: args.worktree,
     agent: args.agent,
@@ -91,6 +88,6 @@ export function structuredAgentSessionCreateParams(args: {
     },
     ...fields,
     ...(args.tabPlacement ? { tabPlacement: args.tabPlacement } : {}),
-    ...(args.sideChat ? { sideChat: true as const } : {})
+    sideChat: args.sideChat
   }
 }

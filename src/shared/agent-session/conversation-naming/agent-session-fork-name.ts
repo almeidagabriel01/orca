@@ -65,12 +65,6 @@ export function agentSessionForkNamingEqual(
   a: AgentSessionForkNaming | null | undefined,
   b: AgentSessionForkNaming | null | undefined
 ): boolean {
-  return (
-    a === b ||
-    (!!a &&
-      !!b &&
-      a.sessionId === b.sessionId &&
-      a.plainName === b.plainName &&
-      a.sideChat === b.sideChat)
-  )
+  // sideChat is fixed when the fork is made, so the session id already decides it.
+  return a === b || (!!a && !!b && a.sessionId === b.sessionId && a.plainName === b.plainName)
 }

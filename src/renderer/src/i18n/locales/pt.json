@@ -175,9 +175,6 @@
         "planModelWithoutThinking": "O modelo \"{{model}}\" não suporta um nível de esforço de raciocínio.",
         "planThinkingLevelInvalid": "O nível de raciocínio \"{{level}}\" não é válido para {{model}}.",
         "openCodeInvalidEvents": "OpenCode retornou eventos JSON inválidos.",
-        "antigravityInvalidEvents": "Antigravity retornou eventos JSON inválidos.",
-        "antigravityInvalidResult": "Antigravity retornou um resultado inválido.",
-        "antigravityNoFinalResult": "Antigravity não retornou nenhum resultado final.",
         "kimiUnreadableOutput": "Kimi retornou uma saída que o Orca não conseguiu ler. Tente novamente.",
         "kimiSessionOccupied": "Kimi não pôde usar esta sessão porque ela está ativa em outro cliente. Pare a sessão nesse cliente ou saia dele e tente novamente.",
         "kimiInterrupted": "Kimi foi interrompido antes de concluir a geração de texto. Tente novamente.",
@@ -385,7 +382,6 @@
       "scannerStopped": "O verificador de sessões parou inesperadamente. Atualize para tentar novamente."
     },
     "sessionAccount": "Conta",
-    "sessionAccountUnknown": "Desconhecido",
     "antigravityChatToCli": "Bate-papo → CLI"
   },
   "checksPanel": {
@@ -1517,12 +1513,6 @@
         "pageChanged": "Esta página foi fechada ou mudou de perfil durante a importação. Tente novamente."
       },
       "notice": {
-        "importedMore_one": "{{count}} cookie importado para os domínios {{domains}} (+{{more}}). Recarregue a página para usá-lo.",
-        "importedMore_other": "{{count}} cookies importados para os domínios {{domains}} (+{{more}}). Recarregue a página para usá-los.",
-        "importedMore_many": "{{count}} cookies importados para os domínios {{domains}} (+{{more}}). Recarregue a página para usá-los.",
-        "imported_one": "{{count}} cookie importado para {{domains}}. Recarregue a página para usá-lo.",
-        "imported_other": "{{count}} cookies importados para {{domains}}. Recarregue a página para usá-los.",
-        "imported_many": "{{count}} cookies importados para {{domains}}. Recarregue a página para usá-los.",
         "failed": "Não foi possível importar cookies: {{reason}}"
       },
       "routedPage": {
@@ -1651,7 +1641,6 @@
         "sshToggleDescription": "Mostra hosts SSH e hosts remotos do Orca configurados quando disponíveis.",
         "resourceUsageToggleDescription": "Mostra o Gerenciador de Recursos. Clique para ver CPU, memória, sessões, controles do daemon e varreduras de disco do espaço de trabalho.",
         "portsToggleDescription": "Mostra as portas ativas do espaço de trabalho. Clique para ver portas específicas do espaço de trabalho e listeners externos.",
-        "antigravityToggleDescription": "Mostra o uso da assinatura do Antigravity para o espaço de trabalho ativo.",
         "grokToggleDescription": "Mostra o uso de créditos da assinatura do Grok quando conectado via Grok CLI.",
         "cursorToggleDescription": "Mostrar o uso do plano Cursor quando você estiver conectado via cursor-agent ou Cursor IDE.",
         "zcodeToggleDescription": "Mostrar o uso da cota do ZCode Coding Plan.",
@@ -2897,9 +2886,7 @@
     },
     "accounts": {
       "codexRemoveHomeOwnLogin": "O Orca exclui a pasta do Codex desta conta em {{host}}, incluindo o login e os logins de MCP. Isso não pode ser desfeito. Se ela estiver selecionada, o próximo Codex que você iniciar usará o login próprio do Codex em {{host}}.",
-      "claudeRemoveProfileOwnLogin": "O Orca exclui a pasta própria do Claude desta conta e o login salvo nela em {{host}}, mantendo o login próprio do Claude em {{host}} e o histórico de chats compartilhado com ele. Se ela estiver selecionada, o próximo Claude que você iniciar usará esse login.",
-      "codexRemoveHome": "O Orca exclui a pasta do Codex desta conta em {{host}}, incluindo o login e os logins de MCP. Isso não pode ser desfeito. Se ela estiver selecionada, o próximo Codex que você iniciar usará o Padrão do sistema.",
-      "claudeRemoveProfile": "O Orca exclui a pasta do Claude desta conta e o login salvo nela em {{host}}. Seu login do Padrão do sistema e o histórico de chats compartilhado com ele permanecem. Se ela estiver selecionada, o próximo Claude que você iniciar usará o Padrão do sistema."
+      "claudeRemoveProfileOwnLogin": "O Orca exclui a pasta própria do Claude desta conta e o login salvo nela em {{host}}, mantendo o login próprio do Claude em {{host}} e o histórico de chats compartilhado com ele. Se ela estiver selecionada, o próximo Claude que você iniciar usará esse login."
     }
   },
   "auto": {
@@ -3188,10 +3175,6 @@
         },
         "worktrees": {
           "e50495aae6": "Forçar Exclusão da Branch",
-          "14bc053a47": "A {{value0}} local não foi atualizada",
-          "localBaseRefRefreshFailedForWorktree": "A {{value0}} local não foi atualizada para \"{{value1}}\"",
-          "903b51c2ed": "Espaço de trabalho criado a partir de {{value0}}, mas o Orca não conseguiu fazer fast-forward da {{value1}} local. {{value2}}",
-          "localBaseRefRefreshFailedDescriptionNamed": "O espaço de trabalho \"{{value0}}\" foi criado a partir de {{value1}}, mas o Orca não conseguiu fazer fast-forward da {{value2}} local. {{value3}}",
           "localBaseRefRefreshFailedDetailDirtyNamed": "A worktree em {{value0}} (onde a {{value1}} local está com checkout) tem alterações não commitadas. Faça commit, stash ou descarte essas alterações e depois atualize a {{value1}} local manualmente.",
           "localBaseRefRefreshFailedDetailDirty": "A worktree onde a {{value0}} local está com checkout tem alterações não commitadas. Faça commit, stash ou descarte essas alterações e depois atualize a {{value0}} local manualmente.",
           "localBaseRefRefreshFailedDetailNotFastForward": "A {{value0}} local não existe ou não pode ser atualizada por fast-forward de forma limpa a partir da base remota. Verifique se há commits somente locais antes de atualizá-la manualmente.",
@@ -3885,7 +3868,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Padrão do sistema",
             "9f0b1c2d3e": "Conta do Codex"
           }
         }
@@ -4505,7 +4487,6 @@
             "11e2354daf": "Runtime de uso do Claude",
             "3dd7ddfae1": "Abrir detalhes do Claude e alternador de conta",
             "59c6e7b4e0": "As sessões visíveis reiniciam agora. As outras reiniciam quando sua worktree se tornar ativa.",
-            "c676918adc": "Padrão do sistema",
             "3325d996cb": "Atualizar limites de taxa",
             "cd9d7b40ff": "Reiniciar {{value0}} Sessões",
             "6cd6650b4c": "Reiniciar Sessão",
@@ -4518,10 +4499,8 @@
             "c0e972d726": "Cancelar",
             "3bbf140864": "Uso do MiniMax",
             "remoteServerLabel": "Servidor remoto",
-            "antigravityUsage": "Uso do Antigravity",
             "grokUsageMenu": "Uso do Grok",
             "floatingTerminalNewActivity": "{{label}}, nova atividade",
-            "codexSignInSuccess": "Login realizado no Codex",
             "codexSignInError": "Falha no login do Codex. Tente novamente.",
             "4fba7dc1e7": "Saldo {{value0}}",
             "4025a6f62f": "Ilimitado",
@@ -5005,9 +4984,6 @@
             "mainWorktree": "worktree principal",
             "detached": "desanexado"
           },
-          "antigravity": {
-            "unknownAccount": "Conta Google"
-          },
           "AccountSwitchList": {
             "used": "Usado",
             "left": "Restante",
@@ -5487,16 +5463,13 @@
           "3d245ef7d9": "O Codex informou que este login está desatualizado",
           "589eba1eee": "Precisa reautenticar",
           "e74831fb6b": "Ativo",
-          "b4c9450319": "Nenhuma conta gerenciada do Codex para {{value0}}. O Orca usará o login padrão do sistema do Codex nesse ambiente até que você adicione uma aqui.",
           "93c47b333a": "Precisa entrar",
-          "f2a265f8c7": "Padrão do sistema",
           "c0a52abfc5": "Mostrando contas de {{value0}}. Novas contas são adicionadas ali.",
           "94d351af4a": "Contas",
           "d0d53b7eb0": "Gerencie qual conta do Codex o Orca usa para obter o limite de taxa em tempo real.",
           "340d6f7a85": "Cada conta mantém seu próprio contexto de login local no Orca. A autenticação da conta permanece neste dispositivo.",
           "cedfab35ab": "Opcional. O Orca pode usar seu login normal do Codex; adicione contas somente se quiser alternar rapidamente dentro do Orca.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "Nenhuma conta gerenciada do Claude para {{value0}}. O Orca usará o login padrão do sistema do Claude nesse ambiente até que você adicione uma aqui.",
           "fcc4093fc1": "Usa o login do Codex em {{value0}}.",
           "72b36ea174": "Opcional. O Orca pode usar seu login normal do Claude; adicione contas somente se quiser alternar rapidamente sem mover sessões de chat.",
           "26ef4b55be": "Claude",
@@ -5552,8 +5525,6 @@
           "accountScopePrefix": "Escopo da conta",
           "accountScopeRemoteServerUnnamed": "Servidor remoto",
           "remoteScopeAuthContext": "Cada conta mantém seu próprio contexto de login em {{value0}}.",
-          "remoteEmptyClaudeAccounts": "Nenhuma conta gerenciada do Claude em {{value0}}. Ele usa o login padrão do sistema para o Claude; adicione contas nesse servidor.",
-          "remoteEmptyCodexAccounts": "Nenhuma conta gerenciada do Codex em {{value0}}. Ele usa o login padrão do sistema para o Codex; adicione contas nesse servidor.",
           "codexSystemDefaultCustomProvider": "Provedor personalizado — nenhum uso rastreado.",
           "codexSystemDefaultNeedsSignIn": "Nenhum login do Codex foi encontrado para {{value0}}.",
           "codexConfigSyncMissingSource": "O Codex ainda está usando as configurações da última sincronização porque {{value0}} está ausente. Restaure esse arquivo para retomar a sincronização.",
@@ -5700,7 +5671,6 @@
             "d77537b580": "opencode-go",
             "a9d56852eb": "opencode",
             "7f72de7cbe": "Mostra o uso de tokens e custo do OpenCode Go na barra de status.",
-            "51b0ccd6a2": "google",
             "97957e374e": "openai",
             "8dfd676c28": "codex",
             "e9e4412545": "Mostra o uso de tokens e custo do Codex na barra de status.",
@@ -5742,8 +5712,6 @@
               "pr": "pr",
               "duplicate": "duplicado"
             },
-            "antigravityUsageDescription": "Mostra o uso da assinatura do Antigravity na barra de status.",
-            "antigravityKeyword": "antigravity",
             "e7d1b0f3a5": "Mostra o uso semanal de créditos do Grok via OAuth da Grok CLI.",
             "d6c0a9e2f4": "grok",
             "c5b9f8d1e3": "xai",
@@ -5791,7 +5759,6 @@
             "96e32c1118": "Uso do MiniMax",
             "e8d2710689": "Uso do Muse",
             "aff6e6afdf": "Fonte do IDE",
-            "ba1f9d39a6": "Uso do Antigravity",
             "statusBarUsageFormat": {
               "title": "Formato de uso",
               "description": "Personalize, com marcadores, como o uso de cada provedor aparece na barra de status.",
@@ -11332,7 +11299,6 @@
             "476b77745b": "Alterar Ref Base",
             "ed34038d0d": "Atualizar comparação de branch",
             "493f963029": "Alterar ref base",
-            "11b5dd8e41": "Comparando com",
             "a9bf7c171a": "Falha no Commit",
             "011f9713fc": "Commit bloqueado",
             "cc199ccc5f": "Mais ações de commit e remote",
@@ -11476,8 +11442,6 @@
             "c8e4a1f902": "Filtro: {{value0}}",
             "b3c8f1a902": "Filtrar arquivos por nome",
             "d4f8c2a901": "Limpar e fechar filtro",
-            "e8a1c4b203": "vs",
-            "4b4a7de138": "Abrir página de revisão no navegador",
             "createPrIntentCommitBlockedSummary": "Commit bloqueado: {{value0}} Corrija o problema e tente novamente Criar PR.",
             "pushRecovery": {
               "4b37ae99b0": "Inicia o agente de IA padrão para corrigir esta falha de push",
@@ -11497,7 +11461,6 @@
             "97e7124eac": "Não foi possível atualizar o Controle de Versão. Tente novamente.",
             "b8c2e1a904": "{{value0}} → {{value1}}",
             "a4e93c21d7": "Branch atual: {{value0}}",
-            "c7d4e2f801": "Alterar ref base: {{value0}}",
             "createPrIntentGenerateDetailsFailed": "Não foi possível gerar os detalhes da revisão. Tente novamente Criar PR.",
             "entryStageFailed": "Falha ao adicionar “{{value0}}” ao stage",
             "entryUnstageFailed": "Falha ao remover “{{value0}}” do stage",
@@ -11555,9 +11518,6 @@
             "keepDeletion": "Manter exclusão",
             "refreshAll": "Atualizar tudo",
             "statusReadFailed": "O Git não conseguiu ler este espaço de trabalho. As alterações mostradas podem estar desatualizadas.",
-            "baseUpToDate": "Atualizado",
-            "rebaseOperationInProgress": "Aguarde a operação Git atual terminar",
-            "rebaseButton": "Rebase",
             "rebaseConflictCount_one": "{{count}} conflito",
             "rebaseConflictCount_other": "{{count}} conflitos",
             "rebaseConflictCount_many": "{{count}} conflitos",
@@ -11588,9 +11548,7 @@
             "scopeUncommitted": "Não commitadas",
             "scopeAllChanges": "Todas as alterações",
             "scopeNone": "Nenhuma",
-            "scopeOpenDiff": "Abrir diff",
             "scopeShowAll": "Mostrar todas as alterações",
-            "scopeLoadingBranchChanges": "Carregando alterações da branch…",
             "scopeBranchCommits": "Commits nesta branch",
             "scopeRecentCommits": "Commits recentes",
             "scopeCompareTo": "Comparar com {{ref}}",
@@ -13274,9 +13232,6 @@
           "0f33af979b": "Checkout parcial. Arquivos fora desses caminhos não estão no disco.",
           "4f964d5e8c": "esparso",
           "7d517f82e2": "primária",
-          "4eba2ea99e": "Falha na renomeação automática. Clique para ver detalhes.",
-          "74522ee457": "falha ao renomear",
-          "02e19349f4": "Falha na renomeação automática: ver erro",
           "691ccfd622": "Excluindo…",
           "35ccfe2475": "Projeto {{value0}}",
           "57eaa61b55": "Ocultar espaços de trabalho filhos",
@@ -14004,9 +13959,7 @@
           "reasonNoDistinctName": "O nome gerado era igual ao atual.",
           "reasonFirstMessageUnavailable": "O Orca não encontrou a primeira mensagem deste espaço de trabalho.",
           "reasonAlreadyNamed": "Este espaço de trabalho já foi renomeado.",
-          "reasonUnavailable": "O Orca não pode mais nomear esta branch.",
-          "ca3b225195": "Falha na renomeação automática da branch",
-          "couldNotGenerateBranchName": "O Orca não conseguiu gerar um nome de branch para <name>{{name}}</name> a partir da primeira mensagem do agente."
+          "reasonUnavailable": "O Orca não pode mais nomear esta branch."
         },
         "CreateProjectLocationField": {
           "95548e33bf": "Escolher pasta pai...",
@@ -17077,7 +17030,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Rastreamento não configurado",
-                  "cc39a87288": "Conectado · Padrão do sistema",
                   "00087eecb2": "Conectado · {{value0}}"
                 }
               }
@@ -19241,8 +19193,6 @@
             "4300f38145": "Baixando de {{value0}}{{value1}}",
             "572046436a": "Navegador remoto",
             "b313a7275b": "Abrindo navegador remoto",
-            "ea6af700da": "{{value0}} anotação",
-            "c13693fe27": "{{value0}} anotações",
             "074f0ed10b": "{{value0}} anotação pronta. Selecione outro elemento ou copie todo o feedback.",
             "a2164a6e5a": "{{value0}} anotações prontas. Selecione outro elemento ou copie todo o feedback.",
             "9f6f2e8c19": "O caminho do arquivo baixado não está disponível.",
@@ -19256,7 +19206,6 @@
             "09a9489aa5": "Mostrar",
             "2a4c4b8e1f": "Copiar",
             "fileUrlUnsupported": "Esta aba do navegador não pode abrir arquivos locais. Use \"Abrir Pré-visualização ao Lado\" no arquivo em vez disso.",
-            "cc4a071d3a": "Anotar elemento da página ({{value0}})",
             "undo": "Desfazer",
             "redo": "Refazer",
             "paste": "Colar",
@@ -19359,8 +19308,6 @@
                     "c16f932cb3": "Salvar",
                     "024467ceac": "Cancelar",
                     "449d2c2629": "Intenção da anotação",
-                    "38d320108c": "Recolher anotações",
-                    "9f209891a7": "Expandir anotações",
                     "includePageDetails": "Incluir detalhes da página",
                     "copyFeedback": "Copiar feedback",
                     "copyFeedbackWithPageDetails": "Copiar feedback com detalhes da página"
@@ -22616,7 +22563,6 @@
       "railTickLabel": "Mensagem {{index}} de {{count}}: {{text}}",
       "railMatchCount": "{{count}} de {{total}}",
       "question": {
-        "step": "Etapa {{value0}}",
         "otherPlaceholder": "Digite sua resposta",
         "cancel": "Cancelar",
         "send": "Enviar",
@@ -22628,13 +22574,11 @@
         "recommended": "Recomendado",
         "stepOf": "{{value0}} de {{value1}}",
         "answered": "Respondida",
-        "title": "Pergunta",
         "previous": "Pergunta anterior",
         "nextQuestion": "Próxima pergunta",
         "back": "Voltar",
         "skipAndSubmit": "Pular e enviar",
-        "questionStepLabel": "{{value0}}, {{value1}} de {{value2}}",
-        "stepLabel": "{{value0}}, {{value1}} de {{value2}}: {{value3}}"
+        "questionStepLabel": "{{value0}}, {{value1}} de {{value2}}"
       },
       "ask": {
         "awaiting": "Aguardando entrada do usuário:",
@@ -23987,19 +23931,13 @@
         "retry": "Tentar de novo",
         "dismiss": "Dispensar",
         "dismissName": "Dispensar {{name}}",
-        "openWorker": "Abrir worker",
         "remoteOwner": "Pare ou limpe no computador onde ele roda",
-        "workspaceRemoved": "O espaço de trabalho deste worker foi removido",
-        "restore": "Mostrar no dock de novo",
         "loadingWorker": "Carregando worker…",
         "resultUnavailable": "Resultado do worker indisponível",
         "workersRegion": "Workers",
-        "clearName": "Limpar {{name}}",
-        "doneResult": "Pronto · abrir resultado",
         "stopUnavailable": "Parar {{name}} · {{title}} indisponível · {{reason}}",
         "stopName": "Parar {{name}} · {{title}}",
         "stopping": "Parando…",
-        "clear": "Limpar",
         "stop": "Parar",
         "coordinator": "Aguardando o coordenador",
         "starting": "Iniciando",
@@ -24019,7 +23957,6 @@
         "workerCount_one": "{{count}} worker",
         "workerCount_other": "{{count}} workers",
         "workerCount_many": "{{count}} workers",
-        "stopped": "Parado",
         "finished": "Concluído",
         "failedCount": "{{count}} falhas",
         "needsYouCount": "{{count}} precisam de você",
@@ -24039,14 +23976,7 @@
         "undo": "Desfazer",
         "alreadyStopped": "Já está parado",
         "cantStop": "Não é possível parar agora",
-        "clearAllLabel_one": "Limpar worker com falha",
-        "clearAllLabel_other": "Limpar todos os {{count}} workers com falha",
-        "clearAllLabel_many": "Limpar todos os {{count}} workers com falha",
-        "showDetails": "Mostrar detalhes",
-        "hideDetails": "Ocultar detalhes",
-        "close": "Fechar",
         "stopAll": "Parar todos",
-        "clearFailed": "Limpar workers com falha",
         "unlistedDetail": "Alguns trabalhos em segundo plano não estão listados aqui",
         "unlisted": "Trabalho em segundo plano em execução",
         "unread": "Não foi possível carregar os workers",
@@ -25710,10 +25640,8 @@
       "failed": "Não foi possível mover o painel para uma nova aba."
     },
     "claudeOldTerminalBanner": {
-      "title": "Este terminal foi aberto antes da atualização de contas do Claude no Orca, então o claude aqui usa o login do Padrão do sistema.",
       "dialogTitle": "Por que o claude aqui não usa a conta selecionada",
       "dialogDescription": "O Orca agora mantém cada conta do Claude em sua própria pasta, e o claude em um novo terminal usa a conta que você selecionar.",
-      "dialogCause": "Terminais abertos antes desta atualização não fazem isso, então o claude aqui usa o login do Padrão do sistema. Abra um novo terminal para usar a conta selecionada.",
       "titleOwnLogin": "Este terminal foi aberto antes da atualização de contas do Claude no Orca, então o claude aqui usa o login próprio do Claude deste computador.",
       "dialogCauseOwnLogin": "Terminais abertos antes desta atualização não fazem isso, então o claude aqui usa o login próprio do Claude deste computador. Abra um novo terminal para usar a conta selecionada."
     },
@@ -25873,9 +25801,6 @@
       "retry": "Tentar novamente",
       "changed": "A conta nativa mudou. Selecione uma conta salva novamente antes de iniciar o agy.",
       "refresh": "Atualizar contas",
-      "usage": "Atualizar uso",
-      "usageWithReading": "Atualizar uso ({{reading}})",
-      "usageReading": "Sessão: {{session}} · Semanal: {{weekly}}",
       "saved": "Conta Google salva",
       "remove": "Remover",
       "searchDescription": "Salve e selecione contas Google nativas do agy no host de execução.",
@@ -25895,8 +25820,6 @@
       "settingsIncomplete": "Escolha um tipo de conta Antigravity e informe seu projeto e local do Google Cloud.",
       "settingsLoadFailed": "O Orca não conseguiu carregar suas configurações de login do Antigravity. Tente novamente.",
       "settingsSaveFailed": "O Orca não conseguiu salvar suas configurações de login do Antigravity. Tente novamente.",
-      "lastReading": "{{reading}} · Lido {{time}}",
-      "noReading": "Uso desconhecido: ainda não consultado",
       "windowsChanged": "A conta padrão do host foi alterada. Selecione uma conta salva para aplicá-la novamente.",
       "fd47b5a5dd": "Contas do Antigravity",
       "personalOption": "Seu plano pessoal do Google AI",
@@ -25928,7 +25851,6 @@
       "currentNotSaved": "Login atual do agy · não salvo",
       "noEmailNotSaved": "agy não informou um e-mail · não salvo",
       "saveShort": "Salvar",
-      "readAt": "Lido {{time}}",
       "active": "Ativo",
       "runtime": "Runtime",
       "chatTitle": "Chat do Antigravity",
@@ -25953,10 +25875,7 @@
       "added": "Conta adicionada. Selecione-a para usar no próximo Claude que iniciar.",
       "nextLaunch": "{{value0}} → {{value1}}. O próximo Claude que você iniciar usará essa conta. Sessões em execução mantêm suas contas.",
       "profileSwitching": "A troca se aplica ao próximo Claude que você iniciar em qualquer aba.",
-      "systemDefault": "Padrão do sistema",
       "unnamedAccount": "Conta do Claude",
-      "systemDefaultNamed": "Padrão do sistema: {{value0}}",
-      "systemDefaultIsSaved": "O Padrão do sistema está conectado como {{value0}}, que também é uma conta salva. Uma versão anterior do Orca pode ter copiado esse login para lá. Se não for seu próprio login, selecione Padrão do sistema e execute claude /login.",
       "systemDefaultIsSavedDismiss": "Dispensar",
       "signInRequired": "Entre novamente para usar esta conta",
       "signInAgain": "Entrar novamente",
@@ -26040,7 +25959,6 @@
       "add": "Copiar comando de configuração",
       "refresh": "Atualizar contas",
       "upgrade": "Se as contas não aparecerem, atualize ou reinicie o host do Orca.",
-      "system": "Padrão do sistema",
       "active": "Ativa",
       "select": "Selecionar",
       "remove": "Remover",
@@ -26084,12 +26002,7 @@
     },
     "rename": {
       "action": "Renomear",
-      "title": "Renomear conta",
-      "description": "Só muda o nome que o Orca mostra. Deixe em branco para mostrar {{email}}.",
       "label": "Nome de exibição",
-      "reset": "Restaurar padrão",
-      "cancel": "Cancelar",
-      "save": "Salvar",
       "unsupportedHost": "Atualize o Orca em {{host}} para alterar esta configuração lá."
     }
   },

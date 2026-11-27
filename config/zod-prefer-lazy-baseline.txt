@@ -71,7 +71,6 @@
 1 src/main/ipc/wsl/wsl-move-undo-wiring.ts
 1 src/main/jsonl-rpc/peer.ts
 1 src/main/kiro/kiro-model-listing.ts
-1 src/main/managed-data-accounts/service.ts
 5 src/main/managed-server/activation/orcad-activation-transaction-schema.ts
 2 src/main/managed-server/migration/linking/orcad-server-folder-workspaces.ts
 1 src/main/mcp-servers/mcp-host-list-file-reads.ts

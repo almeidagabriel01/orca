@@ -170,7 +170,6 @@
         "sshToggleDescription": "Muestra hosts SSH configurados y hosts remotos de Orca cuando haya alguno disponible.",
         "resourceUsageToggleDescription": "Muestra el Administrador de recursos. Haz clic para ver CPU, memoria, sesiones, controles del daemon y análisis de disco de los espacios de trabajo.",
         "portsToggleDescription": "Muestra los puertos activos de los espacios de trabajo. Haz clic para ver los puertos de cada espacio de trabajo y los puertos externos.",
-        "antigravityToggleDescription": "Muestra el uso de suscripción de Antigravity para el espacio de trabajo activo.",
         "grokToggleDescription": "Muestra el uso de créditos de suscripción de Grok cuando has iniciado sesión con Grok CLI.",
         "cursorToggleDescription": "Muestra el uso del plan de Cursor cuando inicias sesión con cursor-agent o el IDE de Cursor.",
         "zcodeToggleDescription": "Mostrar el uso de la cuota del plan de codificación ZCode.",
@@ -595,10 +594,6 @@
     },
     "followSymlinkedDirectories": "Seguir directorios con enlaces simbólicos",
     "followSymlinkedDirectoriesDescription": "Busca carpetas enlazadas en Apertura rápida y expande las carpetas enlazadas locales en el Explorador de archivos.",
-    "accounts": {
-      "codexRemoveHome": "Orca elimina la carpeta de Codex de esta cuenta en {{host}}, incluidos su inicio de sesión y los inicios de sesión de MCP. Esta acción no se puede deshacer. Si está seleccionada, el próximo Codex que inicies usará el valor predeterminado del sistema.",
-      "claudeRemoveProfile": "Orca elimina la carpeta de Claude propia de esta cuenta y el inicio de sesión guardado en ella en {{host}}. Tu inicio de sesión predeterminado del sistema y el historial de chat compartido con él se conservan. Si está seleccionada, el próximo Claude que inicies usará el valor predeterminado del sistema."
-    },
     "sourceControl": {
       "gitOperationInAnotherWorkspace": "Operación de Git en otro lugar",
       "remoteOperationInAnotherWorkspace": "Otro espacio de trabajo está ejecutando una operación de Git, como push, pull o force push. Espera a que termine antes de usar esta acción para que las operaciones no se solapen.",
@@ -1545,10 +1540,6 @@
         },
         "worktrees": {
           "e50495aae6": "Forzar eliminación de rama",
-          "14bc053a47": "No se actualizó el {{value0}} local",
-          "localBaseRefRefreshFailedForWorktree": "No se actualizó el {{value0}} local para \"{{value1}}\"",
-          "903b51c2ed": "Espacio de trabajo creado desde {{value0}}, pero Orca no pudo hacer fast-forward del {{value1}} local. {{value2}}",
-          "localBaseRefRefreshFailedDescriptionNamed": "El espacio de trabajo \"{{value0}}\" se creó desde {{value1}}, pero Orca no pudo hacer fast-forward del {{value2}} local. {{value3}}",
           "localBaseRefRefreshFailedDetailDirtyNamed": "El worktree en {{value0}} (donde está checked out el {{value1}} local) tiene cambios sin confirmar. Haz commit, stash o descarta esos cambios y luego actualiza el {{value1}} local manualmente.",
           "localBaseRefRefreshFailedDetailDirty": "El worktree donde está checked out el {{value0}} local tiene cambios sin confirmar. Haz commit, stash o descarta esos cambios y luego actualiza el {{value0}} local manualmente.",
           "localBaseRefRefreshFailedDetailNotFastForward": "El {{value0}} local no existe o no se puede hacer fast-forward de forma limpia desde la base remota. Revisa si hay commits solo locales antes de actualizarlo manualmente.",
@@ -2075,7 +2066,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Predeterminado del sistema",
             "9f0b1c2d3e": "Cuenta de Codex"
           }
         }
@@ -5126,7 +5116,6 @@
             "11e2354daf": "Uso de Claude",
             "3dd7ddfae1": "Abrir detalles de Claude y cambiar de cuenta",
             "59c6e7b4e0": "Las sesiones visibles se reinician ahora. Las demás se reinician cuando su worktree se activa.",
-            "c676918adc": "Predeterminado del sistema",
             "3325d996cb": "Actualizar rate limits",
             "cd9d7b40ff": "Reiniciar {{value0}} sesiones",
             "6cd6650b4c": "Reiniciar sesión",
@@ -5139,13 +5128,11 @@
             "c0e972d726": "Cancelar",
             "3bbf140864": "Uso de MiniMax",
             "remoteServerLabel": "Servidor remoto",
-            "antigravityUsage": "Uso de Antigravity",
             "grokUsageMenu": "Uso de Grok",
             "floatingTerminalNewActivity": "{{label}}, nueva actividad",
             "4fba7dc1e7": "saldo {{value0}}",
             "4025a6f62f": "Ilimitado",
             "a95969101f": "{{value0}} créditos",
-            "codexSignInSuccess": "Sesión iniciada en Codex",
             "codexSignInError": "No se pudo iniciar sesión en Codex. Inténtalo de nuevo.",
             "cursorUsageMenu": "Uso de Cursor",
             "hiddenUsageProviders": "También: {{value0}}",
@@ -5617,9 +5604,6 @@
             },
             "mainWorktree": "worktree principal",
             "detached": "desacoplado"
-          },
-          "antigravity": {
-            "unknownAccount": "Cuenta de Google"
           },
           "AccountSwitchList": {
             "used": "Usado",
@@ -6637,9 +6621,7 @@
           "reasonNoDistinctName": "El nombre generado coincidía con el actual.",
           "reasonFirstMessageUnavailable": "Orca no encontró el primer mensaje de este espacio de trabajo.",
           "reasonAlreadyNamed": "Este espacio de trabajo ya se renombró.",
-          "reasonUnavailable": "Orca ya no puede nombrar esta rama.",
-          "ca3b225195": "Error en el nombre automático de rama",
-          "couldNotGenerateBranchName": "Orca no pudo generar un nombre de rama para <name>{{name}}</name> a partir del primer mensaje del agente."
+          "reasonUnavailable": "Orca ya no puede nombrar esta rama."
         },
         "CreateProjectLocationField": {
           "95548e33bf": "Elige carpeta padre...",
@@ -7086,9 +7068,6 @@
           "0f33af979b": "Checkout parcial. Los archivos fuera de estas rutas no están en disco.",
           "4f964d5e8c": "sparse",
           "7d517f82e2": "principal",
-          "4eba2ea99e": "Falló el nombre automático. Haz clic para ver detalles.",
-          "74522ee457": "falló el cambio de nombre",
-          "02e19349f4": "Error al cambiar el nombre automáticamente: ver error",
           "691ccfd622": "Eliminando…",
           "deleteFailed": "Error al eliminar",
           "35ccfe2475": "Proyecto {{value0}}",
@@ -8170,16 +8149,13 @@
           "3d245ef7d9": "Codex informó que este inicio de sesión no está actualizado",
           "589eba1eee": "Necesita volver a autenticarse",
           "e74831fb6b": "Activo",
-          "b4c9450319": "No hay cuentas de Codex gestionadas para {{value0}}. Orca usará el inicio de sesión predeterminado de Codex del sistema de ese entorno hasta que agregues una aquí.",
           "93c47b333a": "Necesita iniciar sesión",
-          "f2a265f8c7": "Predeterminado del sistema",
           "c0a52abfc5": "Mostrando cuentas para {{value0}}. Las nuevas cuentas se agregan allí.",
           "94d351af4a": "Cuentas",
           "d0d53b7eb0": "Administra qué cuenta de Codex usa Orca para obtener rate limits en vivo.",
           "340d6f7a85": "Cada cuenta mantiene su propio contexto de inicio de sesión local en Orca. La autenticación de la cuenta permanece en este dispositivo.",
           "cedfab35ab": "Opcional. Orca puede usar tu inicio de sesión normal de Codex; agrega cuentas solo si quieres cambiar rápido en Orca.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "No hay cuentas de Claude gestionadas para {{value0}}. Orca usará el inicio de sesión predeterminado de Claude del sistema de ese entorno hasta que agregues una aquí.",
           "fcc4093fc1": "Usa el inicio de sesión de Codex de {{value0}}.",
           "72b36ea174": "Opcional. Orca puede usar tu inicio de sesión normal de Claude; agrega cuentas solo si quieres cambiar rápido sin mover sesiones de chat.",
           "26ef4b55be": "Claude",
@@ -8235,8 +8211,6 @@
           "accountScopePrefix": "Alcance de la cuenta",
           "accountScopeRemoteServerUnnamed": "Servidor remoto",
           "remoteScopeAuthContext": "Cada cuenta mantiene su propio contexto de inicio de sesión en {{value0}}.",
-          "remoteEmptyClaudeAccounts": "No hay cuentas de Claude administradas en {{value0}}. Usa su inicio de sesión de Claude predeterminado del sistema; agrega cuentas en ese servidor.",
-          "remoteEmptyCodexAccounts": "No hay cuentas de Codex administradas en {{value0}}. Usa su inicio de sesión de Codex predeterminado del sistema; agrega cuentas en ese servidor.",
           "codexSystemDefaultCustomProvider": "Proveedor personalizado — no se registra el uso.",
           "codexSystemDefaultNeedsSignIn": "No se encontró ningún inicio de sesión de Codex para {{value0}}.",
           "codexConfigSyncMissingSource": "Codex todavía usa la configuración que sincronizó por última vez porque falta {{value0}}. Restaure ese archivo para reanudar la sincronización.",
@@ -10490,7 +10464,6 @@
             "d77537b580": "opencode-go",
             "a9d56852eb": "opencode",
             "7f72de7cbe": "Muestra el consumo de tokens y el costo de OpenCode Go en la barra de estado.",
-            "51b0ccd6a2": "Google",
             "97957e374e": "openai",
             "8dfd676c28": "codex",
             "e9e4412545": "Muestra el consumo de tokens y el costo de Codex en la barra de estado.",
@@ -10533,8 +10506,6 @@
               "pr": "pr",
               "duplicate": "duplicado"
             },
-            "antigravityUsageDescription": "Muestra el uso de suscripción de Antigravity en la barra de estado.",
-            "antigravityKeyword": "antigravity",
             "e7d1b0f3a5": "Muestra el uso semanal de créditos de Grok desde OAuth de Grok CLI.",
             "d6c0a9e2f4": "grok",
             "c5b9f8d1e3": "xai",
@@ -10588,8 +10559,7 @@
             "c29089716e": "Uso de Kimi",
             "96e32c1118": "Uso de MiniMax",
             "e8d2710689": "Uso de Muse",
-            "aff6e6afdf": "Fuente IDE",
-            "ba1f9d39a6": "Uso de Antigravity"
+            "aff6e6afdf": "Fuente IDE"
           }
         },
         "auto": {
@@ -14705,7 +14675,6 @@
             "476b77745b": "Cambiar referencia base",
             "ed34038d0d": "Actualizar comparación de ramas",
             "493f963029": "Cambiar ref base",
-            "11b5dd8e41": "Comparando contra",
             "a9bf7c171a": "Falló el commit",
             "011f9713fc": "Commit bloqueado",
             "cc199ccc5f": "Más commits y acciones remotas",
@@ -14849,8 +14818,6 @@
             "c8e4a1f902": "Filtro: {{value0}}",
             "b3c8f1a902": "Filtrar archivos por nombre",
             "d4f8c2a901": "Limpiar y cerrar filtro",
-            "e8a1c4b203": "vs",
-            "4b4a7de138": "Abrir página de revisión en el navegador",
             "createPrIntentCommitBlockedSummary": "Commit bloqueado: {{value0}} Corrige el issue y reintenta crear PR.",
             "pushRecovery": {
               "4b37ae99b0": "Iniciar el agente de AI predeterminado para corregir este fallo de push",
@@ -14870,7 +14837,6 @@
             "97e7124eac": "No se pudo actualizar el control de código fuente. Vuelve a intentarlo.",
             "b8c2e1a904": "{{value0}} → {{value1}}",
             "a4e93c21d7": "Rama actual: {{value0}}",
-            "c7d4e2f801": "Cambiar ref base: {{value0}}",
             "createPrIntentGenerateDetailsFailed": "No se pudieron generar los detalles de revisión. Reintentar Crear PR.",
             "entryStageFailed": "No se pudo preparar \"{{value0}}\"",
             "entryUnstageFailed": "No se pudo eliminar la etapa \"{{value0}}\"",
@@ -14928,9 +14894,6 @@
             "keepFile": "Conservar archivo",
             "keepDeletion": "Mantener eliminación",
             "refreshAll": "Actualizar todo",
-            "baseUpToDate": "Actualizado",
-            "rebaseOperationInProgress": "Espera a que termine la operación de Git actual",
-            "rebaseButton": "Rebase",
             "rebaseConflictCount_one": "{{count}} conflicto",
             "rebaseConflictCount_other": "{{count}} conflictos",
             "rebaseConflictCount_many": "{{count}} conflictos",
@@ -14963,9 +14926,7 @@
             "scopeUncommitted": "Sin confirmar",
             "scopeAllChanges": "Todos los cambios",
             "scopeNone": "Ninguno",
-            "scopeOpenDiff": "Abrir diff",
             "scopeShowAll": "Mostrar todos los cambios",
-            "scopeLoadingBranchChanges": "Cargando cambios de la rama…",
             "scopeBranchCommits": "Commits de esta rama",
             "scopeRecentCommits": "Commits recientes",
             "scopeCompareTo": "Comparar con {{ref}}",
@@ -16907,7 +16868,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Seguimiento no configurado",
-                  "cc39a87288": "Conectado · Sistema predeterminado",
                   "00087eecb2": "Conectado · {{value0}}"
                 }
               },
@@ -18554,11 +18514,8 @@
             "4328a0a062": "Captura fallida: {{value0}}",
             "759f32af29": "Descargando",
             "4300f38145": "Descargando desde {{value0}}{{value1}}",
-            "cc4a071d3a": "Anotar elemento de la página ({{value0}})",
             "572046436a": "Navegador remoto",
             "b313a7275b": "Abrir navegador remoto",
-            "ea6af700da": "{{value0}} anotación",
-            "c13693fe27": "{{value0}} anotaciones",
             "074f0ed10b": "{{value0}} anotación lista. Seleccione otro elemento o copie todos los comentarios.",
             "a2164a6e5a": "{{value0}} anotaciones listas. Seleccione otro elemento o copie todos los comentarios.",
             "9f6f2e8c19": "La ruta del archivo descargado no está disponible.",
@@ -18655,8 +18612,6 @@
                     "c16f932cb3": "Ahorrar",
                     "09a7c1df70": "Editar anotación {{value0}}",
                     "449d2c2629": "Intención de la anotación",
-                    "38d320108c": "Contraer anotaciones",
-                    "9f209891a7": "Expandir anotaciones",
                     "includePageDetails": "Incluir detalles de la página",
                     "copyFeedback": "Copiar comentarios",
                     "copyFeedbackWithPageDetails": "Copiar comentarios con detalles de la página"
@@ -21064,7 +21019,6 @@
         "expand": "Expandir"
       },
       "question": {
-        "step": "Paso {{value0}}",
         "otherPlaceholder": "Escribe tu respuesta",
         "cancel": "Cancelar",
         "send": "Enviar",
@@ -21076,13 +21030,11 @@
         "recommended": "Recomendado",
         "stepOf": "{{value0}} de {{value1}}",
         "answered": "Respondida",
-        "title": "Pregunta",
         "previous": "Pregunta anterior",
         "nextQuestion": "Siguiente pregunta",
         "back": "Atrás",
         "skipAndSubmit": "Omitir y enviar",
-        "questionStepLabel": "{{value0}}, {{value1}} de {{value2}}",
-        "stepLabel": "{{value0}}, {{value1}} de {{value2}}: {{value3}}"
+        "questionStepLabel": "{{value0}}, {{value1}} de {{value2}}"
       },
       "approval": {
         "needsNewerOrca": "Esta solicitud necesita una versión más reciente de Orca.",
@@ -22203,27 +22155,15 @@
         "notNow": "Ahora no",
         "retry": "Reintentar",
         "dismiss": "Descartar",
-        "openWorker": "Abrir trabajador",
         "remoteOwner": "Detenlo o bórralo desde el equipo en el que se ejecuta",
-        "workspaceRemoved": "Se eliminó el espacio de trabajo de este trabajador",
-        "restore": "Volver a mostrar en el panel",
         "alreadyStopped": "Ya detenido",
         "cantStop": "No se puede detener ahora",
-        "clearAllLabel_one": "Borrar el trabajador con error",
-        "clearAllLabel_other": "Borrar los {{count}} trabajadores con error",
-        "clearAllLabel_many": "Borrar los {{count}} trabajadores con error",
         "loadingWorker": "Cargando trabajador…",
         "resultUnavailable": "Resultado del trabajador no disponible",
-        "showDetails": "Mostrar detalles",
-        "hideDetails": "Ocultar detalles",
-        "close": "Cerrar",
         "workersRegion": "Trabajadores",
-        "clearName": "Borrar {{name}}",
-        "doneResult": "Terminado · abrir resultado",
         "stopUnavailable": "Detener {{name}} · {{title}} no disponible · {{reason}}",
         "stopName": "Detener {{name}} · {{title}}",
         "stopping": "Deteniendo…",
-        "clear": "Borrar",
         "stop": "Detener",
         "coordinator": "Esperando al coordinador",
         "starting": "Iniciando",
@@ -22243,7 +22183,6 @@
         "workerCount_one": "{{count}} trabajador",
         "workerCount_other": "{{count}} trabajadores",
         "workerCount_many": "{{count}} trabajadores",
-        "stopped": "Detenido",
         "finished": "Terminado",
         "failedCount": "{{count}} con error",
         "needsYouCount": "Esperando tu respuesta: {{count}}",
@@ -22258,7 +22197,6 @@
         "show": "Mostrar",
         "runningCount": "{{count}} en ejecución",
         "stopAll": "Detener todo",
-        "clearFailed": "Borrar los que tienen error",
         "unlistedDetail": "Hay trabajo en segundo plano que no aparece aquí",
         "unlisted": "Trabajo en segundo plano en ejecución",
         "unread": "No se pudieron cargar los trabajadores",
@@ -24289,12 +24227,6 @@
         "pageChanged": "Esta página se cerró o cambió de perfil durante la importación. Inténtalo de nuevo."
       },
       "notice": {
-        "importedMore_one": "Se importó {{count}} cookie para {{domains}} +{{more}} más. Recarga la página para usarla.",
-        "importedMore_other": "Se importaron {{count}} cookies para {{domains}} +{{more}} más. Recarga la página para usarlas.",
-        "importedMore_many": "Se importaron {{count}} cookies para {{domains}} +{{more}} más. Recarga la página para usarlas.",
-        "imported_one": "Se importó {{count}} cookie para {{domains}}. Recarga la página para usarla.",
-        "imported_other": "Se importaron {{count}} cookies para {{domains}}. Recarga la página para usarlas.",
-        "imported_many": "Se importaron {{count}} cookies para {{domains}}. Recarga la página para usarlas.",
         "failed": "No se pudieron importar las cookies: {{reason}}"
       },
       "routedPage": {
@@ -24719,7 +24651,6 @@
       "add": "Copiar comando de configuración",
       "refresh": "Actualizar cuentas",
       "upgrade": "Si las cuentas no aparecen, actualiza o reinicia el host de Orca.",
-      "system": "Predeterminada del sistema",
       "active": "Activa",
       "select": "Seleccionar",
       "remove": "Eliminar",
@@ -24741,11 +24672,8 @@
       "chatReadFailed": "No se pudo comprobar el inicio de sesión en {{host}}.",
       "retry": "Reintentar",
       "remove": "Eliminar",
-      "usage": "Actualizar uso",
-      "usageWithReading": "Actualizar uso ({{reading}})",
       "changed": "La cuenta nativa cambió. Selecciona de nuevo una cuenta guardada antes de iniciar agy.",
       "refresh": "Actualizar cuentas",
-      "usageReading": "Sesión: {{session}} · Semanal: {{weekly}}",
       "saved": "Cuenta de Google guardada",
       "searchDescription": "Guarda y selecciona cuentas nativas de Google de agy en el host de ejecución.",
       "title": "Antigravity",
@@ -24765,8 +24693,6 @@
       "settingsIncomplete": "Elige un tipo de cuenta de Antigravity e introduce su proyecto y ubicación de Google Cloud.",
       "settingsLoadFailed": "Orca no pudo cargar tus ajustes de inicio de sesión de Antigravity. Inténtalo de nuevo.",
       "settingsSaveFailed": "Orca no pudo guardar tus ajustes de inicio de sesión de Antigravity. Inténtalo de nuevo.",
-      "lastReading": "{{reading}} · Consultado {{time}}",
-      "noReading": "Uso desconocido: aún no consultado",
       "fd47b5a5dd": "Cuentas de Antigravity",
       "personalOption": "Tu plan personal de Google AI",
       "enterpriseOption": "La licencia de tu organización",
@@ -24797,7 +24723,6 @@
       "currentNotSaved": "Inicio de sesión actual de agy · sin guardar",
       "noEmailNotSaved": "agy no indicó ningún correo electrónico · sin guardar",
       "saveShort": "Guardar",
-      "readAt": "Consultado {{time}}",
       "active": "Activa",
       "runtime": "Runtime",
       "chatTitle": "Chat de Antigravity",
@@ -24822,10 +24747,7 @@
       "added": "Cuenta agregada. Selecciónala para usarla en el próximo Claude que inicies.",
       "nextLaunch": "{{value0}} → {{value1}}. El próximo terminal de Claude que inicies usará esta cuenta. Los terminales de Claude en ejecución conservan su cuenta.",
       "profileSwitching": "El cambio se aplica al próximo Claude que inicies en cualquier pestaña. Las sesiones en ejecución conservan su cuenta.",
-      "systemDefault": "Predeterminado del sistema",
       "unnamedAccount": "Cuenta de Claude",
-      "systemDefaultNamed": "Predeterminado del sistema: {{value0}}",
-      "systemDefaultIsSaved": "Predeterminado del sistema ha iniciado sesión como {{value0}}, que también es una cuenta guardada. Puede que una versión anterior de Orca haya copiado ese inicio de sesión allí. Si no es tu propio inicio de sesión, selecciona Predeterminado del sistema y ejecuta claude /login.",
       "systemDefaultIsSavedDismiss": "Descartar",
       "signInRequired": "Inicia sesión de nuevo para usar esta cuenta",
       "signInAgain": "Iniciar sesión de nuevo",
@@ -24931,12 +24853,7 @@
     },
     "rename": {
       "action": "Cambiar nombre",
-      "title": "Cambiar el nombre de la cuenta",
-      "description": "Solo cambia el nombre que muestra Orca. Déjalo vacío para mostrar {{email}}.",
       "label": "Nombre visible",
-      "reset": "Restablecer al predeterminado",
-      "cancel": "Cancelar",
-      "save": "Guardar",
       "unsupportedHost": "Actualiza Orca en {{host}} para cambiar este ajuste allí."
     }
   },
@@ -25392,10 +25309,8 @@
       "dismiss": "Descartar"
     },
     "claudeOldTerminalBanner": {
-      "title": "Esta terminal se abrió antes de la actualización de cuentas de Claude de Orca, así que claude aquí usa el inicio de sesión de Predeterminado del sistema.",
       "dialogTitle": "Por qué claude aquí no usa la cuenta seleccionada",
-      "dialogDescription": "Ahora Orca guarda cada cuenta de Claude en su propia carpeta, y claude en una terminal nueva sigue la cuenta que selecciones.",
-      "dialogCause": "Las terminales abiertas antes de esta actualización no lo hacen, así que claude aquí inicia sesión con el inicio de sesión de Predeterminado del sistema. Abre una terminal nueva para usar la cuenta seleccionada."
+      "dialogDescription": "Ahora Orca guarda cada cuenta de Claude en su propia carpeta, y claude en una terminal nueva sigue la cuenta que selecciones."
     },
     "fileDrop": {
       "copyUploadedPaths": "Copiar rutas",
@@ -25632,9 +25547,6 @@
         "planModelWithoutThinking": "El modelo «{{model}}» no admite un nivel de esfuerzo de razonamiento.",
         "planThinkingLevelInvalid": "El nivel de razonamiento «{{level}}» no es válido para {{model}}.",
         "openCodeInvalidEvents": "OpenCode devolvió eventos JSON no válidos.",
-        "antigravityInvalidEvents": "Antigravity devolvió eventos JSON no válidos.",
-        "antigravityInvalidResult": "Antigravity devolvió un resultado no válido.",
-        "antigravityNoFinalResult": "Antigravity no devolvió ningún resultado final.",
         "kimiUnreadableOutput": "Kimi devolvió una salida que Orca no pudo leer. Vuelve a intentarlo.",
         "kimiSessionOccupied": "Kimi no pudo usar esta sesión porque está activa en otro cliente. Detén la sesión allí o sal de ese cliente y vuelve a intentarlo.",
         "kimiInterrupted": "Kimi se interrumpió antes de terminar de generar texto. Vuelve a intentarlo.",
@@ -25832,8 +25744,7 @@
       "scannerMissing": "El escáner de sesiones no está en esta instalación de Orca. Reinstalar Orca lo restaura.",
       "scannerStopped": "El escáner de sesiones se detuvo inesperadamente. Actualiza para reintentarlo."
     },
-    "sessionAccount": "Cuenta",
-    "sessionAccountUnknown": "Desconocido"
+    "sessionAccount": "Cuenta"
   },
   "fileSearch": {
     "failed": "La búsqueda falló. Reintenta.",

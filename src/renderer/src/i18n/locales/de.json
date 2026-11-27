@@ -579,10 +579,6 @@
         "pageChanged": "Diese Seite wurde während des Imports geschlossen oder hat das Profil gewechselt. Versuche es erneut."
       },
       "notice": {
-        "importedMore_one": "{{count}} Cookie für {{domains}} +{{more}} weitere importiert. Zur Verwendung die Seite neu laden.",
-        "importedMore_other": "{{count}} Cookies für {{domains}} +{{more}} weitere importiert. Zur Verwendung die Seite neu laden.",
-        "imported_one": "{{count}} Cookie für {{domains}} importiert. Zur Verwendung die Seite neu laden.",
-        "imported_other": "{{count}} Cookies für {{domains}} importiert. Zur Verwendung die Seite neu laden.",
         "failed": "Cookie-Import fehlgeschlagen: {{reason}}"
       },
       "routedPage": {
@@ -839,7 +835,6 @@
         "sshToggleDescription": "Konfigurierte SSH-Hosts und entfernte Orca-Hosts anzeigen, sofern vorhanden.",
         "resourceUsageToggleDescription": "Den Ressourcenverwaltung anzeigen. Ein Klick öffnet eine Übersicht mit CPU- und Arbeitsspeichernutzung, Sitzungen, Daemon-Steuerung und Speicherplatzanalysen für Arbeitsbereiche.",
         "portsToggleDescription": "Aktive Ports der Arbeitsbereiche anzeigen. Ein Klick zeigt Ports des Arbeitsbereichs und externe lauschende Dienste an.",
-        "antigravityToggleDescription": "Nutzung des Antigravity-Abonnements für den aktiven Arbeitsbereich anzeigen.",
         "grokToggleDescription": "Credit-Verbrauch des Grok-Abonnements bei Anmeldung über Grok CLI anzeigen.",
         "cursorToggleDescription": "Nutzung des Cursor-Tarifs bei Anmeldung über cursor-agent oder Cursor IDE anzeigen.",
         "zcodeToggleDescription": "Kontingentnutzung des ZCode Coding Plan anzeigen.",
@@ -1259,10 +1254,6 @@
     },
     "followSymlinkedDirectories": "Symbolischen Verzeichnislinks folgen",
     "followSymlinkedDirectoriesDescription": "Verknüpfte Ordner beim Schnellöffnen durchsuchen und lokale verknüpfte Ordner im Datei-Explorer aufklappen.",
-    "accounts": {
-      "codexRemoveHome": "Orca löscht den Codex-Ordner dieses Kontos auf {{host}}, einschließlich seiner Anmeldung und MCP-Logins. Dies kann nicht rückgängig gemacht werden. Ist es ausgewählt, verwendet der nächste gestartete Codex den Systemstandard.",
-      "claudeRemoveProfile": "Orca löscht den eigenen Claude-Ordner dieses Kontos und die darin gespeicherte Anmeldung auf {{host}}. Deine Systemstandard-Anmeldung und der damit geteilte Chatverlauf bleiben erhalten. Ist es ausgewählt, verwendet der nächste gestartete Claude den Systemstandard."
-    },
     "sourceControl": {
       "gitOperationInAnotherWorkspace": "Git-Vorgang läuft anderswo",
       "remoteOperationInAnotherWorkspace": "In einem anderen Arbeitsbereich läuft ein Git-Vorgang, etwa Push, Pull oder erzwungener Push. Warte, bis er abgeschlossen ist, bevor du diese Aktion verwendest, damit sich die Vorgänge nicht überschneiden.",
@@ -2198,10 +2189,6 @@
         },
         "worktrees": {
           "e50495aae6": "Löschen des Branches erzwingen",
-          "14bc053a47": "Lokaler Branch {{value0}} wurde nicht aktualisiert",
-          "localBaseRefRefreshFailedForWorktree": "Lokaler Branch {{value0}} wurde für „{{value1}}“ nicht aktualisiert",
-          "903b51c2ed": "Der Arbeitsbereich wurde aus {{value0}} erstellt, aber Orca konnte den lokalen Branch {{value1}} nicht per Fast-Forward aktualisieren. {{value2}}",
-          "localBaseRefRefreshFailedDescriptionNamed": "Der Arbeitsbereich „{{value0}}“ wurde aus {{value1}} erstellt, aber Orca konnte den lokalen Branch {{value2}} nicht per Fast-Forward aktualisieren. {{value3}}",
           "localBaseRefRefreshFailedDetailDirtyNamed": "Der Worktree unter {{value0}}, in dem der lokale Branch {{value1}} ausgecheckt ist, enthält nicht committete Änderungen. Diese Änderungen committen, stashen oder verwerfen und anschließend den lokalen Branch {{value1}} manuell aktualisieren.",
           "localBaseRefRefreshFailedDetailDirty": "Der Worktree, in dem der lokale Branch {{value0}} ausgecheckt ist, enthält nicht committete Änderungen. Diese Änderungen committen, stashen oder verwerfen und anschließend den lokalen Branch {{value0}} manuell aktualisieren.",
           "localBaseRefRefreshFailedDetailNotFastForward": "Der lokale Branch {{value0}} existiert nicht oder kann nicht problemlos per Fast-Forward von der entfernten Basis aktualisiert werden. Vor dem manuellen Aktualisieren auf rein lokale Commits prüfen.",
@@ -2728,7 +2715,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Systemstandard",
             "9f0b1c2d3e": "Codex-Konto"
           }
         }
@@ -5743,7 +5729,6 @@
             "11e2354daf": "Claude-Nutzung: Laufzeitumgebung",
             "3dd7ddfae1": "Claude-Details und Kontowechsel öffnen",
             "59c6e7b4e0": "Sichtbare Sitzungen werden jetzt neu gestartet. Andere werden neu gestartet, sobald ihr Worktree aktiv wird.",
-            "c676918adc": "Systemstandard",
             "3325d996cb": "Ratenlimits aktualisieren",
             "cd9d7b40ff": "{{value0}} Sitzungen neu starten",
             "6cd6650b4c": "Sitzung neu starten",
@@ -5756,13 +5741,11 @@
             "c0e972d726": "Abbrechen",
             "3bbf140864": "MiniMax-Nutzung",
             "remoteServerLabel": "Remote-Server",
-            "antigravityUsage": "Antigravity-Nutzung",
             "grokUsageMenu": "Grok-Nutzung",
             "floatingTerminalNewActivity": "{{label}}, neue Aktivität",
             "4fba7dc1e7": "{{value0}} Guthaben",
             "4025a6f62f": "Unbegrenzt",
             "a95969101f": "{{value0}} Credits",
-            "codexSignInSuccess": "Bei Codex angemeldet",
             "codexSignInError": "Anmeldung bei Codex fehlgeschlagen. Bitte erneut versuchen.",
             "cursorUsageMenu": "Cursor-Nutzung",
             "hiddenUsageProviders": "Außerdem: {{value0}}",
@@ -6215,9 +6198,6 @@
             },
             "mainWorktree": "Haupt-Worktree",
             "detached": "losgelöst"
-          },
-          "antigravity": {
-            "unknownAccount": "Google-Konto"
           },
           "AccountSwitchList": {
             "used": "Verbraucht",
@@ -7218,9 +7198,7 @@
           "reasonNoDistinctName": "Der erzeugte Name stimmte mit dem aktuellen überein.",
           "reasonFirstMessageUnavailable": "Orca konnte die erste Nachricht dieses Arbeitsbereichs nicht finden.",
           "reasonAlreadyNamed": "Dieser Arbeitsbereich wurde bereits umbenannt.",
-          "reasonUnavailable": "Orca kann diesen Branch nicht mehr benennen.",
-          "ca3b225195": "Automatische Branch-Benennung fehlgeschlagen",
-          "couldNotGenerateBranchName": "Orca konnte aus der ersten Agentennachricht keinen Branch-Namen für <name>{{name}}</name> erzeugen."
+          "reasonUnavailable": "Orca kann diesen Branch nicht mehr benennen."
         },
         "CreateProjectLocationField": {
           "95548e33bf": "Übergeordneten Ordner auswählen…",
@@ -7653,9 +7631,6 @@
           "0f33af979b": "Teil-Checkout. Dateien außerhalb dieser Pfade befinden sich nicht auf dem Datenträger.",
           "4f964d5e8c": "Teil-Checkout",
           "7d517f82e2": "Primär",
-          "4eba2ea99e": "Automatische Namensvergabe fehlgeschlagen. Zum Anzeigen der Details klicken.",
-          "74522ee457": "Umbenennen fehlgeschlagen",
-          "02e19349f4": "Automatisches Umbenennen fehlgeschlagen: Fehler anzeigen",
           "691ccfd622": "Wird gelöscht…",
           "deleteFailed": "Löschen fehlgeschlagen",
           "35ccfe2475": "Projekt {{value0}}",
@@ -8696,16 +8671,13 @@
           "3d245ef7d9": "Codex meldet, dass diese Anmeldung nicht mehr aktuell ist",
           "589eba1eee": "Erneute Authentifizierung nötig",
           "e74831fb6b": "Aktiv",
-          "b4c9450319": "Keine verwalteten Codex-Konten für {{value0}}. Orca verwendet die systemweite Standardanmeldung für Codex dieser Umgebung, bis hier ein Konto hinzugefügt wird.",
           "93c47b333a": "Anmeldung erforderlich",
-          "f2a265f8c7": "Systemstandard",
           "c0a52abfc5": "Konten für {{value0}} werden angezeigt. Neue Konten werden dort hinzugefügt.",
           "94d351af4a": "Konten",
           "d0d53b7eb0": "Verwalten, welches Codex-Konto Orca zum Abrufen aktueller Ratenlimits verwendet.",
           "340d6f7a85": "Jedes Konto behält seinen eigenen lokalen Anmeldekontext in Orca. Die Authentifizierungsdaten des Kontos bleiben auf diesem Gerät.",
           "cedfab35ab": "Optional. Orca kann die reguläre Codex-Anmeldung verwenden; Konten nur hinzufügen, wenn ein schneller Wechsel in Orca gewünscht ist.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "Keine verwalteten Claude-Konten für {{value0}}. Orca verwendet die systemweite Standardanmeldung für Claude dieser Umgebung, bis hier ein Konto hinzugefügt wird.",
           "fcc4093fc1": "Verwendet die Codex-Anmeldung von {{value0}}.",
           "72b36ea174": "Optional. Orca kann die reguläre Claude-Anmeldung verwenden; Konten nur hinzufügen, wenn ein schneller Wechsel ohne Verschieben von Chatsitzungen gewünscht ist.",
           "26ef4b55be": "Claude",
@@ -8761,8 +8733,6 @@
           "accountScopePrefix": "Kontogeltungsbereich",
           "accountScopeRemoteServerUnnamed": "Remote-Server",
           "remoteScopeAuthContext": "Jedes Konto behält seinen eigenen Anmeldekontext auf {{value0}}.",
-          "remoteEmptyClaudeAccounts": "Keine verwalteten Claude-Konten auf {{value0}}. Der Server verwendet seine systemweite Standardanmeldung für Claude; Konten auf diesem Server hinzufügen.",
-          "remoteEmptyCodexAccounts": "Keine verwalteten Codex-Konten auf {{value0}}. Der Server verwendet seine systemweite Standardanmeldung für Codex; Konten auf diesem Server hinzufügen.",
           "codexSystemDefaultCustomProvider": "Benutzerdefinierter Anbieter — keine Nutzung erfasst.",
           "codexSystemDefaultNeedsSignIn": "Keine Codex-Anmeldung für {{value0}} gefunden.",
           "codexConfigSyncMissingSource": "Codex verwendet weiterhin die zuletzt synchronisierten Einstellungen, da {{value0}} fehlt. Diese Datei wiederherstellen, um die Synchronisierung fortzusetzen.",
@@ -11060,7 +11030,6 @@
             "d77537b580": "opencode-go",
             "a9d56852eb": "opencode",
             "7f72de7cbe": "Token-Nutzung und Kosten von OpenCode Go in der Statusleiste anzeigen.",
-            "51b0ccd6a2": "google",
             "97957e374e": "openai",
             "8dfd676c28": "codex",
             "e9e4412545": "Token-Nutzung und Kosten von Codex in der Statusleiste anzeigen.",
@@ -11102,8 +11071,6 @@
               "pr": "PR",
               "duplicate": "Duplikat"
             },
-            "antigravityUsageDescription": "Nutzung des Antigravity-Abonnements in der Statusleiste anzeigen.",
-            "antigravityKeyword": "antigravity",
             "e7d1b0f3a5": "Wöchentliche Credit-Nutzung von Grok über OAuth von Grok CLI anzeigen.",
             "d6c0a9e2f4": "grok",
             "c5b9f8d1e3": "xai",
@@ -11157,8 +11124,7 @@
             "c29089716e": "Kimi-Nutzung",
             "96e32c1118": "MiniMax-Nutzung",
             "e8d2710689": "Muse-Nutzung",
-            "aff6e6afdf": "IDE-Schriftart",
-            "ba1f9d39a6": "Antigravity-Nutzung"
+            "aff6e6afdf": "IDE-Schriftart"
           }
         },
         "auto": {
@@ -15192,7 +15158,6 @@
             "476b77745b": "Basisreferenz ändern",
             "ed34038d0d": "Branch-Vergleich aktualisieren",
             "493f963029": "Basisreferenz ändern",
-            "11b5dd8e41": "Vergleich mit",
             "a9bf7c171a": "Commit fehlgeschlagen",
             "011f9713fc": "Commit blockiert",
             "cc199ccc5f": "Weitere Commit- und Remote-Aktionen",
@@ -15336,8 +15301,6 @@
             "c8e4a1f902": "Filter: {{value0}}",
             "b3c8f1a902": "Dateien nach Namen filtern",
             "d4f8c2a901": "Filter leeren und schließen",
-            "e8a1c4b203": "gegenüber",
-            "4b4a7de138": "Review-Seite im Browser öffnen",
             "createPrIntentCommitBlockedSummary": "Commit blockiert: {{value0}} Problem beheben und anschließend „PR erstellen“ erneut versuchen.",
             "pushRecovery": {
               "4b37ae99b0": "Standard-KI-Agenten starten, um diesen Push-Fehler zu beheben",
@@ -15357,7 +15320,6 @@
             "97e7124eac": "Quellcodeverwaltung konnte nicht aktualisiert werden. Erneut versuchen.",
             "b8c2e1a904": "{{value0}} → {{value1}}",
             "a4e93c21d7": "Aktueller Branch: {{value0}}",
-            "c7d4e2f801": "Basisreferenz ändern: {{value0}}",
             "createPrIntentGenerateDetailsFailed": "Review-Details konnten nicht generiert werden. „PR erstellen“ erneut versuchen.",
             "entryStageFailed": "„{{value0}}“ konnte nicht vorgemerkt werden",
             "entryUnstageFailed": "Vormerkung für „{{value0}}“ konnte nicht aufgehoben werden",
@@ -15405,9 +15367,6 @@
             "keepFile": "Datei behalten",
             "keepDeletion": "Löschung beibehalten",
             "refreshAll": "Alle aktualisieren",
-            "baseUpToDate": "Aktuell",
-            "rebaseOperationInProgress": "Warte, bis der aktuelle Git-Vorgang abgeschlossen ist",
-            "rebaseButton": "Rebase",
             "rebaseConflictCount_one": "{{count}} Konflikt",
             "rebaseConflictCount_other": "{{count}} Konflikte",
             "rebasePaused": "Rebase angehalten",
@@ -15437,9 +15396,7 @@
             "scopeUncommitted": "Nicht committet",
             "scopeAllChanges": "Alle Änderungen",
             "scopeNone": "Keine",
-            "scopeOpenDiff": "Diff öffnen",
             "scopeShowAll": "Alle Änderungen anzeigen",
-            "scopeLoadingBranchChanges": "Branch-Änderungen werden geladen…",
             "scopeBranchCommits": "Commits auf diesem Branch",
             "scopeRecentCommits": "Letzte Commits",
             "scopeCompareTo": "Mit {{ref}} vergleichen",
@@ -17383,7 +17340,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "Nutzungserfassung nicht eingerichtet",
-                  "cc39a87288": "Verbunden · Systemstandard",
                   "00087eecb2": "Verbunden · {{value0}}"
                 }
               }
@@ -18970,11 +18926,8 @@
             "4328a0a062": "Erfassung fehlgeschlagen: {{value0}}",
             "759f32af29": "Wird heruntergeladen",
             "4300f38145": "Wird von {{value0}}{{value1}} heruntergeladen",
-            "cc4a071d3a": "Seitenelement mit Anmerkung versehen ({{value0}})",
             "572046436a": "Entfernter Browser",
             "b313a7275b": "Entfernter Browser wird geöffnet",
-            "ea6af700da": "{{value0}} Anmerkung",
-            "c13693fe27": "{{value0}} Anmerkungen",
             "074f0ed10b": "{{value0}} Anmerkung bereit. Ein anderes Element auswählen oder das gesamte Feedback kopieren.",
             "a2164a6e5a": "{{value0}} Anmerkungen bereit. Ein anderes Element auswählen oder das gesamte Feedback kopieren.",
             "9f6f2e8c19": "Der Pfad der heruntergeladenen Datei ist nicht verfügbar.",
@@ -19092,8 +19045,6 @@
                     "c16f932cb3": "Speichern",
                     "024467ceac": "Abbrechen",
                     "449d2c2629": "Zweck der Anmerkung",
-                    "38d320108c": "Anmerkungen einklappen",
-                    "9f209891a7": "Anmerkungen ausklappen",
                     "includePageDetails": "Seitendetails einbeziehen",
                     "copyFeedback": "Feedback kopieren",
                     "copyFeedbackWithPageDetails": "Feedback mit Seitendetails kopieren"
@@ -21685,7 +21636,6 @@
         "expand": "Ausklappen"
       },
       "question": {
-        "step": "Schritt {{value0}}",
         "otherPlaceholder": "Antwort eingeben",
         "cancel": "Abbrechen",
         "send": "Absenden",
@@ -21697,13 +21647,11 @@
         "recommended": "Empfohlen",
         "stepOf": "{{value0}} von {{value1}}",
         "answered": "Beantwortet",
-        "title": "Frage",
         "previous": "Vorherige Frage",
         "nextQuestion": "Nächste Frage",
         "back": "Zurück",
         "skipAndSubmit": "Überspringen und senden",
-        "questionStepLabel": "{{value0}}, {{value1}} von {{value2}}",
-        "stepLabel": "{{value0}}, {{value1}} von {{value2}}: {{value3}}"
+        "questionStepLabel": "{{value0}}, {{value1}} von {{value2}}"
       },
       "ask": {
         "awaiting": "Warten auf Benutzereingabe:",
@@ -22624,26 +22572,15 @@
         "notNow": "Nicht jetzt",
         "retry": "Erneut versuchen",
         "dismiss": "Ausblenden",
-        "openWorker": "Worker öffnen",
         "remoteOwner": "Auf dem Computer stoppen oder entfernen, auf dem dies läuft",
-        "workspaceRemoved": "Der Arbeitsbereich dieses Workers wurde entfernt",
-        "restore": "Wieder im Dock anzeigen",
         "alreadyStopped": "Bereits gestoppt",
         "cantStop": "Stoppen derzeit nicht möglich",
-        "clearAllLabel_one": "Fehlgeschlagenen Worker entfernen",
-        "clearAllLabel_other": "Alle {{count}} fehlgeschlagenen Worker entfernen",
         "loadingWorker": "Worker wird geladen…",
         "resultUnavailable": "Worker-Ergebnis nicht verfügbar",
-        "showDetails": "Details anzeigen",
-        "hideDetails": "Details ausblenden",
-        "close": "Schließen",
         "workersRegion": "Worker",
-        "clearName": "{{name}} entfernen",
-        "doneResult": "Erledigt · Ergebnis öffnen",
         "stopUnavailable": "Stoppen von {{name}} · {{title}} nicht verfügbar · {{reason}}",
         "stopName": "{{name}} · {{title}} stoppen",
         "stopping": "Wird gestoppt…",
-        "clear": "Entfernen",
         "stop": "Stoppen",
         "coordinator": "Wartet auf den Koordinator",
         "starting": "Wird gestartet",
@@ -22662,7 +22599,6 @@
         "task": "Aufgabe",
         "workerCount_one": "{{count}} Worker",
         "workerCount_other": "{{count}} Worker",
-        "stopped": "Gestoppt",
         "finished": "Abgeschlossen",
         "failedCount": "{{count}} fehlgeschlagen",
         "needsYouCount": "{{count}} mit Rückfrage",
@@ -22676,7 +22612,6 @@
         "show": "Anzeigen",
         "runningCount": "{{count}} laufend",
         "stopAll": "Alle stoppen",
-        "clearFailed": "Fehlgeschlagene entfernen",
         "unlistedDetail": "Einige Hintergrundarbeiten werden hier nicht aufgeführt",
         "unlisted": "Hintergrundarbeit läuft",
         "unread": "Worker konnten nicht geladen werden",
@@ -24693,9 +24628,6 @@
         "planModelWithoutThinking": "Modell „{{model}}“ unterstützt keine Einstellung des Denkaufwands.",
         "planThinkingLevelInvalid": "Die Denkstufe „{{level}}“ ist für {{model}} nicht gültig.",
         "openCodeInvalidEvents": "OpenCode hat ungültige JSON-Ereignisse zurückgegeben.",
-        "antigravityInvalidEvents": "Antigravity hat ungültige JSON-Ereignisse zurückgegeben.",
-        "antigravityInvalidResult": "Antigravity hat ein ungültiges Ergebnis zurückgegeben.",
-        "antigravityNoFinalResult": "Antigravity hat kein abschließendes Ergebnis zurückgegeben.",
         "kimiUnreadableOutput": "Kimi hat eine Ausgabe zurückgegeben, die Orca nicht lesen konnte. Erneut versuchen.",
         "kimiSessionOccupied": "Kimi konnte diese Sitzung nicht verwenden, da sie in einem anderen Client aktiv ist. Die Sitzung dort stoppen oder den Client beenden und erneut versuchen.",
         "kimiInterrupted": "Kimi wurde vor Abschluss der Textgenerierung unterbrochen. Erneut versuchen.",
@@ -25044,8 +24976,7 @@
       "scannerMissing": "Der Sitzungs-Scanner fehlt in dieser Orca-Installation. Eine Neuinstallation von Orca stellt ihn wieder her.",
       "scannerStopped": "Der Sitzungs-Scanner wurde unerwartet beendet. Zum Wiederholen aktualisieren."
     },
-    "sessionAccount": "Konto",
-    "sessionAccountUnknown": "Unbekannt"
+    "sessionAccount": "Konto"
   },
   "common": {
     "retry": "Erneut versuchen",
@@ -25107,10 +25038,8 @@
       "failed": "Der Bereich konnte nicht in einen neuen Tab verschoben werden."
     },
     "claudeOldTerminalBanner": {
-      "title": "Dieses Terminal wurde vor Orcas Update für Claude-Konten geöffnet. Daher verwendet claude hier die Anmeldung von „Systemstandard“.",
       "dialogTitle": "Warum claude hier nicht das ausgewählte Konto verwendet",
-      "dialogDescription": "Orca speichert jedes Claude-Konto jetzt in einem eigenen Ordner. In einem neuen Terminal verwendet claude das ausgewählte Konto.",
-      "dialogCause": "Bei Terminals, die vor diesem Update geöffnet wurden, gilt das nicht. Daher meldet sich claude hier mit den Anmeldedaten von „Systemstandard“ an. Ein neues Terminal öffnen, um das ausgewählte Konto zu verwenden."
+      "dialogDescription": "Orca speichert jedes Claude-Konto jetzt in einem eigenen Ordner. In einem neuen Terminal verwendet claude das ausgewählte Konto."
     },
     "claudeDiffPanelNotice": {
       "title": "Claude Code kann in breiten Terminals ein eigenes Diff-Panel neben dem Chat öffnen. Dieses Panel gehört zu Claude, nicht zu Orca.",
@@ -25262,9 +25191,6 @@
       "retry": "Erneut versuchen",
       "changed": "Das native Konto hat sich geändert. Vor dem Start von agy erneut ein gespeichertes Konto auswählen.",
       "refresh": "Konten aktualisieren",
-      "usage": "Nutzung aktualisieren",
-      "usageWithReading": "Nutzung aktualisieren ({{reading}})",
-      "usageReading": "Sitzung: {{session}} · Wöchentlich: {{weekly}}",
       "saved": "Gespeichertes Google-Konto",
       "remove": "Entfernen",
       "searchDescription": "Native Google-Konten von agy auf dem Ausführungshost speichern und auswählen.",
@@ -25285,8 +25211,6 @@
       "settingsIncomplete": "Wähle einen Antigravity-Kontotyp und gib dessen Google-Cloud-Projekt und -Standort ein.",
       "settingsLoadFailed": "Orca konnte deine Antigravity-Anmeldeeinstellungen nicht laden. Versuche es erneut.",
       "settingsSaveFailed": "Orca konnte deine Antigravity-Anmeldeeinstellungen nicht speichern. Versuche es erneut.",
-      "lastReading": "{{reading}} · Ausgelesen {{time}}",
-      "noReading": "Nutzung unbekannt: noch nicht ausgelesen",
       "fd47b5a5dd": "Antigravity-Konten",
       "personalOption": "Dein persönlicher Google AI-Tarif",
       "enterpriseOption": "Lizenz deiner Organisation",
@@ -25317,7 +25241,6 @@
       "currentNotSaved": "Aktuelle agy-Anmeldung · nicht gespeichert",
       "noEmailNotSaved": "agy hat keine E-Mail-Adresse gemeldet · nicht gespeichert",
       "saveShort": "Speichern",
-      "readAt": "Ausgelesen {{time}}",
       "active": "Aktiv",
       "runtime": "Laufzeit",
       "chatTitle": "Antigravity-Chat",
@@ -25342,10 +25265,7 @@
       "added": "Konto hinzugefügt. Das Konto auswählen, um es beim nächsten Start von Claude zu verwenden.",
       "nextLaunch": "{{value0}} → {{value1}}. Beim nächsten Start verwendet Claude dieses Konto. Laufende Sitzungen behalten ihr Konto.",
       "profileSwitching": "Der Wechsel gilt für den nächsten Start von Claude in einem beliebigen Tab.",
-      "systemDefault": "Systemstandard",
       "unnamedAccount": "Claude-Konto",
-      "systemDefaultNamed": "Systemstandard: {{value0}}",
-      "systemDefaultIsSaved": "Der Systemstandard ist als {{value0}} angemeldet; dieses Konto ist auch gespeichert. Eine frühere Orca-Version hat diese Anmeldung möglicherweise dorthin kopiert. Falls dies nicht die eigene Anmeldung ist, „Systemstandard“ auswählen und claude /login ausführen.",
       "systemDefaultIsSavedDismiss": "Ausblenden",
       "signInRequired": "Erneute Anmeldung erforderlich, um dieses Konto zu verwenden",
       "signInAgain": "Erneut anmelden",
@@ -25425,7 +25345,6 @@
       "add": "Einrichtungsbefehl kopieren",
       "refresh": "Konten aktualisieren",
       "upgrade": "Falls keine Konten angezeigt werden, den Orca-Host aktualisieren oder neu starten.",
-      "system": "Systemstandard",
       "active": "Aktiv",
       "select": "Auswählen",
       "remove": "Entfernen",
@@ -25462,12 +25381,7 @@
     },
     "rename": {
       "action": "Umbenennen",
-      "title": "Konto umbenennen",
-      "description": "Nur der in Orca angezeigte Name ändert sich. Leer lassen, um {{email}} anzuzeigen.",
       "label": "Anzeigename",
-      "reset": "Auf Standard zurücksetzen",
-      "cancel": "Abbrechen",
-      "save": "Speichern",
       "unsupportedHost": "Aktualisiere Orca auf {{host}}, um diese Einstellung dort zu ändern."
     }
   },

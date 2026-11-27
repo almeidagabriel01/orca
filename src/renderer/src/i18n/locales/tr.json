@@ -583,10 +583,6 @@
         "pageChanged": "Bu sayfa içe aktarma sırasında kapandı veya profil değiştirdi. Tekrar deneyin."
       },
       "notice": {
-        "importedMore_one": "{{domains}} ve diğer {{more}} alan adı için {{count}} çerez içe aktarıldı. Kullanmak için sayfayı yeniden yükleyin.",
-        "importedMore_other": "{{domains}} ve diğer {{more}} alan adı için {{count}} çerez içe aktarıldı. Kullanmak için sayfayı yeniden yükleyin.",
-        "imported_one": "{{domains}} için {{count}} çerez içe aktarıldı. Kullanmak için sayfayı yeniden yükleyin.",
-        "imported_other": "{{domains}} için {{count}} çerez içe aktarıldı. Kullanmak için sayfayı yeniden yükleyin.",
         "failed": "Çerezler içe aktarılamadı: {{reason}}"
       },
       "routedPage": {
@@ -843,7 +839,6 @@
         "sshToggleDescription": "Herhangi biri kullanılabilir olduğunda yapılandırılmış SSH ve uzak Orca sunucularını göster.",
         "resourceUsageToggleDescription": "Kaynak Yöneticisini göster. CPU, bellek, oturumlar, arka plan hizmeti kontrolleri ve çalışma alanı disk taramaları için tıklayın.",
         "portsToggleDescription": "Canlı çalışma alanı portlarını göster. Çalışma alanı kapsamındaki portlar ve dış dinleyiciler için tıklayın.",
-        "antigravityToggleDescription": "Etkin çalışma alanı için Antigravity abonelik kullanımını göster.",
         "grokToggleDescription": "Grok CLI üzerinden oturum açıldığında Grok abonelik kredisi kullanımını göster.",
         "cursorToggleDescription": "cursor-agent veya Cursor IDE üzerinden oturum açıldığında Cursor plan kullanımını göster.",
         "zcodeToggleDescription": "ZCode Coding Plan kota kullanımını göster.",
@@ -1994,10 +1989,6 @@
       "info": "Otomatik güncellemeler hakkında",
       "saveFailed": "Otomatik güncelleme ayarı kaydedilemedi."
     },
-    "accounts": {
-      "codexRemoveHome": "Orca, bu hesaba ait Codex klasörünü {{host}} üzerinden siler. Kayıtlı oturum açma bilgileri ve MCP oturumları da silinir. Bu işlem geri alınamaz. Bu hesap seçiliyse bir sonraki Codex oturumu sistem varsayılanıyla açılır.",
-      "claudeRemoveProfile": "Orca, bu hesaba ait Claude klasörünü ve klasörde saklanan oturum açma bilgilerini {{host}} üzerinden siler. Sistem varsayılanı oturumu ve onunla paylaşılan sohbet geçmişi korunur. Bu hesap seçiliyse bir sonraki Claude oturumu sistem varsayılanıyla açılır."
-    },
     "openInApp": {
       "preset": {
         "devinDesktop": "Devin Desktop",
@@ -2465,10 +2456,6 @@
         },
         "worktrees": {
           "e50495aae6": "Branch'i Zorla Sil",
-          "14bc053a47": "Yerel {{value0}} yenilenmedi",
-          "localBaseRefRefreshFailedForWorktree": "\"{{value1}}\" için yerel {{value0}} yenilenmedi",
-          "903b51c2ed": "Çalışma alanı {{value0}} üzerinden oluşturuldu, ancak Orca yerel {{value1}} için fast-forward yapamadı. {{value2}}",
-          "localBaseRefRefreshFailedDescriptionNamed": "\"{{value0}}\" çalışma alanı {{value1}} üzerinden oluşturuldu, ancak Orca yerel {{value2}} için fast-forward yapamadı. {{value3}}",
           "localBaseRefRefreshFailedDetailDirtyNamed": "{{value0}} konumundaki worktree'de (yerel {{value1}} burada checkout edilmiş durumda) commit edilmemiş değişiklikler var. Bu değişiklikleri commit'leyin, stash'leyin veya atın, ardından yerel {{value1}} branch'ini elle güncelleyin.",
           "localBaseRefRefreshFailedDetailDirty": "Yerel {{value0}} branch'inin checkout edildiği worktree'de commit edilmemiş değişiklikler var. Bu değişiklikleri commit'leyin, stash'leyin veya atın, ardından yerel {{value0}} branch'ini elle güncelleyin.",
           "localBaseRefRefreshFailedDetailNotFastForward": "Yerel {{value0}} mevcut değil veya uzak taban üzerinden temiz bir şekilde fast-forward yapılamıyor. Elle güncellemeden önce yalnızca yerelde bulunan commit'leri kontrol edin.",
@@ -2995,7 +2982,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "Sistem varsayılanı",
             "9f0b1c2d3e": "Codex hesabı"
           }
         }
@@ -6010,7 +5996,6 @@
             "11e2354daf": "Claude kullanım çalışma zamanı",
             "3dd7ddfae1": "Claude ayrıntılarını ve hesap değiştiriciyi aç",
             "59c6e7b4e0": "Görünür oturumlar şimdi yeniden başlar. Diğerleri, worktree'leri etkin hale geldiğinde yeniden başlar.",
-            "c676918adc": "Sistem varsayılanı",
             "3325d996cb": "Hız sınırlarını yenile",
             "cd9d7b40ff": "{{value0}} Oturumu Yeniden Başlat",
             "6cd6650b4c": "Oturumu Yeniden Başlat",
@@ -6022,13 +6007,11 @@
             "c0e972d726": "İptal",
             "3bbf140864": "MiniMax Kullanımı",
             "remoteServerLabel": "Uzak sunucu",
-            "antigravityUsage": "Antigravity Kullanımı",
             "grokUsageMenu": "Grok Kullanımı",
             "floatingTerminalNewActivity": "{{label}}, yeni etkinlik",
             "4fba7dc1e7": "{{value0}} bakiye",
             "4025a6f62f": "Sınırsız",
             "a95969101f": "{{value0}} kredi",
-            "codexSignInSuccess": "Codex'te oturum açıldı",
             "codexSignInError": "Codex'te oturum açılamadı. Lütfen tekrar deneyin.",
             "cursorUsageMenu": "Cursor Kullanımı",
             "hiddenUsageProviders": "Ayrıca: {{value0}}",
@@ -6482,9 +6465,6 @@
             },
             "mainWorktree": "ana worktree",
             "detached": "ayrık"
-          },
-          "antigravity": {
-            "unknownAccount": "Google hesabı"
           },
           "AccountSwitchList": {
             "used": "Kullanılan",
@@ -7471,10 +7451,7 @@
           "eab8b45238": "Hatayı kopyala",
           "a23b22d16f": "Kopyalandı",
           "74fc00776f": "Hata ayrıntıları",
-          "ca3b225195": "Branch otomatik adlandırması başarısız oldu",
-          "couldNotGenerateBranchName": "Orca'da <name>{{name}}</name> için ilk ajan mesajından bir branch adı oluşturulamadı.",
           "tryAgain": "Yeniden deneyin",
-          "namingBranch": "Branch adlandırılıyor…",
           "errorDetailsAt": "Hata ayrıntıları · {{time}}",
           "reasonNothingYet": "Henüz branch'e ad vermek için kullanılabilecek değişiklik yok.",
           "reasonBranchChanged": "Orca branch'i adlandırırken branch değişti.",
@@ -7488,8 +7465,7 @@
           "reasonNoDistinctName": "Oluşturulan ad mevcut adla aynı.",
           "reasonFirstMessageUnavailable": "Orca bu çalışma alanındaki ilk mesajı bulamadı.",
           "reasonAlreadyNamed": "Bu çalışma alanı zaten yeniden adlandırılmış.",
-          "reasonUnavailable": "Orca artık bu branch'i adlandıramıyor.",
-          "branchNameKept": "Branch adı korundu"
+          "reasonUnavailable": "Orca artık bu branch'i adlandıramıyor."
         },
         "CreateProjectLocationField": {
           "95548e33bf": "Üst klasör seçin...",
@@ -7917,9 +7893,6 @@
           "0f33af979b": "Kısmi checkout. Bu yolların dışındaki dosyalar diskte bulunmaz.",
           "4f964d5e8c": "sparse",
           "7d517f82e2": "birincil",
-          "4eba2ea99e": "Otomatik adlandırma başarısız oldu. Ayrıntıları görmek için tıklayın.",
-          "74522ee457": "yeniden adlandırma başarısız oldu",
-          "02e19349f4": "Otomatik yeniden adlandırma başarısız oldu: hatayı görüntüle",
           "691ccfd622": "Siliniyor…",
           "deleteFailed": "Silme başarısız",
           "35ccfe2475": "Proje {{value0}}",
@@ -8968,16 +8941,13 @@
           "3d245ef7d9": "Codex, bu girişin güncel olmadığını bildirdi",
           "589eba1eee": "Yeniden kimlik doğrulama gerekli",
           "e74831fb6b": "Etkin",
-          "b4c9450319": "{{value0}} için yönetilen Codex hesabı yok. Siz burada bir hesap ekleyene kadar Orca, o ortamın sistem varsayılan Codex girişini kullanacak.",
           "93c47b333a": "Giriş gerekli",
-          "f2a265f8c7": "Sistem varsayılanı",
           "c0a52abfc5": "{{value0}} için hesaplar gösteriliyor. Yeni hesaplar oraya eklenir.",
           "94d351af4a": "Hesaplar",
           "d0d53b7eb0": "Orca'nın canlı oran sınırı verilerini almak için hangi Codex hesabını kullanacağını yönetin.",
           "340d6f7a85": "Her hesap, Orca içinde kendi yerel giriş bağlamını korur. Hesap kimlik doğrulaması bu cihazda kalır.",
           "cedfab35ab": "İsteğe bağlı. Orca, normal Codex girişinizi kullanabilir; hesapları yalnızca Orca içinde hızlı geçiş yapmak istiyorsanız ekleyin.",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "{{value0}} için yönetilen Claude hesabı yok. Siz burada bir hesap ekleyene kadar Orca, o ortamın sistem varsayılan Claude girişini kullanacak.",
           "fcc4093fc1": "{{value0}} üzerindeki Codex girişini kullanır.",
           "72b36ea174": "İsteğe bağlı. Orca, normal Claude girişinizi kullanabilir; hesapları yalnızca sohbet oturumlarını taşımadan hızlı geçiş yapmak istiyorsanız ekleyin.",
           "26ef4b55be": "Claude",
@@ -9033,8 +9003,6 @@
           "accountScopePrefix": "Hesap kapsamı",
           "accountScopeRemoteServerUnnamed": "Uzak sunucu",
           "remoteScopeAuthContext": "Her hesap, {{value0}} üzerinde kendi giriş bağlamını korur.",
-          "remoteEmptyClaudeAccounts": "{{value0}} üzerinde yönetilen Claude hesabı yok. Sistem varsayılan Claude girişini kullanır; hesapları o sunucuda ekleyin.",
-          "remoteEmptyCodexAccounts": "{{value0}} üzerinde yönetilen Codex hesabı yok. Sistem varsayılan Codex girişini kullanır; hesapları o sunucuda ekleyin.",
           "codexSystemDefaultCustomProvider": "Özel sağlayıcı, kullanım izlenmiyor.",
           "codexSystemDefaultNeedsSignIn": "{{value0}} için Codex girişi bulunamadı.",
           "codexConfigSyncMissingSource": "{{value0}} eksik olduğu için Codex hâlâ son senkronize ettiği ayarları kullanıyor. Senkronizasyonu sürdürmek için o dosyayı geri yükleyin.",
@@ -11332,7 +11300,6 @@
             "d77537b580": "opencode-go",
             "a9d56852eb": "opencode",
             "7f72de7cbe": "Durum çubuğunda OpenCode Go token ve maliyet kullanımını gösterin.",
-            "51b0ccd6a2": "google",
             "97957e374e": "openai",
             "8dfd676c28": "codex",
             "e9e4412545": "Durum çubuğunda Codex token ve maliyet kullanımını gösterin.",
@@ -11374,8 +11341,6 @@
               "pr": "pr",
               "duplicate": "yinelenen"
             },
-            "antigravityUsageDescription": "Durum çubuğunda Antigravity abonelik kullanımını gösterin.",
-            "antigravityKeyword": "antigravity",
             "e7d1b0f3a5": "Grok CLI OAuth'tan haftalık kredi kullanımını gösterin.",
             "d6c0a9e2f4": "grok",
             "c5b9f8d1e3": "xai",
@@ -11419,7 +11384,6 @@
             "c29089716e": "Kimi Kullanımı",
             "96e32c1118": "MiniMax Kullanımı",
             "aff6e6afdf": "IDE Yazı Tipi",
-            "ba1f9d39a6": "Antigravity Kullanımı",
             "museUsageDescription": "Muse abonelik kotasını durum çubuğunda göster.",
             "muse": "muse",
             "meta": "meta",
@@ -15461,7 +15425,6 @@
             "476b77745b": "Base Ref'i Değiştir",
             "ed34038d0d": "Branch karşılaştırmasını yenile",
             "493f963029": "Base ref'i değiştir",
-            "11b5dd8e41": "Şununla karşılaştırılıyor",
             "a9bf7c171a": "Commit Başarısız Oldu",
             "011f9713fc": "Commit engellendi",
             "cc199ccc5f": "Diğer commit ve remote işlemleri",
@@ -15605,8 +15568,6 @@
             "c8e4a1f902": "Filtre: {{value0}}",
             "b3c8f1a902": "Dosyaları ada göre filtrele",
             "d4f8c2a901": "Filtreyi temizle ve kapat",
-            "e8a1c4b203": "vs",
-            "4b4a7de138": "İnceleme sayfasını tarayıcıda aç",
             "createPrIntentCommitBlockedSummary": "Commit engellendi: {{value0}} Sorunu düzeltip PR Oluştur'u tekrar deneyin.",
             "pushRecovery": {
               "4b37ae99b0": "Bu push hatasını düzeltmek için varsayılan AI ajanını başlat",
@@ -15626,7 +15587,6 @@
             "97e7124eac": "Kaynak Kontrolü yenilenemedi. Tekrar deneyin.",
             "b8c2e1a904": "{{value0}} → {{value1}}",
             "a4e93c21d7": "Geçerli branch: {{value0}}",
-            "c7d4e2f801": "Base ref'i değiştir: {{value0}}",
             "createPrIntentGenerateDetailsFailed": "İnceleme ayrıntıları oluşturulamadı. PR Oluştur'u tekrar deneyin.",
             "entryStageFailed": "“{{value0}}” stage edilemedi",
             "entryUnstageFailed": "“{{value0}}” stage'den çıkarılamadı",
@@ -15674,9 +15634,6 @@
             "keepDeletion": "Silmeyi koru",
             "refreshAll": "Tümünü yenile",
             "statusReadFailed": "Git bu çalışma alanını okuyamadı. Gösterilen değişiklikler güncel olmayabilir.",
-            "baseUpToDate": "Güncel",
-            "rebaseOperationInProgress": "Geçerli Git işleminin bitmesini bekleyin",
-            "rebaseButton": "Rebase",
             "rebaseConflictCount_one": "{{count}} çakışma",
             "rebaseConflictCount_other": "{{count}} çakışma",
             "rebasePaused": "Rebase duraklatıldı",
@@ -15706,9 +15663,7 @@
             "scopeUncommitted": "Commit edilmemiş",
             "scopeAllChanges": "Tüm değişiklikler",
             "scopeNone": "Yok",
-            "scopeOpenDiff": "Diff aç",
             "scopeShowAll": "Tüm değişiklikleri göster",
-            "scopeLoadingBranchChanges": "Dal değişiklikleri yükleniyor…",
             "scopeBranchCommits": "Bu daldaki commitler",
             "scopeRecentCommits": "Son commitler",
             "scopeCompareTo": "{{ref}} ile karşılaştır",
@@ -17652,7 +17607,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "İzleme kurulmadı",
-                  "cc39a87288": "Bağlandı · Sistem varsayılanı",
                   "00087eecb2": "Bağlandı · {{value0}}"
                 }
               }
@@ -19239,11 +19193,8 @@
             "4328a0a062": "Sayfa öğesi yakalanamadı: {{value0}}",
             "759f32af29": "İndiriliyor",
             "4300f38145": "{{value0}}{{value1}} adresinden indiriliyor",
-            "cc4a071d3a": "Sayfa öğesine açıklama ekle ({{value0}})",
             "572046436a": "Uzak tarayıcı",
             "b313a7275b": "Uzak tarayıcı açılıyor",
-            "ea6af700da": "{{value0}} ek açıklama",
-            "c13693fe27": "{{value0}} ek açıklama",
             "074f0ed10b": "{{value0}} ek açıklama hazır. Başka bir öğe seçin veya tüm geri bildirimi kopyalayın.",
             "a2164a6e5a": "{{value0}} ek açıklama hazır. Başka bir öğe seçin veya tüm geri bildirimi kopyalayın.",
             "9f6f2e8c19": "İndirilen dosyanın yolu kullanılamıyor.",
@@ -19361,8 +19312,6 @@
                     "c16f932cb3": "Kaydet",
                     "024467ceac": "İptal",
                     "449d2c2629": "Ek açıklama amacı",
-                    "38d320108c": "Ek açıklamaları daralt",
-                    "9f209891a7": "Ek açıklamaları genişlet",
                     "includePageDetails": "Sayfa ayrıntılarını ekle",
                     "copyFeedback": "Geri bildirimi kopyala",
                     "copyFeedbackWithPageDetails": "Geri bildirimi sayfa ayrıntılarıyla kopyala"
@@ -21956,7 +21905,6 @@
         "expand": "Genişlet"
       },
       "question": {
-        "step": "Adım {{value0}}",
         "otherPlaceholder": "Yanıtınızı yazın",
         "cancel": "İptal",
         "send": "Gönder",
@@ -21968,13 +21916,11 @@
         "recommended": "Önerilen",
         "stepOf": "{{value0}} / {{value1}}",
         "answered": "Yanıtlandı",
-        "title": "Soru",
         "previous": "Önceki soru",
         "nextQuestion": "Sonraki soru",
         "back": "Geri",
         "skipAndSubmit": "Atla ve gönder",
-        "questionStepLabel": "{{value0}}, {{value1}} / {{value2}}",
-        "stepLabel": "{{value0}}, {{value1}} / {{value2}}: {{value3}}"
+        "questionStepLabel": "{{value0}}, {{value1}} / {{value2}}"
       },
       "ask": {
         "awaiting": "Kullanıcı girdisi bekleniyor:",
@@ -22958,26 +22904,15 @@
         "notNow": "Şimdi değil",
         "retry": "Yeniden dene",
         "dismiss": "Kapat",
-        "openWorker": "Çalışanı aç",
         "remoteOwner": "Bunu, çalıştığı bilgisayardan durdurun veya temizleyin",
-        "workspaceRemoved": "Bu çalışanın çalışma alanı kaldırıldı",
-        "restore": "Listede yeniden göster",
         "alreadyStopped": "Zaten durduruldu",
         "cantStop": "Şu anda durdurulamıyor",
-        "clearAllLabel_one": "Başarısız çalışanı temizle",
-        "clearAllLabel_other": "Başarısız {{count}} çalışanın tümünü temizle",
         "loadingWorker": "Çalışan yükleniyor…",
         "resultUnavailable": "Çalışan sonucu kullanılamıyor",
-        "showDetails": "Ayrıntıları göster",
-        "hideDetails": "Ayrıntıları gizle",
-        "close": "Kapat",
         "workersRegion": "Çalışanlar",
-        "clearName": "Temizle: {{name}}",
-        "doneResult": "Tamamlandı · sonucu aç",
         "stopUnavailable": "Durdur: {{name}} · {{title}} kullanılamıyor · {{reason}}",
         "stopName": "Durdur: {{name}} · {{title}}",
         "stopping": "Durduruluyor…",
-        "clear": "Temizle",
         "stop": "Durdur",
         "coordinator": "Koordinatör bekleniyor",
         "starting": "Başlatılıyor",
@@ -22996,7 +22931,6 @@
         "task": "Görev",
         "workerCount_one": "{{count}} çalışan",
         "workerCount_other": "{{count}} çalışan",
-        "stopped": "Durduruldu",
         "finished": "Tamamlandı",
         "failedCount": "{{count}} başarısız",
         "needsYouCount": "{{count}} sizi bekliyor",
@@ -23010,7 +22944,6 @@
         "show": "Göster",
         "runningCount": "{{count}} çalışıyor",
         "stopAll": "Tümünü durdur",
-        "clearFailed": "Başarısızları temizle",
         "unlistedDetail": "Bazı arka plan işleri burada listelenmiyor",
         "unlisted": "Arka plan işi çalışıyor",
         "unread": "Çalışanlar yüklenemedi",
@@ -25031,9 +24964,6 @@
         "planModelWithoutThinking": "\"{{model}}\" modeli düşünme çabası düzeyini desteklemiyor.",
         "planThinkingLevelInvalid": "\"{{level}}\" düşünme düzeyi {{model}} için geçerli değil.",
         "openCodeInvalidEvents": "OpenCode geçersiz JSON olayları döndürdü.",
-        "antigravityInvalidEvents": "Antigravity geçersiz JSON olayları döndürdü.",
-        "antigravityInvalidResult": "Antigravity geçersiz bir sonuç döndürdü.",
-        "antigravityNoFinalResult": "Antigravity nihai bir sonuç döndürmedi.",
         "kimiUnreadableOutput": "Kimi, Orca'nın okuyamadığı bir çıktı döndürdü. Yeniden deneyin.",
         "kimiSessionOccupied": "Bu oturum başka bir istemcide etkin olduğundan Kimi'de kullanılamadı. Oturumu orada durdurun veya o istemciden çıkıp yeniden deneyin.",
         "kimiInterrupted": "Kimi, metin oluşturmayı tamamlamadan kesintiye uğradı. Yeniden deneyin.",
@@ -25382,7 +25312,6 @@
       "scannerStopped": "Oturum tarayıcısı beklenmedik şekilde durdu. Yeniden denemek için yenileyin."
     },
     "sessionAccount": "Hesap",
-    "sessionAccountUnknown": "Bilinmiyor",
     "antigravityChatToCli": "Sohbet → CLI"
   },
   "common": {
@@ -25437,10 +25366,8 @@
       "failed": "Bölme yeni bir sekmeye taşınamadı."
     },
     "claudeOldTerminalBanner": {
-      "title": "Bu terminal Orca'nın Claude hesap güncellemesinden önce açıldı, bu nedenle buradaki claude, Sistem varsayılanı hesabının oturumunu kullanır.",
       "dialogTitle": "Buradaki claude neden seçili hesabı kullanmıyor?",
-      "dialogDescription": "Orca artık her Claude hesabını ayrı bir klasörde tutuyor ve yeni bir terminaldeki claude, seçtiğiniz hesabı kullanıyor.",
-      "dialogCause": "Bu güncellemeden önce açılan terminaller seçili hesabı kullanmaz; buradaki claude, Sistem varsayılanı hesabıyla oturum açar. Seçili hesabı kullanmak için yeni bir terminal açın."
+      "dialogDescription": "Orca artık her Claude hesabını ayrı bir klasörde tutuyor ve yeni bir terminaldeki claude, seçtiğiniz hesabı kullanıyor."
     },
     "claudeDiffPanelNotice": {
       "title": "Claude Code, geniş terminallerde sohbetin yanında kendi diff panelini açabilir. Bu panel Orca'ya değil, Claude'a aittir.",
@@ -25600,13 +25527,10 @@
       "retry": "Tekrar dene",
       "changed": "agy'nin kendi hesabı değişti. agy'yi başlatmadan önce kayıtlı bir hesabı yeniden seçin.",
       "refresh": "Hesapları yenile",
-      "usage": "Kullanımı yenile",
-      "usageWithReading": "Kullanımı yenile ({{reading}})",
       "windowsChanged": "Ana bilgisayarın varsayılan hesabı değişti. Kayıtlı bir hesabı yeniden kullanmak için seçin.",
       "enterprise": "Gemini Enterprise",
       "projectPlaceholder": "my-project-id",
       "locationPlaceholder": "us-central1",
-      "usageReading": "Oturum: {{session}} · Haftalık: {{weekly}}",
       "saved": "Kaydedilmiş Google hesabı",
       "remove": "Kaldır",
       "searchDescription": "Çalıştırma ana makinesinde agy'nin kullandığı Google hesaplarını kaydedin ve seçin.",
@@ -25623,8 +25547,6 @@
       "settingsIncomplete": "Bir Antigravity hesap türü seçin ve Google Cloud projesini ve konumunu girin.",
       "settingsLoadFailed": "Orca Antigravity oturum açma ayarlarınızı yükleyemedi. Tekrar deneyin.",
       "settingsSaveFailed": "Orca Antigravity oturum açma ayarlarınızı kaydedemedi. Tekrar deneyin.",
-      "lastReading": "{{reading}} · Okunma zamanı: {{time}}",
-      "noReading": "Kullanım bilinmiyor: henüz okunmadı",
       "fd47b5a5dd": "Antigravity Hesapları",
       "personalOption": "Kişisel Google AI planınız",
       "enterpriseOption": "Kuruluşunuzun lisansı",
@@ -25655,7 +25577,6 @@
       "currentNotSaved": "Geçerli agy oturumu · kaydedilmedi",
       "noEmailNotSaved": "agy e-posta adresi bildirmedi · kaydedilmedi",
       "saveShort": "Kaydet",
-      "readAt": "Okunma zamanı: {{time}}",
       "active": "Etkin",
       "runtime": "Çalışma zamanı",
       "chatTitle": "Antigravity Chat",
@@ -25680,10 +25601,7 @@
       "added": "Hesap eklendi. Başlatacağınız bir sonraki Claude'da kullanmak için bu hesabı seçin.",
       "nextLaunch": "{{value0}} → {{value1}}. Başlatacağınız bir sonraki Claude bu hesabı kullanır. Çalışan oturumlar mevcut hesaplarını korur.",
       "profileSwitching": "Hesap değişikliği, herhangi bir sekmede başlatacağınız bir sonraki Claude için geçerli olur.",
-      "systemDefault": "Sistem varsayılanı",
       "unnamedAccount": "Claude hesabı",
-      "systemDefaultNamed": "Sistem varsayılanı: {{value0}}",
-      "systemDefaultIsSaved": "Sistem varsayılanında, kayıtlı hesaplarınız arasında da bulunan {{value0}} ile oturum açılmış. Önceki bir Orca sürümü bu oturumu oraya kopyalamış olabilir. Bu sizin hesabınız değilse Sistem varsayılanı seçeneğini seçip claude /login komutunu çalıştırın.",
       "systemDefaultIsSavedDismiss": "Kapat",
       "signInRequired": "Bu hesabı kullanmak için yeniden oturum açın",
       "signInAgain": "Yeniden oturum aç",
@@ -25763,7 +25681,6 @@
       "add": "Kurulum komutunu kopyala",
       "refresh": "Hesapları yenile",
       "upgrade": "Hesaplar görünmüyorsa Orca ana makinesini güncelleyin veya yeniden başlatın.",
-      "system": "Sistem varsayılanı",
       "active": "Etkin",
       "select": "Seç",
       "remove": "Kaldır",
@@ -25800,12 +25717,7 @@
     },
     "rename": {
       "action": "Yeniden adlandır",
-      "title": "Hesabı yeniden adlandır",
-      "description": "Yalnızca Orca’da görünen ad değişir. {{email}} adresinin görünmesi için bu alanı boş bırakın.",
       "label": "Görünen Ad",
-      "reset": "Varsayılana sıfırla",
-      "cancel": "İptal",
-      "save": "Kaydet",
       "unsupportedHost": "Bu ayarı orada değiştirmek için {{host}} üzerindeki Orca'yı güncelleyin."
     }
   },

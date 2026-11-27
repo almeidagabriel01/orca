@@ -3,6 +3,7 @@ import { isAbsolute, join } from 'node:path'
 import { z } from 'zod'
 import { getAppEnvironment, hasAppEnvironment } from '../../../shared/app-lifecycle/app-environment'
 import { relativePathInsideRoot } from '../../../shared/file-access/cross-platform-path'
+import { lazyZodSchema } from '../../../shared/schema/lazy-zod-schema'
 
 /** A folder recorded by another machine (realPath) that this host holds as scopePath. */
 export type AiVaultScopeLink = {
@@ -16,10 +17,12 @@ export type AiVaultScopeLink = {
 
 const SESSION_HOST_PATH_MAP_FILE = 'session-path-map.json'
 
-const sessionHostPathMapSchema = z.object({
-  version: z.literal(1),
-  aliases: z.array(z.object({ local: z.string(), foreign: z.array(z.string()) }))
-})
+const sessionHostPathMapSchema = lazyZodSchema(() =>
+  z.object({
+    version: z.literal(1),
+    aliases: z.array(z.object({ local: z.string(), foreign: z.array(z.string()) }))
+  })
+)
 
 /** Transcripts synced from another machine keep its cwds; this host's own file says where they live here. */
 export async function readSessionHostPathMap(filePath?: string): Promise<AiVaultScopeLink[]> {

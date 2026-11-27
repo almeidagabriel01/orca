@@ -170,7 +170,6 @@
         "sshToggleDescription": "設定済み SSH ホストとリモート Orca ホストがある場合に表示します。",
         "resourceUsageToggleDescription": "リソースマネージャーを表示します。クリックすると、CPU、メモリ、セッション、デーモンコントロール、ワークスペースディスクスキャンの情報を確認できます。",
         "portsToggleDescription": "ライブワークスペースポートを表示します。ワークスペーススコープのポートと外部リスナーの場合はこれをクリックします。",
-        "antigravityToggleDescription": "アクティブなワークスペースの Antigravity サブスクリプション使用量を表示します。",
         "grokToggleDescription": "Grok CLI でサインインしている場合に Grok サブスクリプションのクレジット使用量を表示します。",
         "cursorToggleDescription": "cursor-agent または Cursor IDE でサインインしている場合に Cursor プランの使用状況を表示します。",
         "zcodeToggleDescription": "ZCode コーディングプランのクォータ使用量を表示します。",
@@ -590,10 +589,6 @@
     },
     "followSymlinkedDirectories": "シンボリックリンクされたディレクトリをたどる",
     "followSymlinkedDirectoriesDescription": "クイックオープンでリンクされたフォルダーを検索し、ファイルエクスプローラーでローカルのリンクされたフォルダーを展開します。",
-    "accounts": {
-      "codexRemoveHome": "Orca は {{host}} 上にあるこのアカウントの Codex フォルダーを、サインイン情報と MCP のログインも含めて削除します。この操作は元に戻せません。このアカウントが選択されている場合、次に起動する Codex はシステムデフォルトを使用します。",
-      "claudeRemoveProfile": "Orca は {{host}} 上にあるこのアカウント専用の Claude フォルダーと、そこに保存されたサインイン情報を削除します。システムデフォルトのログインと、それと共有しているチャット履歴は残ります。このアカウントが選択されている場合、次に起動する Claude はシステムデフォルトを使用します。"
-    },
     "sourceControl": {
       "gitOperationInAnotherWorkspace": "他の場所で Git 操作を実行中",
       "remoteOperationInAnotherWorkspace": "別のワークスペースで Git 操作（プッシュ、プル、フォースプッシュなど）を実行中です。操作が重複しないよう、完了してからこのアクションを使用してください。",
@@ -1519,10 +1514,6 @@
         },
         "worktrees": {
           "e50495aae6": "ブランチを強制削除",
-          "14bc053a47": "ローカル {{value0}} は更新されませんでした",
-          "localBaseRefRefreshFailedForWorktree": "「{{value1}}」のローカル {{value0}} は更新されませんでした",
-          "903b51c2ed": "ワークスペースは {{value0}} から作成されましたが、Orca はローカル {{value1}} を fast-forward できませんでした。{{value2}}",
-          "localBaseRefRefreshFailedDescriptionNamed": "ワークスペース「{{value0}}」は {{value1}} から作成されましたが、Orca はローカル {{value2}} を fast-forward できませんでした。{{value3}}",
           "localBaseRefRefreshFailedDetailDirtyNamed": "{{value0}} のワークツリー（ローカル {{value1}} がチェックアウトされている場所）に未コミットの変更があります。コミット、stash、または破棄してから、ローカル {{value1}} を手動で更新してください。",
           "localBaseRefRefreshFailedDetailDirty": "ローカル {{value0}} がチェックアウトされているワークツリーに未コミットの変更があります。コミット、stash、または破棄してから、ローカル {{value0}} を手動で更新してください。",
           "localBaseRefRefreshFailedDetailNotFastForward": "ローカル {{value0}} が存在しないか、リモートのベースからクリーンに fast-forward できません。手動で更新する前に、ローカルにのみ存在するコミットがないか確認してください。",
@@ -2049,7 +2040,6 @@
       "codex": {
         "session": {
           "restart": {
-            "4bd4a3a9c7": "システムのデフォルト",
             "9f0b1c2d3e": "Codex account"
           }
         }
@@ -5026,7 +5016,6 @@
             "11e2354daf": "Claude 使用ランタイム",
             "3dd7ddfae1": "Claude の詳細とアカウント切り替えを開く",
             "59c6e7b4e0": "表示されているセッションが再開されます。他のものは、ワークツリーがアクティブになると再起動します。",
-            "c676918adc": "システムのデフォルト",
             "3325d996cb": "レート制限をリセット",
             "cd9d7b40ff": "{{value0}} セッションを再起動します",
             "6cd6650b4c": "セッションを再開する",
@@ -5039,13 +5028,11 @@
             "c0e972d726": "キャンセル",
             "3bbf140864": "MiniMax 使用量",
             "remoteServerLabel": "リモートサーバー",
-            "antigravityUsage": "Antigravity の使用状況",
             "grokUsageMenu": "Grok の使用状況",
             "floatingTerminalNewActivity": "{{label}}、新規アクティビティ",
             "4fba7dc1e7": "残高 {{value0}}",
             "4025a6f62f": "無制限",
             "a95969101f": "{{value0}} クレジット",
-            "codexSignInSuccess": "Codex にサインインしました",
             "codexSignInError": "Codex のサインインに失敗しました。もう一度お試しください。",
             "cursorUsageMenu": "Cursor の使用状況",
             "hiddenUsageProviders": "ほかに: {{value0}}",
@@ -5464,9 +5451,6 @@
             },
             "mainWorktree": "メインワークツリー",
             "detached": "分離状態"
-          },
-          "antigravity": {
-            "unknownAccount": "Google アカウント"
           },
           "AccountSwitchList": {
             "used": "使用済み",
@@ -6405,9 +6389,7 @@
           "reasonNoDistinctName": "生成された名前が現在の名前と同じでした。",
           "reasonFirstMessageUnavailable": "Orca はこのワークスペースの最初のメッセージを見つけられませんでした。",
           "reasonAlreadyNamed": "このワークスペースはすでに名前が変更されています。",
-          "reasonUnavailable": "Orca はこのブランチに名前を付けられなくなりました。",
-          "ca3b225195": "ブランチの自動名前付けに失敗しました",
-          "couldNotGenerateBranchName": "Orca は最初の Agent メッセージから <name>{{name}}</name> のブランチ名を生成できませんでした。"
+          "reasonUnavailable": "Orca はこのブランチに名前を付けられなくなりました。"
         },
         "CreateProjectLocationField": {
           "95548e33bf": "親フォルダーを選択…",
@@ -6817,9 +6799,6 @@
           "0f33af979b": "部分的なチェックアウト。これらのパスの外にあるファイルはディスク上にありません。",
           "4f964d5e8c": "スパース",
           "7d517f82e2": "プライマリ",
-          "4eba2ea99e": "自動名前付けに失敗しました。クリックすると詳細が表示されます。",
-          "74522ee457": "名前の変更に失敗しました",
-          "02e19349f4": "名前の自動変更に失敗しました: 表示エラー",
           "691ccfd622": "削除中…",
           "deleteFailed": "削除に失敗しました",
           "35ccfe2475": "プロジェクト{{value0}}",
@@ -7861,16 +7840,13 @@
           "3d245ef7d9": "Codex はこのサインインが古いと報告しました",
           "589eba1eee": "再認証が必要です",
           "e74831fb6b": "アクティブ",
-          "b4c9450319": "{{value0}} の管理対象 Codex アカウントはありません。ここで追加するまで、Orca はその環境のシステムデフォルトの Codex ログインを使用します。",
           "93c47b333a": "サインインが必要です",
-          "f2a265f8c7": "システムのデフォルト",
           "c0a52abfc5": "{{value0}} のアカウントを表示中です。新規アカウントはそこに追加されます。",
           "94d351af4a": "アカウント",
           "d0d53b7eb0": "Orca がライブレート制限の取得に使用する Codex アカウントを管理します。",
           "340d6f7a85": "各アカウントは、Orca で独自のローカルサインインコンテキストを保持します。アカウント認証はこのデバイスに残ります。",
           "cedfab35ab": "任意。Orca は通常の Codex ログインを使用できます。Orca 上ですばやく切り替えたい場合にのみ、アカウントを追加してください。",
           "ef91cfa06b": "Codex",
-          "3fe7862418": "{{value0}} の管理対象 Claude アカウントはありません。ここで追加するまで、Orca はその環境のシステムデフォルトの Claude ログインを使用します。",
           "fcc4093fc1": "{{value0}} の Codex ログインを使用します。",
           "72b36ea174": "任意。Orca は通常の Claude ログインを使用できます。チャットセッションを移さずにすばやく切り替えたい場合にのみ、アカウントを追加してください。",
           "26ef4b55be": "Claude",
@@ -7926,8 +7902,6 @@
           "accountScopePrefix": "アカウントスコープ",
           "accountScopeRemoteServerUnnamed": "リモートサーバー",
           "remoteScopeAuthContext": "各アカウントは {{value0}} 上に独自のサインインコンテキストを保持します。",
-          "remoteEmptyClaudeAccounts": "{{value0}} に管理対象の Claude アカウントはありません。システム既定の Claude ログインを使用します。アカウントの追加はそのサーバー上で行ってください。",
-          "remoteEmptyCodexAccounts": "{{value0}} に管理対象の Codex アカウントはありません。システム既定の Codex ログインを使用します。アカウントの追加はそのサーバー上で行ってください。",
           "codexSystemDefaultCustomProvider": "カスタムプロバイダー — 使用量は追跡されません。",
           "codexSystemDefaultNeedsSignIn": "{{value0}} の Codex サインインが見つかりません。",
           "codexConfigSyncMissingSource": "{{value0}} が見つからないため、Codex は最後に同期した設定を使い続けています。同期を再開するには、そのファイルを復元してください。",
@@ -10218,7 +10192,6 @@
             "d77537b580": "opencode-go",
             "a9d56852eb": "opencode",
             "7f72de7cbe": "OpenCode Go トークンとコストの使用状況をステータスバーに表示します。",
-            "51b0ccd6a2": "グーグル",
             "97957e374e": "openai",
             "8dfd676c28": "codex",
             "e9e4412545": "Codex トークンとコストの使用状況をステータスバーに表示します。",
@@ -10261,8 +10234,6 @@
               "pr": "PR",
               "duplicate": "重複"
             },
-            "antigravityUsageDescription": "ステータスバーに Antigravity サブスクリプションの使用量を表示します。",
-            "antigravityKeyword": "antigravity",
             "e7d1b0f3a5": "Grok CLI OAuth から Grok の週次クレジット使用量を表示します。",
             "d6c0a9e2f4": "grok",
             "c5b9f8d1e3": "xai",
@@ -10316,8 +10287,7 @@
             "c29089716e": "Kimi 使用量",
             "96e32c1118": "MiniMax 使用量",
             "e8d2710689": "Muse 使用量",
-            "aff6e6afdf": "IDE フォント",
-            "ba1f9d39a6": "Antigravity の使用状況"
+            "aff6e6afdf": "IDE フォント"
           }
         },
         "auto": {
@@ -14371,7 +14341,6 @@
             "476b77745b": "ベース参照の変更",
             "ed34038d0d": "ブランチ比較をリフレッシュ",
             "493f963029": "ベース参照を変更する",
-            "11b5dd8e41": "と比較する",
             "a9bf7c171a": "コミット失敗",
             "011f9713fc": "コミットがブロックされました",
             "cc199ccc5f": "コミットおよびリモート操作",
@@ -14515,8 +14484,6 @@
             "c8e4a1f902": "フィルター: {{value0}}",
             "b3c8f1a902": "ファイル名でフィルター",
             "d4f8c2a901": "フィルターをクリアして閉じる",
-            "e8a1c4b203": "vs",
-            "4b4a7de138": "ブラウザでレビューページを開く",
             "createPrIntentCommitBlockedSummary": "コミットがブロックされました：{{value0}} Issue を修正して、PR 作成を再試行してください。",
             "pushRecovery": {
               "4b37ae99b0": "デフォルトのAIAgent を起動してこのプッシュ失敗を修正",
@@ -14536,7 +14503,6 @@
             "97e7124eac": "ソース管理を更新できませんでした。もう一度お試しください。",
             "b8c2e1a904": "{{value0}} → {{value1}}",
             "a4e93c21d7": "現在のブランチ: {{value0}}",
-            "c7d4e2f801": "ベース ref を変更: {{value0}}",
             "createPrIntentGenerateDetailsFailed": "レビューの詳細を生成できませんでした。PR の作成を再試行してください。",
             "entryStageFailed": "「{{value0}}」のステージに失敗しました",
             "entryUnstageFailed": "「{{value0}}」のステージを解除できませんでした",
@@ -14575,9 +14541,6 @@
             "keepFile": "ファイルを残す",
             "keepDeletion": "削除を維持",
             "refreshAll": "すべて更新",
-            "baseUpToDate": "最新です",
-            "rebaseOperationInProgress": "現在の Git 操作が終わるまでお待ちください",
-            "rebaseButton": "リベース",
             "rebaseConflictCount_other": "{{count}} 件の競合",
             "rebasePaused": "リベースを一時停止中",
             "rebaseResolveConflictsFirst": "先に競合を解決してください",
@@ -14606,9 +14569,7 @@
             "scopeUncommitted": "未コミット",
             "scopeAllChanges": "すべての変更",
             "scopeNone": "なし",
-            "scopeOpenDiff": "差分を開く",
             "scopeShowAll": "すべての変更を表示",
-            "scopeLoadingBranchChanges": "ブランチの変更を読み込み中…",
             "scopeBranchCommits": "このブランチのコミット",
             "scopeRecentCommits": "最近のコミット",
             "scopeCompareTo": "{{ref}} と比較",
@@ -16503,7 +16464,6 @@
               "usage": {
                 "tracking": {
                   "b94ec70eda": "追跡が設定されていません",
-                  "cc39a87288": "接続済み · システムのデフォルト",
                   "00087eecb2": "接続されました · {{value0}}"
                 }
               },
@@ -18097,11 +18057,8 @@
             "4328a0a062": "取得に失敗しました: {{value0}}",
             "759f32af29": "ダウンロード中",
             "4300f38145": "{{value0}}{{value1}} からダウンロードしています",
-            "cc4a071d3a": "ページ要素に注釈を付ける ({{value0}})",
             "572046436a": "リモートブラウザ",
             "b313a7275b": "リモートブラウザを開く",
-            "ea6af700da": "{{value0}} 件の注釈",
-            "c13693fe27": "{{value0}} 件の注釈",
             "074f0ed10b": "{{value0}} 件の注釈が準備できました。別の要素を選択するか、すべてのフィードバックをコピーしてください。",
             "a2164a6e5a": "{{value0}} 件の注釈が準備できました。別の要素を選択するか、すべてのフィードバックをコピーしてください。",
             "9f6f2e8c19": "ダウンロードしたファイルのパスを取得できません。",
@@ -18220,8 +18177,6 @@
                     "c16f932cb3": "保存",
                     "024467ceac": "キャンセル",
                     "449d2c2629": "注釈の意図",
-                    "38d320108c": "注釈を折りたたむ",
-                    "9f209891a7": "注釈を展開",
                     "includePageDetails": "ページの詳細を含める",
                     "copyFeedback": "フィードバックをコピー",
                     "copyFeedbackWithPageDetails": "ページの詳細付きでフィードバックをコピー"
@@ -20607,7 +20562,6 @@
         "expand": "展開"
       },
       "question": {
-        "step": "ステップ {{value0}}",
         "otherPlaceholder": "答えを入力してください",
         "cancel": "キャンセル",
         "send": "送信",
@@ -20619,13 +20573,11 @@
         "recommended": "おすすめ",
         "stepOf": "{{value0}} / {{value1}}",
         "answered": "回答済み",
-        "title": "質問",
         "previous": "前の質問",
         "nextQuestion": "次の質問",
         "back": "戻る",
         "skipAndSubmit": "スキップして送信",
-        "questionStepLabel": "{{value0}}、{{value1}} / {{value2}}",
-        "stepLabel": "{{value0}}、{{value1}} / {{value2}}：{{value3}}"
+        "questionStepLabel": "{{value0}}、{{value1}} / {{value2}}"
       },
       "approval": {
         "needsNewerOrca": "このリクエストには新しいバージョンの Orca が必要です。",
@@ -21434,25 +21386,15 @@
         "notNow": "後で",
         "retry": "再試行",
         "dismiss": "閉じる",
-        "openWorker": "ワーカーを開く",
         "remoteOwner": "実行元のコンピュータで停止またはクリアしてください",
-        "workspaceRemoved": "このワーカーのワークスペースは削除されました",
-        "restore": "ドックに再表示",
         "alreadyStopped": "停止済み",
         "cantStop": "今は停止できません",
-        "clearAllLabel_other": "失敗したワーカー {{count}} 件をすべてクリア",
         "loadingWorker": "ワーカーを読み込み中…",
         "resultUnavailable": "ワーカーの結果を取得できません",
-        "showDetails": "詳細を表示",
-        "hideDetails": "詳細を非表示",
-        "close": "閉じる",
         "workersRegion": "ワーカー",
-        "clearName": "{{name}} をクリア",
-        "doneResult": "完了 · 結果を開く",
         "stopUnavailable": "{{name}} · {{title}} を停止できません · {{reason}}",
         "stopName": "{{name}} · {{title}} を停止",
         "stopping": "停止中…",
-        "clear": "クリア",
         "stop": "停止",
         "coordinator": "コーディネーターの応答待ち",
         "starting": "起動中",
@@ -21470,7 +21412,6 @@
         "monitor": "モニター",
         "task": "タスク",
         "workerCount_other": "{{count}} 件のワーカー",
-        "stopped": "停止済み",
         "finished": "完了",
         "failedCount": "失敗 {{count}} 件",
         "needsYouCount": "対応待ち {{count}} 件",
@@ -21483,7 +21424,6 @@
         "show": "表示",
         "runningCount": "実行中 {{count}} 件",
         "stopAll": "すべて停止",
-        "clearFailed": "失敗したものをクリア",
         "unlistedDetail": "一部のバックグラウンド処理はここに表示されません",
         "unlisted": "バックグラウンド処理を実行中",
         "unread": "ワーカーを読み込めませんでした",
@@ -23596,8 +23536,6 @@
         "pageChanged": "インポート中にこのページが閉じられたか、プロファイルが変更されました。もう一度お試しください。"
       },
       "notice": {
-        "importedMore_other": "{{domains}} と他 {{more}} 件のドメイン用に Cookie を {{count}} 個インポートしました。使用するにはページを再読み込みしてください。",
-        "imported_other": "{{domains}} 用に Cookie を {{count}} 個インポートしました。使用するにはページを再読み込みしてください。",
         "failed": "Cookie をインポートできませんでした: {{reason}}"
       },
       "routedPage": {
@@ -24330,9 +24268,6 @@
         "planModelWithoutThinking": "モデル「{{model}}」は思考の強度設定に対応していません。",
         "planThinkingLevelInvalid": "思考レベル「{{level}}」は {{model}} では無効です。",
         "openCodeInvalidEvents": "OpenCode が無効な JSON イベントを返しました。",
-        "antigravityInvalidEvents": "Antigravity が無効な JSON イベントを返しました。",
-        "antigravityInvalidResult": "Antigravity が無効な結果を返しました。",
-        "antigravityNoFinalResult": "Antigravity が最終結果を返しませんでした。",
         "kimiUnreadableOutput": "Kimi が Orca で読み取れない出力を返しました。もう一度お試しください。",
         "kimiSessionOccupied": "Kimi は、別のクライアントで使用中のため、このセッションを使用できませんでした。そのクライアントでセッションを停止するか、クライアントを終了してから、もう一度お試しください。",
         "kimiInterrupted": "Kimi はテキストの生成が完了する前に中断されました。もう一度お試しください。",
@@ -24636,8 +24571,7 @@
       "scannerMissing": "この Orca にはセッションスキャナーが含まれていません。Orca を再インストールすると復元されます。",
       "scannerStopped": "セッションスキャナーが予期せず停止しました。更新して再試行してください。"
     },
-    "sessionAccount": "アカウント",
-    "sessionAccountUnknown": "不明"
+    "sessionAccount": "アカウント"
   },
   "common": {
     "retry": "再試行",
@@ -24714,7 +24648,6 @@
       "add": "セットアップコマンドをコピー",
       "refresh": "アカウントを更新",
       "upgrade": "アカウントが表示されない場合はOrcaホストを更新または再起動してください。",
-      "system": "システムの既定",
       "active": "使用中",
       "select": "選択",
       "remove": "削除",
@@ -24737,9 +24670,6 @@
       "retry": "再試行",
       "changed": "ネイティブアカウントが変更されました。AGYを起動する前に、保存したアカウントを再度選択してください。",
       "refresh": "アカウントを更新する",
-      "usage": "使用量を更新",
-      "usageWithReading": "使用状況を更新 ({{reading}})",
-      "usageReading": "セッション： {{session}} ·毎週： {{weekly}}",
       "saved": "保存されたGoogleアカウント",
       "remove": "削除",
       "searchDescription": "実行ホストにネイティブのagy Googleアカウントを保存して選択します。",
@@ -24760,8 +24690,6 @@
       "settingsIncomplete": "Antigravity アカウントの種類を選択し、Google Cloud のプロジェクトとロケーションを入力してください。",
       "settingsLoadFailed": "Orca は Antigravity のサインイン設定を読み込めませんでした。もう一度お試しください。",
       "settingsSaveFailed": "Orca は Antigravity のサインイン設定を保存できませんでした。もう一度お試しください。",
-      "lastReading": "{{reading}} · {{time}} に取得",
-      "noReading": "使用量は不明：未取得",
       "fd47b5a5dd": "Antigravityアカウント",
       "personalOption": "個人の Google AI プラン",
       "enterpriseOption": "組織のライセンス",
@@ -24791,7 +24719,6 @@
       "currentNotSaved": "現在の agy ログイン · 未保存",
       "noEmailNotSaved": "agy からメールアドレスが返されませんでした · 未保存",
       "saveShort": "保存",
-      "readAt": "{{time}} に取得",
       "active": "アクティブ",
       "runtime": "ランタイム",
       "terminalTitle": "ターミナルの agy",
@@ -24816,10 +24743,7 @@
       "added": "アカウントを追加しました。次に起動する Claude で使用するには、これを選択してください。",
       "nextLaunch": "{{value0}} → {{value1}}。次に起動する Claude ターミナルはこのアカウントを使用します。実行中の Claude ターミナルはそれぞれのアカウントを維持します。",
       "profileSwitching": "切り替えは、任意のタブで次に起動する Claude に適用されます。実行中のセッションはそれぞれのアカウントを維持します。",
-      "systemDefault": "システムのデフォルト",
       "unnamedAccount": "Claude アカウント",
-      "systemDefaultNamed": "システムのデフォルト: {{value0}}",
-      "systemDefaultIsSaved": "システムのデフォルトは {{value0}} としてサインインしており、これは保存済みのアカウントでもあります。以前のバージョンの Orca がそのログインをここにコピーした可能性があります。自分のログインでない場合は、システムのデフォルトを選択して claude /login を実行してください。",
       "systemDefaultIsSavedDismiss": "閉じる",
       "signInRequired": "このアカウントを使用するにはもう一度サインインしてください",
       "signInAgain": "もう一度サインイン",
@@ -24919,12 +24843,7 @@
     },
     "rename": {
       "action": "名前を変更",
-      "title": "アカウント名を変更",
-      "description": "Orca での表示名だけが変わります。空欄にすると {{email}} が表示されます。",
       "label": "表示名",
-      "reset": "デフォルトにリセット",
-      "cancel": "キャンセル",
-      "save": "保存",
       "unsupportedHost": "この設定を変更するには、{{host}} の Orca を更新してください。"
     }
   },
@@ -24990,10 +24909,8 @@
       "dismiss": "閉じる"
     },
     "claudeOldTerminalBanner": {
-      "title": "このターミナルは Orca の Claude アカウント更新より前に開かれたため、ここでの claude はシステムのデフォルトのログインを使用します。",
       "dialogTitle": "ここでの claude が選択したアカウントを使用しない理由",
-      "dialogDescription": "Orca は現在、各 Claude アカウントをそれぞれのフォルダーに保持しており、新規ターミナルの claude は選択したアカウントに従います。",
-      "dialogCause": "この更新より前に開かれたターミナルは従わないため、ここでの claude はシステムのデフォルトのログインでサインインします。選択したアカウントを使用するには、新規ターミナルを開いてください。"
+      "dialogDescription": "Orca は現在、各 Claude アカウントをそれぞれのフォルダーに保持しており、新規ターミナルの claude は選択したアカウントに従います。"
     },
     "fileDrop": {
       "copyUploadedPaths": "パスをコピー",

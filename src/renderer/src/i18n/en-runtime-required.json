@@ -1,13 +1,5 @@
 {
   "accounts": {
-    "antigravity": {
-      "lastReading": "{{reading}} · Read {{time}}",
-      "noReading": "Usage unknown: not read yet",
-      "readAt": "Read {{time}}",
-      "usage": "Refresh usage",
-      "usageReading": "Session: {{session}} · Weekly: {{weekly}}",
-      "usageWithReading": "Refresh usage ({{reading}})"
-    },
     "claude": {
       "switchSessions": {
         "body_one": "{{count}} Claude session is still running on {{previous}}. Restarting continues the conversation on {{next}}. Busy sessions stop their current work and restart now.",
@@ -16,26 +8,13 @@
         "restartCount_other": "Restart {{count}} sessions",
         "reviewBody_one": "{{count}} Claude session wasn't moved to {{next}}.",
         "reviewBody_other": "{{count}} Claude sessions weren't moved to {{next}}."
-      },
-      "systemDefault": "System default",
-      "systemDefaultIsSaved": "System default is signed in as {{value0}}, which is also a saved account. An earlier Orca version may have copied that login there. If it is not your own login, select System default and run claude /login.",
-      "systemDefaultNamed": "System default: {{value0}}"
+      }
     },
     "hostSignIn": {
       "errors": {
         "ownerSilent": "The device that started this sign-in stopped answering.",
         "superseded": "An account change on this host stopped the sign-in. Start it again."
       }
-    },
-    "managedData": {
-      "system": "System default"
-    },
-    "rename": {
-      "cancel": "Cancel",
-      "description": "Only the name Orca shows changes. Leave it blank to show {{email}}.",
-      "reset": "Reset to default",
-      "save": "Save",
-      "title": "Rename account"
     }
   },
   "agentCliUpdate": {
@@ -85,8 +64,7 @@
       "wslTranscriptFsCapacity": "WSL transcript discovery is temporarily unavailable because too many filesystem requests are already waiting. Try again shortly or restart Orca if the issue continues.",
       "wslTranscriptFsProcessFailed": "WSL transcript files are temporarily unavailable because the filesystem helper process failed ({{detail}}). Try again shortly or restart Orca if the issue continues.",
       "wslTranscriptFsSlow": "WSL transcript files are temporarily unavailable because filesystem access is taking too long. Try again shortly or restart Orca if the issue continues."
-    },
-    "sessionAccountUnknown": "Unknown"
+    }
   },
   "auto": {
     "components": {
@@ -263,27 +241,6 @@
           "errorUnavailable": "Screenshot markup is not available on this page."
         }
       },
-      "browser": {
-        "pane": {
-          "BrowserPane": {
-            "c13693fe27": "{{value0}} annotations",
-            "cc4a071d3a": "Annotate page element ({{value0}})",
-            "ea6af700da": "{{value0}} annotation"
-          },
-          "annotate": {
-            "browser": {
-              "page": {
-                "annotation": {
-                  "tray": {
-                    "38d320108c": "Collapse annotations",
-                    "9f209891a7": "Expand annotations"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       "dashboard": {
         "DashboardAgentChildDisclosure": {
           "hideChildAgents_one": "Hide {{count}} child agent",
@@ -386,19 +343,6 @@
           }
         }
       },
-      "feature": {
-        "wall": {
-          "feature": {
-            "wall": {
-              "usage": {
-                "tracking": {
-                  "cc39a87288": "Connected · System default"
-                }
-              }
-            }
-          }
-        }
-      },
       "github": {
         "PRFilterSections": {
           "authorCount_one": "{{count}} author",
@@ -493,12 +437,8 @@
             "resultCount_other": "{{count}} results"
           },
           "SourceControl": {
-            "11b5dd8e41": "Comparing against",
-            "4b4a7de138": "Open review page in browser",
-            "baseUpToDate": "Up to date",
             "branchFilesChangedVsBase_one": "{{count}} file changed vs {{ref}}",
             "branchFilesChangedVsBase_other": "{{count}} files changed vs {{ref}}",
-            "c7d4e2f801": "Change base ref: {{value0}}",
             "clearNotesFromFile_one": "Clear {{count}} note from {{path}}?",
             "clearNotesFromFile_other": "Clear {{count}} notes from {{path}}?",
             "clearNotesFromWorkspace_one": "Clear {{count}} note from this workspace?",
@@ -518,19 +458,14 @@
             "discardFailedSampleMore_other": "{{paths}}, +{{count}} more",
             "discardFailed_one": "Failed to discard {{count}} file",
             "discardFailed_other": "Failed to discard {{count}} files",
-            "e8a1c4b203": "vs",
             "noteCount_one": "{{count}} note",
             "noteCount_other": "{{count}} notes",
-            "rebaseButton": "Rebase",
             "rebaseConflictCount_one": "{{count}} conflict",
             "rebaseConflictCount_other": "{{count}} conflicts",
-            "rebaseOperationInProgress": "Wait for the current Git operation to finish",
             "scopeCommitCount_one": "{{count}} commit",
             "scopeCommitCount_other": "{{count}} commits",
             "scopeFileCount_one": "{{count}} file",
-            "scopeFileCount_other": "{{count}} files",
-            "scopeLoadingBranchChanges": "Loading branch changes…",
-            "scopeOpenDiff": "Open diff"
+            "scopeFileCount_other": "{{count}} files"
           },
           "checks": {
             "panel": {
@@ -739,13 +674,6 @@
         }
       },
       "settings": {
-        "AccountsPane": {
-          "3fe7862418": "No managed Claude accounts for {{value0}}. Orca will use that environment's system default Claude login until you add one here.",
-          "b4c9450319": "No managed Codex accounts for {{value0}}. Orca will use that environment's system default Codex login until you add one here.",
-          "f2a265f8c7": "System default",
-          "remoteEmptyClaudeAccounts": "No managed Claude accounts on {{value0}}. It uses its system default Claude login; add accounts on that server.",
-          "remoteEmptyCodexAccounts": "No managed Codex accounts on {{value0}}. It uses its system default Codex login; add accounts on that server."
-        },
         "ComputerUsePane": {
           "07bbe4c4cb": "Screenshots",
           "0c9a33f468": "Capture app windows so agents can inspect visual state.",
@@ -829,11 +757,6 @@
           "syncedServerPlural": "Synced {{count}} servers",
           "syncedServerSingular": "Synced {{count}} server"
         },
-        "StatusBarUsageFormatSetting": {
-          "placeholder": {
-            "usagePools": "named usage pools, e.g. Antigravity models"
-          }
-        },
         "WarpThemeImportModal": {
           "found_theme": "Found {{value0}} themes",
           "found_theme_one": "Found {{value0}} theme",
@@ -904,14 +827,6 @@
             "f412abbba5": "claude",
             "ff457e1e7b": "daemon",
             "ff8de8a2ad": "display"
-          }
-        },
-        "appearance": {
-          "search": {
-            "51b0ccd6a2": "google",
-            "antigravityKeyword": "antigravity",
-            "antigravityUsageDescription": "Show Antigravity subscription usage in the status bar.",
-            "ba1f9d39a6": "Antigravity usage"
           }
         },
         "claudeSubagentNavigation": {
@@ -990,12 +905,6 @@
         "AddRepoNestedImportStep": {
           "foundRepositories_one": "Found {{count}} repository in {{path}}.",
           "foundRepositories_other": "Found {{count}} repositories in {{path}}."
-        },
-        "AutoRenameFailedDialog": {
-          "branchNameKept": "Branch name kept",
-          "ca3b225195": "Branch auto-name failed",
-          "couldNotGenerateBranchName": "Orca couldn't generate a branch name for <name>{{name}}</name> from the first agent message.",
-          "namingBranch": "Naming branch…"
         },
         "DeleteWorktreeDialog": {
           "removeBatchFolder_one": "Remove <target>{{count}} workspace</target> from Orca. Project folders on disk will not be deleted.",
@@ -1079,11 +988,6 @@
         "WorkspaceKanbanSearchField": {
           "workspacesMatch_one": "{{matchCount}} of {{count}} workspace matches",
           "workspacesMatch_other": "{{matchCount}} of {{count}} workspaces match"
-        },
-        "WorktreeCard": {
-          "02e19349f4": "Auto-rename failed: view error",
-          "4eba2ea99e": "Auto-name failed. Click to see details.",
-          "74522ee457": "rename failed"
         },
         "WorktreeCardPorts": {
           "livePorts_one": "{{count}} live port",
@@ -1296,10 +1200,7 @@
             "moreSshHosts_other": "Find among {{count}} more SSH hosts…"
           },
           "StatusBar": {
-            "antigravityUsage": "Antigravity Usage",
-            "c676918adc": "System default",
             "codexSignInError": "Codex sign-in failed. Please try again.",
-            "codexSignInSuccess": "Signed in to Codex",
             "rateLimitResetsAvailable_one": "{{count}} rate-limit reset available",
             "rateLimitResetsAvailable_other": "{{count}} rate-limit resets available",
             "rateLimitResetsUnsupportedWsl_one": "{{count}} reset available · not in WSL yet",
@@ -1314,9 +1215,6 @@
             "selectedCount_other": "{{count}} selected",
             "topLevelItems_one": "{{formattedCount}} top-level item",
             "topLevelItems_other": "{{formattedCount}} top-level items"
-          },
-          "antigravity": {
-            "unknownAccount": "Google account"
           },
           "resource": {
             "manager": {
@@ -1440,13 +1338,6 @@
           "wslWindowsOnly": "WSL CLI registration is only available on Windows."
         }
       },
-      "codex": {
-        "session": {
-          "restart": {
-            "4bd4a3a9c7": "System default"
-          }
-        }
-      },
       "dropFailureReason": {
         "changed": "The file changed while it was uploading. Try again.",
         "disconnected": "The host is disconnected.",
@@ -1542,16 +1433,6 @@
     "runtime": {
       "githubCheckDetailsTimeout": {
         "timedOut": "Timed out loading check details."
-      }
-    },
-    "store": {
-      "slices": {
-        "worktrees": {
-          "14bc053a47": "Local {{value0}} was not refreshed",
-          "903b51c2ed": "Workspace created from {{value0}}, but Orca could not fast-forward local {{value1}}. {{value2}}",
-          "localBaseRefRefreshFailedDescriptionNamed": "Workspace \"{{value0}}\" was created from {{value1}}, but Orca could not fast-forward local {{value2}}. {{value3}}",
-          "localBaseRefRefreshFailedForWorktree": "Local {{value0}} was not refreshed for \"{{value1}}\""
-        }
       }
     }
   },
@@ -2474,11 +2355,7 @@
       },
       "notice": {
         "importedCount_one": "Imported {{countLabel}} cookie",
-        "importedCount_other": "Imported {{countLabel}} cookies",
-        "importedMore_one": "Imported {{count}} cookie for {{domains}} +{{more}} more. Reload the page to use them.",
-        "importedMore_other": "Imported {{count}} cookies for {{domains}} +{{more}} more. Reload the page to use them.",
-        "imported_one": "Imported {{count}} cookie for {{domains}}. Reload the page to use them.",
-        "imported_other": "Imported {{count}} cookies for {{domains}}. Reload the page to use them."
+        "importedCount_other": "Imported {{countLabel}} cookies"
       }
     },
     "loadFailure": {
@@ -3085,11 +2962,6 @@
         "byteCount_one": "{{count}} byte",
         "byteCount_other": "{{count}} bytes"
       },
-      "question": {
-        "step": "Step {{value0}}",
-        "stepLabel": "{{value0}}, {{value1}} of {{value2}}: {{value3}}",
-        "title": "Question"
-      },
       "queuedMessages": {
         "editChanged": "This message changed while you were editing. Your edit is in the chat box.",
         "editChangedNotSaved": "This message changed while you were editing. Your edit wasn't saved.",
@@ -3286,25 +3158,12 @@
         "changedFiles_other": "{{count}} changed files"
       },
       "workerDock": {
-        "clear": "Clear",
-        "clearAllLabel_one": "Clear failed worker",
-        "clearAllLabel_other": "Clear all {{count}} failed workers",
-        "clearFailed": "Clear failed",
-        "clearName": "Clear {{name}}",
-        "close": "Close",
         "dismissed_one": "Dismissed 1 worker",
         "dismissed_other": "Dismissed {{count}} workers",
-        "doneResult": "Done · open result",
-        "hideDetails": "Hide details",
         "newQuestions_one": "{{count}} new worker question waiting on you",
         "newQuestions_other": "{{count}} new worker questions waiting on you",
-        "openWorker": "Open worker",
-        "restore": "Show in dock again",
-        "showDetails": "Show details",
-        "stopped": "Stopped",
         "workerCount_one": "{{count}} worker",
-        "workerCount_other": "{{count}} workers",
-        "workspaceRemoved": "This worker's workspace was removed"
+        "workerCount_other": "{{count}} workers"
       },
       "writeNotice": {
         "agentRefused": "The agent turned this down.",
@@ -3747,10 +3606,6 @@
     }
   },
   "settings": {
-    "accounts": {
-      "claudeRemoveProfile": "Orca deletes this account's own Claude folder and the sign-in saved in it on {{host}}. Your System default login and chat history shared with it stay. If it is selected, the next Claude you start uses System default.",
-      "codexRemoveHome": "Orca deletes this account's Codex folder on {{host}}, including its sign-in and MCP logins. This cannot be undone. If it is selected, the next Codex you start uses System default."
-    },
     "agents": {
       "defaultSurfaceKeptChat_one": "{{agents}} stays as a chat, as you set.",
       "defaultSurfaceKeptChat_other": "{{agents}} stay as chats, as you set.",
@@ -3762,11 +3617,6 @@
       "permissionOverridesFollow_other": "{{count}} agents now follow {{mode}}",
       "permissionOverridesKept_one": "{{count}} agent still uses their own permission setting:",
       "permissionOverridesKept_other": "{{count}} agents still use their own permission setting:"
-    },
-    "appearance": {
-      "statusBar": {
-        "antigravityToggleDescription": "Show Antigravity subscription usage for the active workspace."
-      }
     },
     "bots": {
       "connectorRequests": "{{count}} requests",
@@ -4054,9 +3904,6 @@
         "agentCouldNotStart": "{{label}} could not be started. Check the agent command in Settings and try again.",
         "agentFailedToStart": "{{label}} failed to start. Check the agent command in Settings and try again.",
         "agentReportedError": "{{label}} reported an error.",
-        "antigravityInvalidEvents": "Antigravity returned invalid JSON events.",
-        "antigravityInvalidResult": "Antigravity returned an invalid result.",
-        "antigravityNoFinalResult": "Antigravity returned no final result.",
         "chatNameAgentUnsupported": "Choose a supported chat name agent for this action in Settings -> Chat -> Chat names. Supported agents: {{agents}}, or Custom command.",
         "chatNameCustomCommandEmpty": "Custom command is empty. Add one in Settings -> Chat -> Chat names.",
         "cliFailed": "{{label}} CLI command failed with code {{exitCode}}.",
@@ -4165,10 +4012,6 @@
     }
   },
   "terminal": {
-    "claudeOldTerminalBanner": {
-      "dialogCause": "Terminals opened before this update don't, so claude here signs in with System default's login. Open a new terminal to use the selected account.",
-      "title": "This terminal was opened before Orca's Claude account update, so claude here uses System default's login."
-    },
     "newerDaemonBanner": {
       "reopenTerminal": "Reopen {{count}} terminals",
       "reopenTerminal_one": "Reopen terminal",

@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { lazyZodSchema } from '../../schema/lazy-zod-schema'
 import { isTerminalLeafId } from '../../workspace-layout/stable-pane-id'
 import { SleepCommand, StartPaneCommand, WakeCommand } from './workspace-layout-sleep-wake-params'
 import { RenameTabsCommand } from './workspace-layout-rename-tabs-params'
@@ -167,12 +168,14 @@ const SetTabPropsCommand = z.object({
   clearLaunchAgent: z.literal(true).optional()
 })
 
-const SetTabDockCommand = z.object({
-  type: z.literal('setTabDock'),
-  ...OnTab,
-  dock: z.union([z.literal('right-panel'), z.null()]),
-  groupId: z.string().min(1).optional()
-})
+const SetTabDockCommand = lazyZodSchema(() =>
+  z.object({
+    type: z.literal('setTabDock'),
+    ...OnTab,
+    dock: z.union([z.literal('right-panel'), z.null()]),
+    groupId: z.string().min(1).optional()
+  })
+)
 
 /** Preserve window-created browser tab/page IDs for immediate callers; refuse collisions and replay opens idempotently. */
 const OpenBrowserTabCommand = z.object({

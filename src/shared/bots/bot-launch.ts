@@ -5,6 +5,7 @@ import { parseStructuredLaunchSeedOptions } from '../native-chat/input/session-o
 import { AGENT_CHAT_PERMISSION_MODE_OPTION_ID } from '../agent-launch/permissions/agent-chat-permission-mode'
 import { encodeStructuredAgentSessionOptionValue } from '../agent-session/options/selection/structured-agent-session-option-codec'
 import { isAgentChatAccountChoice } from '../agent-launch/accounts/agent-chat-account-choice'
+import { lazyZodSchema } from '../schema/lazy-zod-schema'
 
 const ChoiceValue = z
   .string()
@@ -37,15 +38,17 @@ export const BotLaunchSchema = z
 export type BotLaunch = z.infer<typeof BotLaunchSchema>
 
 /** A bot's own account: System default or a saved account's id, never `host`. */
-export const BotAgentAccountSchema = z.string().refine(isAgentChatAccountChoice)
+export const BotAgentAccountSchema = lazyZodSchema(() =>
+  z.string().refine(isAgentChatAccountChoice)
+)
 
 /** A bot's launch choices for `agent`, absent on older bots and dropped by older hosts; a malformed
  *  value reads as unset rather than losing the whole bot. */
 export const BotLaunchFields = {
   /** The owner's model and options. */
-  launch: BotLaunchSchema.optional().catch(undefined),
+  launch: lazyZodSchema(() => BotLaunchSchema.optional().catch(undefined)),
   /** The saved account (or `system`) its new conversations start on; absent follows the host's. */
-  agentAccount: BotAgentAccountSchema.optional().catch(undefined)
+  agentAccount: lazyZodSchema(() => BotAgentAccountSchema.optional().catch(undefined))
 }
 
 /** The bot's launch as a new chat's seed options, or undefined when nothing seedable is picked.

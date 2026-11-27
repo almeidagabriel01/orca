@@ -18,6 +18,7 @@ import {
   AGENT_SESSION_HISTORY_MAX_LIMIT
 } from '../../agent-session/agent-session-wire'
 import * as z from 'zod'
+import { lazyZodSchema } from '../../schema/lazy-zod-schema'
 import { CREATE_TAB_FIELDS } from './structured-agent-session-create-tab-params'
 import { isStructuredAgentId } from '../../agent-session/lifecycle/provider-handles/agent-session-provider-handle-encoding'
 import { normalizeExecutionHostId } from '../../execution-host/execution-host'
@@ -271,10 +272,12 @@ export const ModelCatalogParams = z.strictObject({
   selectedModel: Identifier('Invalid selected model').optional()
 })
 
-export const SwitchAgentParams = z.strictObject({
-  envelope: MutationEnvelope,
-  target: z.custom<AgentSessionAgentSwitchTarget>(isAgentSessionAgentSwitchTarget)
-})
+export const SwitchAgentParams = lazyZodSchema(() =>
+  z.strictObject({
+    envelope: MutationEnvelope,
+    target: z.custom<AgentSessionAgentSwitchTarget>(isAgentSessionAgentSwitchTarget)
+  })
+)
 
 export const ConversationCommandParams = z
   .object({

@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { lazyZodSchema } from '../../schema/lazy-zod-schema'
 import { isRecord } from '../../agent-status/child-work/agent-status-child-work-value-guards'
 import {
   isAgentChatAccountChoice,
@@ -212,16 +213,18 @@ export type AgentSessionContextDividerFields = {
 }
 
 // Plain zod, not z.custom: saved journal storage closes every schema it stores.
-export const AgentSessionAgentSwitchMarkSchema = z.object({
-  kind: z.enum(['account', 'agent']),
-  fromAgent: z.string().min(1).max(64),
-  toAgent: z.string().min(1).max(64),
-  fromAccountLabel: z.string().min(1).max(MAX_LABEL).optional(),
-  toAccountLabel: z.string().min(1).max(MAX_LABEL).optional(),
-  handoff: z
-    .object({
-      excerpt: z.string().max(MAX_AGENT_SESSION_AGENT_SWITCH_EXCERPT_CHARS),
-      transcriptPath: z.string().min(1).max(MAX_PATH).optional()
-    })
-    .optional()
-})
+export const AgentSessionAgentSwitchMarkSchema = lazyZodSchema(() =>
+  z.object({
+    kind: z.enum(['account', 'agent']),
+    fromAgent: z.string().min(1).max(64),
+    toAgent: z.string().min(1).max(64),
+    fromAccountLabel: z.string().min(1).max(MAX_LABEL).optional(),
+    toAccountLabel: z.string().min(1).max(MAX_LABEL).optional(),
+    handoff: z
+      .object({
+        excerpt: z.string().max(MAX_AGENT_SESSION_AGENT_SWITCH_EXCERPT_CHARS),
+        transcriptPath: z.string().min(1).max(MAX_PATH).optional()
+      })
+      .optional()
+  })
+)

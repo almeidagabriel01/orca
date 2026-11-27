@@ -25814,7 +25814,14 @@
       "sideChat": {
         "tab": "Chat lateral",
         "close": "Fechar {{name}}",
-        "empty": "Nenhum chat lateral aqui. Digite /side ou /btw num chat para abrir um."
+        "new": "Novo chat lateral",
+        "newShort": "Novo",
+        "starting": "Iniciando…",
+        "prompt": "Faça uma pergunta paralela numa cópia de “{{name}}”. O chat continua.",
+        "slashHint": "Você também pode digitar /side no chat.",
+        "noSource": "Abra um chat neste workspace para fazer uma pergunta paralela.",
+        "cannotFork": "Este chat não pode iniciar chats laterais.",
+        "startFailed": "O chat lateral não iniciou. Tente de novo."
       }
     },
     "terminal": {

@@ -76,6 +76,7 @@ import { useNativeChatHostSendGate } from '@/components/native-chat/host-access/
 import { useStructuredAgentSessionStartFailureFacts } from '@/components/native-chat/messages/notices/use-structured-agent-session-start-failure-facts'
 import { pendingPromptsAllUnanswerableHere } from '../../../../shared/agent-session/requests/prompts/agent-session-approval-subject'
 import { NativeChatHostSetupContext } from '@/components/native-chat/host-access/native-chat-host-setup'
+import { usePublishSideChatSource } from '@/components/right-sidebar/side-chat/side-chat-sources'
 import type { NativeChatComposerHandle } from './composer/native-chat-composer-types'
 import {
   NativeChatWorkerApprovalTimeline,
@@ -201,6 +202,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
     ...paneCommands
   })
   const forks = useNativeChatPaneFork(props, controller, ownerWorktreeId)
+  usePublishSideChatSource(props.tabId, forks.sideChat)
   const transport = useNativeChatStructuredComposerTransport({
     props,
     controller,

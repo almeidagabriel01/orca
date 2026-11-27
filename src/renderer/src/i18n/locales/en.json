@@ -24745,7 +24745,14 @@
       "sideChat": {
         "tab": "Side chat",
         "close": "Close {{name}}",
-        "empty": "No side chats here. Type /side or /btw in a chat to start one."
+        "new": "New side chat",
+        "newShort": "New",
+        "starting": "Starting…",
+        "prompt": "Ask a side question in a copy of “{{name}}”. The chat keeps going.",
+        "slashHint": "You can also type /side in the chat.",
+        "noSource": "Open a chat in this workspace to ask it a side question.",
+        "cannotFork": "This chat can’t start side chats.",
+        "startFailed": "The side chat didn’t start. Try again."
       }
     }
   },

@@ -3,6 +3,7 @@ import type { AppState } from '@/store/types'
 import { findStructuredLaunchTab } from '@/lib/agent-session/launch/structured-agent-session-launch-surface'
 import { afterPendingTab } from '@/runtime/workspace-layout/intents/layout-owner-pending-tabs'
 import { requestNativeChatComposerFocus } from '../../composer/focus/native-chat-composer-focus-intent'
+import { useSideChatDockStore } from '../../../right-sidebar/side-chat/side-chat-dock-state'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 
 // Revealing a late side chat would yank the panel the user may already be reading.
@@ -46,6 +47,7 @@ export function beginNativeChatSideChatPlacement(worktreeId: string): NativeChat
     }
     state.setTabDock(tabId, 'right-panel')
     if (reveal) {
+      useSideChatDockStore.getState().selectTab(worktreeId, tabId)
       state.setRightSidebarTab('side-chat')
       state.setRightSidebarOpen(true)
       requestNativeChatComposerFocus(tabId)

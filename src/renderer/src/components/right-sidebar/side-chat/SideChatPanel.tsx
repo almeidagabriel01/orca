@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react'
-import { PanelRightClose, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { MessageSquareText, PanelRightClose, Plus, X } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/class-names'
@@ -15,6 +15,8 @@ import { useTabGroupTabCloseCommands } from '../../tab-group/workspace-model/use
 import { TerminalTabLeadingIcon } from '../../tab-bar/terminal-tabs/TerminalTabLeadingIcon'
 import { agentTypeToIconAgent } from '../../../../../shared/agent-status/presentation/agent-type-icon-agent'
 import { useTerminalTabActivity } from '../../tab-bar/terminal-tabs/use-terminal-tab-activity'
+import { selectFocusedChatTab } from '@/lib/focused-chat-workers'
+import { useSideChatSourceStore } from './side-chat-sources'
 import {
   SIDE_CHAT_DOCK_ANCHOR_KEY,
   isDockedChatTab,
@@ -58,9 +60,120 @@ function useSideChatDockFocusTracking(): void {
   }, [setFocused])
 }
 
-function useDockedChatTitle(tab: Tab): string {
+function useChatTabTitle(tab: Tab): string {
   const name = useStructuredChatTabConversationName(tab)
   return tab.customLabel?.trim() || name || tab.label
+}
+
+type NewSideChat = {
+  /** The center chat a new side chat forks from. */
+  sourceTab: Tab | null
+  /** Why none can start now; shown, never only on hover. */
+  unavailable: string | null
+  starting: boolean
+  /** Why the last start failed, while the same chat is focused. */
+  error: string | null
+  start: () => void
+}
+
+/** Starts a side chat from the workspace's focused center chat, as `/side` does with no question. */
+function useNewSideChat(worktreeId: string): NewSideChat {
+  const t = useTranslate()
+  const sourceTab = useAppStore((s) => selectFocusedChatTab(s, worktreeId))
+  const sourceTabId = sourceTab?.id
+  const sideChat = useSideChatSourceStore((s) => (sourceTabId ? s.byTabId[sourceTabId] : undefined))
+  const [starting, setStarting] = useState(false)
+  const [failure, setFailure] = useState<{ tabId: string; reason: string } | null>(null)
+  const unavailable = !sourceTab
+    ? t(
+        'components.rightSidebar.sideChat.noSource',
+        'Open a chat in this workspace to ask it a side question.'
+      )
+    : !sideChat
+      ? t('components.rightSidebar.sideChat.cannotFork', 'This chat can’t start side chats.')
+      : sideChat.notReadyReason
+  const start = (): void => {
+    if (starting || !sourceTabId) {
+      return
+    }
+    if (!sideChat || sideChat.notReadyReason) {
+      setFailure({ tabId: sourceTabId, reason: unavailable ?? '' })
+      return
+    }
+    setFailure(null)
+    setStarting(true)
+    void sideChat
+      .open('')
+      .then((result) => {
+        if ('refused' in result || !result.started) {
+          setFailure({
+            tabId: sourceTabId,
+            reason:
+              'refused' in result
+                ? result.refused
+                : t(
+                    'components.rightSidebar.sideChat.startFailed',
+                    'The side chat didn’t start. Try again.'
+                  )
+          })
+        }
+      })
+      .finally(() => setStarting(false))
+  }
+  const error = failure && failure.tabId === sourceTabId ? failure.reason : null
+  return { sourceTab, unavailable, starting, error, start }
+}
+
+function SourceChatPrompt({ tab }: { tab: Tab }): React.JSX.Element {
+  const t = useTranslate()
+  const name = useChatTabTitle(tab)
+  return (
+    <>
+      {t(
+        'components.rightSidebar.sideChat.prompt',
+        'Ask a side question in a copy of “{{name}}”. The chat keeps going.',
+        { name }
+      )}
+    </>
+  )
+}
+
+/** No side chat yet: what one is, where it forks from, and the one button that starts it. */
+function SideChatStart({ newChat }: { newChat: NewSideChat }): React.JSX.Element {
+  const t = useTranslate()
+  const { sourceTab, unavailable, starting, error, start } = newChat
+  const reason = error ?? (starting ? null : unavailable)
+  return (
+    <div className="scrollbar-sleek flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4">
+      <div className="flex w-full max-w-xs flex-col items-center gap-3 text-center">
+        <MessageSquareText className="size-5 text-muted-foreground" aria-hidden />
+        <div className="flex flex-col gap-1">
+          <h2 className="text-sm font-semibold text-foreground">
+            {t('components.rightSidebar.sideChat.tab', 'Side chat')}
+          </h2>
+          {sourceTab ? (
+            <p className="text-xs text-muted-foreground">
+              <SourceChatPrompt tab={sourceTab} />
+            </p>
+          ) : null}
+        </div>
+        <Button type="button" size="xs" disabled={starting || unavailable !== null} onClick={start}>
+          <Plus />
+          {starting
+            ? t('components.rightSidebar.sideChat.starting', 'Starting…')
+            : t('components.rightSidebar.sideChat.new', 'New side chat')}
+        </Button>
+        {reason ? (
+          <p className={cn('text-xs', error ? 'text-destructive' : 'text-muted-foreground')}>
+            {reason}
+          </p>
+        ) : null}
+        <p className="text-xs text-muted-foreground">
+          {t('components.rightSidebar.sideChat.slashHint', 'You can also type /side in the chat.')}
+        </p>
+      </div>
+    </div>
+  )
 }
 
 function DockedChatIcon({ tab, current }: { tab: Tab; current: boolean }): React.JSX.Element {
@@ -111,16 +224,41 @@ function IconAction({
 }
 
 /** The shown side chat's title, in front, with its two actions spelled out. */
-function DockedChatHeader({ tab, onClose }: { tab: Tab; onClose: () => void }): React.JSX.Element {
+function DockedChatHeader({
+  tab,
+  newChat,
+  onClose
+}: {
+  tab: Tab
+  newChat: NewSideChat
+  onClose: () => void
+}): React.JSX.Element {
   const t = useTranslate()
-  const title = useDockedChatTitle(tab)
+  const title = useChatTabTitle(tab)
   const moveToCenter = t('components.native-chat.sideChat.moveToCenter', 'Move to center')
+  const newLabel = newChat.starting
+    ? t('components.rightSidebar.sideChat.starting', 'Starting…')
+    : t('components.rightSidebar.sideChat.new', 'New side chat')
   return (
     <div className="flex h-10 shrink-0 items-center gap-2 pl-3 pr-2">
       <DockedChatIcon tab={tab} current />
       <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground" title={title}>
         {title}
       </h2>
+      <Button
+        type="button"
+        variant="outline"
+        size="xs"
+        className="shrink-0"
+        aria-label={newLabel}
+        disabled={newChat.starting}
+        onClick={newChat.start}
+      >
+        <Plus />
+        <span className="hidden @[27.5rem]:inline">
+          {newChat.starting ? newLabel : t('components.rightSidebar.sideChat.newShort', 'New')}
+        </span>
+      </Button>
       <Button
         type="button"
         variant="outline"
@@ -153,7 +291,7 @@ function DockedChatSwitchItem({
   current: boolean
   onSelect: () => void
 }): React.JSX.Element {
-  const title = useDockedChatTitle(tab)
+  const title = useChatTabTitle(tab)
   return (
     <button
       type="button"
@@ -172,7 +310,6 @@ function DockedChatSwitchItem({
 
 /** Hosts the active worktree's docked chats; the chat itself is the retained center slot, anchored over the body here. */
 export default function SideChatPanel(): React.JSX.Element {
-  const t = useTranslate()
   useSideChatDockFocusTracking()
   const worktreeId = useAppStore((s) => s.activeWorktreeId)
   const dockedTabs = useAppStore(
@@ -189,21 +326,24 @@ export default function SideChatPanel(): React.JSX.Element {
     [dockedTabs, selectedTabId]
   )
   const { closeItem } = useTabGroupTabCloseCommands({ worktreeId: worktreeId ?? '' })
+  const newChat = useNewSideChat(worktreeId ?? '')
 
   if (!worktreeId || dockedTabs.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center px-4 text-center text-xs text-muted-foreground">
-        {t(
-          'components.rightSidebar.sideChat.empty',
-          'No side chats here. Type /side or /btw in a chat to start one.'
-        )}
-      </div>
-    )
+    return <SideChatStart newChat={newChat} />
   }
   const currentTab = dockedTabs.find((tab) => tab.id === currentTabId) ?? dockedTabs[0]
   return (
     <div className="@container flex min-h-0 flex-1 flex-col bg-muted" data-side-chat-panel="">
-      <DockedChatHeader tab={currentTab} onClose={() => closeItem(currentTab.id)} />
+      <DockedChatHeader
+        tab={currentTab}
+        newChat={newChat}
+        onClose={() => closeItem(currentTab.id)}
+      />
+      {newChat.error ? (
+        <p className="shrink-0 px-3 pb-2 text-xs text-destructive" role="status">
+          {newChat.error}
+        </p>
+      ) : null}
       {dockedTabs.length > 1 ? (
         // Wraps instead of scrolling, so the transcript stays the only scroller.
         <div className="flex shrink-0 flex-wrap gap-1 px-2 pb-2">

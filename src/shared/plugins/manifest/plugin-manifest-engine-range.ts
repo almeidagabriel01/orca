@@ -1,12 +1,15 @@
 import { z } from 'zod'
 import { isForkAppVersion } from '../../app-lifecycle/identity/app-version'
+import { lazyZodSchema } from '../../schema/lazy-zod-schema'
 
 // Why: v0 supports only the ">=x.y.z" form. A closed grammar keeps the gate
 // predictable; richer ranges can be added without breaking old manifests.
-export const orcaEngineRangeSchema = z
-  .string()
-  .max(64)
-  .regex(/^>=\d+\.\d+\.\d+$/, 'must be a ">=x.y.z" version range')
+export const orcaEngineRangeSchema = lazyZodSchema(() =>
+  z
+    .string()
+    .max(64)
+    .regex(/^>=\d+\.\d+\.\d+$/, 'must be a ">=x.y.z" version range')
+)
 
 /** v0 engines gate: supports the ">=x.y.z" grammar the schema enforces. A prerelease host
  *  (`1.5.0-rc.1`) ranks below its release, as in semver, but a fork build (`1.5.0-fork.1`) does not; build metadata (`+…`) is ignored. */

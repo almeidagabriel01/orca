@@ -1,4 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron'
+import type { IpcHandleRegistrar } from './lazy-ipc-handle-group'
 import type {
   MemorySnapshot,
   SessionProcessTree
@@ -32,15 +33,15 @@ import {
 } from '../window/visibility/resource-view-admission'
 import type { ResourceViewAdmission } from '../../shared/diagnostics/resource-view-admission'
 
-export function registerMemoryHandlers(store: Store): void {
-  ipcMain.handle(
+export function registerMemoryHandlers(store: Store, ipc: IpcHandleRegistrar = ipcMain): void {
+  ipc.handle(
     'memory:getSnapshot',
     (event, admission?: ResourceViewAdmission): Promise<MemorySnapshot> => {
       assertResourceViewVisible(event, admission)
       return collectMemorySnapshot(store)
     }
   )
-  ipcMain.handle(
+  ipc.handle(
     'memory:getProcessTree',
     (
       event,
@@ -54,7 +55,7 @@ export function registerMemoryHandlers(store: Store): void {
       return collectSessionProcessTree(sessionId, () => collectMemorySnapshot(store))
     }
   )
-  ipcMain.handle(
+  ipc.handle(
     'memory:heavyQueueAction',
     (event, action: unknown, admission?: ResourceViewAdmission): Promise<void> => {
       assertResourceViewVisible(event, admission)
@@ -62,9 +63,9 @@ export function registerMemoryHandlers(store: Store): void {
     }
   )
   // Why no admission: the run-host router reads it with the Resource Manager closed.
-  ipcMain.handle('memory:heavyQueue', () => collectHeavyCommandQueue(store))
+  ipc.handle('memory:heavyQueue', () => collectHeavyCommandQueue(store))
   const moveDeps = createHeavyJobMoveDeps(() => localRepos(store.getRepos()))
-  ipcMain.handle(
+  ipc.handle(
     'memory:heavyJobMoveSource',
     (event, pid: unknown, admission?: ResourceViewAdmission): Promise<HeavyJobMoveSource> => {
       assertResourceViewVisible(event, admission)
@@ -74,7 +75,7 @@ export function registerMemoryHandlers(store: Store): void {
       )
     }
   )
-  ipcMain.handle(
+  ipc.handle(
     'memory:heavyJobTargetCheck',
     (event, request: unknown, admission?: ResourceViewAdmission): Promise<HeavyJobTargetCheck> => {
       assertResourceViewVisible(event, admission)
@@ -82,12 +83,12 @@ export function registerMemoryHandlers(store: Store): void {
     }
   )
   // No admission: the renderer polls this only while the document is visible.
-  ipcMain.handle('memory:getHeavyQueueCounts', () => readHeavyQueueCounts())
-  ipcMain.handle('memory:readPerfNoticeSignals', () => readPerfNoticeSignals(store))
-  ipcMain.handle('memory:countHiddenBrowserPages', (_event, hiddenForMs: unknown) =>
+  ipc.handle('memory:getHeavyQueueCounts', () => readHeavyQueueCounts())
+  ipc.handle('memory:readPerfNoticeSignals', () => readPerfNoticeSignals(store))
+  ipc.handle('memory:countHiddenBrowserPages', (_event, hiddenForMs: unknown) =>
     countHiddenBrowserPages(typeof hiddenForMs === 'number' ? hiddenForMs : 0)
   )
-  ipcMain.handle('memory:resourceWindowVisible', (event) =>
+  ipc.handle('memory:resourceWindowVisible', (event) =>
     isResourceWindowVisible(BrowserWindow.fromWebContents(event.sender))
   )
 }

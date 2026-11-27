@@ -73,6 +73,7 @@
 4 src/renderer/src/store/slices/editor/tabs/editor-open-target-group.ts
 1 src/renderer/src/store/slices/editor/tabs/workspace-editor-files.ts
 4 src/renderer/src/store/slices/tabs/create-tabs-slice.ts
+2 src/renderer/src/store/slices/tabs/docked-tab-placement.ts # window-owner path for setTabDock; main owner uses the setTabDock command
 12 src/renderer/src/store/slices/tabs/rename-worktree-layout.ts
 2 src/renderer/src/store/slices/tabs/tab-group-reference-repair.ts
 4 src/renderer/src/store/slices/tabs/tab-group-state.ts
